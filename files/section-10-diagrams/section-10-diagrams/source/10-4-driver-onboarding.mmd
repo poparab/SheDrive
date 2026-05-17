@@ -1,0 +1,42 @@
+flowchart TB
+    Start([Start]) --> S1["Register with<br/>mobile + OTP"]
+    S1 --> S2["Submit profile<br/>information"]
+    S2 --> S3["Submit National ID<br/>+ live selfie"]
+    S3 --> S4{"Identity<br/>verified?"}
+    S4 -->|No| Reject1["Onboarding<br/>rejected"]
+    S4 -->|Yes| S5["Upload driving license<br/>(front + back)"]
+
+    S5 --> S6{"License valid<br/>format & expiry?"}
+    S6 -->|No| Reject1
+    S6 -->|Yes| S7["Upload vehicle<br/>registration & insurance"]
+
+    S7 --> S8["Upload vehicle<br/>exterior photos"]
+    S8 --> S9{"Vehicle meets<br/>eligibility criteria?"}
+    S9 -->|No| Reject1
+    S9 -->|Yes| S10["Provide background<br/>check consent"]
+
+    S10 --> S11["Background check<br/>submitted to provider"]
+    S11 --> S12{"Background<br/>cleared?"}
+    S12 -->|No| Reject1
+    S12 -->|Yes| S13["Documents submitted<br/>for admin review"]
+
+    S13 --> S14["Admin reviews<br/>full submission"]
+    S14 --> S15{"Admin<br/>decision?"}
+    S15 -->|Reject| Reject2["Rejected with<br/>captured reason"]
+    S15 -->|Approve| S16["Account activated"]
+    S16 --> S17["Driver selects<br/>working zones"]
+    S17 --> S18["Driver goes online<br/>and is matchable"]
+    S18 --> End([Active driver])
+
+    Reject1 --> RejectEnd([Notified with reason])
+    Reject2 --> RejectEnd
+
+    classDef start fill:#DCFCE7,stroke:#16A34A,stroke-width:2px,color:#14532D
+    classDef process fill:#E8F4FD,stroke:#2563EB,stroke-width:1px,color:#1E3A8A
+    classDef decision fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#78350F
+    classDef reject fill:#FEE2E2,stroke:#DC2626,stroke-width:2px,color:#7F1D1D
+
+    class Start,End start
+    class S1,S2,S3,S5,S7,S8,S10,S11,S13,S14,S16,S17,S18 process
+    class S4,S6,S9,S12,S15 decision
+    class Reject1,Reject2,RejectEnd reject

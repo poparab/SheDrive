@@ -1,0 +1,43 @@
+flowchart TB
+    Start(["Trip in progress"]) --> M{"Payment method<br/>selected at booking"}
+
+    M -->|Digital| D1["Pre-authorise estimated<br/>fare on saved card"]
+    D1 --> D2["Trip continues"]
+    D2 --> D3["Trip completes —<br/>final fare calculated"]
+    D3 --> D4["Capture final amount<br/>via PSP"]
+    D4 --> D5{"Capture<br/>successful?"}
+    D5 -->|Yes| D6["Receipt generated<br/>& sent to Rider"]
+    D5 -->|No| D7["Mark payment failure"]
+    D7 --> D8["Notify Rider — block<br/>future bookings until resolved"]
+    D8 --> D9["Allow retry or<br/>alternative card"]
+    D9 --> D5
+
+    M -->|Cash| C1["No pre-auth required"]
+    C1 --> C2["Trip continues"]
+    C2 --> C3["Trip completes —<br/>final fare displayed"]
+    C3 --> C4["Driver confirms<br/>cash received"]
+    C3 --> C5["Rider confirms<br/>cash paid"]
+    C4 --> C6{"Both<br/>confirmed?"}
+    C5 --> C6
+    C6 -->|Yes| C7["Trip closed"]
+    C6 -->|No / dispute| C8["Routed to Ops<br/>dispute workflow"]
+    C7 --> C9["Update Driver cash<br/>balance ledger"]
+    C9 --> C10["Receipt generated"]
+
+    D6 --> Comm["Calculate platform<br/>commission"]
+    C10 --> Comm
+    Comm --> EndOK(["Trip settled"])
+    C8 --> EndDispute(["Dispute resolution"])
+
+    classDef start fill:#DCFCE7,stroke:#16A34A,stroke-width:2px,color:#14532D
+    classDef digital fill:#E8F4FD,stroke:#2563EB,stroke-width:1px,color:#1E3A8A
+    classDef cash fill:#FEF3C7,stroke:#D97706,stroke-width:1px,color:#78350F
+    classDef decision fill:#F3E8FF,stroke:#7C3AED,stroke-width:2px,color:#4C1D95
+    classDef ending fill:#FEE2E2,stroke:#DC2626,stroke-width:2px,color:#7F1D1D
+
+    class Start start
+    class D1,D2,D3,D4,D6,D7,D8,D9 digital
+    class C1,C2,C3,C4,C5,C7,C8,C9,C10 cash
+    class M,D5,C6 decision
+    class Comm digital
+    class EndOK,EndDispute ending

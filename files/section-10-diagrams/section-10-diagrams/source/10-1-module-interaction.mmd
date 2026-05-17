@@ -1,0 +1,30 @@
+flowchart TB
+    %% User-Facing Surfaces row
+    subgraph UF["User-Facing Surfaces"]
+        direction LR
+        RA["📱 Rider App"] ~~~ DA["📱 Driver App"] ~~~ AP["💻 Admin & Operations Portal"]
+    end
+
+    %% Domain Capabilities row
+    subgraph DC["Domain Capabilities"]
+        direction LR
+        IV["🔐 Identity &<br/>Verification"] ~~~ TD["🚗 Trip & Dispatch<br/>Engine"] ~~~ PY["💳 Payments<br/>(Cash + Digital)"] ~~~ PZ["📍 Pricing &<br/>Neighborhood Zones"] ~~~ SS["🆘 Safety & SOS"]
+    end
+
+    %% Cross-Cutting row
+    subgraph CC["Cross-Cutting Capabilities"]
+        direction LR
+        NT["🔔 Notifications"] ~~~ RP["📊 Reporting & Analytics"]
+    end
+
+    UF ==>|"consume capabilities"| DC
+    DC ==>|"emit events &amp; data"| CC
+    UF -.->|"deliver alerts"| CC
+
+    classDef surface fill:#DBEAFE,stroke:#1E40AF,stroke-width:2px,color:#1E3A8A
+    classDef domain fill:#FEF3C7,stroke:#B45309,stroke-width:2px,color:#78350F
+    classDef cross fill:#DCFCE7,stroke:#15803D,stroke-width:2px,color:#14532D
+
+    class RA,DA,AP surface
+    class IV,TD,PY,PZ,SS domain
+    class NT,RP cross

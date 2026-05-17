@@ -1,0 +1,95 @@
+flowchart TB
+    %% Top row: Rider and Driver side-by-side
+    subgraph TopRow[" "]
+        direction LR
+        subgraph RiderLane["━━━ Rider ━━━"]
+            direction TB
+            RiderActor(["👤 Rider"])
+            UC1(("Register & Verify<br/>Identity"))
+            UC2(("Book Ride"))
+            UC3(("Track Trip"))
+            UC4(("Pay for Trip"))
+            UC5(("Rate &<br/>Feedback"))
+            UC6r(("Trigger SOS"))
+            UC7(("Share Live Trip"))
+
+            RiderActor --- UC1
+            RiderActor --- UC2
+            RiderActor --- UC3
+            RiderActor --- UC4
+            RiderActor --- UC5
+            RiderActor --- UC6r
+            RiderActor --- UC7
+        end
+
+        subgraph DriverLane["━━━ Driver ━━━"]
+            direction TB
+            DriverActor(["👤 Driver"])
+            UC1d(("Register & Verify<br/>Identity"))
+            UC8(("Onboard as<br/>Driver"))
+            UC9(("Accept / Decline<br/>Request"))
+            UC10(("Execute Trip"))
+            UC11(("View Earnings"))
+            UC12(("Settle Cash"))
+            UC6d(("Trigger SOS"))
+
+            DriverActor --- UC1d
+            DriverActor --- UC8
+            DriverActor --- UC9
+            DriverActor --- UC10
+            DriverActor --- UC11
+            DriverActor --- UC12
+            DriverActor --- UC6d
+        end
+    end
+
+    %% Bottom row: Back-office full width
+    subgraph BackLane["━━━ Back-Office ━━━"]
+        direction LR
+        UC13(("Approve Drivers"))
+        UC14(("Monitor Active<br/>Rides"))
+        UC15(("Manage SOS<br/>Incidents"))
+        UC16(("Configure Zones<br/>& Pricing"))
+        UC17(("Reconcile<br/>Payments"))
+        UC18(("View Reports"))
+
+        AdminActor(["👤 Administrator"])
+        OpsActor(["👤 Ops Supervisor"])
+        SupportActor(["👤 Customer Support"])
+        FinanceActor(["👤 Finance"])
+        ComplianceActor(["👤 Compliance"])
+        MgmtActor(["👤 Management"])
+
+        AdminActor --- UC13
+        AdminActor --- UC14
+        AdminActor --- UC16
+        ComplianceActor --- UC13
+        OpsActor --- UC14
+        OpsActor --- UC15
+        SupportActor --- UC15
+        FinanceActor --- UC17
+        MgmtActor --- UC18
+    end
+
+    %% External actors below
+    Trusted(["👥 Trusted Contact"])
+    PSP(["⚙ PSP"])
+    IDV(["⚙ Identity Provider"])
+
+    UC7 -.-> Trusted
+    UC6r -.-> Trusted
+    UC4 -.-> PSP
+    UC1 -.-> IDV
+    UC1d -.-> IDV
+
+    classDef actor fill:#F3E8FF,stroke:#7C3AED,stroke-width:2px,color:#4C1D95
+    classDef ext fill:#FEE2E2,stroke:#DC2626,stroke-width:2px,color:#7F1D1D
+    classDef rideruc fill:#DBEAFE,stroke:#1E40AF,stroke-width:1px,color:#1E3A8A
+    classDef driveruc fill:#FEF3C7,stroke:#B45309,stroke-width:1px,color:#78350F
+    classDef backuc fill:#DCFCE7,stroke:#15803D,stroke-width:1px,color:#14532D
+
+    class RiderActor,DriverActor,AdminActor,OpsActor,SupportActor,FinanceActor,ComplianceActor,MgmtActor actor
+    class Trusted,PSP,IDV ext
+    class UC1,UC2,UC3,UC4,UC5,UC6r,UC7 rideruc
+    class UC1d,UC8,UC9,UC10,UC11,UC12,UC6d driveruc
+    class UC13,UC14,UC15,UC16,UC17,UC18 backuc

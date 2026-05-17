@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(py -m http.server *)",
+      "Bash(curl http://localhost:*)",
+      "Bash(ls *)",
+      "Bash(dir *)",
+      "Bash(cd /e/SheDrive/shedrive_driver/lib && find . -type f | head -80 && echo \"---RIDER---\" && cd /e/SheDrive/shedrive_rider/lib && find . -type f | head -80)",
+      "Bash(npm list *)",
+      "Bash(npm install *)",
+      "Bash(node build-pptx.js)",
+      "Bash(node -e \"require\\('pptxgenjs'\\)\")",
+      "Bash(python scripts/office/soffice.py --headless --convert-to pdf SheDrive-MVP-Presentation.pptx)",
+      "Bash(python -c ' *)",
+      "Bash(where soffice *)",
+      "Read(//c/Program Files/LibreOffice/program/**)",
+      "Read(//c/Program Files \\(x86\\)/LibreOffice/program/**)",
+      "Bash(python -m markitdown SheDrive-MVP-Presentation.pptx)",
+      "Bash(python -m markitdown /e/SheDrive/SheDrive-MVP-Presentation.pptx)"
+    ]
+  }
+}

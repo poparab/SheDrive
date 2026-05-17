@@ -1,0 +1,41 @@
+flowchart TB
+    Start(["⚠ SOS Triggered<br/>(Rider or Driver)"]) --> A1["Auto-capture context<br/>(location, trip ID,<br/>rider & driver details)"]
+    A1 --> A2["Push real-time alert<br/>to Ops SOS queue"]
+    A2 --> A3["Notify Trusted Contacts<br/>with live trip link"]
+    A2 --> T1{"Tier 1: Operator<br/>responds within<br/>SLA?"}
+
+    T1 -->|Yes| OP1["Operator contacts<br/>Rider and/or Driver"]
+    T1 -->|No — SLA breach| ESC1["Auto-escalate<br/>to Supervisor"]
+
+    OP1 --> R1{"Situation<br/>resolved?"}
+    R1 -->|Yes| LOG1["Log incident outcome<br/>and close"]
+    R1 -->|No| ESC1
+
+    ESC1 --> T2{"Tier 2: Supervisor<br/>responds within<br/>SLA?"}
+    T2 -->|Yes| OP2["Supervisor takes<br/>direct ownership"]
+    T2 -->|No — SLA breach| ESC2["Escalate to External<br/>Authority handoff"]
+
+    OP2 --> R2{"Situation<br/>resolved?"}
+    R2 -->|Yes| LOG1
+    R2 -->|No| ESC2
+
+    ESC2 --> EXT["Tier 3: Hand off to<br/>external authority<br/>using prescribed script"]
+    EXT --> LOG2["Log full incident<br/>including handoff"]
+
+    LOG1 --> FU["Post-incident<br/>follow-up workflow"]
+    LOG2 --> FU
+    FU --> End(["Incident closed<br/>with review notes"])
+
+    classDef start fill:#FEE2E2,stroke:#DC2626,stroke-width:3px,color:#7F1D1D
+    classDef tier1 fill:#E8F4FD,stroke:#2563EB,stroke-width:1px,color:#1E3A8A
+    classDef tier2 fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#78350F
+    classDef tier3 fill:#FCA5A5,stroke:#B91C1C,stroke-width:2px,color:#7F1D1D
+    classDef decision fill:#F3E8FF,stroke:#7C3AED,stroke-width:2px,color:#4C1D95
+    classDef ending fill:#DCFCE7,stroke:#16A34A,stroke-width:2px,color:#14532D
+
+    class Start start
+    class A1,A2,A3,OP1 tier1
+    class ESC1,OP2 tier2
+    class ESC2,EXT,LOG2 tier3
+    class T1,T2,R1,R2 decision
+    class LOG1,FU,End ending

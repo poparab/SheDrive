@@ -1,0 +1,37 @@
+stateDiagram-v2
+    [*] --> Requested: Rider submits<br/>ride request
+
+    Requested --> Searching: System begins<br/>matching
+    Searching --> Assigned: Driver accepts
+    Searching --> NoDriver: Timeout /<br/>no eligible driver
+    NoDriver --> Searching: Retry with<br/>backoff
+    NoDriver --> CancelledNoDriver: Max retries<br/>exceeded
+
+    Requested --> CancelledByRider: Rider cancels<br/>before assignment
+    Searching --> CancelledByRider: Rider cancels<br/>before assignment
+
+    Assigned --> DriverArrived: Driver confirms<br/>arrival
+    Assigned --> CancelledByRider: Rider cancels<br/>(fee may apply)
+    Assigned --> CancelledByDriver: Driver cancels<br/>(reassignment)
+
+    DriverArrived --> InProgress: Driver starts trip
+    DriverArrived --> CancelledByRider: Rider cancels<br/>(fee may apply)
+    DriverArrived --> CancelledByDriver: Driver cancels
+
+    InProgress --> Completed: Driver completes<br/>at destination
+
+    Completed --> [*]
+    CancelledByRider --> [*]
+    CancelledByDriver --> [*]
+    CancelledNoDriver --> [*]
+
+    note right of InProgress
+        Real-time location streamed.
+        SOS available to both parties.
+    end note
+
+    note right of Completed
+        Triggers fare capture
+        (digital) or dual confirmation
+        (cash) and rating flow.
+    end note

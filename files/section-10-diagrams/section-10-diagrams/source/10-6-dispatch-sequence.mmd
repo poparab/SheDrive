@@ -1,0 +1,41 @@
+sequenceDiagram
+    autonumber
+    participant R as Rider
+    participant RA as Rider App
+    participant TD as Trip & Dispatch Engine
+    participant PZ as Pricing & Zones
+    participant DA as Driver App
+    participant D as Driver
+    participant N as Notifications
+
+    R->>RA: Set pickup, destination,<br/>payment method, child decl.
+    RA->>PZ: Request fare estimate<br/>for origin zone
+    PZ-->>RA: Estimated fare + duration
+    RA->>R: Show fare estimate
+    R->>RA: Confirm & submit request
+    RA->>TD: Submit ride request
+
+    TD->>TD: Filter eligible drivers<br/>(zone, online, rating)
+    TD->>TD: Rank by proximity
+
+    loop Until accepted or exhausted
+        TD->>DA: Broadcast request<br/>(timer starts)
+        DA->>D: Show request popup<br/>with timer
+        alt Driver accepts within timeout
+            D->>DA: Tap Accept
+            DA->>TD: Acceptance (atomic lock)
+            TD-->>DA: Lock confirmed
+            TD->>RA: Driver assigned
+            RA->>R: Show driver info card
+            TD->>N: Notify rider & driver
+        else Driver declines or timeout
+            DA->>TD: Decline / no response
+            TD->>TD: Move to next driver
+        end
+    end
+
+    alt No driver found after retries
+        TD->>RA: No driver available
+        RA->>R: Notify and offer retry
+        TD->>N: Log event
+    end
