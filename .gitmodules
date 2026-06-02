@@ -1,0 +1,3 @@
+[submodule "shedrive-web"]
+	path = shedrive-web
+	url = https://github.com/poparab/SheDrive-web.git

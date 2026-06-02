@@ -1,6 +1,6 @@
-# SheDrive — Claude Code Instructions
+# SheDrive — Codex Instructions
 
-This file is loaded automatically by Claude Code in every session. Follow all rules below exactly.
+This file is loaded automatically by Codex in every session. Follow all rules below exactly.
 
 ---
 
@@ -12,7 +12,7 @@ This file is loaded automatically by Claude Code in every session. Follow all ru
 Three pillars: live in-vehicle cameras · SOS direct line to Ministry of Interior (aspirational) · first-aid-trained drivers.
 Driver supply includes male drivers (opt-in, never default) to avoid the liquidity failure that killed Fyonka and Pink Taxi.
 
-**Working directory:** `D:\Claude\SheDrive\shedrive-web\`
+**Working directory:** `D:\Codex\SheDrive\shedrive-web\`
 **To serve locally (Windows):** `py -m http.server 8000` from `shedrive-web\`
 Then open `http://localhost:8000/rider/`
 
@@ -313,10 +313,10 @@ The SheDrive backlog is split across two teams in Azure DevOps (project: SheDriv
 
 Stories are classified by type and prefixed in the title:
 
-| Prefix     | Track                                            | Team       |
-|------------|--------------------------------------------------|------------|
-| `[Admin]`  | Admin portal screens, workflows, config          | Web / Main |
-| `[Mobile]` | Rider and Driver app screens and flows           | Mobile     |
+| Prefix     | Track                                          | Team       |
+|------------|------------------------------------------------|------------|
+| `[Admin]`  | Admin portal screens, workflows, config        | Web / Main |
+| `[Mobile]` | Rider and Driver app screens and flows         | Mobile     |
 | `[API]`    | Backend API contracts consumed by the Mobile app | Web / Main |
 
 When a Mobile feature needs a backend counterpart, write two stories with matching
@@ -354,9 +354,9 @@ Use the Mapbox script only on screens that render a map.
 
 ---
 
-## Recommended `.claude/settings.local.json`
+## Recommended `.Codex/settings.local.json`
 
-Put this at `D:\Claude\SheDrive\.claude\settings.local.json` to reduce permission prompts:
+Put this at `D:\Codex\SheDrive\.Codex\settings.local.json` to reduce permission prompts:
 
 ```json
 {
