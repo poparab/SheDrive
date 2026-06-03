@@ -2,6 +2,10 @@
 ~$*.xlsx
 ~$*.docx
 
+# Node dependencies
+node_modules/
+.codex/mcp/vendor/
+
 # OS
 .DS_Store
 Thumbs.db

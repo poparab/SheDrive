@@ -97,7 +97,6 @@ Rules:
 |---|---|---|---|
 | `shedrive.session` | localStorage | JSON `{role, phone, loginAt}` | Active auth session |
 | `shedrive.lang` | localStorage | string `'ar'\|'en'` | Language preference |
-| `shedrive.identityVerified` | localStorage | string `'1'` | First-time ID verify done |
 | `shedrive.pendingTrip` | sessionStorage | JSON `{pickup, destination}` | Home → Matching handoff |
 | `shedrive.activeTrip` | sessionStorage | JSON `{driver, trip}` | Matching → Active Trip handoff |
 | `shedrive.completedRating` | sessionStorage | string `'1'` | Rating submitted flag |
@@ -266,9 +265,7 @@ function showToast(msg, type = 'info') {
 ```
 index.html (Splash overlay → Login)
    │
-   ├─ first login → verify-identity.html (3-step ID + selfie)
-   │                        │
-   └─ returning ────────────┴──► home.html (Book a Ride)
+   └──► home.html (Book a Ride)
                                       │
                                  menu ├──► [Drawer] ──► Logout ──► index.html
                                       │
@@ -293,7 +290,6 @@ index.html (Splash overlay → Login)
 | File | Description |
 |---|---|
 | `rider/index.html` | Splash overlay + phone OTP login |
-| `rider/verify-identity.html` | 3-step ID verification (first login only) |
 | `rider/home.html` | Map + pickup/destination + request ride |
 | `rider/matching.html` | Searching for driver (3.5s auto-advance) |
 | `rider/active-trip.html` | Live trip: map + driver card + SOS + demo-end |
