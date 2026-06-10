@@ -9,25 +9,28 @@
 
 ### ✅ In MVP
 - [ ] Phone + OTP registration and login
-- [ ] Identity verification (National ID + selfie, one-time before first trip)
 - [ ] Map-based pickup + destination selection
 - [ ] Fare estimate before booking
-- [ ] Child accompaniment declaration (under 12)
+- [ ] Child-passenger declaration (per trip; permits a child to ride — the only women-only exception)
 - [ ] Payment method selection (Cash / Digital card)
 - [ ] Ride request submission
+- [ ] Schedule a one-time ride in advance (no recurring)
+- [ ] Booking blocked while a payment failure is unresolved
+- [ ] Service-closed state outside operating hours
 - [ ] Real-time driver tracking on map
-- [ ] In-app communication with driver (masked call / chat)
 - [ ] Ride cancellation
 - [ ] Fare display + payment completion
 - [ ] Rating & feedback after trip
 - [ ] Trip history
 - [ ] Arabic ⇄ English language switch
-- [ ] Live trip sharing (shareable link)
+- [ ] Live trip sharing with trusted contacts on SOS
 - [ ] Trusted contacts management
 - [ ] SOS button
 
 ### ❌ Not in MVP
-- Ride scheduling / recurring bookings
+- Recurring / repeating scheduled bookings
+- Rider identity verification (National ID + selfie) — women-only is enforced by the driver's visual confirmation at first trip
+- In-app communication with driver (masked call / chat)
 - Ride pooling / shared rides
 - Premium / family-plus service tier selection
 - In-app wallet top-up and balance usage
@@ -48,7 +51,6 @@
 - [ ] Background check consent flow
 - [ ] Onboarding status tracker
 - [ ] Online / Offline toggle
-- [ ] Working zone selection
 - [ ] Ride request handling (accept / decline)
 - [ ] Navigation deep-link to external maps (Google Maps / Apple Maps)
 - [ ] Trip lifecycle controls (arrived → start trip → end trip)
@@ -57,12 +59,13 @@
 - [ ] Digital payment status visibility
 - [ ] Earnings dashboard
 - [ ] Cash balance ledger (amount owed to platform)
-- [ ] Driver rating view
-- [ ] In-app communication with rider (masked call / chat)
+- [ ] Driver rating view (overall aggregate rating)
 - [ ] Arabic ⇄ English language switch
 - [ ] SOS button
 
 ### ❌ Not in MVP
+- Driver working-zone selection
+- In-app communication with rider (masked call / chat)
 - Automated payouts / in-app bank transfer to driver
 - In-app driver wallet
 - Scheduled shift management
@@ -111,17 +114,23 @@
 
 ## Module 4 — Identity & Verification
 
+> **Riders are not subject to automated identity verification.** The women-only
+> guarantee for riders is enforced by the driver's visual confirmation at the
+> rider's first trip (a declared child passenger is the only exception). The
+> verification items below apply to **drivers only**.
+
 ### ✅ In MVP
-- [ ] National ID OCR (Egyptian National ID)
-- [ ] ID validity check + duplicate check
-- [ ] Liveness detection (selfie capture)
-- [ ] Face match (selfie vs ID photo)
-- [ ] Age eligibility check (≥ 18)
-- [ ] Gender eligibility check (women-only enforcement)
+- [ ] National ID OCR (Egyptian National ID) — drivers only
+- [ ] ID validity check + duplicate check — drivers only
+- [ ] Liveness detection (selfie capture) — drivers only
+- [ ] Face match (selfie vs ID photo) — drivers only
+- [ ] Age eligibility check (≥ 21) — drivers only
+- [ ] Gender eligibility check (women-only enforcement) — drivers only
 - [ ] Driving license validation (drivers only)
 - [ ] Vehicle document + vehicle eligibility verification (drivers only)
-- [ ] Background check provider integration (drivers only)
+- [ ] Background check consent + provider integration (drivers only)
 - [ ] Manual review queue for edge cases
+- [ ] Rider women-only enforcement via driver visual confirmation at first trip
 
 ### ❌ Not in MVP
 - AI-driven risk scoring during onboarding
