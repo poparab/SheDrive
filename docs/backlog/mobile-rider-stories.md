@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-06-03
+> Last updated: 2026-06-10
 > Stories with changes from original are marked ✏️
 
 ---
@@ -17,7 +17,7 @@
 **Description:** As a rider, I want to register an account using my phone number and a one-time passcode so that I can access the SheDrive app with a verified identity.
 
 ### Background
-The rider registration flow consists of two screens. Screen 1 collects the rider's Egyptian mobile number and, on tapping "إرسال الرمز" (Send Code), triggers OTP dispatch via #1620. Screen 2 collects the 6-digit OTP (auto-submits on the 6th digit entry) and the rider's full name, then creates the account via #1621. On success, the rider is taken to the home screen with an active session. If the phone number is already registered, the app displays a message and a link to the login flow.
+The rider registration flow consists of two screens. Screen 1 collects the rider's Egyptian mobile number and, on tapping "إرسال الرمز" (Send Code), triggers OTP dispatch via #1620. Screen 2 collects the 6-digit OTP (auto-submits on the 6th digit entry) and the rider's full name, then creates the account via #1621. On success, the rider is taken to the home screen with an active session. If the phone number is already registered, #1621 auto-logs her in and she is taken to the home screen with an active session — no conflict error is shown.
 
 ### Field Validation
 
@@ -34,11 +34,12 @@ The rider registration flow consists of two screens. Screen 1 collects the rider
 - When she enters a valid Egyptian mobile number, receives and enters the correct 6-digit OTP, and enters a valid full name
 - Then her account is created and she is taken to the home screen with an active session
 
-**Scenario 2 — Phone number already registered**
+**Scenario 2 — Phone number already registered auto-logs the rider in**
 - Given a rider enters a phone number that is already linked to an existing account
 - When she taps "إرسال الرمز"
 - Then the OTP is still sent (the server sends it regardless per #1620)
-- And after OTP entry, the app detects the conflict via #1621 and displays "هذا الرقم مسجل بالفعل. سجّل الدخول بدلاً من ذلك" with a link to the login screen
+- And after OTP + name entry, #1621 detects the existing account and auto-logs her in with a session token
+- And she is taken to the home screen with an active session
 
 **Scenario 3 — OTP expires before entry**
 - Given a rider received an OTP but did not enter it within 5 minutes
@@ -88,7 +89,7 @@ The rider registration flow consists of two screens. Screen 1 collects the rider
 
 ---
 
-## [Mobile] #1546 — Rider logs in
+## [Mobile] #1546 — Rider logs in ✏️
 **Feature:** Feature 2 — Rider Authentication | **Sprint:** 1
 
 **Description:** As a rider, I want to log in to my existing account using my phone number and a one-time passcode so that I can access the app without remembering a password.
@@ -132,7 +133,25 @@ The rider login flow consists of two screens. Screen 1 collects the rider's phon
 - Then the button is disabled showing a countdown
 - And after 60 seconds, a new OTP is sent on tap
 
-**Scenario 6 — Network error**
+**Scenario 6 — Invalid phone number format**
+- Given a rider enters a phone number that does not match 01[0125]XXXXXXXX
+- When she taps "إرسال الرمز"
+- Then the error "رقم الهاتف غير صحيح. أدخل رقماً مصرياً صحيحاً" is displayed inline
+- And no OTP is sent
+
+**Scenario 7 — OTP resend during 60-second cooldown**
+- Given a rider has just received an OTP
+- When she taps "إعادة إرسال الرمز" before 60 seconds have elapsed
+- Then the button is disabled and shows remaining seconds
+- And no new OTP is sent until the cooldown expires
+
+**Scenario 8 — OTP resend after cooldown expires**
+- Given 60 seconds have elapsed since the previous OTP request
+- When the rider taps "إعادة إرسال الرمز"
+- Then the button is active
+- And a new OTP is sent immediately
+
+**Scenario 9 — Network error**
 - Given the device has no internet connection
 - When the rider taps "إرسال الرمز"
 - Then the app displays "تحقق من اتصالك بالإنترنت وحاول مرة أخرى"
@@ -170,7 +189,7 @@ The logout action is accessible from the app's menu or profile screen. Tapping l
 **Scenario 2 — Session is rejected after logout**
 - Given a rider has successfully logged out
 - When any subsequent request is made using the old session token (e.g., app is reopened)
-- Then the token is rejected by #1619 and the rider is shown the login screen
+- Then the token is rejected by #1744 and the rider is shown the login screen
 
 **Scenario 3 — Network error during logout**
 - Given the device has no internet connection when the rider taps "تسجيل الخروج"
@@ -187,6 +206,69 @@ The logout action is accessible from the app's menu or profile screen. Tapping l
 
 ### Dependencies
 - #1624 — User session is invalidated on logout (must be live)
+
+---
+
+## [Mobile] #1745 — Rider session persists across app restarts
+**Feature:** Feature 2 — Rider Authentication | **Sprint:** 1
+
+**Description:** As a rider, I want the app to keep me logged in between sessions so that I don't have to go through OTP verification every time I open the app.
+
+### Background
+After a successful login or registration the session token is stored in the device's secure storage (iOS Keychain / Android Keystore — never in plain SharedPreferences or AsyncStorage). On every app launch and on each foreground resume event the app reads the stored token and validates it silently against the backend. If the token is valid the rider is taken directly to the home screen with no OTP prompt. If no token is found or the server rejects the token the local session is cleared and the rider is shown the splash/login screen. Any 401 response from a protected endpoint during an active session also clears the stored token immediately and redirects the rider to the login screen.
+
+### Scenario 1 — Valid stored token → home screen on relaunch
+- Given a rider has previously logged in and her session token is stored in secure storage
+- When she relaunches the app
+- Then the app validates the token silently in the background
+- And she is taken directly to the home screen with no OTP or login prompt
+
+### Scenario 2 — No stored token → login screen
+- Given the device has no stored session token (first launch or after logout)
+- When the app launches
+- Then the rider is shown the splash/login screen
+- And no background validation request is made
+
+### Scenario 3 — Expired token on launch → login screen
+- Given a rider's stored token has passed its 30-day lifetime
+- When the app validates it on launch and the server returns 401
+- Then the local token is cleared from secure storage
+- And the rider is shown the login screen
+
+### Scenario 4 — Mid-session 401 → clear session and redirect to login
+- Given a rider is actively using the app and any API call returns 401
+- When the app intercepts the 401 response
+- Then the stored session token is cleared from secure storage
+- And the rider is navigated to the login screen
+- And a message is shown indicating her session has expired
+
+### Scenario 5 — Token is stored in secure storage only
+- Given a session token is issued after login or registration
+- When the token is persisted on the device
+- Then it is stored exclusively in iOS Keychain (iOS) or Android Keystore (Android)
+- And it is never written to plain SharedPreferences, AsyncStorage, or any unencrypted store
+
+### Scenario 6 — Token is cleared on explicit logout
+- Given a rider taps تسجيل الخروج (#1547)
+- When logout completes
+- Then the session token is removed from secure storage
+- And the next app launch shows the login screen with no auto-login attempt
+
+### Scenario 7 — Network unavailable on launch → offline grace period
+- Given a rider has a valid stored token but the device has no internet on launch
+- When background validation times out
+- Then the rider is shown the home screen using the cached session
+- And the next network request that returns 401 triggers Scenario 4
+
+### Out of Scope
+- Biometric re-authentication
+- Token refresh or silent renewal
+- Multi-device session management
+- Session timeout on inactivity
+
+### Dependencies
+- #1744 — Auth middleware validates session tokens (must be live)
+- #1547 — Rider logs out (token must be cleared on logout)
 
 ---
 
@@ -435,48 +517,6 @@ Once both pickup and destination are set on the home screen (#1548), the app aut
 
 ---
 
-## [Mobile] #1553 — Rider submits trip request
-**Feature:** Feature 8 — Trip Request & Matching | **Sprint:** 2
-
-**Description:** As a rider, I want to submit a trip request from the home screen so that I can be matched with a nearby driver.
-
-### Background
-The rider has already set her pickup location and destination on the home screen and has seen the fare estimate. When she taps "Request Ride," the app sends her trip request to the platform and navigates her to the matching screen. The home screen inputs are not re-validated here — all validation occurred before the estimate was shown. The rider should experience a near-instant transition with no loading friction.
-
-### Acceptance Criteria
-
-**Scenario 1 — Successful trip request submission**
-- Given the rider is authenticated and on the home screen with a valid pickup and destination set
-- When she taps "Request Ride"
-- Then the app sends the trip request to the platform
-- And the rider is immediately navigated to the matching screen (#1554)
-- And a loading indicator is shown briefly during the network call
-
-**Scenario 2 — Network error during submission**
-- Given the rider taps "Request Ride"
-- When the network request fails (timeout or connectivity loss)
-- Then a toast message is shown: "Something went wrong. Please try again."
-- And the rider remains on the home screen with her pickup and destination still populated
-
-**Scenario 3 — Server error during submission**
-- Given the rider taps "Request Ride"
-- When the platform returns a server-side error
-- Then a toast message is shown: "Unable to submit request. Please try again."
-- And the rider remains on the home screen
-
-### Out of Scope
-- Fare confirmation screen
-- Scheduled rides
-- Multiple stop trips
-- Promo code entry
-- Trip cancellation flow
-
-### Dependencies
-- #1629 — Rider creates trip request (API — must be live)
-- #1554 — Rider sees matching screen (must be built)
-
----
-
 ## [Mobile] #1554 — Rider sees matching screen
 **Feature:** Feature 8 — Trip Request & Matching | **Sprint:** 2
 
@@ -569,146 +609,10 @@ When a driver accepts the trip, the matching screen transitions to display a dri
 
 ---
 
-## [Mobile] #1556 — Rider receives push on match confirmation ✏️
-**Feature:** Feature 8 — Trip Request & Matching | **Sprint:** 2
-
-**Description:** As a rider, I want to receive a push notification when a driver is matched to my request so that I am informed even if the app is running in the background.
-
-### Background
-After a driver accepts the trip, the platform sends a push notification to the rider's device. The notification content is: "Driver found! [Driver name] is on the way." If the rider taps the notification while the app is in the background or closed, the app opens directly to the active trip screen. If the app is already in the foreground, the notification is handled silently and the UI transitions automatically without showing an OS-level banner.
-
-### Acceptance Criteria
-
-**Scenario 1 — Push notification delivered while app is in background**
-- Given the rider's app is in the background and a driver has accepted the trip
-- When the platform sends the match-confirmation push
-- Then the rider's device displays a notification with the title "Driver found!" and body "[Driver name] is on the way."
-- And tapping the notification opens the app to the active trip screen
-
-**Scenario 2 — Push notification delivered while app is in foreground**
-- Given the rider's app is in the foreground on the matching screen
-- When the match-confirmation push arrives
-- Then the app transitions automatically to the driver card / active trip view
-- And no duplicate OS-level banner is shown unnecessarily
-
-**Scenario 3 — Push notification token not registered**
-- Given the rider's device token has not been registered with the platform
-- When the platform attempts to send the match-confirmation push
-- Then the push silently fails (no crash)
-- And the rider still sees the driver card when she returns to the app (via polling)
-
-**Scenario 4 — Push tapped when app is closed**
-- Given the rider's app is fully closed
-- When she taps the match-confirmation push notification
-- Then the app launches and navigates directly to the active trip screen
-- And the rider does not have to navigate manually
-
-**Scenario 5 — Notification delivered in the rider's preferred language**
-- Given the rider's language preference (`shedrive.lang`) is set to "ar" or "en"
-- When the platform dispatches the match-confirmation push notification
-- Then the notification title and body are rendered in the rider's preferred language
-- And Arabic ("ar") is used as the default when no language preference is stored
-- And the platform maintains both Arabic and English versions of all push notification templates
-
-### Out of Scope
-- Push notification settings management
-- SMS fallback for push delivery failures
-- In-app notification inbox
-
-### Dependencies
-- #1618 — Push notification service integration (must be live)
-- #1634 — Match confirmation push trigger (API — must be live)
-
----
-
-## [Mobile] #1557 — Rider sees no-driver error and returns home
-**Feature:** Feature 8 — Trip Request & Matching | **Sprint:** 2
-
-**Description:** As a rider, I want to see a clear message when no driver is available so that I understand what happened and can easily try again.
-
-### Background
-If all dispatched drivers reject the trip or their acceptance windows expire, or if no online drivers are within range when the request is submitted, the platform marks the trip as expired and notifies the rider. The rider is shown a full-screen or prominent error state with a human-friendly message and a single call-to-action to return to the home screen and resubmit. The rider should not feel abandoned — the screen must convey that the situation is temporary.
-
-### Acceptance Criteria
-
-**Scenario 1 — No-driver error screen displays correctly**
-- Given the platform has marked the rider's trip as expired (no driver found)
-- When the matching screen receives the no_driver status
-- Then the rider sees the message "No drivers available right now"
-- And a supportive sub-message is shown (e.g., "Please try again in a few minutes")
-- And a "Try Again" button is displayed prominently
-
-**Scenario 2 — Rider taps "Try Again"**
-- Given the no-driver error screen is displayed
-- When the rider taps "Try Again"
-- Then the rider is returned to the home screen
-- And her previously entered pickup and destination are pre-populated
-- And she can immediately re-submit the request
-
-**Scenario 3 — Rider receives push notification for no-driver**
-- Given the platform has expired the trip
-- When the push notification is received (from #1632)
-- Then the notification reads "We couldn't find a driver. Please try again."
-- And tapping the notification while app is backgrounded opens the app to the no-driver error screen
-
-**Scenario 4 — Network error prevents status update**
-- Given the rider is on the matching screen and the network is lost
-- When connectivity is restored
-- And the poll returns no_driver status
-- Then the no-driver error screen is shown correctly
-
-### Out of Scope
-- Automatic retry without rider action
-- Queueing the request for when a driver becomes available
-- Driver availability map
-
-### Dependencies
-- #1632 — Trip expires and rider is notified via push (API — must be live)
-
----
-
 ### Feature 10 — Active Trip (Rider)
 
 ---
 
-## [Mobile] #1558 — Rider sees driver live location while waiting
-**Feature:** Feature 10 — Active Trip | **Sprint:** 2
-
-**Description:** As a rider, I want to see the driver's moving location on the map while she heads to my pickup so that I know how close she is.
-
-### Background
-After a driver accepts the trip, the rider's active trip screen displays a map with two pins: the rider's pickup location and the driver's current position as a moving dot. The driver's ETA to the pickup is displayed and updated every 5 seconds as the platform receives new GPS coordinates. The rider remains on this screen until the driver marks arrival.
-
-### Acceptance Criteria
-
-**Scenario 1 — Driver location dot appears on rider's map**
-- Given a driver has accepted the rider's trip
-- When the rider opens the active trip screen
-- Then a moving dot representing the driver's location is visible on the map
-- And the rider's pickup pin is also shown
-
-**Scenario 2 — Driver location updates in near real time**
-- Given the active trip screen is displayed in en_route_pickup state
-- When the platform receives a new GPS position from the driver
-- Then the driver's dot moves to the updated position within 5 seconds
-- And the displayed ETA refreshes accordingly
-
-**Scenario 3 — Rider stays on screen until driver arrives**
-- Given the trip is in en_route_pickup state
-- When the rider is viewing the active trip screen
-- Then no automatic navigation away from the screen occurs
-- And the screen updates automatically when the driver marks arrival
-
-### Out of Scope
-- Turn-by-turn route preview for the rider
-- ETA notifications via push during this phase
-- SOS functionality
-
-### Dependencies
-- #1633 — Rider retrieves live trip state and driver location (must be live)
-- #1653 — Driver streams GPS from acceptance to completion (must be live)
-
----
 
 ## [Mobile] #1559 — Rider sees driver-arrived state
 **Feature:** Feature 10 — Active Trip | **Sprint:** 2
@@ -716,7 +620,7 @@ After a driver accepts the trip, the rider's active trip screen displays a map w
 **Description:** As a rider, I want my screen to update when the driver arrives so that I know to head to the pickup point.
 
 ### Background
-When the driver taps "I've Arrived" and the trip state advances to arrived_pickup, the rider's active trip screen automatically transitions to a "Your driver has arrived" state. The map continues to show the driver's pin at the pickup location. No action is required from the rider on this screen — she simply proceeds to board.
+When the driver taps "I've Arrived" and the trip state advances to arrived_pickup, the rider's active trip screen automatically transitions to a "Your driver has arrived" state. A waiting counter starts from 0:00 and increments each second until the driver taps "Start Trip" and the state advances to trip_started. The map continues to show the driver's pin at the pickup location. No action is required from the rider on this screen — she simply proceeds to board.
 
 ### Acceptance Criteria
 
@@ -738,10 +642,19 @@ When the driver taps "I've Arrived" and the trip state advances to arrived_picku
 - Then no buttons requiring rider input are shown
 - And the screen simply instructs her to board
 
+**Scenario 4 — Waiting counter starts when driver arrives**
+- Given the trip state has advanced to arrived_pickup
+- When the rider views the active trip screen
+- Then a waiting counter is displayed starting from 0:00
+- And the counter increments each second
+- And the counter is visible alongside the "Your driver has arrived" message
+- And the counter stops when the trip state advances to trip_started
+
 ### Out of Scope
 - Automated check-in for the rider
 - Geofence detection on the rider's device
 - SOS functionality
+- Waiting fee calculation or billing (separate story if needed)
 
 ### Dependencies
 - #1633 — Rider retrieves live trip state and driver location (must be live)
@@ -794,13 +707,15 @@ When the driver taps "I've Arrived", the platform sends a push notification to t
 
 ---
 
-## [Mobile] #1561 — Rider sees driver live location during trip
+## [Mobile] #1561 — Rider sees driver live location and details during trip
 **Feature:** Feature 10 — Active Trip | **Sprint:** 2
 
-**Description:** As a rider, I want to see the driver's moving location on the map while we travel to the destination so that I can follow our progress.
+**Description:** As a rider, I want to see the driver's moving location on the map and the driver's name, photo, and vehicle details throughout the trip so that I can follow our progress and confirm I am with the correct driver.
 
 ### Background
 Once the driver taps "Start Trip" and the state advances to trip_started, the rider's map updates to show the driver's location moving toward the destination. The destination pin is visible on the map. GPS coordinates received from the driver every 5 seconds update the moving dot in near real time. The rider remains on this screen until the trip ends.
+
+Throughout the active trip — from en_route_pickup through trip_ended — the rider sees a persistent driver card on the active trip screen. The card displays the driver's name, profile photo (or a placeholder avatar if no photo is set), vehicle make and model, vehicle color, and license plate number. This information is sourced from the trip details returned by the platform.
 
 ### Acceptance Criteria
 
@@ -820,51 +735,33 @@ Once the driver taps "Start Trip" and the state advances to trip_started, the ri
 - When the driver taps "End Trip" and the state advances to trip_ended
 - Then the rider's screen automatically transitions to the trip summary
 
-### Out of Scope
-- Route polyline rendering on the rider's map
-- Estimated arrival time to destination for the rider
-- SOS functionality
-
-### Dependencies
-- #1633 — Rider retrieves live trip state and driver location (must be live)
-- #1653 — Driver streams GPS from acceptance to completion (must be live)
-
----
-
-## [Mobile] #1562 — Rider sees driver details during trip
-**Feature:** Feature 10 — Active Trip | **Sprint:** 2
-
-**Description:** As a rider, I want to see the driver's name, photo, and vehicle details throughout the trip so that I can confirm I am with the correct driver.
-
-### Background
-Throughout the active trip — from en_route_pickup through trip_ended — the rider sees a persistent driver card on the active trip screen. The card displays the driver's name, profile photo (or a placeholder avatar if no photo is set), vehicle make and model, vehicle color, and license plate number. This information is sourced from the trip details returned by the platform.
-
-### Acceptance Criteria
-
-**Scenario 1 — Driver card shows name and vehicle details**
+**Scenario 4 — Driver card shows name and vehicle details**
 - Given the rider is on the active trip screen in any active state
 - When the driver card is rendered
 - Then the driver's full name is displayed
 - And the vehicle make, model, color, and plate number are displayed
 
-**Scenario 2 — Driver photo or placeholder is shown**
+**Scenario 5 — Driver photo or placeholder is shown**
 - Given the rider is viewing the driver card
 - When the driver has a profile photo on file
 - Then the driver's profile photo is shown in the card avatar
 - And when the driver has no profile photo, a placeholder avatar is shown instead
 
-**Scenario 3 — Driver card is visible across all active states**
+**Scenario 6 — Driver card is visible across all active states**
 - Given the trip is in en_route_pickup, arrived_pickup, or trip_started state
 - When the rider views the active trip screen
 - Then the driver card remains visible without requiring any action
 
 ### Out of Scope
+- Route polyline rendering on the rider's map
+- Estimated arrival time to destination for the rider
 - Rider-initiated contact with the driver (chat or call)
 - Sharing driver details with a third party from this screen
 - SOS functionality
 
 ### Dependencies
 - #1633 — Rider retrieves live trip state and driver location (must be live)
+- #1653 — Driver streams GPS from acceptance to completion (must be live)
 
 ---
 
@@ -1037,7 +934,7 @@ The rating screen shows a 5-star selector where the rider taps to choose a ratin
 **Description:** As a rider, I want to skip rating so that I can go home quickly without being forced to provide feedback.
 
 ### Background
-A "Skip" option is available on both the trip summary screen and the rating screen. When the rider taps "Skip", no rating is submitted and the rider is taken directly to the home screen. The skip action is final — the rider cannot return to rate the same trip. The trip is still recorded as complete and visible in trip history.
+A "Skip" option is available on both the trip summary screen and the rating screen. When the rider taps "Skip", no rating is submitted and the rider is taken directly to the home screen. The post-trip rating prompt is no longer shown for that trip. The rider can still rate the trip later by opening the trip detail screen in her trip history (#1568). The trip is still recorded as complete and visible in trip history.
 
 ### Acceptance Criteria
 
@@ -1053,20 +950,19 @@ A "Skip" option is available on both the trip summary screen and the rating scre
 - Then the rider is taken to the home screen
 - And no rating submission is made
 
-**Scenario 3 — Skip is final — rider cannot return to rate**
+**Scenario 3 — Post-trip rating screen is no longer accessible after skip**
 - Given the rider has skipped the rating for a trip
 - When she navigates back in the app
-- Then the rating screen for that trip is no longer accessible
-- And the trip is shown as complete in trip history without a rating
+- Then the post-trip rating screen for that trip is no longer accessible
+- And the trip is visible in trip history with a "Rate this trip" prompt in the detail screen (#1568)
 
 **Scenario 4 — Trip is still visible in history after skip**
 - Given the rider has skipped the rating
 - When the trip is viewed in trip history
 - Then the trip record is present and complete
-- And no rating is shown for that trip
+- And a "Rate this trip" prompt is shown in the trip detail screen (#1568)
 
 ### Out of Scope
-- Prompting the rider to rate at a later time
 - Partial rating save
 - SOS functionality
 
@@ -1123,13 +1019,13 @@ Riders access trip history from the menu or profile section of the app. The list
 
 ---
 
-## [Mobile] #1568 — Rider views past trip detail ✏️
+## [Mobile] #1568 — Rider views past trip detail and rates unrated trips ✏️
 **Feature:** Feature 12 — Trip History | **Sprint:** 2
 
-**Description:** As a rider, I want to view the full details of a past trip so that I can understand the fare breakdown and confirm where I travelled.
+**Description:** As a rider, I want to view the full details of a past trip and submit a rating if I skipped it after the trip, so that I can review my journey and still provide feedback at my convenience.
 
 ### Background
-When a rider taps a row in her trip history list, she is taken to the trip detail screen. This screen shows the complete picture of that trip: timing, addresses, fare breakdown, and who drove her. If she previously submitted a star rating for this trip, that rating is also shown. The screen is read-only — no actions are available.
+When a rider taps a row in her trip history list, she is taken to the trip detail screen. This screen shows the complete picture of that trip: timing, addresses, fare breakdown, and who drove her. If she previously submitted a star rating, it is displayed. If she skipped the post-trip rating prompt, a "Rate this trip" section appears so she can still submit a rating.
 
 ### Acceptance Criteria
 
@@ -1139,11 +1035,13 @@ When a rider taps a row in her trip history list, she is taken to the trip detai
 - Then it displays: date and time, pickup address, destination address, total fare (EGP), fare breakdown (base fare + distance charge + time charge), trip duration, distance travelled, driver name, and vehicle information
 - And the star rating she submitted is shown
 
-**Scenario 2 — Rider views detail of an unrated trip**
+**Scenario 2 — Rider submits a rating for an unrated trip**
 - Given the rider has navigated to the detail screen for a past trip she did not rate
 - When the screen loads
 - Then all trip details are shown as in Scenario 1
-- And the rating section is absent or shows a placeholder indicating no rating was given
+- And a "Rate this trip" section is displayed with a five-star control
+- When she selects a star rating and taps "Submit"
+- Then the rating is submitted and the screen updates to show the submitted rating in place of the prompt
 
 **Scenario 3 — Rider navigates back to the list**
 - Given the rider is on the trip detail screen
@@ -1151,7 +1049,7 @@ When a rider taps a row in her trip history list, she is taken to the trip detai
 - Then she is returned to the trip history list at the same scroll position
 
 ### Out of Scope
-- Submitting or editing a rating from this screen
+- Editing a previously submitted rating
 - Disputing a fare
 - Contacting the driver
 - SOS history
@@ -1159,3 +1057,288 @@ When a rider taps a row in her trip history list, she is taken to the trip detai
 ### Dependencies
 - #1641 — Rider retrieves trip history (must be live)
 - #1639 — Rider submits driver rating (rating data source)
+
+---
+
+## [Mobile] #1724 — Rider views and edits her profile 🆕
+**Feature:** Feature 2 — Rider Authentication | **Sprint:** 2
+
+**Description:** As a rider, I want to view and edit my profile information so that I can keep my account details current.
+
+### Background
+The profile screen is accessible from the menu or drawer. It displays the rider's registered phone number (read-only), full name, email (if provided), and language preference. The rider can edit her full name. Changes are submitted to #1721 and validated before saving.
+
+### Field Validation
+
+| Field | Required | Format | Min | Max | Accepted characters | Error — empty | Error — invalid format | Error — length |
+|---|---|---|---|---|---|---|---|---|
+| Full name | Yes | Arabic and/or Latin letters and spaces only | 2 chars | 50 chars | Arabic letters, Latin letters, spaces | أدخلي اسمك الكامل | الاسم يجب أن يحتوي على حروف فقط | الاسم يجب أن يكون بين 2 و50 حرفاً |
+
+### Acceptance Criteria
+
+**Scenario 1 — Rider opens her profile**
+- Given an authenticated rider navigates to the profile screen
+- When the page loads
+- Then her registered phone number, full name, email, and language preference are displayed
+
+**Scenario 2 — Rider edits her name**
+- Given the rider is on her profile screen
+- When she taps the edit button next to her name and enters a valid name
+- Then the name is updated after validation
+- And a success message is shown
+
+**Scenario 3 — Invalid name format**
+- Given the rider enters a name containing digits or special characters
+- When she taps "Save"
+- Then the error "الاسم يجب أن يحتوي على حروف فقط" is shown
+- And the change is not saved
+
+**Scenario 4 — Language preference is shown**
+- Given the rider is on her profile screen
+- When she views the language section
+- Then the current language preference (ar or en) is indicated
+- And a link to change it is available (leading to #1729)
+
+### Out of Scope
+- Changing phone number
+- Email verification
+- Photo upload
+- Profile deletion
+
+### Dependencies
+- #1721 — Rider retrieves and updates her profile (API — must be live)
+
+---
+
+## [Mobile] #1729 — Rider changes language preference from profile screen 🆕
+**Feature:** Feature 2 — Rider Authentication | **Sprint:** 2
+
+**Description:** As a rider, I want to change my language preference from the profile screen so that the app displays all content in my chosen language.
+
+### Background
+A language selector on the profile screen allows the rider to toggle between Arabic (ar) and English (en). Upon selection, the preference is saved to the backend via #1728 and the entire app UI updates immediately to reflect the new language without requiring a refresh.
+
+### Acceptance Criteria
+
+**Scenario 1 — Rider changes language to English**
+- Given the rider is on her profile screen with language set to Arabic
+- When she taps the English option
+- Then the preference is saved via #1728
+- And the entire app UI updates to English immediately
+
+**Scenario 2 — Rider changes language to Arabic**
+- Given the rider is on her profile screen with language set to English
+- When she taps the Arabic option
+- Then the preference is saved via #1728
+- And the entire app UI updates to Arabic immediately
+
+**Scenario 3 — Language change persists across sessions**
+- Given the rider has changed her language preference
+- When she closes and reopens the app
+- Then all content is displayed in her chosen language
+
+**Scenario 4 — Network error during save**
+- Given the rider taps a language option
+- When the network request to #1728 fails
+- Then a toast error is shown
+- And the language remains unchanged
+
+### Out of Scope
+- Regional language variants
+- Device language sync
+
+### Dependencies
+- #1728 — User language preference is stored and retrieved (API — must be live)
+
+---
+
+### Feature 17 — Payments (Rider)
+
+---
+
+## [Mobile] #1732 — Rider selects a payment method 🆕
+**Feature:** Feature 17 — Payments | **Sprint:** 2
+
+**Description:** As a rider, I want to select my preferred payment method before or after a trip so that I can choose between cash and card payment.
+
+### Background
+A payment method selector is accessible from the profile screen or during trip completion. The rider can choose between "Cash" and "Debit/Credit Card". The selection is persisted via #1730 and used as the default for future trips. (Card payment processing is handled by #1734 at trip completion; this story focuses only on selection and persistence.)
+
+### Acceptance Criteria
+
+**Scenario 1 — Rider selects cash payment**
+- Given the rider is on the payment method screen
+- When she taps "Cash"
+- Then the selection is saved via #1730
+- And "Cash" is marked as the default payment method
+
+**Scenario 2 — Rider selects card payment**
+- Given the rider is on the payment method screen
+- When she taps "Debit/Credit Card"
+- Then the selection is saved via #1730
+- And "Card" is marked as the default payment method
+
+**Scenario 3 — Payment method preference persists**
+- Given the rider has selected a payment method
+- When she completes trips and returns to the payment screen
+- Then her previously selected method is shown as the default
+
+**Scenario 4 — Network error during selection**
+- Given the rider taps a payment method
+- When the save request fails
+- Then a toast error is shown
+- And the payment method remains unchanged
+
+### Out of Scope
+- Card details entry (deferred to #1734)
+- Payment processing
+- Refunds
+
+### Dependencies
+- #1730 — Rider selects payment method for trip (API — must be live)
+
+---
+
+## [Mobile] #1734 — Rider completes online card payment at trip end 🆕
+**Feature:** Feature 17 — Payments | **Sprint:** 2
+
+**Description:** As a rider, I want to pay by card at the end of my trip so that I don't need to carry cash.
+
+### Background
+When a trip ends and the rider has selected "Card" as the payment method, the trip summary screen displays a "Pay Now" button instead of a cash collection notice. Tapping "Pay Now" opens a payment processing screen (via #1733) where the rider's card details can be entered or a saved card can be selected. On successful payment, a receipt is shown and the rider is taken to the home screen.
+
+### Acceptance Criteria
+
+**Scenario 1 — Happy path: rider completes card payment**
+- Given the trip has ended and the rider's payment method is "Card"
+- When the trip summary screen loads
+- Then a "Pay Now" button is displayed with the total fare
+- And tapping "Pay Now" opens the payment processing screen
+
+**Scenario 2 — Payment success flow**
+- Given the rider has entered valid card details
+- When the payment is processed successfully via #1733
+- Then a success receipt is shown
+- And the rider is taken to the home screen
+
+**Scenario 3 — Payment failure**
+- Given the rider enters invalid card details or the payment provider declines
+- When the payment is processed
+- Then an error message is shown
+- And the rider can retry or cancel
+
+**Scenario 4 — Network error during payment**
+- Given a network error occurs during payment processing
+- When the request fails
+- Then a clear error message is shown
+- And the rider can retry
+
+### Out of Scope
+- Card tokenization or storage
+- Payment refunds
+- Multiple card management
+
+### Dependencies
+- #1733 — Trip fare is charged to rider's card at trip completion (API — must be live)
+
+---
+
+### Feature 19 — Scheduled Rides (Rider)
+
+---
+
+## [Mobile] #1737 — Rider schedules a ride in advance 🆕
+**Feature:** Feature 19 — Scheduled Rides | **Sprint:** 2
+
+**Description:** As a rider, I want to schedule a ride for a future date and time so that I can book transportation ahead of time.
+
+### Background
+[TBD - Placeholder for future scheduled ride functionality. Content to be added when the feature is designed.]
+
+### Acceptance Criteria
+
+**Scenario 1 — [TBD]**
+- [TBD]
+
+### Out of Scope
+- Recurring scheduled rides
+- Scheduled ride modification after booking
+
+### Dependencies
+- #1738 — Rider creates a scheduled trip request (API — must be live)
+
+---
+
+### Feature 20 — Trip Cancellation (Rider)
+
+---
+
+## [Mobile] #1719 — Rider cancels a trip 🆕
+**Feature:** Feature 20 — Trip Cancellation | **Sprint:** 2
+
+**Description:** As a rider, I want to cancel an active trip request so that I can change my mind before a driver accepts and I'm not charged a fare.
+
+### Background
+A cancel button is available on both the matching screen (#1554) and the active trip screen until the driver has marked arrival. Tapping it shows a confirmation dialog. Upon confirmation, the rider calls #1715 to cancel the trip. The trip is immediately cancelled with no fare charge, and the rider is returned to the home screen.
+
+### Acceptance Criteria
+
+**Scenario 1 — Rider cancels during matching phase**
+- Given the rider is on the matching screen
+- When she taps "Cancel"
+- Then a confirmation dialog appears asking to confirm cancellation
+- And upon confirmation, the trip is cancelled with no fare charged
+- And the rider is returned to the home screen
+
+**Scenario 2 — Rider cancels before driver arrival**
+- Given the trip is in accepted state and the driver is en route
+- When the rider taps "Cancel"
+- Then a confirmation dialog appears
+- And upon confirmation, the trip is cancelled with no fare charged
+
+**Scenario 3 — Cancellation is final**
+- Given the rider has cancelled the trip
+- When she returns to the home screen
+- Then the trip is no longer visible in active state
+- And she can immediately submit a new trip request
+
+**Scenario 4 — Network error during cancellation**
+- Given the rider taps "Cancel" and confirms
+- When the network request fails
+- Then a toast is shown indicating the cancellation failed
+- And the rider remains on the current screen
+
+### Out of Scope
+- Cancellation fees or penalties
+- Cancelling after driver arrival
+- Reason collection for cancellation
+
+### Dependencies
+- #1715 — Rider cancels a trip (API — must be live)
+
+---
+
+### Feature 21 — Emergency & Safety (Rider)
+
+---
+
+## [Mobile] #1723 — Rider triggers SOS during active trip 🆕
+**Feature:** Feature 21 — Emergency & Safety | **Sprint:** 2
+
+**Description:** As a rider, I want to trigger an SOS alert during an active trip so that emergency assistance can be dispatched immediately.
+
+### Background
+This is a placeholder story. The SOS and emergency flow is SheDrive's primary safety differentiator — direct line to the Ministry of Interior — and requires dedicated requirements-gathering with the operations and legal teams before implementation can begin. The full scope will be defined in a future sprint. This story must not be picked up for development until replaced with a complete specification.
+
+### Acceptance Criteria
+
+**Scenario 1 — PLACEHOLDER**
+- Given [TBD]
+- When the rider activates SOS during an active trip
+- Then [TBD — full scenarios to be defined in a future sprint]
+
+### Out of Scope
+- All implementation details — pending requirements
+
+### Dependencies
+- TBD — requires Ministry of Interior integration specification

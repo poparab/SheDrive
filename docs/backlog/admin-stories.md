@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-06-03
+> Last updated: 2026-06-09
 > Stories with changes from original are marked ✏️
 
 ---
@@ -745,3 +745,402 @@ The completed trip detail screen extends the general trip detail screen (#1671) 
 - #1675 — Trip detail with state history is served (must be live)
 - #1637 — Completed trip is served with fare breakdown (fare data source)
 - #1639 — Rider submits driver rating (rating data source)
+
+---
+
+## [Admin] #1740 — Operations admin suspends a rider account 🆕
+**Feature:** Feature 13 — Admin Rider Management | **Sprint:** 2
+
+**Description:** As an operations admin, I want to suspend a rider's account so that I can enforce safety policies or investigate account violations.
+
+### Background
+Accessible from the rider profile screen (#1662), this action allows the admin to immediately suspend a rider's account. The rider's existing sessions are invalidated and she cannot log in again until reinstated. A reason for suspension must be recorded.
+
+### Field Validation
+
+| Field | Required | Format | Min | Max | Error |
+|---|---|---|---|---|---|
+| Suspension reason | Yes | Free text | 10 chars | 500 chars | "يرجى توضيح سبب التعليق" |
+
+### Acceptance Criteria
+
+**Scenario 1 — Admin suspends a rider account**
+- Given the admin is viewing a rider's profile (#1662)
+- When she clicks "Suspend Account" and enters a valid reason (10–500 chars)
+- Then the rider's account status changes to suspended
+- And all of the rider's active sessions are invalidated
+- And a confirmation message is shown to the admin
+
+**Scenario 2 — Rider cannot log in after suspension**
+- Given a rider's account has been suspended
+- When she attempts to log in
+- Then the login is rejected with an account-suspended error
+- And she is directed to contact support
+
+**Scenario 3 — Empty reason field**
+- Given the admin clicks "Suspend Account" but leaves the reason blank
+- When she clicks "Confirm"
+- Then the error "يرجى توضيح سبب التعليق" is shown
+- And the account is not suspended
+
+**Scenario 4 — Suspension is recorded with timestamp**
+- Given the admin has suspended an account
+- When the admin views the account later
+- Then the suspension reason and timestamp are visible
+
+### Out of Scope
+- Automatic account suspension
+- Suspension appeal workflow
+
+### Dependencies
+- #1739 — Account suspension status is updated by admin (API — must be live)
+
+---
+
+## [Admin] #1741 — Operations admin reinstates a suspended rider account 🆕
+**Feature:** Feature 13 — Admin Rider Management | **Sprint:** 2
+
+**Description:** As an operations admin, I want to reinstate a suspended rider account so that the rider can resume using the service.
+
+### Background
+Accessible from a suspended rider's profile screen, this action allows the admin to lift the suspension immediately. The rider can then log in again. An optional note explaining the reinstatement may be recorded.
+
+### Field Validation
+
+| Field | Required | Format | Min | Max | Error |
+|---|---|---|---|---|---|
+| Reinstatement note | No | Free text | — | 500 chars | "الملاحظة طويلة جداً" |
+
+### Acceptance Criteria
+
+**Scenario 1 — Admin reinstates a suspended rider**
+- Given the admin is viewing a suspended rider's profile
+- When she clicks "Reinstate Account" and optionally enters a note
+- Then the rider's account status changes to active
+- And the rider can log in immediately
+- And a confirmation message is shown to the admin
+
+**Scenario 2 — Reinstated rider can log in immediately**
+- Given a rider has just been reinstated
+- When she attempts to log in with her credentials
+- Then the login succeeds and she accesses the app
+
+**Scenario 3 — Reinstatement is recorded**
+- Given the admin has reinstated an account
+- When the account history is viewed
+- Then the reinstatement timestamp and optional note are recorded
+
+### Out of Scope
+- Conditional reinstatement (e.g., temporary reinstatement)
+- Email notification to rider upon reinstatement
+
+### Dependencies
+- #1739 — Account suspension status is updated by admin (API — must be live)
+
+---
+
+## [Admin] #1742 — Operations admin suspends a driver account 🆕
+**Feature:** Feature 14 — Admin Driver Management | **Sprint:** 2
+
+**Description:** As an operations admin, I want to suspend a driver's account so that I can enforce safety policies or manage driver violations.
+
+### Background
+Accessible from the driver profile screen (#1666), this action allows the admin to immediately suspend a driver's account. The driver is set offline, all sessions are invalidated, and she cannot log in or go online again until reinstated. A reason for suspension must be recorded.
+
+### Field Validation
+
+| Field | Required | Format | Min | Max | Error |
+|---|---|---|---|---|---|
+| Suspension reason | Yes | Free text | 10 chars | 500 chars | "يرجى توضيح سبب التعليق" |
+
+### Acceptance Criteria
+
+**Scenario 1 — Admin suspends a driver account**
+- Given the admin is viewing a driver's profile (#1666)
+- When she clicks "Suspend Account" and enters a valid reason (10–500 chars)
+- Then the driver's account status changes to suspended
+- And all of the driver's active sessions are invalidated
+- And the driver's availability is set to offline
+- And a confirmation message is shown to the admin
+
+**Scenario 2 — Driver cannot go online after suspension**
+- Given a driver's account has been suspended
+- When she logs in (if previously cached sessions allow) or attempts to go online
+- Then the platform returns HTTP 403 and the message "Account suspended"
+- And the driver remains offline
+
+**Scenario 3 — Empty reason field**
+- Given the admin clicks "Suspend Account" but leaves the reason blank
+- When she clicks "Confirm"
+- Then the error "يرجى توضيح سبب التعليق" is shown
+- And the account is not suspended
+
+**Scenario 4 — Suspension reason is visible on profile**
+- Given a driver's account has been suspended
+- When the admin views the account on the driver list or profile
+- Then a "Suspended" status badge is shown
+- And the suspension reason is visible in the account details
+
+### Out of Scope
+- Automatic suspension
+- Driver appeal workflow
+- Suspension appeal investigation
+
+### Dependencies
+- #1739 — Account suspension status is updated by admin (API — must be live)
+
+---
+
+## [Admin] #1743 — Operations admin reinstates a suspended driver account 🆕
+**Feature:** Feature 14 — Admin Driver Management | **Sprint:** 2
+
+**Description:** As an operations admin, I want to reinstate a suspended driver's account so that a driver who has been cleared can go online and accept trips again.
+
+### Background
+The reinstate action is accessible from the driver detail screen for accounts in suspended state. The admin confirms reinstatement and optionally adds a note. On confirmation, the account status is updated to active via #1739. The driver must log in again before she can go online — her online status is not automatically restored.
+
+### Acceptance Criteria
+
+**Scenario 1 — Admin reinstates a suspended driver**
+- Given an admin is viewing a suspended driver's detail screen
+- When the admin taps "Reinstate Account" and confirms
+- Then the account status changes to active via #1739
+- And the admin sees the updated status on the detail screen
+- And the driver must log in again to go online
+
+**Scenario 2 — Reinstate button is only shown for suspended accounts**
+- Given an admin views a driver account that is in active state
+- Then no "Reinstate Account" button is shown
+
+### Out of Scope
+- Automated reinstatement
+- Driver notification on reinstatement (future sprint)
+
+### Dependencies
+- #1739 — Account suspension status is updated by admin (API — must be live)
+- #1666 — Operations admin views driver detail (must be built)
+
+---
+
+### Feature 16 — Pricing & Rate Management
+
+---
+
+## [Admin] #1756 — Super admin manages service zones 🆕
+**Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** 2
+
+**Description:** As a super admin, I want to create, edit, and delete named service zones drawn as polygons on a map so that the platform knows which rate card to apply to any trip origin.
+
+### Background
+Zones are the foundation of the pricing system. Every zone has a name and a polygon boundary. The platform uses the rider's pickup coordinates to identify which zone she is in and applies that zone's rate card. There is no fallback zone — if a pickup falls outside all defined zones the trip is blocked. All of Cairo and Giza must be covered by zones before the platform goes live.
+
+### Acceptance Criteria
+
+**Scenario 1 — Super admin creates a new zone**
+- Given the super admin is on the Zones management screen
+- When she enters a zone name, draws a polygon on the map, and saves
+- Then the zone is created and immediately active
+- And any future trip with a pickup inside that polygon uses this zone's rate card
+
+**Scenario 2 — Super admin edits a zone boundary**
+- Given an existing zone is displayed on the map
+- When the super admin adjusts the polygon boundary and saves
+- Then the updated boundary takes effect immediately for new trips
+- And trips already in progress are not affected
+
+**Scenario 3 — Super admin renames a zone**
+- Given an existing zone
+- When the super admin changes the zone name and saves
+- Then the name is updated in all rate card screens and audit logs
+
+**Scenario 4 — Super admin deletes a zone**
+- Given an existing zone with no trips currently in progress within it
+- When the super admin deletes it
+- Then the zone is removed and its rate card is no longer accessible
+- And a confirmation dialog warns that rides in that area will be blocked until a new zone is created
+
+**Scenario 5 — Zone names must be unique**
+- Given a zone already exists with a given name
+- When the super admin tries to save a new zone with the same name
+- Then a validation error is returned: zone name must be unique
+
+**Scenario 6 — Zones visible on map overview**
+- Given the super admin is on the Zones screen
+- Then all defined zones are rendered as coloured polygons on a Cairo/Giza map with name labels
+
+### Out of Scope
+- Zone-specific time multipliers (Phase 2)
+- Importing zone polygons from a file
+
+### Dependencies
+- None — foundational
+
+---
+
+## [Admin] #1757 — Super admin configures zone rate card 🆕
+**Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** 2
+
+**Description:** As a super admin, I want to set and update the pricing rates for each service zone so that fares are calculated correctly for every trip originating in that zone.
+
+### Background
+Each zone has its own rate card containing: base fare, per-km rate, per-min rate, minimum fare, and cancellation fee. Changes take effect immediately on save. Every change is recorded in the audit log. Minimum fare must be greater than or equal to the base fare. A zone with no rate card blocks trips as if the zone does not exist.
+
+### Field Validation
+
+| Field | Required | Format | Min |
+|---|---|---|---|
+| Base fare | Yes | Decimal EGP | 0.01 |
+| Per-km rate | Yes | Decimal EGP | 0.01 |
+| Per-min rate | Yes | Decimal EGP | 0.01 |
+| Minimum fare | Yes | Decimal EGP | ≥ base fare |
+| Cancellation fee | Yes | Decimal EGP | 0 |
+
+### Acceptance Criteria
+
+**Scenario 1 — Super admin sets a rate card for a zone**
+- Given a zone exists with no rate card yet
+- When the super admin enters all required fields and saves
+- Then the rate card is active immediately for all new trips in that zone
+
+**Scenario 2 — Super admin updates a rate**
+- Given a zone has an existing rate card
+- When the super admin changes one or more values and saves
+- Then the new values are active immediately for new trips
+- And the previous values are preserved in the audit log
+
+**Scenario 3 — Minimum fare must be at least equal to base fare**
+- Given the super admin sets minimum fare lower than base fare
+- When she tries to save
+- Then a validation error is returned: minimum fare cannot be less than base fare
+
+**Scenario 4 — All fields are required**
+- Given the super admin tries to save with any field empty
+- Then a validation error identifies the missing field and save is blocked
+
+**Scenario 5 — Zone with no rate card blocks trips**
+- Given a zone exists but has no rate card configured
+- When a rider's pickup falls in that zone
+- Then the trip is blocked and the admin panel shows a warning on that zone: "No rate card — trips will be blocked"
+
+### Out of Scope
+- Time-based rate multipliers (Phase 2)
+- Per-vehicle-tier rate cards (Phase 2)
+- Scheduled future rate changes
+
+### Dependencies
+- #1756 — Super admin manages service zones (zones must exist first)
+
+---
+
+## [Admin] #1758 — Super admin configures cancellation policy 🆕
+**Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** 2
+
+**Description:** As a super admin, I want to configure the grace period and the driver/platform split of the cancellation fee so that the cancellation policy is consistent and adjustable without a code deployment.
+
+### Background
+The cancellation fee amount is set per zone in the zone rate card. This story covers the two global settings that apply across all zones: the grace period (minutes after driver acceptance before the fee kicks in) and the driver share percentage. Both are global — they do not vary per zone. Changes apply to new trips only; trips already in progress use the policy active at the time of driver acceptance.
+
+### Acceptance Criteria
+
+**Scenario 1 — Super admin sets grace period**
+- Given the super admin enters a grace period in minutes (e.g. 3) and saves
+- Then all future cancellations use this grace period to determine whether the fee applies
+
+**Scenario 2 — Super admin sets driver/platform split**
+- Given the super admin enters a driver share percentage (e.g. 70)
+- When she saves
+- Then the platform share is automatically shown as 100 minus driver share
+- And both percentages are displayed for confirmation before saving
+
+**Scenario 3 — Policy change applies to new trips only**
+- Given a policy change is saved while a trip is in progress
+- Then that trip uses the policy active at the time of driver acceptance
+- And new trips use the updated policy
+
+**Scenario 4 — Driver share must be between 1 and 99**
+- Given the super admin enters 0 or 100 as driver share
+- Then a validation error is returned: driver share must be between 1% and 99%
+
+### Out of Scope
+- Per-zone grace periods
+- Different splits per vehicle tier
+
+### Dependencies
+- #1757 — Super admin configures zone rate card (cancellation fee amount lives there)
+
+---
+
+## [Admin] #1759 — Super admin configures platform commission 🆕
+**Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** 2
+
+**Description:** As a super admin, I want to set a single global commission percentage so that the platform's share is automatically deducted from every completed trip fare.
+
+### Background
+Commission is a single global percentage applied to the total fare of every completed trip. The driver's net earnings equal the total fare minus the commission amount. The commission percentage is set by the super admin only and takes effect immediately on save. Every change is logged in the audit log. In-progress trips are not affected by a commission change.
+
+### Acceptance Criteria
+
+**Scenario 1 — Super admin sets commission percentage**
+- Given the super admin enters a commission percentage (e.g. 20%) and saves
+- Then all trips completed after this point use the new commission rate
+- And the previous rate is preserved in the audit log
+
+**Scenario 2 — Commission is applied to total fare**
+- Given a completed trip with a total fare of 100 EGP and commission of 20%
+- Then the platform retains 20 EGP and the driver's net earnings are 80 EGP
+- And both amounts are stored on the trip record
+
+**Scenario 3 — Commission cannot be 0% or above 50%**
+- Given the super admin tries to save 0 or a value above 50
+- Then a validation error is returned
+
+**Scenario 4 — In-progress trips are not affected by a commission change**
+- Given a trip is in progress when the commission rate is changed
+- Then that trip completes using the commission rate active at the time of booking
+
+### Out of Scope
+- Per-zone commission rates
+- Driver-specific commission tiers
+- Commission on cancellation fees
+
+### Dependencies
+- None
+
+---
+
+## [Admin] #1760 — Super admin views pricing audit log 🆕
+**Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** 2
+
+**Description:** As a super admin, I want to see a full history of every pricing change so that I can audit who changed what and when, and recover previous values if needed.
+
+### Background
+Every change to any pricing field (zone rate cards, cancellation policy, commission) is automatically recorded with: the field changed, old value, new value, who made the change, and the UTC+2 timestamp. The audit log is read-only — entries cannot be deleted or modified.
+
+### Acceptance Criteria
+
+**Scenario 1 — All pricing changes appear in the log**
+- Given any super admin has saved a change to a rate card, cancellation policy, or commission setting
+- Then an entry appears with: field name, zone name (if applicable), old value, new value, changed by (user name), changed at (timestamp UTC+2)
+
+**Scenario 2 — Log is read-only**
+- Given the super admin views the audit log
+- Then no entry can be edited or deleted
+
+**Scenario 3 — Log is filterable by zone and date range**
+- Given the audit log contains many entries
+- When the super admin filters by zone or date range
+- Then only matching entries are shown
+
+**Scenario 4 — Log is paginated**
+- Given the log has more than 50 entries
+- Then results are paginated with 50 entries per page
+
+### Out of Scope
+- Restoring a previous rate from the log (must be done manually)
+- Exporting the log to CSV (Phase 2)
+
+### Dependencies
+- #1756 — Super admin manages service zones
+- #1757 — Super admin configures zone rate card
+- #1758 — Super admin configures cancellation policy
+- #1759 — Super admin configures platform commission

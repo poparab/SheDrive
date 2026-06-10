@@ -247,7 +247,7 @@ Only the screens needed for the cycle. Other screens (promotions, support chat, 
 - [ ] Cancel CTA → publishes `rideCancelled` → returns to home.
 
 ### 6.6 Active Trip
-- [ ] Top sheet with driver card: photo, name, rating, vehicle make + plate, "Camera active" badge, "First-aid certified" badge, ETA countdown.
+- [ ] Top sheet with driver card: photo, name, rating, vehicle make + plate, ETA countdown.
 - [ ] Map in `followDriver` mode; animated car marker; route polyline.
 - [ ] Buttons: Call (opens dialer via `url_launcher` to a fake number — the driver app does the same for rider), Message (opens SMS), Share trip (`share_plus` — copies a "https://shedrive.app/share/<tripId>" string), **SOS** (large red).
 - [ ] Listens for `driverArrived`, `tripStarted`, `tripProgress`, `tripCompleted` events — UI reflects each.
@@ -417,7 +417,6 @@ Explicitly excluded so the implementer doesn't drift:
 - Schedule shifts / preferred hours.
 - Heat-maps / demand zones.
 - Payouts / cash-out flow (just show earnings number).
-- First-aid training module (just a badge on the driver card).
 - Vehicle photos / inspection certs in driver KYC (ID + license + Istimara + selfie is enough).
 - Ratings dispute.
 - Notifications inbox screen.

@@ -9,7 +9,7 @@ This file is loaded automatically by Claude Code in every session. Follow all ru
 **SheDrive** is a women-only ride-hailing service for Cairo/Giza, Egypt.
 
 **Strategic positioning:** Safety-first premium service — not the cheapest, the safest.
-Three pillars: live in-vehicle cameras · SOS direct line to Ministry of Interior (aspirational) · first-aid-trained drivers.
+Phase 1 pillar: SOS direct line to Ministry of Interior (aspirational). Live in-vehicle cameras and first-aid-trained drivers are deferred to post-Phase 1.
 Driver supply includes male drivers (opt-in, never default) to avoid the liquidity failure that killed Fyonka and Pink Taxi.
 
 **Working directory:** `D:\Claude\SheDrive\shedrive-web\`
@@ -319,6 +319,11 @@ When a Mobile feature needs a backend counterpart, write two stories with matchi
 business outcomes: one `[Mobile]` story in the Mobile backlog, one `[API]` story in
 the Web / Main backlog. Keep both strictly business-focused — no code, schema, or
 infrastructure detail.
+
+**HARD RULE: Never create a story in ADO without setting a Feature as its parent.**
+Every `wit_create_work_item` call must include `System.Parent` pointing to the correct
+Feature work item ID. If the correct Feature ID is not already known, query ADO to find
+it before creating the story. A story with no parent is not acceptable.
 
 ---
 

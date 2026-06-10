@@ -9,7 +9,7 @@ This file is loaded automatically by Codex in every session. Follow all rules be
 **SheDrive** is a women-only ride-hailing service for Cairo/Giza, Egypt.
 
 **Strategic positioning:** Safety-first premium service — not the cheapest, the safest.
-Three pillars: live in-vehicle cameras · SOS direct line to Ministry of Interior (aspirational) · first-aid-trained drivers.
+Phase 1 pillar: SOS direct line to Ministry of Interior (aspirational). Live in-vehicle cameras and first-aid-trained drivers are deferred to post-Phase 1.
 Driver supply includes male drivers (opt-in, never default) to avoid the liquidity failure that killed Fyonka and Pink Taxi.
 
 **Working directory:** `D:\Codex\SheDrive\shedrive-web\`

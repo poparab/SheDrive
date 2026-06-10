@@ -1,6 +1,6 @@
 # SheDrive — Mobile Driver Stories
 > Canonical backlog for all [Mobile] Driver stories. Organized by sprint and feature.
-> Last updated: 2026-06-03
+> Last updated: 2026-06-10
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -35,10 +35,10 @@ The driver registration flow mirrors rider registration (two screens: phone entr
 - Then her account is created and she is taken to the onboarding flow (personal details screen)
 - And she cannot navigate to the driver home screen until onboarding is approved
 
-**Scenario 2 — Phone number already registered**
+**Scenario 2 — Phone number already registered auto-logs the driver in**
 - Given a driver enters a phone number already linked to an existing account
-- When she proceeds through OTP entry, the server returns a conflict via #1621
-- Then the app displays "هذا الرقم مسجل بالفعل. سجّل الدخول بدلاً من ذلك" with a link to the driver login screen
+- When she proceeds through OTP + name entry and submits, #1621 detects the existing account and auto-logs her in
+- Then the app receives a session token and routes the driver based on her onboarding status
 
 **Scenario 3 — OTP expires before entry**
 - Given a driver received an OTP but did not enter it within 5 minutes
@@ -184,6 +184,73 @@ The logout action is accessible from the driver app's menu or profile screen. Be
 
 ### Dependencies
 - #1624 — User session is invalidated on logout (must be live)
+
+---
+
+## [Mobile] #1746 — Driver session persists across app restarts
+**Feature:** Feature 3 — Driver Authentication | **Sprint:** 1
+
+**Description:** As a driver, I want the app to keep me logged in between sessions so that I don't have to go through OTP verification every time I open the app.
+
+### Background
+After a successful login or registration the session token is stored in the device's secure storage (iOS Keychain / Android Keystore — never in plain SharedPreferences or AsyncStorage). On every app launch and on each foreground resume event the app reads the stored token and validates it silently against the backend. If the token is valid the app routes the driver to the correct screen based on her current onboarding status: approved drivers go to the driver home/availability screen; pending or rejected drivers go to the onboarding status screen (#1576). If no token is found or the server rejects it the local session is cleared and the driver is shown the splash/login screen. Any 401 response from a protected endpoint during an active session also clears the stored token and redirects the driver to the login screen.
+
+### Scenario 1 — Valid token and approved onboarding → driver home on launch
+- Given a driver has a valid stored token and her onboarding status is approved
+- When she relaunches the app
+- Then the app validates the token silently
+- And she is taken to the driver home/availability screen with no OTP prompt
+
+### Scenario 2 — Valid token and pending/rejected onboarding → status screen on launch
+- Given a driver has a valid stored token but her onboarding status is pending or rejected
+- When the app validates the token on launch
+- Then she is taken to the onboarding status screen (#1576) rather than the driver home screen
+
+### Scenario 3 — No stored token → login screen
+- Given the device has no stored session token
+- When the app launches
+- Then the driver is shown the splash/login screen
+- And no background validation request is made
+
+### Scenario 4 — Expired token on launch → login screen
+- Given a driver's stored token has passed its 30-day lifetime
+- When the app validates it on launch and the server returns 401
+- Then the local token is cleared from secure storage
+- And the driver is shown the login screen
+
+### Scenario 5 — Mid-session 401 → clear session and redirect to login
+- Given a driver is actively using the app and any API call returns 401
+- When the app intercepts the 401 response
+- Then the stored session token is cleared from secure storage
+- And the driver is navigated to the login screen with a session-expired message
+
+### Scenario 6 — Token is stored in secure storage only
+- Given a session token is issued after login or registration
+- When it is persisted on the device
+- Then it is stored exclusively in iOS Keychain (iOS) or Android Keystore (Android)
+- And it is never written to any unencrypted store
+
+### Scenario 7 — Token is cleared on explicit logout
+- Given a driver taps logout (#1571)
+- When logout completes
+- Then the session token is removed from secure storage
+- And the next app launch shows the login screen with no auto-login attempt
+
+### Scenario 8 — Network unavailable on launch → offline grace period
+- Given a driver has a valid stored token but no internet on launch
+- When background validation times out
+- Then the driver is shown her last-known screen using the cached session
+- And the next 401 response triggers Scenario 5
+
+### Out of Scope
+- Biometric re-authentication
+- Token refresh or silent renewal
+- Multi-device session management
+- Session timeout on inactivity
+
+### Dependencies
+- #1744 — Auth middleware validates session tokens (must be live)
+- #1571 — Driver logs out (token must be cleared on logout)
 
 ---
 
@@ -1049,6 +1116,50 @@ When the driver reaches the rider's pickup location, she taps the "I've Arrived"
 
 ---
 
+## [Mobile] #1767 — Driver sees waiting counter during arrived_pickup state
+**Feature:** Feature 10 — Active Trip | **Sprint:** 2
+
+**Description:** As a driver, I want to see a waiting counter after I tap "I've Arrived" so that I know how long the rider has taken to board.
+
+### Background
+After the driver taps "I've Arrived" and the trip state advances to arrived_pickup, a waiting counter starts from 0:00 and increments each second. The counter is displayed on the driver's screen alongside the "Start Trip" (or "Verify Rider") button. It stops when the driver taps "Start Trip" and the state advances to trip_started.
+
+### Acceptance Criteria
+
+**Scenario 1 — Waiting counter starts when driver arrives**
+- Given the driver has tapped "I've Arrived" and the trip state is arrived_pickup
+- When the driver views the arrived_pickup screen
+- Then a waiting counter is displayed starting from 0:00
+- And the counter increments each second
+
+**Scenario 2 — Counter is visible alongside the action button**
+- Given the trip is in arrived_pickup state
+- When the driver views the screen
+- Then the counter is visible alongside the "Start Trip" or "Verify Rider" button
+- And the counter does not obscure or replace the action button
+
+**Scenario 3 — Counter stops when trip starts**
+- Given the waiting counter is running on the driver's screen
+- When the driver taps "Start Trip" and the state advances to trip_started
+- Then the counter stops
+- And the screen transitions to the active trip navigation view
+
+**Scenario 4 — Counter resumes correctly after app restart**
+- Given the trip is in arrived_pickup state and the waiting counter is running
+- When the driver backgrounds and reopens the app
+- Then the counter resumes from the correct elapsed time using the arrived_at timestamp returned by the trip state API
+- And the counter does not reset to 0:00
+
+### Out of Scope
+- Automatic cancellation after a waiting timeout (separate story if needed)
+- Waiting fee visibility on the driver's screen (separate story if needed)
+
+### Dependencies
+- #1587 — Driver confirms arrival at pickup (must be complete)
+- #1633 — Rider retrieves live trip state and driver location (arrived_at timestamp required)
+
+---
+
 ## [Mobile] #1588 — Driver verifies rider is female on first trip ✏️
 **Feature:** Feature 10 — Active Trip | **Sprint:** 2
 
@@ -1066,20 +1177,23 @@ When `is_first_trip` is true, the driver sees the rider's registered full name o
 - Then the driver sees the rider's registered full name
 - And a "Rider Verified — Board" button is displayed
 - And a "Cancel — Rider Not Female" button is also displayed
+- And a confirmation dialog with bilingual text appears when either button is tapped:
+  - Arabic: "هل أنتِ متأكدة؟ سيتم إلغاء الرحلة وإرسال تقرير أمان"
+  - English: "Are you sure? This will cancel the trip and submit a safety report."
 
 **Scenario 2 — Driver confirms rider is female and proceeds**
 - Given the verification screen is visible
-- When the driver taps "Rider Verified — Board"
+- When the driver taps "Rider Verified — Board" and confirms in the dialog
 - Then the screen transitions to show the "Start Trip" button
 - And the driver can proceed to board the rider
 
 **Scenario 3 — Driver cancels due to gender mismatch**
 - Given the verification screen is visible
-- When the driver taps "Cancel — Rider Not Female"
-- Then a confirmation dialog is shown: "Are you sure? This will cancel the trip and submit a safety report."
-- And on confirmation, the platform calls #1687 to cancel the trip and suspend the rider's account for review
+- When the driver taps "Cancel — Rider Not Female" and confirms the bilingual dialog
+- Then the platform calls #1687 to cancel the trip and suspend the rider's account for review
 - And the driver is returned to her home/available screen
 - And no fare is charged
+- And the trip record stores the cancellation reason as "gender_mismatch_report" (#1687)
 
 **Scenario 4 — Verification step is skipped for returning riders**
 - Given the trip's is_first_trip flag is false
@@ -1263,6 +1377,46 @@ Immediately after the driver taps "End Trip" and the trip state advances to trip
 
 ---
 
+## [Mobile] #1766 — Driver sees net earnings after commission on trip completion 🆕
+**Feature:** Feature 11 — Trip Completion & Cash Payment | **Sprint:** 2
+
+**Description:** As a driver, I want to see my net earnings (after platform commission) on the trip completion screen so that I know exactly how much I earned from each trip without needing to calculate it myself.
+
+### Background
+The driver is always shown her net earnings — the amount after the platform commission has been deducted. The commission percentage itself is never shown to the driver; only the net amount matters. The gross fare is also not shown. On the trip completion screen, net earnings are displayed prominently so the driver has immediate clarity on what she earned.
+
+### Acceptance Criteria
+
+**Scenario 1 — Net earnings displayed on trip completion**
+- Given a trip completes with a total fare of 100 EGP and a 20% commission
+- When the driver views the trip completion screen
+- Then the screen shows net earnings of 80 EGP prominently
+- And the commission percentage or gross fare is not displayed
+
+**Scenario 2 — Net earnings displayed in trip history**
+- Given the driver views a past trip in her history
+- Then the net earnings for that trip are shown (not the gross fare)
+
+**Scenario 3 — Cancellation fee share shown separately**
+- Given a trip that was cancelled with a fee charged and the driver's share paid
+- When the driver views that trip
+- Then the cancellation fee driver share is shown as a separate line item from regular trip earnings
+- And a label indicates it is a cancellation fee
+
+**Scenario 4 — Earnings labelled in Arabic and English**
+- Given the driver's language preference is Arabic or English
+- Then the earnings label is displayed in the selected language
+
+### Out of Scope
+- Total earnings summary or weekly/monthly dashboard (separate story)
+- In-app wallet balance or payout requests
+
+### Dependencies
+- #1765 — Platform commission is deducted on trip completion
+- #1759 — Super admin configures platform commission
+
+---
+
 ### Feature 12 — Trip History (Driver)
 
 ---
@@ -1344,4 +1498,162 @@ When a driver taps a row in her trip history list, she is taken to the trip deta
 
 ### Dependencies
 - #1655 — Driver retrieves trip history (must be live)
-- #1639 — Rider submits driver rating (rating data source)
+
+---
+
+## [Mobile] #1731 — Driver changes language preference from profile screen 🆕
+**Feature:** Feature 3 — Driver Authentication | **Sprint:** 2
+
+**Description:** As a driver, I want to change my language preference from the profile screen so that the app displays all content in my chosen language.
+
+### Background
+A language selector on the driver profile screen allows the driver to toggle between Arabic (ar) and English (en). Upon selection, the preference is saved to the backend via #1728 and the entire app UI updates immediately to reflect the new language without requiring a refresh.
+
+### Acceptance Criteria
+
+**Scenario 1 — Driver changes language to English**
+- Given the driver is on her profile screen with language set to Arabic
+- When she taps the English option
+- Then the preference is saved via #1728
+- And the entire app UI updates to English immediately
+
+**Scenario 2 — Driver changes language to Arabic**
+- Given the driver is on her profile screen with language set to English
+- When she taps the Arabic option
+- Then the preference is saved via #1728
+- And the entire app UI updates to Arabic immediately
+
+**Scenario 3 — Language change persists across sessions**
+- Given the driver has changed her language preference
+- When she closes and reopens the app
+- Then all content is displayed in her chosen language
+
+**Scenario 4 — Network error during save**
+- Given the driver taps a language option
+- When the network request to #1728 fails
+- Then a toast error is shown
+- And the language remains unchanged
+
+### Out of Scope
+- Regional language variants
+- Device language sync
+
+### Dependencies
+- #1728 — User language preference is stored and retrieved (API — must be live)
+
+---
+
+### Feature 18 — Driver Earnings
+
+---
+
+## [Mobile] #1736 — Driver views earnings dashboard 🆕
+**Feature:** Feature 18 — Driver Earnings | **Sprint:** 2
+
+**Description:** As a driver, I want to view my earnings summary so that I can track my income and performance metrics.
+
+### Background
+An earnings dashboard is accessible from the menu or profile section. It displays total earnings for the current day, week, and month; total trips completed; average rating; and acceptance/rejection rate. The data is fetched from #1735 and refreshes when the driver navigates to the screen.
+
+### Acceptance Criteria
+
+**Scenario 1 — Driver opens the earnings dashboard**
+- Given the driver navigates to her earnings screen
+- When the page loads
+- Then it displays: today's earnings, week's earnings, month's earnings, total trips (current period), average rating, and acceptance rate
+
+**Scenario 2 — Earnings are displayed in EGP**
+- Given the earnings dashboard is loaded
+- When she views the earnings figures
+- Then all amounts are displayed in EGP with proper currency formatting
+
+**Scenario 3 — Earnings refresh on screen open**
+- Given the driver opens the earnings dashboard
+- When the screen loads
+- Then the latest earnings data is fetched via #1735
+
+**Scenario 4 — No trips completed**
+- Given the driver has not completed any trips in the current period
+- When the dashboard loads
+- Then it displays zero for trips and earnings metrics
+
+### Out of Scope
+- Historical earnings charts
+- Earnings breakdown by trip type
+- Withdrawal or payment processing
+
+### Dependencies
+- #1735 — Driver retrieves earnings summary (API — must be live)
+
+---
+
+### Feature 20 — Trip Cancellation (Driver)
+
+---
+
+## [Mobile] #1722 — Driver cancels an accepted trip 🆕
+**Feature:** Feature 20 — Trip Cancellation | **Sprint:** 2
+
+**Description:** As a driver, I want to cancel an accepted trip so that I can handle unexpected situations without penalty.
+
+### Background
+A cancel button is available on the active trip screen from the moment the driver accepts until the rider is boarded. Tapping it shows a confirmation dialog. Upon confirmation, the driver calls #1720 to cancel the trip. The driver is returned to her home screen and available for new trip requests.
+
+### Acceptance Criteria
+
+**Scenario 1 — Driver cancels an accepted trip before arriving**
+- Given the driver has accepted a trip and is navigating to pickup
+- When she taps "Cancel"
+- Then a confirmation dialog appears
+- And upon confirmation, the trip is cancelled via #1720
+- And the driver is returned to her home screen in available status
+
+**Scenario 2 — Driver cannot cancel after rider is boarded**
+- Given the driver has marked the rider as boarded (trip_started state)
+- When she views the active trip screen
+- Then the "Cancel" button is no longer visible
+
+**Scenario 3 — Cancellation is immediate**
+- Given the driver confirms cancellation
+- When the cancellation is processed
+- Then the driver is immediately available for new requests
+- And no fare penalty is applied
+
+**Scenario 4 — Network error during cancellation**
+- Given the driver confirms cancellation
+- When the network request fails
+- Then a toast error is shown
+- And the driver remains on the active trip screen
+
+### Out of Scope
+- Cancellation penalties or strikes
+- Reason collection for cancellation
+- Rider notification of driver cancellation
+
+### Dependencies
+- #1720 — Driver cancels an accepted trip (API — must be live)
+
+---
+
+### Feature 21 — Emergency & Safety (Driver)
+
+---
+
+## [Mobile] #1726 — Driver is notified when a rider triggers SOS during active trip 🆕
+**Feature:** Feature 21 — Emergency & Safety | **Sprint:** 2
+
+**Description:** [TBD - Placeholder for future SOS notification functionality.]
+
+### Background
+[TBD]
+
+### Acceptance Criteria
+
+**Scenario 1 — [TBD]**
+- [TBD]
+
+### Out of Scope
+- [TBD]
+
+### Dependencies
+- [TBD]

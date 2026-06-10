@@ -21,7 +21,9 @@
       "Skill(superpowers:brainstorming:*)",
       "Bash(pandoc --track-changes=all BRD-v1.2.docx -o /tmp/brd.md)",
       "PowerShell(py \"D:\\\\Claude\\\\SheDrive\\\\_build_xlsx.py\")",
-      "mcp__azure-devops__wit_get_work_item"
+      "mcp__azure-devops__wit_get_work_item",
+      "mcp__azure-devops__wit_query_by_wiql",
+      "mcp__azure-devops__wit_get_work_items_batch_by_ids"
     ]
   },
   "enabledMcpjsonServers": [

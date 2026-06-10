@@ -48,7 +48,7 @@ The demo needs to feel real without a server. The way to do that is a **single s
 ### 1.1 Mock service layer (`core/mock/`)
 - [ ] `core/mock/mock_clock.dart` — a `StreamController<DateTime>` ticking at 1 s; lets us speed up "ETA" or compress trips for demo (1 s = 30 s of trip time, toggleable).
 - [ ] `core/mock/mock_data.dart` — hard-coded but realistic fixtures:
-    - 6–8 mock drivers (name, photo URL/asset, rating, vehicle make+plate, gender flag, first-aid badge, ETA seconds, camera-on flag).
+    - 6–8 mock drivers (name, photo URL/asset, rating, vehicle make+plate, gender flag, ETA seconds).
     - 5–6 mock saved places in Cairo/Giza with realistic LatLngs.
     - 4–5 mock past trips for ride history.
     - Earnings ledger (one entry per simulated completed trip).
@@ -170,7 +170,7 @@ Pick **Option A** for v1. Document Option B as a stretch if a side-by-side demo 
 - [ ] "Skip" button on slides 1–2.
 - [ ] Persist `onboardingSeen=true` on completion.
 - [ ] Replace generic Material icons with branded illustrations.
-- [ ] Add an explicit slide highlighting **the 3 safety pillars** (live cabin cameras / SOS to Ministry / first-aid drivers) — currently nowhere in the app.
+- [ ] Add an explicit slide highlighting the Phase 1 safety pillar: SOS direct line to Ministry of Interior — currently nowhere in the app.
 
 ### 2.3 Rider Login
 - [ ] Validate phone format (Egyptian: starts 1xx, 10 digits after +20). Disable Send-OTP until valid.
@@ -214,7 +214,7 @@ Compare to the web app's nav map in CLAUDE.md — these don't exist yet in Flutt
 - [ ] **Ride confirmation / quote** — fare breakdown, ETA, vehicle class, child option, male-driver opt-in, payment method, promo, "Confirm Ride".
 - [ ] **Matching screen** — searching animation; after `scenario.matchDelaySeconds` (default 6 s) pick a driver from `mock_data` and route to active trip. Cancel returns to home.
 - [ ] **Active trip** — live map with the trip engine moving the driver marker along the polyline, driver card (photo, name, rating, plate, ETA), call/message (dialer + SMS deep link), SOS button, share-trip-status (`share_plus`), demo "End trip now" helper.
-- [ ] **Emergency / SOS dashboard** — direct line to Ministry of Interior **mock** (button shows "Connecting to Ministry of Interior…" then "Operator ETA 90 s"), in-cabin camera live-view stub (loop a short MP4 from assets), 122 quick-dial via `tel:`, share location with trusted contacts, "I'm safe now" returns to active trip. **Core to safety-first positioning and entirely missing.**
+- [ ] **Emergency / SOS dashboard** — direct line to Ministry of Interior **mock** (button shows "Connecting to Ministry of Interior…" then "Operator ETA 90 s"), 122 quick-dial via `tel:`, share location with trusted contacts, "I'm safe now" returns to active trip. **Core to safety-first positioning and entirely missing.**
 - [ ] **Trip complete / rating** — stars 1–5, tag chips, optional tip, optional written feedback, fare summary, mock receipt. Persists into `rideHistory`.
 - [ ] **Receipt / trip detail** — map of route, fare breakdown, "Download receipt" generates a local PDF (or shows a PDF asset).
 - [ ] **Ride history** — list from `rideHistory` pref, filterable.
@@ -237,7 +237,7 @@ Compare to the web app's nav map in CLAUDE.md — these don't exist yet in Flutt
 - [ ] Localize 3 slides (currently English literals).
 - [ ] "Skip" option.
 - [ ] Persist `onboardingSeen=true`.
-- [ ] Add a slide explaining **the 3 safety pillars + first-aid training** as part of becoming a SheDrive captain.
+- [ ] Add a slide explaining the Phase 1 safety pillar (SOS) as part of becoming a SheDrive captain.
 - [ ] If male drivers will be in the supply pool (per CLAUDE.md), a slide on the male-driver opt-in dynamic so they understand they're only matched to opted-in riders.
 
 ### 3.3 Driver Login + OTP
@@ -253,7 +253,6 @@ Compare to the web app's nav map in CLAUDE.md — these don't exist yet in Flutt
     - Criminal background certificate (الفيش والتشبيه).
     - Vehicle inspection certificate.
     - Insurance certificate.
-    - First-aid training certificate (or in-app completion module — see §5).
     - Vehicle photos: front, back, both sides, interior, plate close-up.
     - Bank account / mobile-wallet details for payouts (UI-only).
     - Emergency contact.
@@ -292,8 +291,6 @@ Currently a static map, hard-coded earnings (£450), no real online state, drawe
 - [ ] **Documents management** — list of submitted docs with status; re-upload expired; expiry alerts (demo helper: "Expire my license" to demonstrate the alert state).
 - [ ] **Driver profile / settings**.
 - [ ] **Driver SOS dashboard** — driver-side analog of rider SOS.
-- [ ] **First-aid training module** — in-app slides + 5-question quiz + completion certificate. Strategic safety pillar.
-- [ ] **In-cabin camera setup / status** — verify the camera (3rd safety pillar) is "operational"; show last-checked timestamp; demo helper "Simulate camera offline" for the alert path.
 - [ ] **Ratings & feedback** — rider ratings list; dispute a rating.
 - [ ] **Support / chat**.
 - [ ] **Notifications inbox**.
@@ -333,17 +330,13 @@ This is the demo's central challenge: there is no rider app driving requests to 
 
 ## 5. Strategic-Positioning Gaps (per CLAUDE.md)
 
-The three safety pillars are **not surfaced anywhere** in either app today. For the demo to land its strategic story, each pillar needs a visible touchpoint:
+The Phase 1 safety pillar is **not surfaced anywhere** in either app today. For the demo to land its strategic story, it needs a visible touchpoint:
 
-- [ ] **Live in-vehicle cameras**
-    - Rider trip screen: "Camera active" badge + a "View cabin" affordance opening a short looping MP4 from assets.
-    - Driver home: camera health card, last ping timestamp, demo helper "Simulate camera offline" for the alert path.
 - [ ] **SOS direct line to Ministry of Interior** (aspirational)
     - Rider has no SOS button anywhere today; driver has none either. Build the SOS dashboards in both apps.
     - SOS flow: tap → confirmation modal → "Connecting to Ministry of Interior…" 3 s → "Operator on the line — ETA 90 s" mock state → "I'm safe now" returns to trip.
-- [ ] **First-aid trained drivers**
-    - Rider onboarding slide + driver card on active trip: "Your captain is first-aid certified" badge.
-    - Driver eKYC + in-app first-aid training module + completion certificate stored in prefs.
+
+Note: Live in-vehicle cameras and first-aid-trained drivers are post-Phase 1 features and must not appear in Phase 1 UI or documentation.
 
 CLAUDE.md also calls out the **male-driver opt-in** mechanic (the lesson from Fyonka / Pink Taxi):
 - [ ] Rider Confirm screen: explicit opt-in toggle, OFF by default, labelled clearly (e.g. "Include male drivers if female wait > 5 min — saves time").
@@ -358,7 +351,7 @@ CLAUDE.md also calls out the **male-driver opt-in** mechanic (the lesson from Fy
 3. **Auth + KYC realism** (§2.3, 2.4, 2.5 / §3.3, 3.4): validation, countdowns, real image capture with `image_picker`, the "Auto-fill 1234" helpers.
 4. **Rider booking core** (§2.6 home + §2.7 destination/confirm/matching/active-trip/complete). This is the product.
 5. **Driver dispatch core** (§3.5 home + §3.6 incoming/pickup/active/complete). Driven by §4.1 helper.
-6. **Safety pillars** (§5 SOS dashboards, camera badges, first-aid module).
+6. **SOS dashboards** (§5 — rider and driver sides).
 7. **Side flows** (history, promos, support, ratings, earnings dashboard).
 8. **Polish** (RTL audit, golden tests, scenario walkthrough integration test for demo recording).
 
