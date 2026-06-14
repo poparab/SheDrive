@@ -336,7 +336,7 @@ The MVP is structured to deliver against the following objectives:
 
 ### 4.3.2 Primary Users
 
-- **Female Riders** — registered female users using the Rider App. May travel alone or accompanied by children under 12. Subject to identity verification before first trip.
+- **Female Riders** — registered female users using the Rider App. May travel alone or accompanied by children under 12. Women-only eligibility is confirmed by the driver's visual verification at the rider's first trip; riders are not subject to automated identity verification.
 - **Female Drivers** — registered, verified, and admin-approved female users providing rides through the Driver App using their own vehicles. Subject to identity, license, vehicle, and background verification.
 - **Administrators & Operations Users** — back-office users managing platform activities through the Admin Portal, with role-based permissions.
 - **Management Users** — stakeholders with read-only access to operational dashboards and management reports.
@@ -365,8 +365,8 @@ The following assumptions form the basis of MVP planning and scope. Any change t
 ### 4.4.2 Users & Identity
 
 - Both Riders and Drivers must be female and at least 18 years old.
-- Identity verification is mandatory before a user's first trip and includes national ID submission, live selfie capture, age check, and gender check.
-- Drivers additionally require valid driving license verification, vehicle document verification, and background check before activation.
+- Rider women-only eligibility is enforced by the driver's visual confirmation at the rider's first trip. Riders are not subject to automated identity verification.
+- Driver identity verification is mandatory before activation and includes national ID submission, live selfie capture, age check, gender check, driving license validation, vehicle document verification, and background check.
 - **Drivers own and operate their own vehicles. The platform does not own, supply, lease, or maintain vehicles for drivers in the MVP. Each vehicle must satisfy platform-defined vehicle eligibility criteria.**
 - User-provided identity information is assumed to be accurate and is subject to validation, manual review, and audit.
 - Children under 12 may travel only when accompanied by a verified adult Rider, and must be declared at booking.
@@ -482,11 +482,11 @@ The following capabilities, organized by module, are included in the MVP deliver
 
 ### 5.1.1 Rider App
 
-Registration and identity verification, booking with map-based pickup and destination, fare estimate, child accompaniment declaration, payment method selection (cash/digital), real-time driver tracking, in-app communication, ride cancellation, fare display and payment, rating and feedback, trip history, language switching, live trip sharing, trusted contacts, and SOS.
+Registration, booking with map-based pickup and destination, fare estimate, child accompaniment declaration, payment method selection (cash/digital), real-time driver tracking, in-app text chat with driver, ride cancellation, fare display and payment, rating and feedback, trip history, language switching, live trip sharing, trusted contacts, and SOS.
 
 ### 5.1.2 Driver App
 
-Registration, identity verification, license and vehicle document submission (driver-owned vehicle), background check consent, onboarding status tracking, online/offline toggle, working zone selection, ride request handling, navigation deep-linking, trip lifecycle management, ride cancellation, cash collection confirmation, digital payment status, earnings dashboard, cash balance tracking, rating, in-app communication, language switching, and SOS.
+Registration, identity verification, license and vehicle document submission (driver-owned vehicle), background check consent, onboarding status tracking, online/offline toggle, ride request handling, navigation deep-linking, trip lifecycle management, ride cancellation, cash collection confirmation, digital payment status, earnings dashboard, cash balance tracking, rating, in-app text chat with rider, language switching, and SOS.
 
 ### 5.1.3 Admin & Operations Portal
 
@@ -546,6 +546,8 @@ The following are explicitly excluded from MVP delivery. Each item may be consid
 - Family or multi-user account management.
 - Guardian dashboards and parental control panels.
 - Subscription or membership tiers.
+- Rider identity verification (national ID, selfie, liveness, and face match) — women-only eligibility is enforced by driver visual confirmation at the rider's first trip.
+- Masked-number voice proxy calls between rider and driver.
 
 ### 5.2.4 Advanced Safety & Intelligence
 
@@ -570,6 +572,7 @@ The following are explicitly excluded from MVP delivery. Each item may be consid
 - Third-party marketplace integrations beyond core services.
 - Platform-supplied or platform-leased driver vehicles.
 - Vehicle fleet management.
+- Driver working-zone selection (deferred to a subsequent phase).
 
 ### 5.2.7 Technical & Implementation
 
@@ -586,7 +589,7 @@ The following are explicitly excluded from MVP delivery. Each item may be consid
 
 - Female individuals aged 18 or above, eligible to use the Rider App.
 - May travel alone or accompanied by children under 12 (declared at booking).
-- Subject to identity verification before first trip.
+- Not subject to automated identity verification; women-only eligibility is confirmed by the driver's visual check at the rider's first trip.
 
 ### 5.3.2 Female Drivers
 
@@ -654,9 +657,9 @@ The SheDrive platform is structured around ten business modules organised into t
 
 ### 6.2.1 Rider App
 
-The Rider App is the primary touchpoint for female riders, providing a complete journey from account registration through identity verification, ride booking, real-time tracking, in-trip communication, payment, feedback, and access to safety features. The app supports child accompaniment declaration, trusted contacts setup, and live trip sharing — all positioned around the platform's safety-first promise.
+The Rider App is the primary touchpoint for female riders, providing a complete journey from account registration through ride booking, real-time tracking, in-trip text communication, payment, feedback, and access to safety features. The app supports child accompaniment declaration, trusted contacts setup, and live trip sharing — all positioned around the platform's safety-first promise. Riders are not subject to automated identity verification; the driver visually confirms the rider's eligibility at the first trip.
 
-The Rider App interacts with Identity & Verification during onboarding, with the Trip & Dispatch Engine during the ride lifecycle, with Payments during fare settlement, with Safety & SOS during emergencies, and with Notifications throughout for real-time updates.
+The Rider App interacts with the Trip & Dispatch Engine during the ride lifecycle, with Payments during fare settlement, with Safety & SOS during emergencies, and with Notifications throughout for real-time updates.
 
 ### 6.2.2 Driver App
 
@@ -672,9 +675,9 @@ The Admin & Operations Portal depends on every other module for the data and ope
 
 ### 6.2.4 Identity & Verification
 
-The Identity & Verification module is the platform's gatekeeper. It validates user identity through national ID OCR, liveness-detected selfie capture, face matching against the ID, age and gender eligibility checks, and — for drivers — driving license and vehicle document verification along with background checks. The module enforces the platform's women-only and age-eligibility rules and routes edge cases to a manual review queue.
+The Identity & Verification module is the platform's gatekeeper for drivers. It validates driver identity through national ID OCR, liveness-detected selfie capture, face matching against the ID, age and gender eligibility checks, driving license and vehicle document verification, and background checks. The module enforces the platform's women-only and age-eligibility rules for drivers and routes edge cases to a manual review queue. Riders are not subject to this module; the driver visually confirms rider eligibility at the first trip.
 
-The Identity & Verification module serves both the Rider and Driver Apps during onboarding and is governed by the Admin & Operations Portal for review and approval workflows.
+The Identity & Verification module serves the Driver App during onboarding and is governed by the Admin & Operations Portal for review and approval workflows.
 
 ### 6.2.5 Payments (Cash + Digital)
 
@@ -692,7 +695,7 @@ The Trip & Dispatch Engine is central to the platform — every active ride flow
 
 The Pricing & Neighborhood Zones module enables the platform to configure pricing at the granularity of individual neighborhoods within Greater Cairo. Administrators define zones as map polygons and configure base fare, per-kilometre and per-minute rates, minimum fare, zone-to-zone rules, and cancellation fees per zone. The module supports versioning of pricing rule changes for audit and rollback, and provides hooks for future peak-hour multipliers.
 
-The Pricing & Neighborhood Zones module is consumed by the Trip & Dispatch Engine during fare estimation, by the Driver App for working zone selection, and by Payments during fare calculation.
+The Pricing & Neighborhood Zones module is consumed by the Trip & Dispatch Engine during fare estimation and by Payments during fare calculation.
 
 ### 6.2.8 Safety & SOS
 
@@ -716,7 +719,7 @@ The Reporting & Analytics module reads from every other module and outputs prima
 
 At a high level, the modules interact as follows during a typical ride:
 
-1. A Rider initiates registration via the Rider App. The Identity & Verification module validates her identity. The Notifications module delivers OTP and verification-status messages.
+1. A Rider registers via the Rider App using phone number and OTP. The Notifications module delivers the OTP. Riders are not subject to automated identity verification; the driver visually confirms eligibility at the first trip.
 2. A Driver completes a similar onboarding flow with additional license, vehicle, and background check steps. The Admin & Operations Portal reviews and approves her account. Notifications keep her informed of progress.
 3. The Rider submits a ride request through the Rider App. The Pricing & Neighborhood Zones module supplies the fare estimate based on the originating zone. The Trip & Dispatch Engine matches her with an eligible Driver, who accepts via her app.
 4. The trip executes. The Trip & Dispatch Engine streams location to the Rider App and the Admin & Operations Portal. Notifications inform both parties of lifecycle events.
@@ -747,11 +750,11 @@ Each functional requirement in this section is expressed as a single "shall" sta
 
 | Priority | Count | % of Total |
 |----------|-------|------------|
-| P1       | 28    | 18%        |
-| P2       | 56    | 37%        |
-| P3       | 53    | 35%        |
+| P1       | 27    | 18%        |
+| P2       | 55    | 37%        |
+| P3       | 51    | 34%        |
 | P4       | 15    | 10%        |
-| **Total**| **152** | **100%** |
+| **Total**| **148** | **100%** |
 
 ---
 
@@ -765,12 +768,11 @@ The Rider App provides female riders with the complete journey from registration
 | RA-002  | Login, logout & session management        | The system shall provide Riders with secure login, logout, and persistent session management with defined session expiry.                                                         | P1       |
 | RA-003  | Profile management                        | The system shall allow Riders to view and edit their name, profile photo, email, and language preference.                                                                          | P1       |
 | RA-004  | Emergency contacts management             | The system shall allow Riders to add, edit, and remove up to three trusted contacts, used for live trip sharing and SOS notifications.                                            | P3       |
-| RA-005  | Identity verification (ID + live selfie)  | The system shall require Riders to complete identity verification (national ID front and back plus live selfie) before completing their first trip.                               | P1       |
 | RA-006  | Map-based home screen                     | The system shall present Riders with a map-based home screen showing current location, recent destinations, and a primary call-to-action to request a ride.                       | P1       |
 | RA-007  | Pickup location selection                 | The system shall allow Riders to set the pickup location via GPS auto-detection, manual map pin placement, or selection from saved places.                                        | P2       |
 | RA-008  | Destination selection                     | The system shall allow Riders to set the destination by searching by name or address, placing a manual map pin, or selecting from saved places.                                   | P2       |
 | RA-009  | Fare estimate before booking              | The system shall display an estimated fare and trip duration to the Rider before request submission, calculated using configured zone-based pricing rules.                        | P2       |
-| RA-010  | Child accompaniment declaration           | The system shall require Riders to declare child accompaniment (count and approximate ages) for any ride involving children under 12 prior to ride request submission.            | P2       |
+| RA-010  | Child accompaniment declaration           | The system shall allow Riders to declare per-trip that the passenger is a child under 12. The declaration is a single binary flag (no gender or age count required) and is the only exception to the women-only policy; a declared child of any gender may ride.            | P2       |
 | RA-011  | Payment method selection                  | The system shall allow Riders to select between cash and digital (saved or new card) as the payment method for each ride.                                                          | P2       |
 | RA-012  | Submit ride request                       | The system shall allow Riders to submit a ride request after confirming pickup, destination, payment method, and child accompaniment information.                                  | P2       |
 | RA-013  | Driver matching status & wait screen      | The system shall display a "searching for driver" status to Riders during driver matching, with the option to cancel before driver assignment.                                    | P2       |
@@ -778,7 +780,6 @@ The Rider App provides female riders with the complete journey from registration
 | RA-015  | Real-time driver tracking on map          | The system shall provide Riders with real-time map tracking of the assigned Driver, with continuously updated estimated time of arrival.                                          | P2       |
 | RA-016  | Trip status timeline                      | The system shall present Riders with a visual timeline showing trip progress through the states: assigned, driver arrived, trip started, and trip completed.                       | P2       |
 | RA-017  | In-app text chat with driver              | The system shall provide Riders with limited in-app text messaging to the assigned Driver during the active ride, with messaging disabled after trip completion.                   | P3       |
-| RA-018  | Call driver via masked number             | The system shall allow Riders to place voice calls to the assigned Driver via a masked-number proxy that protects both parties' personal phone numbers.                            | P3       |
 | RA-019  | Live trip sharing with trusted contacts   | The system shall allow Riders to share a live trip status link with trusted contacts via SMS, displaying real-time location, ETA, and Driver information.                          | P3       |
 | RA-020  | SOS button (in-trip)                      | The system shall provide Riders with an SOS button accessible during an active trip that triggers the safety alert workflow.                                                       | P2       |
 | RA-021  | Cancel ride with reason                   | The system shall allow Riders to cancel a ride before trip completion, requiring selection of a reason from a predefined list, and shall display any applicable cancellation fee before confirmation. | P3       |
@@ -807,7 +808,6 @@ The Driver App enables verified female drivers to onboard, manage availability, 
 | DA-008  | Background check consent flow             | The system shall require Drivers to acknowledge and consent to a background check before document review proceeds.                                                                | P2       |
 | DA-009  | Onboarding status tracking                | The system shall display the current onboarding status to Drivers across each stage (documents submitted, under review, approved, or rejected).                                    | P2       |
 | DA-010  | Online / offline toggle                   | The system shall provide Drivers with a single-tap toggle to switch between online (available) and offline (unavailable) status.                                                  | P2       |
-| DA-011  | Working zone selection                    | The system shall allow Drivers to select one or more configured neighborhoods as their working zones for ride request eligibility.                                                | P2       |
 | DA-012  | Incoming request popup with timer         | The system shall present incoming ride requests to available Drivers as a popup containing rider, route, and fare information, automatically dismissing after a defined timeout.   | P2       |
 | DA-013  | Accept / decline ride request             | The system shall allow Drivers to accept or decline incoming ride requests within the timeout window, triggering reassignment upon decline or timeout.                            | P2       |
 | DA-014  | Pickup navigation                         | The system shall provide Drivers with a deep link to a default mapping application for turn-by-turn navigation to the Rider's pickup location.                                    | P2       |
@@ -824,7 +824,6 @@ The Driver App enables verified female drivers to onboard, manage availability, 
 | DA-025  | Rate rider + feedback                     | The system shall allow Drivers to rate the Rider on a 1-to-5 scale and submit categorical tags after trip completion.                                                              | P3       |
 | DA-026  | SOS button (in-trip)                      | The system shall provide Drivers with an SOS button accessible during an active trip that triggers the safety alert workflow.                                                      | P2       |
 | DA-027  | In-app chat with rider                    | The system shall provide Drivers with limited in-app text messaging to the assigned Rider during the active ride, with messaging disabled after trip completion.                   | P3       |
-| DA-028  | Call rider via masked number              | The system shall allow Drivers to place voice calls to the assigned Rider via a masked-number proxy.                                                                               | P3       |
 | DA-029  | Help & support contact                    | The system shall provide Drivers with access to in-app FAQs, a support form, and direct contact channels to customer support.                                                      | P4       |
 | DA-030  | Language switcher (AR/EN)                 | The system shall allow Drivers to switch the application language between Arabic and English, with the selection persisting across sessions.                                       | P1       |
 

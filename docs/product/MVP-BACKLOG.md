@@ -195,8 +195,8 @@
 
 | ID | Title | User Story | Priority |
 |---|---|---|---|
-| DRIVER-020 | Driver navigates to pickup via external maps | As a driver, I want to deep-link to Google Maps or Apple Maps for navigation to the pickup, so that I can use familiar navigation tools without switching apps manually | P1 |
-| DRIVER-021 | Driver navigates to destination via external maps | As a driver, I want to deep-link to external maps for navigation to the destination, so that I can navigate efficiently after the rider boards | P1 |
+| DRIVER-020 | Driver navigates to pickup with in-app navigation | As a driver, I want in-app turn-by-turn navigation to the pickup, with the option to open an external maps app, so that I can reach the pickup using my preferred tool | P1 |
+| DRIVER-021 | Driver navigates to destination with in-app navigation | As a driver, I want in-app turn-by-turn navigation to the destination, with the option to open an external maps app, so that I can navigate efficiently after the rider boards | P1 |
 | DRIVER-022 | Driver marks arrival at pickup | As a driver, I want to mark myself as arrived at the pickup location, so that the rider is notified and the wait timer starts | P1 |
 | DRIVER-023 | Driver starts trip | As a driver, I want to start the trip once the rider is in the vehicle, so that the fare meter begins and the trip is officially in progress | P1 |
 | DRIVER-024 | Driver ends trip | As a driver, I want to end the trip when I reach the destination, so that the fare is finalised and the ride is closed | P1 |

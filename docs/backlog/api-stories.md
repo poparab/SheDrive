@@ -1,6 +1,6 @@
 # SheDrive — API Stories
 > Canonical backlog for all [API] stories. Organized by sprint and feature.
-> Last updated: 2026-06-10
+> Last updated: 2026-06-11
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -123,6 +123,18 @@ This is an unauthenticated public endpoint called as the first step of both regi
 - And the previous OTP (if still unexpired) is invalidated and can no longer be submitted
 - And the wrong-attempt counter for the new OTP is reset to 0
 - And the new OTP is dispatched via SMS
+
+**Scenario 7 — SMS gateway delivery failure is logged and surfaced**
+- Given the SMS gateway (#1616) returns a delivery failure for any reason
+- When the endpoint processes the failure
+- Then the failure is logged internally with the gateway error code
+- And a service-unavailable error is returned so the mobile app can prompt the user to retry
+- And the generated OTP record is discarded
+
+**Scenario 8 — All four Egyptian carrier prefixes are accepted**
+- Given a valid mobile number starting with 010, 011, 012, or 015
+- When the endpoint processes the request
+- Then the number is accepted and the OTP is dispatched without error
 
 ### Out of Scope
 - WhatsApp or email OTP delivery
@@ -250,35 +262,47 @@ This unauthenticated endpoint is the second step of the login flow. It accepts t
 - Then a session token is returned that is accepted by #1744
 - And the response includes the user's role (rider or driver) so the client can route accordingly
 
-**Scenario 2 — Phone number not registered returns not-found error**
+**Scenario 2 — Driver login response includes onboarding status for routing**
+- Given a registered driver submits a valid phone and correct OTP
+- When authentication succeeds
+- Then the response includes the driver's onboarding status: pending, approved, or rejected
+- And an approved status allows the mobile app to route the driver to the home screen
+- And a pending or rejected status routes the driver to the status screen (#1576)
+
+**Scenario 3 — Phone number not registered returns not-found error**
 - Given a phone number that has no registered account is submitted
 - When the endpoint processes the request
 - Then a not-found error is returned
 - And no session token is issued
 
-**Scenario 3 — Expired OTP is rejected**
+**Scenario 4 — Expired OTP is rejected**
 - Given a registered phone and an OTP that has passed its 5-minute expiry
 - When the endpoint processes the request
 - Then a validation error is returned indicating the OTP has expired
 
-**Scenario 4 — Wrong OTP increments attempt counter**
+**Scenario 5 — Wrong OTP increments attempt counter**
 - Given a registered phone and an incorrect OTP are submitted
 - When the endpoint processes the request
 - Then a validation error is returned indicating the OTP is incorrect
 - And the wrong-attempt counter for that OTP is incremented by 1
 
-**Scenario 5 — OTP exhausted after 3 wrong attempts**
+**Scenario 6 — OTP exhausted after 3 wrong attempts**
 - Given a phone's OTP has had 3 consecutive wrong attempts
 - When another login attempt is made
 - Then an error is returned indicating the code is invalidated and a new one must be requested via #1620
 - And when the user requests a new OTP via #1620 (resend), the new OTP starts with a fresh wrong-attempt counter of 0
 
-**Scenario 6 — Unauthenticated request is processed correctly**
+**Scenario 7 — Missing or malformed fields are rejected**
+- Given a request with a missing or empty phone field, or a missing or non-6-digit OTP
+- When the endpoint processes the request
+- Then a validation error is returned identifying each failing field
+
+**Scenario 8 — Public endpoint processes unauthenticated requests normally**
 - Given no Authorization header is present (this is a public endpoint)
 - When the endpoint receives the request
 - Then the request is processed normally
 
-**Scenario 7 — OTP resend resets the wrong-attempt counter**
+**Scenario 9 — OTP resend resets the wrong-attempt counter**
 - Given a user has made one or more wrong OTP attempts (including reaching the 3-attempt limit)
 - When she requests a new OTP via #1620 (resend)
 - Then the old OTP is invalidated and can no longer be submitted
@@ -419,6 +443,12 @@ This authenticated endpoint is called by the rider app as the user types in the 
 - Given a request with no session token or an invalid/expired token
 - When the endpoint is called
 - Then the server returns HTTP 401
+
+**Scenario 6 — Query exceeding 200 characters is rejected**
+- Given an authenticated rider sends a query longer than 200 characters
+- When the endpoint processes the request
+- Then a validation error is returned
+- And no Google Maps API call is made
 
 ### Out of Scope
 - Caching of autocomplete results
@@ -591,7 +621,7 @@ This is an internal fare calculation module (not a directly callable external en
 **Description:** As the driver app, I want to submit a complete onboarding application so that SheDrive can review the driver's details and make an approval decision.
 
 ### Background
-This authenticated endpoint accepts the full onboarding payload as a multipart form submission, including personal details, vehicle details, four document files, vehicle photo, and the driver's **profile photo** (#1686). It creates a new application record with status = pending and associates it with the authenticated driver account. Only one application per driver is supported; a second submission returns a conflict error.
+This authenticated endpoint accepts the full onboarding payload as a multipart form submission, including personal details, vehicle details, four document files, vehicle photo, the driver's **profile photo** (#1686), and the driver's **background-check consent**. It creates a new application record with status = pending and associates it with the authenticated driver account. Only one application per driver is supported; a second submission returns a conflict error.
 
 ### Field Validation
 
@@ -612,6 +642,7 @@ This authenticated endpoint accepts the full onboarding payload as a multipart f
 | registration_front | Yes | JPEG, PNG, or PDF | — | 10 MB | — | Return validation error |
 | registration_back | Yes | JPEG, PNG, or PDF | — | 10 MB | — | Return validation error |
 | profile_photo | Yes | JPEG, PNG, or HEIC portrait | — | 10 MB | — | Return validation error |
+| background_check_consent | Yes | Boolean (must be true) | — | — | — | Return validation error: background-check consent is required |
 
 ### Acceptance Criteria
 
@@ -641,6 +672,17 @@ This authenticated endpoint accepts the full onboarding payload as a multipart f
 **Scenario 5 — File too large**
 - Given the driver submits a file exceeding 10 MB for any document or photo field
 - Then the server returns HTTP 422 with an error identifying the offending field
+
+**Scenario 6 — Invalid file type returns error for the specific field**
+- Given the driver submits a document file that is not JPEG, PNG, or PDF, or a photo that is not JPEG, PNG, or HEIC
+- When the endpoint processes the request
+- Then a validation error is returned naming the invalid-type field
+- And no application record is created
+
+**Scenario 7 — Background-check consent must be accepted**
+- Given the driver submits the application payload without the background-check consent flag set to accepted
+- Then the server returns HTTP 422 with an error: background-check consent is required
+- And no application record is created
 
 ### Out of Scope
 - Application re-submission after rejection
@@ -679,7 +721,12 @@ This authenticated endpoint accepts the full onboarding payload as a multipart f
 - When the app calls this endpoint
 - Then the server returns HTTP 404 or an appropriate not-found status
 
-**Scenario 5 — Unauthenticated request is rejected**
+**Scenario 5 — Pending driver cannot bypass status check to reach home screen**
+- Given a driver with application status = pending navigates to the home screen
+- When the app checks status via this endpoint on every open
+- Then she is routed to the pending screen regardless of her navigation attempt
+
+**Scenario 6 — Unauthenticated request is rejected**
 - Given a request with no session token or an invalid/expired token
 - When the endpoint is called
 - Then the server returns HTTP 401
@@ -777,7 +824,12 @@ Internal platform process triggered when an admin updates the driver's applicati
 - Then the request is not blocked by this guard
 - And the availability endpoint processes it normally
 
-**Scenario 4 — Unauthenticated request is rejected**
+**Scenario 4 — No application — driver cannot go online**
+- Given an authenticated driver who has submitted no application at all
+- When she attempts to go online
+- Then the server returns a forbidden error
+
+**Scenario 5 — Unauthenticated request is rejected**
 - Given a request with no session token or an invalid/expired token
 - Then the server returns HTTP 401
 
@@ -832,6 +884,12 @@ Internal platform process triggered when an admin updates the driver's applicati
 **Scenario 5 — Unauthenticated request is rejected**
 - Given a request with no session token or an invalid/expired token
 - Then the server returns HTTP 401
+
+**Scenario 6 — Driver goes offline while in an active trip**
+- Given an authenticated driver who is currently assigned to an active trip
+- When she sends status = "offline"
+- Then the server rejects the request
+- And the driver remains assigned to the current trip until it is completed
 
 ### Out of Scope
 - Automatic offline on app close (future sprint)
@@ -924,12 +982,18 @@ Called when a rider taps "Request Ride." The platform validates that the pickup 
 - Given an authenticated rider submits coordinates outside the valid range
 - Then a validation error is returned indicating the invalid field and its constraint
 
-**Scenario 6 — Unauthenticated request**
+**Scenario 6 — No online drivers in range — trip is still created**
+- Given no online drivers are within matching range at submission time
+- When the endpoint processes the request
+- Then the trip record is still created with status = searching
+- And the matching engine continues trying until the window expires, then marks the trip expired per #1632
+
+**Scenario 7 — Unauthenticated request**
 - Given a request is made without a valid session token
 - Then the request is rejected with an authentication error
 - And no trip record is created
 
-**Scenario 7 — Rider already has an active trip**
+**Scenario 8 — Rider already has an active trip**
 - Given a rider already has a trip in "searching" or "matched" status
 - When she attempts to create another trip request
 - Then a conflict error is returned: "You already have an active trip request"
@@ -1020,11 +1084,24 @@ After creating a trip request, the rider app polls this endpoint every 2–3 sec
 - Then the response returns status = no_driver
 - And the rider app navigates to the no-driver error screen
 
-**Scenario 4 — Trip not found**
+**Scenario 4 — ETA is unavailable**
+- Given a driver has accepted but ETA cannot be computed
+- When the app polls this endpoint and receives status = matched
+- Then the response still returns status = matched with all driver fields
+- And the ETA field is null or absent
+- And the mobile app displays an ETA placeholder rather than crashing
+
+**Scenario 5 — Driver photo is missing**
+- Given the matched driver has no profile photo on file
+- When the app polls this endpoint and receives status = matched
+- Then the profile photo URL field is null
+- And the mobile app renders a gender-neutral placeholder avatar
+
+**Scenario 6 — Trip not found**
 - Given an authenticated rider polls with a trip ID that does not exist or belongs to another rider
 - Then a not-found error is returned
 
-**Scenario 5 — Unauthenticated request**
+**Scenario 7 — Unauthenticated request**
 - Given a request is made without a valid session token
 - Then the request is rejected with an authentication error
 
@@ -1076,6 +1153,13 @@ Internal platform process triggered by #1630 when the matching pool is exhausted
 - When the expiry push is dispatched
 - Then the notification text is in the rider's preferred language
 - And Arabic is used as the default when no preference is stored
+
+**Scenario 5 — Rider can retry from home screen with addresses pre-populated**
+- Given the rider has reached the no-driver error screen
+- When she taps "Try Again"
+- Then the mobile app returns her to the home screen
+- And the pickup and destination she previously entered are pre-populated
+- And she can immediately resubmit via #1629 without re-entering addresses
 
 ### Out of Scope
 - Automatic re-queuing of the expired trip
@@ -1147,6 +1231,99 @@ Arabic is used as the default when no preference is stored.
 
 ---
 
+## [API] #1783 — Trip request captures a per-trip child-passenger flag and exposes it to the driver 🆕
+**Feature:** Feature 8 — Trip Request & Matching API | **Sprint:** Phase 1
+
+**Description:** As the SheDrive platform, I want the trip request to capture whether the passenger for this trip is a child and carry that flag through to the matched driver so that the women-only policy can permit a child passenger while the driver knows to expect one.
+
+### Background
+SheDrive is women-only, but a child passenger is permitted to ride regardless of gender — this is the only exception to the women-only rule. The rider declares per trip whether the passenger will be a child (a simple boolean; gender is not captured). This flag is stored on the trip request (#1629) and included in the trip detail served to the matched driver (#1648 and the first-trip detail #1635) so the driver's first-trip verification (#1588) can permit a declared child. The default is false (adult woman).
+
+### Acceptance Criteria
+
+**Scenario 1 — Request stores the child-passenger flag**
+- Given a rider submits a trip request declaring the passenger is a child
+- When the request is created
+- Then the trip records the child-passenger flag as true
+
+**Scenario 2 — Default is false when not declared**
+- Given a rider submits a trip request without declaring a child passenger
+- When the request is created
+- Then the child-passenger flag is stored as false
+
+**Scenario 3 — Flag is exposed in the driver's trip detail**
+- Given a driver retrieves the detail for a trip where the child-passenger flag is true
+- When the trip detail is served
+- Then the response indicates the passenger is a declared child
+
+**Scenario 4 — Flag is immutable after submission**
+- Given a trip request has been submitted
+- When a change to the child-passenger flag is attempted
+- Then it is rejected
+
+**Scenario 5 — Flag relaxes only the gender check**
+- Given a trip with the child-passenger flag set to true
+- When eligibility is evaluated
+- Then only the women-only gender check is relaxed for that passenger, and all other eligibility rules still apply
+
+### Out of Scope
+- Capturing the child's gender or exact age beyond the boolean
+- Child safety-seat handling
+- Child-specific fare differences
+
+### Dependencies
+- #1629 — Rider creates trip request
+- #1648 — Driver retrieves pending trip request
+- #1635 — Trip detail includes first-trip flag
+
+---
+
+## [API] #1785 — Trip requests outside operating hours are rejected 🆕
+**Feature:** Feature 8 — Trip Request & Matching API | **Sprint:** Phase 1
+
+**Description:** As the SheDrive platform, I want to reject trip requests placed outside the configured daytime operating window so that rides are only created while the service is open.
+
+### Background
+SheDrive operates daytime-only in Phase 1; exact hours are configured by operations (open decision OD-001). The platform enforces an operating-hours window: trip requests (#1629) received outside the window are rejected with a clear, localizable service-closed reason and the time the service next opens. Requests inside the window proceed normally. A trip already in progress when the window closes is not interrupted; only new requests are blocked. The window is configuration-driven, not hard-coded.
+
+### Acceptance Criteria
+
+**Scenario 1 — Request inside operating hours is accepted**
+- Given the current time is inside the operating window
+- When a rider submits a trip request
+- Then the request proceeds normally
+
+**Scenario 2 — Request outside operating hours is rejected**
+- Given the current time is outside the operating window
+- When a rider submits a trip request
+- Then the request is rejected with a service-closed reason and the next opening time
+- And no trip is created
+
+**Scenario 3 — In-progress trips are not affected by window close**
+- Given a trip is already in progress when the operating window closes
+- Then the trip continues uninterrupted
+- And only new requests are blocked
+
+**Scenario 4 — Operating window is configuration-driven**
+- Given operations updates the operating-hours configuration
+- When enforcement runs
+- Then the new window is applied without a code change
+
+**Scenario 5 — Boundary at open and close is deterministic**
+- Given a request arrives exactly at the opening or closing minute
+- Then the accept/reject decision is applied deterministically per the configured boundary rule
+
+### Out of Scope
+- Per-zone operating hours (all zones share one window at MVP)
+- Scheduled rides (handled by #1738)
+- 24/7 operation
+
+### Dependencies
+- #1629 — Rider creates trip request
+- Open decision OD-001 — operating hours
+
+---
+
 ### Feature 9 — Driver Trip Acceptance API
 
 ---
@@ -1173,20 +1350,34 @@ Internal platform process triggered by the matching engine (#1630) after selecti
 - And the notification includes the pickup area name and estimated fare
 - And the server-side 10-second acceptance clock starts
 
-**Scenario 2 — Driver's push token is not registered**
+**Scenario 2 — Trip dispatched while driver app is in foreground**
+- Given the driver's app is open in the foreground when the dispatch occurs
+- When the platform dispatches the trip to her
+- Then the app navigates automatically to the trip request details screen
+- And the countdown begins immediately
+- And no duplicate OS-level banner is shown
+
+**Scenario 3 — Driver app is fully closed**
+- Given the driver's app is closed when the dispatch occurs
+- When the push notification arrives on her device
+- Then the device displays the notification
+- And tapping it launches the app to the trip request details screen
+- And if the 10-second acceptance window has already elapsed by the time the screen loads, the screen shows "Request expired" and the driver returns to her home screen
+
+**Scenario 4 — Driver's push token is not registered**
 - Given the selected driver's push notification token is not on file
 - When the process attempts to send the push
 - Then the push silently fails
 - And the pending trip record is still created
 - And after 10 seconds with no acceptance, the trip is reassigned (#1651)
 
-**Scenario 3 — Driver is no longer available at dispatch time**
+**Scenario 5 — Driver is no longer available at dispatch time**
 - Given the selected driver went offline between matching selection and dispatch
 - When this process checks her status at dispatch
 - Then the dispatch is aborted for this driver
 - And the matching engine is notified to select the next nearest driver
 
-**Scenario 4 — Notification in driver's preferred language**
+**Scenario 6 — Notification in driver's preferred language**
 - Given the driver's `shedrive.lang` is "ar" or "en"
 - When the push is dispatched
 - Then the notification text is in the driver's preferred language
@@ -1225,7 +1416,12 @@ Internal platform process triggered by the matching engine (#1630) after selecti
 - Given a request is made without a valid driver session token
 - Then the request is rejected with an authentication error
 
-**Scenario 4 — Trip was reassigned before retrieval**
+**Scenario 4 — Both Accept and Reject must be actionable while window is open**
+- Given the trip details are successfully returned and the window has not expired
+- Then both the Accept (#1649) and Reject (#1650) endpoints are valid targets for the driver's action
+- And the app renders both buttons in an active, tappable state
+
+**Scenario 5 — Trip was reassigned before retrieval**
 - Given the 10-second window expired and the trip was reassigned before the driver's app called this endpoint
 - Then an expired or not-found response is returned
 - And no trip details are shown to the driver
@@ -1261,15 +1457,21 @@ Internal platform process triggered by the matching engine (#1630) after selecti
 - Then a conflict error is returned: "Acceptance window has expired"
 - And the trip status is not changed
 
-**Scenario 3 — No pending trip for this driver**
+**Scenario 3 — Trip already accepted by another driver**
+- Given the trip was reassigned and accepted by a different driver before this acceptance arrived
+- When the endpoint processes this request
+- Then a conflict error is returned
+- And the driver app shows the expired message and returns the driver to her home screen
+
+**Scenario 4 — No pending trip for this driver**
 - Given an authenticated driver calls the accept endpoint when she has no pending trip
 - Then a not-found error is returned
 
-**Scenario 4 — Unauthenticated request**
+**Scenario 5 — Unauthenticated request**
 - Given a request is made without a valid driver session token
 - Then the request is rejected with an authentication error
 
-**Scenario 5 — Duplicate acceptance call**
+**Scenario 6 — Duplicate acceptance call**
 - Given a driver's acceptance has already been recorded
 - When the same accept endpoint is called again (e.g., double-tap)
 - Then the endpoint returns a conflict or idempotent success
@@ -1305,11 +1507,16 @@ Internal platform process triggered by the matching engine (#1630) after selecti
 - Given an authenticated driver calls the reject endpoint when she has no pending trip
 - Then a not-found error is returned
 
-**Scenario 4 — Unauthenticated request**
+**Scenario 4 — Double-tap prevention**
+- Given the driver taps Reject and the request is already in flight
+- When a duplicate rejection arrives for the same trip and driver
+- Then the server is idempotent and does not create duplicate records or trigger duplicate reassignments
+
+**Scenario 5 — Unauthenticated request**
 - Given a request is made without a valid driver session token
 - Then the request is rejected
 
-**Scenario 5 — Driver status remains available after rejection**
+**Scenario 6 — Driver status remains available after rejection**
 - Given the driver has successfully rejected the trip
 - Then her status is confirmed as available
 - And no penalty or flag is recorded against the driver in this sprint
@@ -1354,6 +1561,11 @@ Internal platform process triggered when (1) a driver explicitly rejects via #16
 - When each rejects or times out
 - Then the process continues until either a driver accepts or the pool is exhausted
 
+**Scenario 5 — Driver not double-dispatched for the same trip**
+- Given a driver has already rejected or timed out on a trip
+- When the matching engine searches for the next candidate
+- Then the rejecting or timed-out driver is excluded from the candidate pool for that specific trip
+
 ### Dependencies
 - #1744 — Session validation (must be live)
 - #1630 — System matches request to nearest available driver (must be live)
@@ -1375,32 +1587,62 @@ The rider app polls this endpoint approximately every 5 seconds while the trip i
 
 ### Acceptance Criteria
 
-**Scenario 1 — Response includes trip state and driver location**
-- Given an authenticated rider has an active trip
-- When the rider app calls this endpoint
-- Then the response includes the current trip state and the driver's last known latitude and longitude
+**Scenario 1 — Trip in en_route_pickup — driver coordinates and ETA returned**
+- Given the rider's trip is in en_route_pickup state
+- When the rider app polls this endpoint
+- Then the response includes the current trip state, the driver's latest latitude and longitude, and the ETA to the pickup location
+- And the rider app updates the driver's dot on the map
 
-**Scenario 2 — ETA is included while driver is en route to pickup**
-- Given the trip is in en_route_pickup state
-- When the rider app calls this endpoint
-- Then the response includes the driver's estimated arrival time to the pickup location
+**Scenario 2 — Trip advances to arrived_pickup — screen transitions automatically**
+- Given the driver has tapped "I've Arrived" and the trip state is arrived_pickup
+- When the rider app polls this endpoint
+- Then the response returns state = arrived_pickup
+- And the rider app automatically transitions the active trip screen to the arrived state without requiring any rider action
 
-**Scenario 3 — ETA is omitted once the trip has started**
-- Given the trip is in trip_started state
-- When the rider app calls this endpoint
-- Then the response does not include an ETA field
-- And the driver's GPS position continues to be returned
+**Scenario 3 — Trip in trip_started — driver location continues updating**
+- Given the trip state is trip_started
+- When the rider app polls this endpoint
+- Then the response returns state = trip_started with the driver's latest coordinates
+- And the rider app shows the driver's dot moving toward the destination
 
-**Scenario 4 — Driver card details are included in the response**
-- Given an active trip exists
-- When the rider app calls this endpoint
-- Then the response includes the driver's name, profile photo URL (or null), vehicle make, model, color, and plate number
+**Scenario 4 — Driver coordinates refresh within 5 seconds**
+- Given the driver is streaming GPS updates via #1646 every 5 seconds
+- When the rider app polls this endpoint
+- Then the driver coordinates in the response reflect the most recent GPS update
+- And the position age does not exceed 5 seconds from the last driver update
 
-**Scenario 5 — Unauthenticated request is rejected**
+**Scenario 5 — Driver card fields always included**
+- Given the trip is in any active state
+- When the rider app polls this endpoint
+- Then the response always includes the driver's name, profile photo URL (or null), vehicle make, model, color, and plate number
+
+**Scenario 6 — ETA unavailable — null field returned**
+- Given ETA cannot be computed for the current driver position
+- When the rider app polls this endpoint
+- Then the ETA field is null or absent
+- And the rider app displays a placeholder instead of a time value without crashing
+
+**Scenario 7 — Driver photo missing — photo URL is null**
+- Given the matched driver has no profile photo
+- When the rider app polls this endpoint
+- Then the profile photo URL field is null
+- And the rider app renders a gender-neutral placeholder avatar
+
+**Scenario 8 — Trip transitions to trip_ended — rider screen transitions to summary**
+- Given the driver has tapped "End Trip" and the state is trip_ended
+- When the rider app polls this endpoint
+- Then the response returns state = trip_ended
+- And the rider app automatically navigates to the trip summary screen
+
+**Scenario 9 — Trip not found or not belonging to this rider**
+- Given the rider polls with a trip ID that does not exist or does not belong to her account
+- Then the server returns a not-found or forbidden response
+
+**Scenario 10 — Unauthenticated request is rejected**
 - Given a request arrives without a valid rider auth token
 - Then the platform rejects the request
 
-**Scenario 6 — arrived_at timestamp included when driver has arrived**
+**Scenario 11 — arrived_at timestamp included when driver has arrived**
 - Given the trip is in arrived_pickup state
 - When the rider app polls this endpoint
 - Then the response includes an arrived_at field containing the UTC timestamp of when the state transitioned to arrived_pickup
@@ -1440,13 +1682,30 @@ Arabic is used as the default.
 - Then a push notification is sent to the rider's device automatically
 - And no separate API call from any app is required to trigger it
 
-**Scenario 2 — Push text is in rider's preferred language**
+**Scenario 2 — Tapping notification opens active trip screen in arrived_pickup state**
+- Given the rider receives the driver-arrived push notification
+- When she taps the notification
+- Then the SheDrive app opens or comes to the foreground
+- And the active trip screen is displayed in arrived_pickup state
+
+**Scenario 3 — Push delivered when app is backgrounded**
+- Given the rider's app is not in the foreground when the driver marks arrival
+- When the push is dispatched
+- Then the notification appears on the rider's device lock screen or notification tray
+
+**Scenario 4 — Push token not registered — silently fails**
+- Given the rider's device push token is not on file
+- When the platform dispatches the arrived push
+- Then the push silently fails without causing a platform error
+- And the rider's active trip screen still transitions to arrived_pickup state via polling (#1633)
+
+**Scenario 5 — Push text is in rider's preferred language**
 - Given the rider's `shedrive.lang` is "ar" or "en"
 - When the arrived_pickup push is triggered
 - Then the notification text is in the rider's preferred language
 - And Arabic is used as the default when no preference is stored
 
-**Scenario 3 — Push failure does not block the state transition**
+**Scenario 6 — Push failure does not block the state transition**
 - Given the push delivery service is temporarily unavailable
 - When the driver advances to arrived_pickup
 - Then the trip state is still saved as arrived_pickup
@@ -1460,6 +1719,54 @@ Arabic is used as the default.
 - #1744 — Authentication service (must be live)
 - #1618 — Push notification service (must be live)
 - #1652 — Driver advances trip state machine (must be live)
+
+---
+
+## [API] #1818 — Platform serves active-trip route geometry to the rider for an in-app trip view 🆕
+**Feature:** Feature 10 — Active Trip | **Sprint:** 2
+
+**Description:** As the rider app, I want the platform to serve the route geometry for the current trip so that the rider can see the trip route rendered in-app as a live view of the driver's location, without an external maps app.
+
+### Background
+While a trip is active, the rider app requests the route geometry for the current leg so it can render the route on the rider's map. This is a live view of the trip, not navigation, so only the polyline (and total distance) is needed — no turn-by-turn maneuvers and no external-app option are exposed to the rider. The route is served by the same traffic-aware Google Maps Directions integration used for the driver. If directions cannot be fetched, the rider app still shows the driver dot and destination pin without the route line.
+
+### Acceptance Criteria
+
+**Scenario 1 — Route geometry returned during the trip**
+- Given an authenticated rider on an active trip in trip_started state
+- When the rider app requests the route for the current trip
+- Then the platform returns the route polyline and total distance for rendering on the rider's map
+
+**Scenario 2 — Route reflects the driver's current position**
+- Given the driver's position has advanced along the route
+- When the rider app requests the route again
+- Then the platform returns an updated polyline consistent with the driver's current location
+
+**Scenario 3 — No turn-by-turn maneuvers exposed to the rider**
+- Given the rider requests the active-trip route
+- When the response is returned
+- Then it contains the polyline only and no turn-by-turn maneuver instructions
+
+**Scenario 4 — Directions provider error degrades gracefully**
+- Given the Google Maps Directions API is unavailable or returns an error
+- When the rider app requests the route
+- Then the platform returns an appropriate upstream error code without route data
+- And the rider app continues to show the driver dot and destination pin without the route line
+
+**Scenario 5 — Authentication required**
+- Given a request without a valid session token
+- When the route is requested
+- Then 401 Unauthorized is returned and no route data is served
+
+### Out of Scope
+- Turn-by-turn directions for the rider
+- External maps app hand-off for the rider
+- Estimated arrival time to destination for the rider
+- Offline / cached route geometry
+
+### Dependencies
+- #1617 — Google Maps API key configuration (must be live)
+- #1633 — Rider retrieves live trip state and driver location (must be live)
 
 ---
 
@@ -1531,17 +1838,26 @@ Core state-transition endpoint consumed by the driver app. Validates the sequenc
 - When the driver advances state to arrived_pickup
 - Then the platform sends a push notification to the rider via #1634
 
-**Scenario 4 — trip_ended triggers fare calculation**
+**Scenario 4 — "Start Trip" blocked if first-trip verification not completed**
+- Given is_first_trip = true and the driver has not yet tapped "Rider Verified — Board"
+- When the driver attempts to transition to trip_started
+- Then the server returns a forbidden error: gender verification must be completed first
+
+**Scenario 5 — trip_ended triggers fare calculation**
 - Given an active trip is in trip_started state
 - When the driver advances state to trip_ended
 - Then the platform triggers final fare calculation via #1636
 - And the rider is notified via #1638
 
-**Scenario 5 — Unauthenticated request is rejected**
+**Scenario 6 — Transition on a trip not belonging to this driver**
+- Given the driver submits a state transition for a trip that was not assigned to her
+- Then the server returns a forbidden response
+
+**Scenario 7 — Unauthenticated request is rejected**
 - Given a request arrives without a valid auth token
 - Then the platform rejects the request and the trip state is unchanged
 
-**Scenario 6 — Every state transition is logged to history**
+**Scenario 8 — Every state transition is logged to history**
 - Given a valid state transition is processed
 - When the new state is saved to the trip record
 - Then a `trip_state_history` record is created with: trip_id, from_state, to_state, transitioned_at (UTC), actor_id
@@ -1588,7 +1904,12 @@ From the moment a driver accepts a trip until trip_ended, the driver app calls t
 - Then the update is not associated with a completed trip
 - And no live location data is served to the rider for this trip
 
-**Scenario 4 — Unauthenticated GPS updates are rejected**
+**Scenario 4 — Valid coordinate ranges enforced**
+- Given the driver sends a latitude outside −90 to 90 or a longitude outside −180 to 180
+- Then the server returns a validation error
+- And the driver's stored position is not updated
+
+**Scenario 5 — Unauthenticated GPS updates are rejected**
 - Given a GPS update arrives without a valid driver auth token
 - Then the platform rejects the update
 
@@ -1649,6 +1970,59 @@ A server-side scheduled process runs every 5 minutes and checks for trips in any
 
 ---
 
+## [API] #1817 — Platform serves active-trip route and turn-by-turn directions to the driver 🆕
+**Feature:** Feature 10 — Active Trip | **Sprint:** 2
+
+**Description:** As the driver app, I want the platform to serve the route geometry and turn-by-turn directions for the current trip leg so that in-app turn-by-turn navigation can be rendered without relying on an external maps app.
+
+### Background
+While a trip is active, the driver app requests directions for the current leg: driver → pickup during en_route_pickup, and driver → destination during trip_started. The platform proxies the traffic-aware Google Maps Directions API and returns the route polyline, ordered turn-by-turn maneuvers with distances, total distance, and ETA. The driver app renders this as in-app turn-by-turn navigation. The platform re-serves an updated route when the leg changes or the driver deviates from the route. If directions cannot be fetched, the response degrades gracefully so the app can still show pins and offer the "Open in external app" fallback.
+
+### Acceptance Criteria
+
+**Scenario 1 — Directions returned for the pickup leg**
+- Given an authenticated driver on an active trip in en_route_pickup state
+- When the driver app requests directions for the current leg
+- Then the platform returns the route from the driver's current location to the pickup, including the polyline, ordered turn-by-turn maneuvers, total distance, and ETA
+
+**Scenario 2 — Directions returned for the destination leg**
+- Given an authenticated driver on an active trip in trip_started state
+- When the driver app requests directions for the current leg
+- Then the platform returns the route from the driver's current location to the destination, including the polyline, ordered turn-by-turn maneuvers, total distance, and ETA
+
+**Scenario 3 — Live traffic is factored into the route and ETA**
+- Given the platform queries Google Maps Directions for an active-trip leg
+- When the route is selected
+- Then the traffic-aware route is returned and the ETA reflects current traffic conditions
+
+**Scenario 4 — Reroute on deviation**
+- Given the driver has deviated from the previously served route
+- When the driver app requests directions again with her updated location
+- Then the platform returns an updated route and turn-by-turn maneuvers from her current position
+
+**Scenario 5 — Directions provider error degrades gracefully**
+- Given the Google Maps Directions API is unavailable or returns an error
+- When the driver app requests directions
+- Then the platform returns an appropriate upstream error code without route data
+- And the driver app can still display the pickup/destination pins and offer the "Open in external app" fallback
+
+**Scenario 6 — Authentication required**
+- Given a request without a valid session token
+- When directions are requested
+- Then 401 Unauthorized is returned and no directions data is served
+
+### Out of Scope
+- Offline / cached directions
+- Client-side voice guidance assets
+- Surge or pricing logic
+- Rider-facing route geometry (separate API story #1818)
+
+### Dependencies
+- #1617 — Google Maps API key configuration (must be live)
+- #1633 — Rider retrieves live trip state and driver location (shares trip-state context)
+
+---
+
 ### Feature 11 — Trip Completion & Cash Payment API
 
 ---
@@ -1679,10 +2053,29 @@ Platform process triggered automatically when the driver advances the trip state
 - When the rider app requests trip details (#1637) or the push is sent (#1638)
 - Then both receive the same final fare amount
 
-**Scenario 4 — Fare is not recalculated after storage**
+**Scenario 4 — Driver's cash collection screen shows the correct amount**
+- Given the trip is in trip_ended state and the fare is calculated
+- When the driver's app displays the cash collection screen
+- Then the fare amount shown to the driver matches the value stored on the trip record
+
+**Scenario 5 — Minimum fare is the base fee**
+- Given a trip with zero or near-zero distance and duration (edge case)
+- When the fare is calculated
+- Then the fare is at minimum equal to the base fee and never zero or negative
+
+**Scenario 6 — Fare is immutable after calculation**
+- Given the fare has been calculated and stored on the trip record
+- When any subsequent request attempts to recalculate or overwrite the fare
+- Then the server rejects the modification and returns the stored fare
+
+**Scenario 7 — Fare is not recalculated after storage**
 - Given the final fare has been stored on the trip record
 - When any downstream endpoint reads the fare
 - Then the stored value is returned without recalculation
+
+**Scenario 8 — Unauthenticated request is rejected**
+- Given a request arrives without a valid session token
+- Then the request is rejected
 
 ### Out of Scope
 - Surge pricing or dynamic multipliers
@@ -1729,7 +2122,11 @@ Called by the rider app to populate the trip summary screen after a trip reaches
 - When this endpoint is called
 - Then the rating field is absent or null in the response
 
-**Scenario 6 — Unauthenticated request is rejected**
+**Scenario 6 — Trip not found or not belonging to this rider**
+- Given the rider requests a trip ID that does not exist or does not belong to her account
+- Then the server returns a not-found or forbidden response
+
+**Scenario 7 — Unauthenticated request is rejected**
 - Given a request arrives without a valid auth token
 - Then the platform rejects the request
 
@@ -1765,14 +2162,36 @@ Arabic is used as the default.
 - Then a push notification is sent to the rider's device automatically in her preferred language
 - And the notification includes the final fare amount
 
-**Scenario 2 — Push failure does not block state transition**
+**Scenario 2 — Notification text format includes fare amount**
+- Given the final fare has been calculated
+- When the trip completion push is dispatched
+- Then the notification text reads "رحلتك اكتملت! المبلغ المستحق: [X] جنيه." with the actual fare amount substituted for [X]
+
+**Scenario 3 — Tapping notification opens trip summary screen**
+- Given the rider receives the trip completion push notification
+- When she taps the notification
+- Then the SheDrive app opens or comes to the foreground
+- And the trip summary screen (#1637) is displayed
+
+**Scenario 4 — Push delivered when app is backgrounded**
+- Given the rider's app is not in the foreground when the trip ends
+- When the push is dispatched
+- Then the notification appears on the rider's device lock screen or notification tray
+
+**Scenario 5 — Push token not registered — silently fails**
+- Given the rider's device push token is not on file
+- When the platform dispatches the trip completion push
+- Then the push silently fails without causing a platform error
+- And the rider still sees the trip summary the next time she opens the app or polls #1633
+
+**Scenario 6 — Push failure does not block state transition**
 - Given the push delivery service is temporarily unavailable
 - When the driver advances to trip_ended
 - Then the trip state is still saved as trip_ended
 - And the fare is still calculated and stored
 - And the platform logs the push delivery failure for retry
 
-**Scenario 3 — Notification in user's preferred language**
+**Scenario 7 — Notification in user's preferred language**
 - Given the rider's `shedrive.lang` is "ar" or "en"
 - When the completion push is triggered
 - Then the notification text is in the rider's preferred language
@@ -1880,7 +2299,12 @@ Arabic is used as the default.
 - When any subsequent request attempts to submit a rating for that trip
 - Then the platform rejects the request
 
-**Scenario 5 — Unauthenticated skip request is rejected**
+**Scenario 5 — Skip is idempotent — calling skip twice does not error**
+- Given the rider has already skipped the rating
+- When the skip endpoint is called a second time for the same trip
+- Then the server returns a success response without creating a duplicate record
+
+**Scenario 6 — Unauthenticated skip request is rejected**
 - Given a skip request arrives without a valid auth token
 - Then the platform rejects the request
 
@@ -1977,6 +2401,93 @@ Internal platform process triggered after a rating is successfully stored by #16
 
 ### Dependencies
 - #1639 — Rider submits driver rating (must be live)
+
+---
+
+## [API] #1782 — Driver retrieves payment method and collection status for a completed trip 🆕
+**Feature:** Feature 11 — Trip Completion & Cash Payment API | **Sprint:** Phase 1
+
+**Description:** As the driver app, I want each completed trip to tell me how the rider paid and whether I need to collect cash so that I never ask for cash on a trip the rider already paid for by card.
+
+### Background
+When a trip completes, the driver's completion screen must reflect the rider's payment method. For cash trips the driver collects the fare; for card (digital) trips the platform charges the rider's card (#1733) and the driver collects nothing. For the authenticated driver's completed trip, this returns: the payment method (cash or card), the fare amount, the amount to collect from the rider (equal to fare for cash, zero for card), and the digital payment status (paid, pending, failed) for card trips. Digital payment is part of Phase 1 scope.
+
+### Acceptance Criteria
+
+**Scenario 1 — Cash trip returns full fare to collect**
+- Given the completed trip's payment method is cash
+- When the driver retrieves the trip's payment status
+- Then the method is cash and the amount to collect equals the fare
+
+**Scenario 2 — Card trip paid: nothing to collect**
+- Given the completed trip's payment method is card and the charge succeeded
+- When the driver retrieves the trip's payment status
+- Then the method is card, the digital payment status is paid, and the amount to collect is zero
+
+**Scenario 3 — Card trip with pending or failed payment**
+- Given the completed trip's payment method is card and the charge is pending or failed
+- When the driver retrieves the trip's payment status
+- Then the digital payment status is surfaced, the amount to collect is zero, and the driver is not asked to collect cash
+
+**Scenario 4 — Driver can only retrieve her own trips**
+- Given a driver requests the payment status of a trip she did not drive
+- Then the request is rejected as not found or not authorized
+
+**Scenario 5 — Unauthenticated request is rejected**
+- Given a request without a valid session token
+- Then it is rejected
+
+### Out of Scope
+- Card charge processing itself (#1733)
+- Refunds
+- Cash settlement workflow (admin)
+
+### Dependencies
+- #1733 — Rider completes online card payment at trip end (must be live)
+- #1637 — Completed trip is served with fare breakdown
+
+---
+
+## [API] #1786 — Driver retrieves her aggregate rating summary 🆕
+**Feature:** Feature 11 — Trip Completion & Cash Payment API | **Sprint:** Phase 1
+
+**Description:** As the driver app, I want to retrieve the driver's overall (aggregate) rating and rating count so that she can see how riders rate her across all of her trips.
+
+### Background
+Each rider rating updates the driver's aggregate rating (#1654). This endpoint returns the driver's current average star rating (one decimal), the total number of ratings counted, and optionally the count per star value, for display on the driver's home/profile. It is read-only.
+
+### Acceptance Criteria
+
+**Scenario 1 — Returns current average and count**
+- Given an authenticated approved driver with at least one rating
+- When she requests her rating summary
+- Then the response includes her average star rating to one decimal and the total ratings count
+
+**Scenario 2 — New driver with no ratings**
+- Given a driver who has not yet been rated
+- When she requests her rating summary
+- Then the response indicates no rating yet with a count of zero
+
+**Scenario 3 — Summary reflects the latest ratings**
+- Given a new rider rating has updated the aggregate (#1654)
+- When the driver requests her rating summary
+- Then the returned average and count reflect the latest data
+
+**Scenario 4 — Driver can only retrieve her own summary**
+- Given a driver requests another driver's rating summary
+- Then the request is rejected as not authorized
+
+**Scenario 5 — Unauthenticated request is rejected**
+- Given a request without a valid session token
+- Then it is rejected
+
+### Out of Scope
+- Per-trip rating list (covered by driver trip history #1668)
+- Responding to or disputing ratings
+- Rider-facing driver rating display
+
+### Dependencies
+- #1654 — Driver aggregate rating is updated (must be live)
 
 ---
 
@@ -2489,40 +3000,51 @@ Called when the admin clicks a trip row in the trip list. Returns all informatio
 ## [API] #1721 — Rider views and edits her profile 🆕
 **Feature:** Feature 4 — Authentication API | **Sprint:** 2
 
-**Description:** As the rider app, I want to retrieve and update the rider's profile information so that she can manage her account details.
+**Description:** As the rider app, I want to retrieve and update the authenticated rider's profile information so that the rider can see and edit her registered details.
 
-### Field Validation
-
-| Field | Required | Format | Min | Max | Accepted characters | Error |
-|---|---|---|---|---|---|---|
-| name | No (on update) | Free text | 2 chars | 50 chars | Arabic, Latin, spaces | Return validation error |
+### Background
+This covers two operations on the rider profile endpoint: GET (retrieve) and PATCH (update name). The GET request returns the rider's full name and phone number. Phone number is returned for display only and cannot be updated through this endpoint. The PATCH request accepts a new full name, validates it server-side, and persists the change. Both operations require a valid session token.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Rider retrieves her profile**
-- Given an authenticated rider calls this endpoint with no request body
-- When the endpoint processes the request
-- Then the response includes: full name, phone number, email (if set), language preference, and registration date
+**Scenario 1 — GET: Rider retrieves her profile**
+- Given an authenticated rider sends a GET request to the profile endpoint
+- When the endpoint is called
+- Then the response includes full_name and phone_number
+- And phone_number is read-only and cannot be updated via PATCH
 
-**Scenario 2 — Rider updates her name**
-- Given an authenticated rider submits a valid name (2–50 chars, letters and spaces only)
-- When the endpoint processes the request
-- Then the name is updated on the user record
-- And the response confirms the update
+**Scenario 2 — PATCH: Rider updates her name successfully**
+- Given an authenticated rider sends a PATCH request with a valid full_name value
+- When the endpoint is called
+- Then the full_name is updated in the rider's record
+- And the response returns the updated profile
 
-**Scenario 3 — Invalid name format**
-- Given an authenticated rider submits a name with digits or special characters
-- When the endpoint processes the request
-- Then a validation error is returned
+**Scenario 3 — PATCH: Name validation fails (empty or invalid characters)**
+- Given the rider sends a PATCH with an empty name or a name containing numbers or special characters
+- When the endpoint is called
+- Then the platform returns a validation error with the specific field and message
+- And the rider's record is not updated
 
-**Scenario 4 — Unauthenticated request**
-- Given no valid session token is provided
-- Then the request is rejected
+**Scenario 4 — PATCH: Name too short or too long**
+- Given the rider sends a PATCH with a name shorter than 2 characters or longer than 60 characters
+- When the endpoint is called
+- Then the platform returns a length validation error
+
+**Scenario 5 — PATCH: Phone number field is silently ignored**
+- Given the rider sends a PATCH request that includes a phone_number field
+- When the endpoint is called
+- Then the phone_number field is silently ignored
+- And only permitted fields are updated
+
+**Scenario 6 — Unauthenticated request is rejected**
+- Given a request arrives without a valid auth token
+- When it targets this endpoint
+- Then the platform rejects the request via #1744
 
 ### Out of Scope
 - Phone number change
-- Email change or verification
-- Photo upload
+- Profile photo management
+- Account deletion
 
 ### Dependencies
 - #1744 — Session validation
@@ -2578,52 +3100,107 @@ Called when the admin clicks a trip row in the trip list. Returns all informatio
 
 ---
 
-## [API] #1739 — Account suspension status is updated by admin 🆕
-**Feature:** Feature 13 — Admin Rider Management API | **Sprint:** 2
+## [API] #1800 — Driver retrieves her profile 🆕
+**Feature:** Feature 4 — Authentication API | **Sprint:** 2
 
-**Description:** As the admin, I want to update a rider's or driver's account suspension status so that I can manage account sanctions.
+**Description:** As the driver app, I want to retrieve the authenticated driver's verified profile so that the driver can view her personal, vehicle, and account details.
 
 ### Background
-Called by the admin portal to update user suspension status. Can suspend or reinstate (lift suspension). When a user is suspended, their sessions are invalidated and they cannot authenticate. When reinstated, they can log in again.
-
-### Field Validation
-
-| Field | Required | Format | Error |
-|---|---|---|---|
-| status | Yes | Enum: "pending_review", "active", "suspended" | Return validation error |
-| user_id | Yes | Valid UUID | Return not-found error if user doesn't exist |
+This is a read-only GET on the driver profile endpoint. It returns the driver's profile photo URL, full name, phone number, date of birth, masked National ID (last 4 digits only), vehicle details (make, model, year, color, plate number, vehicle type), onboarding/account status, aggregate rating summary, and language preference. There is no update operation in this phase: profile and vehicle data are verified during onboarding and are immutable from the app; corrections are handled operationally. The endpoint requires a valid driver session (#1744). The National ID is always returned masked; the full value is never exposed to the app.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Admin suspends a rider**
-- Given an admin submits status = "suspended" for a rider user_id
-- When the endpoint processes the request
-- Then the user record is updated to suspended status
-- And all sessions for that user are invalidated
-- And the rider cannot log in
+**Scenario 1 — GET: driver retrieves her profile**
+- Given an authenticated driver sends a GET request to the driver profile endpoint
+- When the endpoint is called
+- Then the response includes profile photo, full name, phone number, date of birth, masked National ID, and vehicle details (make, model, year, color, plate, type)
+- And the onboarding/account status and aggregate rating summary are included
 
-**Scenario 2 — Admin reinstates a rider**
-- Given an admin submits status = "active" for a suspended rider
-- When the endpoint processes the request
-- Then the user record is updated to active status
-- And the rider can log in again
+**Scenario 2 — National ID is returned masked**
+- Given the driver profile is returned
+- Then only the last 4 digits of the National ID are present
+- And the full National ID is never exposed to the app
 
-**Scenario 3 — User not found**
-- Given an admin submits a user_id that does not exist
-- When the endpoint processes the request
-- Then a not-found error is returned
+**Scenario 3 — No update operation is exposed**
+- Given a PATCH or PUT request is sent to the driver profile endpoint
+- When the endpoint processes it
+- Then the request is rejected as unsupported in this phase
+- And no profile or vehicle field is changed
 
-**Scenario 4 — Admin authentication required**
-- Given the request does not include valid admin credentials
-- Then the request is rejected
+**Scenario 4 — Language preference is included**
+- Given the driver has a stored language preference
+- When she retrieves her profile
+- Then the response includes her language preference (defaulting to "ar" when unset)
+
+**Scenario 5 — Unauthenticated request is rejected**
+- Given a request arrives without a valid session token
+- When it targets this endpoint
+- Then the platform rejects the request via #1744
 
 ### Out of Scope
-- Batch suspension/reinstatement
-- Suspension reason collection
-- User notification of suspension
+- Profile or vehicle field updates
+- Document re-upload
+- Phone number change
+- Returning the full unmasked National ID to the app
 
 ### Dependencies
-- #1744 — Session validation
+- #1744 — Auth middleware validates session tokens (must be live)
+- #1786 — Driver retrieves her aggregate rating summary (rating data, related)
+
+---
+
+## [API] #1739 — Account suspension status is updated by admin 🆕
+**Feature:** Feature 13 — Admin Rider Management API | **Sprint:** 2
+
+**Description:** As the admin portal, I want to update a rider's or driver's account suspension status so that the platform can enforce the admin's decision immediately across all active sessions.
+
+### Background
+This endpoint accepts PATCH requests from authenticated admin sessions. It updates the account_status field on a user record (rider or driver) to either 'suspended' or 'active'. The user_type parameter (rider or driver) determines which record is updated. On suspension, all active sessions for that user are invalidated and the user cannot log in. If the user is a driver, her online status is forced to offline. On reinstatement, no sessions are created — the user must log in again. A reason and optional note are stored on the suspension record for audit purposes.
+
+### Acceptance Criteria
+
+**Scenario 1 — Admin suspends a rider account**
+- Given an authenticated admin sends PATCH with user_type: 'rider', user_id, action: 'suspend', and a reason
+- When the endpoint is called
+- Then the rider's account_status is updated to 'suspended'
+- And all active sessions for that rider are invalidated
+- And the suspension record is created with the reason and admin ID
+
+**Scenario 2 — Admin reinstates a rider account**
+- Given an authenticated admin sends PATCH with user_type: 'rider', user_id, action: 'reinstate'
+- When the endpoint is called
+- Then the rider's account_status is updated to 'active'
+
+**Scenario 3 — Admin suspends a driver account**
+- Given an authenticated admin sends PATCH with user_type: 'driver', user_id, action: 'suspend', and a reason
+- When the endpoint is called
+- Then the driver's account_status is updated to 'suspended'
+- And the driver's online status is forced to offline
+- And all active sessions are invalidated
+- And the suspension record is created
+
+**Scenario 4 — Admin reinstates a driver account**
+- Given an authenticated admin sends PATCH with user_type: 'driver', user_id, action: 'reinstate'
+- Then the driver's account_status is updated to 'active'
+
+**Scenario 5 — Reason is required for suspension**
+- Given a suspension request arrives without a reason field
+- Then the platform returns a validation error
+
+**Scenario 6 — Non-admin request is rejected**
+- Given a request arrives from a non-admin session
+- Then the platform returns an authorisation error
+
+**Scenario 7 — Unauthenticated request is rejected**
+- Given a request arrives without a valid auth token
+- Then the platform rejects it via #1744
+
+### Out of Scope
+- Automated suspension rules
+- Suspension history audit log UI
+
+### Dependencies
+- #1744 — Session validation (must be live)
 - #1687 — Rider account is suspended after gender mismatch report
 
 ---
@@ -2756,48 +3333,70 @@ There is no fallback zone. If a rider's pickup coordinates do not fall inside an
 
 ---
 
-## [API] #1764 — Cancellation fee is charged after grace period 🆕
+## [API] #1764 — Cancellation fees are charged after grace period (rider and driver) 🆕
 **Feature:** Feature 8 — Trip Request & Matching API | **Sprint:** 2
 
-**Description:** As the trip service, I need to apply a cancellation fee when a rider cancels after the grace period expires so that drivers are compensated for lost time and riders are discouraged from late cancellations.
+**Description:** As the trip service, I want to apply the correct cancellation fee when either a rider or a driver cancels after the applicable grace period so that drivers are compensated for a rider's late cancellation, drivers are held accountable for their own late cancellations, and genuine rider no-shows are not penalised.
 
 ### Background
-The cancellation fee is the fixed EGP amount set in the zone's rate card. The grace period is the global setting (e.g. 3 minutes) configured by the super admin. The clock starts when the driver accepts the trip. If the rider cancels before the grace period expires, no fee is charged. If she cancels after, the fee is charged and split between the driver and the platform using the globally configured driver share percentage. The fee and split percentages used are those active at the time of driver acceptance — not at the time of cancellation. Cancellation by the driver never triggers a fee to the rider.
+**Rider cancellation fee.** The fee is the fixed EGP amount set in the zone's rate card (#1757). The rider grace period is the global setting configured by the super admin (#1758). The clock starts when the driver accepts the trip. If the rider cancels before the grace period expires, no fee is charged. If she cancels after, the fee is charged to the rider and split between the driver and the platform using the configured driver share percentage.
+
+**Driver cancellation fee.** A fixed EGP amount (#1758) is charged to a driver who cancels an accepted trip after the driver cancellation grace period (#1758, measured from driver acceptance). A driver who cancels within the grace period is not charged. The fee is waived only when the cancellation reason is rider no-show and the driver had marked arrived at the pickup and waited at least the configured rider no-show wait time (#1758). In every other late driver cancellation the fee applies.
+
+Every cancellation records who cancelled and the cancellation reason (captured by #1720). The fee, grace period, split, and wait-time values used are those active at the time of driver acceptance — not at the time of cancellation.
 
 ### Acceptance Criteria
 
 **Scenario 1 — Rider cancels within grace period**
-- Given a driver has accepted and the grace period has not yet expired
+- Given a driver has accepted and the rider grace period has not yet expired
 - When the rider cancels
 - Then no cancellation fee is charged
 - And the trip record is marked: cancelled_by=rider, fee_charged=false
 
 **Scenario 2 — Rider cancels after grace period expires**
-- Given a driver has accepted and the grace period has expired
+- Given a driver has accepted and the rider grace period has expired
 - When the rider cancels
 - Then the cancellation fee for that zone is charged to the rider
 - And the fee is split using the driver share percentage active at driver acceptance time
 - And the trip record is marked: cancelled_by=rider, fee_charged=true, fee_amount, driver_share_amount, platform_share_amount
 
-**Scenario 3 — Driver cancels — no fee to rider**
-- Given a driver cancels at any time
-- Then no cancellation fee is charged to the rider
+**Scenario 3 — Driver cancels within the driver grace period — no fee**
+- Given a driver cancels within the driver cancellation grace period after accepting
+- Then no driver cancellation fee is charged
+- And the trip record is marked: cancelled_by=driver, cancellation_reason, fee_charged=false
 
-**Scenario 4 — Policy changes during active trip**
-- Given the grace period or driver share is updated by an admin after a driver has accepted
-- Then the trip uses the policy values that were active at the time of driver acceptance
+**Scenario 4 — Driver cancels after the driver grace period — fee charged**
+- Given a driver cancels after the driver cancellation grace period for a reason other than a qualifying rider no-show
+- Then the driver cancellation fee is charged to the driver
+- And the trip record is marked: cancelled_by=driver, cancellation_reason, fee_charged=true, driver_fee_amount
 
-**Scenario 5 — Cancellation before driver acceptance**
-- Given a rider cancels while the trip is still in the matching phase (no driver accepted yet)
-- Then no cancellation fee is charged regardless of how long the rider waited
+**Scenario 5 — Driver cancels a rider no-show after the wait time — fee waived**
+- Given the driver has marked arrived at the pickup and waited at least the rider no-show wait time
+- When the driver cancels with reason rider no-show
+- Then no driver cancellation fee is charged
+- And the trip record is marked: cancelled_by=driver, cancellation_reason=rider_no_show, no_show=true, fee_charged=false
+
+**Scenario 6 — Driver claims a no-show before the wait time — fee charged**
+- Given the driver cancels with reason rider no-show but has not marked arrived or has waited less than the rider no-show wait time
+- Then the no-show waiver does not apply and the driver cancellation fee is charged
+
+**Scenario 7 — Policy changes during an active trip**
+- Given any grace period, fee, split, or wait-time value is updated by an admin after a driver has accepted
+- Then the trip uses the values that were active at the time of driver acceptance
+
+**Scenario 8 — Cancellation before driver acceptance**
+- Given a cancellation occurs while the trip is still in the matching phase (no driver accepted yet)
+- Then no cancellation fee is charged to either party regardless of elapsed time
 
 ### Out of Scope
-- Driver cancellation compensation (Phase 2)
-- Rider dispute flow for cancellation fees (Phase 2)
+- Rider compensation when a driver cancels (Phase 2)
+- Rider or driver dispute flow for cancellation fees (Phase 2)
+- Payout/deduction mechanics from the driver's wallet or earnings balance
 
 ### Dependencies
-- #1757 — Super admin configures zone rate card (cancellation fee amount lives here)
-- #1758 — Super admin configures cancellation policy (grace period and split live here)
+- #1757 — Super admin configures zone rate card (rider cancellation fee amount)
+- #1758 — Super admin configures cancellation policy (grace periods, split, driver fee, no-show wait time)
+- #1720 — Driver cancels an accepted trip (captures cancellation reason and no-show status)
 
 ---
 
@@ -2895,38 +3494,94 @@ Commission is a single global percentage set by the super admin. It is applied t
 ## [API] #1733 — Rider completes online card payment at trip end 🆕
 **Feature:** Feature 17 — Payments API | **Sprint:** 2
 
-**Description:** As the platform, I want to charge the rider's card for the trip fare at completion so that the rider can pay without cash.
+**Description:** As the SheDrive platform, I want to charge the agreed fare to the rider's saved card when a card-payment trip ends so that the fare is collected without cash exchange.
 
 ### Background
-Called internally when a trip with card payment method reaches trip_ended state and the fare has been calculated via #1636. The payment processor gateway is called to charge the rider's card. Success or failure is recorded on the trip.
+This endpoint is triggered when a trip with payment_method: 'card' transitions to trip_ended state. The platform retrieves the rider's saved card token, calls the payment gateway to charge the final fare amount, records the transaction result on the trip record, and sends push notifications to both the rider (receipt) and the driver (payment received). If the charge fails, the trip is marked payment_failed and the rider app is notified to prompt retry or cash fallback.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Card payment succeeds**
-- Given a trip with card payment method has reached trip_ended state
-- When the platform processes the charge via the payment gateway
-- Then the card is charged the final fare amount
-- And the trip record is marked payment_status = succeeded
+**Scenario 1 — Card charge succeeds**
+- Given a trip with payment_method: 'card' transitions to trip_ended
+- When the payment endpoint is called
+- Then the fare is charged to the rider's saved card
+- And the trip record is updated with payment_status: paid and transaction_id
+- And a push notification is sent to the rider with the receipt
+- And a push notification is sent to the driver confirming payment received
 
-**Scenario 2 — Card payment fails**
-- Given the payment gateway returns a decline or error
-- When the platform processes the failure
-- Then the trip record is marked with the failure reason
-- And the rider is notified via push
+**Scenario 2 — Card charge fails**
+- Given the payment gateway returns a failure
+- When the charge is attempted
+- Then the trip record is updated with payment_status: payment_failed
+- And the rider app is notified to prompt retry or cash fallback
 
-**Scenario 3 — Charge amount matches calculated fare**
-- Given the fare has been calculated via #1636
-- When the charge is processed
-- Then the amount charged exactly matches the stored fare
+**Scenario 3 — Retry charge succeeds**
+- Given a trip with payment_status: payment_failed
+- When the rider retries payment and the gateway succeeds
+- Then the trip record is updated to payment_status: paid
+
+**Scenario 4 — Cash trip skips card processing**
+- Given a trip with payment_method: 'cash' transitions to trip_ended
+- Then no card charge is attempted
+- And the trip record is updated with payment_status: cash
+
+**Scenario 5 — Unauthenticated request is rejected**
+- Given a request arrives without a valid auth token
+- Then the platform rejects it via #1744
 
 ### Out of Scope
-- Partial refunds
-- Payment receipt generation
-- Retry logic (configured in payment processor)
+- Refund processing
+- Partial payments
+- Payment gateway provider selection
 
 ### Dependencies
-- #1636 — Final fare calculation
-- #1652 — Driver advances trip state machine
+- #1744 — Session validation (must be live)
+- #1639 — Driver ends trip at destination (must be live)
+
+---
+
+## [API] #1784 — Booking is blocked when the rider has an unresolved payment failure 🆕
+**Feature:** Feature 17 — Payments API | **Sprint:** Phase 1
+
+**Description:** As the SheDrive platform, I want to reject new trip requests from a rider who has an unresolved payment failure so that an outstanding balance is settled before she can ride again.
+
+### Background
+When a card payment fails at trip end (#1733), the rider's account is flagged with an unresolved payment failure and an outstanding amount. While that flag is set, the platform must block new bookings: the trip-request endpoint (#1629) rejects the request with a clear, machine-readable, localizable reason and the outstanding amount. The block is cleared when the outstanding payment is settled (the rider pays via the app or operations resolves it). Riders with no outstanding failure are unaffected.
+
+### Acceptance Criteria
+
+**Scenario 1 — Rider with an unresolved failure is blocked**
+- Given an authenticated rider has an unresolved payment failure on her account
+- When she submits a trip request
+- Then the request is rejected with a payment-required reason and the outstanding amount
+- And no trip is created
+
+**Scenario 2 — Settling the balance restores booking**
+- Given the rider settles the outstanding amount
+- When she submits a new trip request
+- Then the request is accepted
+
+**Scenario 3 — Rider with no outstanding failure books normally**
+- Given the rider has no unresolved payment failure
+- When she submits a trip request
+- Then the request proceeds normally
+
+**Scenario 4 — Block reason is machine-readable and localizable**
+- Given a blocked request
+- Then the response carries a stable reason code and a localizable message in Arabic and English
+
+**Scenario 5 — Unauthenticated request is rejected**
+- Given a request without a valid session token
+- Then it is rejected
+
+### Out of Scope
+- The card-charge flow itself (#1733)
+- Refunds and partial payments
+- Operations manual-override UI (admin)
+
+### Dependencies
+- #1733 — Rider completes online card payment at trip end (must be live)
+- #1629 — Rider creates trip request
 
 ---
 
@@ -2937,36 +3592,93 @@ Called internally when a trip with card payment method reaches trip_ended state 
 ## [API] #1735 — Driver views earnings dashboard 🆕
 **Feature:** Feature 18 — Driver Earnings API | **Sprint:** 2
 
-**Description:** As the driver app, I want to retrieve a summary of the driver's earnings for different time periods so that she can track her income.
+**Description:** As the driver app, I want to retrieve the authenticated driver's earnings summary so that the earnings dashboard can display accurate income figures.
 
 ### Background
-Returns aggregated earnings data for the driver including total earnings for today, this week, this month; trip count for each period; average rating; and acceptance/rejection rate for available trip requests.
+This endpoint returns aggregated earnings data for the authenticated driver, broken into three time windows: today (from midnight local time), this week (from Monday midnight), and this month (from the 1st of the month). Each window returns total_earnings_egp and trip_count. The response also includes a paginated list of recent completed trips with date, pickup_area, destination_area, and fare_egp. Only completed trips are counted. Cancelled trips are excluded.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Earnings summary retrieved**
-- Given an authenticated driver calls this endpoint
-- When the endpoint processes the request
-- Then the response includes: today's earnings (EGP), week's earnings (EGP), month's earnings (EGP), trips completed today/week/month, average rating, and acceptance rate
+**Scenario 1 — Earnings returned for driver with completed trips**
+- Given an authenticated driver with at least one completed trip sends a GET request
+- When the endpoint is called
+- Then the response includes today, this_week, and this_month summaries
+- And each summary includes total_earnings_egp and trip_count
+- And a paginated list of recent trips is included
 
-**Scenario 2 — No trips completed**
-- Given a driver has no completed trips in the requested period
-- When the endpoint processes the request
-- Then all earnings and trip counts show 0
-- And average rating shows N/A or 0
+**Scenario 2 — Zero earnings returned for driver with no trips**
+- Given an authenticated driver with no completed trips sends a GET request
+- Then the response returns 0 for all earnings and trip counts
+- And the recent trips list is empty
 
-**Scenario 3 — Unauthenticated request**
-- Given no valid driver session token is provided
-- Then the request is rejected
+**Scenario 3 — Cancelled trips are excluded from earnings**
+- Given a driver has trips in cancelled state
+- When the earnings endpoint is called
+- Then cancelled trips do not appear in earnings totals or the recent trips list
+
+**Scenario 4 — Unauthenticated request is rejected**
+- Given a request arrives without a valid auth token
+- Then the platform rejects it via #1744
 
 ### Out of Scope
-- Historical earnings export
-- Detailed earnings breakdown by trip type
-- Earnings predictions
+- Custom date range filtering
+- Earnings export
+- Tip amounts
 
 ### Dependencies
-- #1744 — Session validation
-- #1655 — Driver retrieves trip history (data source for aggregations)
+- #1744 — Session validation (must be live)
+
+---
+
+## [API] #1781 — Driver retrieves cash balance owed to the platform 🆕
+**Feature:** Feature 18 — Driver Earnings API | **Sprint:** Phase 1
+
+**Description:** As the driver app, I want to retrieve the driver's running cash balance owed to the platform so that she can see how much of the cash she has collected is the platform's commission and must be settled.
+
+### Background
+For cash trips the driver collects the full fare from the rider; the platform's commission on each cash trip accrues as an amount the driver owes the platform. This endpoint returns the current outstanding cash balance (total owed, in EGP), the trips that contributed to it (date, fare, commission), and the amount and date of the last settlement if any. The balance increases on each completed cash trip (commission portion) and is reduced by operational settlements recorded by Finance via the admin portal. Digital (card) trips do not add to this balance because the platform already holds those funds.
+
+### Acceptance Criteria
+
+**Scenario 1 — Returns the current outstanding balance**
+- Given an authenticated approved driver requests her cash balance
+- When the endpoint processes the request
+- Then the response includes the total cash owed to the platform in EGP and an as-of timestamp
+
+**Scenario 2 — Balance increases after a completed cash trip**
+- Given the driver completes a cash trip
+- When she retrieves her balance
+- Then the trip's commission portion is included in the outstanding total
+
+**Scenario 3 — Card trips do not affect the cash-owed balance**
+- Given the driver completes a card-paid trip
+- When she retrieves her balance
+- Then the outstanding cash-owed total is unchanged by that trip
+
+**Scenario 4 — Settlement reduces the balance**
+- Given Finance records a cash settlement against the driver
+- When she retrieves her balance
+- Then the outstanding total is reduced by the settled amount
+- And the last-settlement amount and date are returned
+
+**Scenario 5 — New driver with no cash trips**
+- Given a driver who has completed no cash trips
+- When she retrieves her balance
+- Then the outstanding balance is zero
+
+**Scenario 6 — Unauthenticated request is rejected**
+- Given a request without a valid session token
+- Then it is rejected
+
+### Out of Scope
+- Automated payouts or bank transfers
+- In-app settlement payment by the driver
+- In-app driver wallet
+- Commission-rate configuration (admin)
+
+### Dependencies
+- #1765 — Platform commission is deducted on trip completion (must be live)
+- #1735 — Driver views earnings dashboard (related)
 
 ---
 
@@ -2977,21 +3689,88 @@ Returns aggregated earnings data for the driver including total earnings for tod
 ## [API] #1738 — Rider schedules a ride in advance 🆕
 **Feature:** Feature 19 — Scheduled Rides API | **Sprint:** 2
 
-**Description:** [TBD - Placeholder for future scheduled trip functionality.]
+**Description:** As the rider app, I want to create, list, and cancel scheduled trip requests so that a rider can book a ride in advance and the platform can automatically dispatch it at the right time.
 
 ### Background
-[TBD]
+This covers the scheduled-trip endpoints. POST creates a scheduled trip from pickup, destination, scheduled_at, payment_method, and is_child_passenger; the platform validates that scheduled_at is at least 30 minutes ahead, no more than 7 days ahead, and within the configured daytime operating window (OD-001). GET returns the rider's upcoming scheduled trips. DELETE cancels a scheduled trip while it is still in "scheduled" status (before dispatch). A scheduler process runs continuously and, approximately 15 minutes before each scheduled_at, transitions the scheduled trip into a live trip request via the standard creation path (#1629) and matching (#1630), notifying the rider. If no driver is found, standard no-driver handling (#1632) applies. All times are handled in Africa/Cairo local time. The lead time (30 minutes minimum ahead), horizon (7 days maximum ahead), and dispatch window (matching begins 15 minutes before scheduled_at) are final, confirmed product values.
+
+### Field Validation
+
+| Field | Required | Format | Rule |
+|---|---|---|---|
+| scheduled_at | Yes | ISO-8601 datetime | ≥ now + 30 min; ≤ now + 7 days; within operating window |
+| pickup / destination | Yes | lat/lng | within defined service zones |
+| payment_method | Yes | enum | "cash" or "card" (per #1730) |
+| is_child_passenger | No | boolean | defaults to false (per #1783) |
 
 ### Acceptance Criteria
 
-**Scenario 1 — [TBD]**
-- [TBD]
+**Scenario 1 — POST: scheduled trip created successfully**
+- Given an authenticated rider sends a valid scheduled-trip payload
+- When the endpoint is called
+- Then a scheduled trip is created with status = scheduled and fee = 0
+- And the response returns the scheduled trip record
+
+**Scenario 2 — POST: scheduled_at too soon**
+- Given scheduled_at is less than 30 minutes ahead
+- When the endpoint is called
+- Then a validation error is returned and no scheduled trip is created
+
+**Scenario 3 — POST: scheduled_at outside operating hours**
+- Given scheduled_at falls outside the configured operating window (OD-001)
+- When the endpoint is called
+- Then a validation error is returned and no scheduled trip is created
+
+**Scenario 4 — POST: scheduled_at beyond horizon**
+- Given scheduled_at is more than 7 days ahead
+- When the endpoint is called
+- Then a validation error is returned and no scheduled trip is created
+
+**Scenario 5 — GET: rider retrieves her upcoming scheduled trips**
+- Given an authenticated rider has scheduled trips
+- When she calls GET
+- Then her upcoming scheduled trips are returned, soonest first
+
+**Scenario 6 — DELETE: rider cancels a scheduled trip before dispatch**
+- Given a scheduled trip is still in "scheduled" status
+- When the rider sends DELETE for it
+- Then the scheduled trip is cancelled with no fee
+
+**Scenario 7 — Auto-dispatch at lead time**
+- Given a scheduled trip reaches its dispatch window (about 15 minutes before scheduled_at) and the service is open
+- When the scheduler runs
+- Then it creates a live trip request via #1629 and enters matching via #1630
+- And the rider is notified
+
+**Scenario 8 — Auto-dispatch with no driver**
+- Given a dispatched scheduled trip finds no driver within the matching window
+- When matching ends
+- Then no-driver handling (#1632) applies and the rider is notified
+
+**Scenario 9 — Cancel after dispatch is rejected**
+- Given a scheduled trip has already been dispatched into a live trip
+- When the rider sends DELETE on the scheduled trip
+- Then it is rejected and she is directed to the live trip cancellation flow (#1715)
+
+**Scenario 10 — Unauthenticated request is rejected**
+- Given a request arrives without a valid session token
+- When it targets any scheduled-trip endpoint
+- Then the platform rejects the request via #1744
 
 ### Out of Scope
-- [TBD]
+- Recurring scheduled trips
+- Editing a scheduled trip in place (cancel + recreate)
+- Scheduled-ride surge pricing
+- Notification template content (handled by the notification service)
 
 ### Dependencies
-- [TBD]
+- #1629 — Rider creates trip request (dispatch path)
+- #1630 — Platform matches trip to nearest driver
+- #1632 — No-driver handling
+- #1730 — Rider selects payment method for trip
+- #1783 — Trip request captures a per-trip child-passenger flag
+- #1744 — Auth middleware validates session tokens
+- OD-001 — Operating hours
 
 ---
 
@@ -3002,72 +3781,125 @@ Returns aggregated earnings data for the driver including total earnings for tod
 ## [API] #1715 — Rider cancels a trip 🆕
 **Feature:** Feature 20 — Trip Cancellation API | **Sprint:** 2
 
-**Description:** As the rider app, I want to submit a cancellation request for an active trip so that the rider can cancel before a driver accepts or arrives.
+**Description:** As the rider app, I want to send a trip cancellation request so that the platform can cancel the trip, notify the driver, and record any applicable cancellation fee.
 
 ### Background
-Called when the rider taps "Cancel" and confirms on the matching screen or active trip screen (while in matched or accepted states). The endpoint cancels the trip, sets fare to 0, and immediately returns the trip to available status.
+This endpoint is called when an authenticated rider confirms a trip cancellation on the mobile app. The platform validates the trip belongs to the requesting rider, checks the current trip state to determine whether a cancellation fee applies (fee applies only in arrived_pickup state), updates the trip status to cancelled, sends a push notification to the driver, and returns the final trip record including the fee amount (zero or non-zero). Cancellation is not permitted once the trip is in trip_started or trip_ended state.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Trip cancellation is accepted**
-- Given an authenticated rider submits a cancellation for a trip in searching, matched, or accepted state
-- When the endpoint processes the request
+**Scenario 1 — Successful cancellation in searching state (no fee)**
+- Given an authenticated rider sends a cancellation request for a trip in searching state
+- When the endpoint is called
 - Then the trip status is updated to cancelled
-- And fare is set to 0
-- And the response indicates success
+- And the response includes cancellation_fee: 0
 
-**Scenario 2 — Trip already completed**
-- Given a rider attempts to cancel a trip that is already in trip_started, trip_ended, or expired state
-- When the endpoint processes the request
-- Then a conflict error is returned
+**Scenario 2 — Successful cancellation in en_route_pickup state (no fee)**
+- Given an authenticated rider sends a cancellation request for a trip in en_route_pickup state
+- When the endpoint is called
+- Then the trip status is updated to cancelled
+- And a push notification is sent to the driver
+- And the response includes cancellation_fee: 0
 
-**Scenario 3 — Unauthenticated request**
-- Given no valid rider session token is provided
-- Then the request is rejected with authentication error
+**Scenario 3 — Successful cancellation in arrived_pickup state (fee applies)**
+- Given an authenticated rider sends a cancellation request for a trip in arrived_pickup state
+- When the endpoint is called
+- Then the trip status is updated to cancelled
+- And a cancellation fee is recorded against the rider's account
+- And a push notification is sent to the driver
+- And the response includes the cancellation_fee amount in EGP
+
+**Scenario 4 — Cancellation rejected in trip_started state**
+- Given the trip is in trip_started state
+- When the endpoint is called
+- Then the platform returns an error: trip cannot be cancelled after it has started
+
+**Scenario 5 — Cancellation rejected for wrong rider**
+- Given an authenticated rider attempts to cancel a trip that does not belong to her
+- When the endpoint is called
+- Then the platform returns an authorisation error
+
+**Scenario 6 — Unauthenticated request is rejected**
+- Given a request arrives without a valid auth token
+- When it targets the cancellation endpoint
+- Then the platform rejects the request via #1744
 
 ### Out of Scope
-- Cancellation penalties or fees
-- Cancellation reason collection
-- Driver notification of cancellation
+- Cancellation fee payment processing or collection
+- Refund processing
+- Admin-initiated cancellation
 
 ### Dependencies
-- #1744 — Session validation
+- #1744 — Session validation (must be live)
+- #1652 — Driver advances trip state machine (must be live)
 
 ---
 
 ## [API] #1720 — Driver cancels an accepted trip 🆕
 **Feature:** Feature 20 — Trip Cancellation API | **Sprint:** 2
 
-**Description:** As the driver app, I want to submit a cancellation request for an accepted trip so that I can cancel before the rider is boarded.
+**Description:** As the driver app, I want to send a trip cancellation request with a reason so that the platform can cancel the trip, record why it was cancelled, apply or waive the driver cancellation fee according to policy, notify the rider, flag the cancellation on the driver's record when appropriate, and return the driver to available status.
 
 ### Background
-Called when the driver taps "Cancel" and confirms on the active trip screen while the trip is in accepted, en_route_pickup, or arrived_pickup state. The endpoint cancels the trip, sets the driver's availability back to available, and sets fare to 0.
+This endpoint is called when an authenticated driver confirms a trip cancellation. The request must include a cancellation reason from a fixed list (rider_no_show, rider_unreachable, vehicle_issue, safety_concern, wrong_pickup_location, other). The platform validates the trip belongs to the requesting driver and that the current state permits cancellation (only en_route_pickup or arrived_pickup). It updates the trip to cancelled with cancelled_by=driver and the supplied reason, then determines the driver cancellation fee via #1764: no fee within the driver cancellation grace period; the driver cancellation fee after the grace period, waived only when the reason is rider_no_show and the driver had marked arrived and waited at least the configured rider no-show wait time. The platform sends a push notification to the rider, flags the cancellation on the driver's performance record when a fee is charged, sets the driver's status to online/available, and returns the updated trip record.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Trip cancellation is accepted**
-- Given an authenticated driver submits a cancellation for a trip in accepted, en_route_pickup, or arrived_pickup state
-- When the endpoint processes the request
-- Then the trip status is updated to cancelled
-- And driver availability is reset to available
-- And fare is set to 0
+**Scenario 1 — Cancellation within the driver grace period — no fee, no flag**
+- Given an authenticated driver cancels a trip in en_route_pickup within the driver cancellation grace period
+- When the endpoint is called with a valid reason
+- Then the trip status is updated to cancelled with cancelled_by=driver and the reason recorded
+- And no driver cancellation fee is charged and no performance flag is added
+- And a push notification is sent to the rider and the driver's status is set to online/available
 
-**Scenario 2 — Trip already started**
-- Given a driver attempts to cancel a trip that is already in trip_started or trip_ended state
-- When the endpoint processes the request
-- Then a conflict error is returned
+**Scenario 2 — Cancellation after the grace period — fee charged and flagged**
+- Given an authenticated driver cancels after the driver cancellation grace period for a reason other than a qualifying rider no-show
+- When the endpoint is called
+- Then the trip is cancelled, the driver cancellation fee is applied, and the cancellation is flagged on the driver's performance record
+- And a push notification is sent to the rider and the driver's status is set to online/available
 
-**Scenario 3 — Unauthenticated request**
-- Given no valid driver session token is provided
-- Then the request is rejected
+**Scenario 3 — Rider no-show after the wait time — fee waived**
+- Given the driver is in arrived_pickup and has waited at least the rider no-show wait time
+- When the endpoint is called with reason rider_no_show
+- Then the trip is cancelled with no_show=true and no driver cancellation fee is charged
+- And no performance flag is added against the driver
+- And a push notification is sent to the rider and the driver's status is set to online/available
+
+**Scenario 4 — No-show claimed before the wait time — fee charged**
+- Given the driver sends reason rider_no_show but has not marked arrived or has waited less than the rider no-show wait time
+- When the endpoint is called
+- Then the no-show waiver does not apply and the driver cancellation fee is charged
+
+**Scenario 5 — Cancellation requires a valid reason**
+- Given a cancellation request with no reason or a reason outside the allowed list
+- When the endpoint is called
+- Then a validation error is returned and the trip is not cancelled
+
+**Scenario 6 — Cancellation rejected in trip_started state**
+- Given the trip is in trip_started state
+- When the endpoint is called
+- Then the platform returns an error: trip cannot be cancelled after it has started
+
+**Scenario 7 — Cancellation rejected for wrong driver**
+- Given an authenticated driver attempts to cancel a trip that does not belong to her
+- When the endpoint is called
+- Then the platform returns an authorisation error
+
+**Scenario 8 — Unauthenticated request is rejected**
+- Given a request arrives without a valid auth token
+- When it targets this endpoint
+- Then the platform rejects the request via #1744
 
 ### Out of Scope
-- Cancellation penalties for drivers
-- Reason collection
-- Rider notification
+- Rider compensation for driver cancellation
+- Driver appeal/dispute of the cancellation fee (Phase 2)
+- Payout/deduction mechanics from the driver's wallet or earnings balance
 
 ### Dependencies
-- #1744 — Session validation
+- #1744 — Session validation (must be live)
+- #1652 — Driver advances trip state machine (must be live)
+- #1764 — Cancellation fees are charged after grace period (driver fee logic)
+- #1758 — Super admin configures cancellation policy (driver grace period, fee, no-show wait time)
 
 ---
 
@@ -3159,3 +3991,55 @@ Called by the driver app when the driver taps "Cancel — Rider Not Female" duri
 
 ### Dependencies
 - [TBD]
+
+---
+
+## [API] #1780 — Rider's trusted contacts are notified with a live trip link on SOS 🆕
+**Feature:** Feature 21 — Emergency & Safety API | **Sprint:** Phase 1
+
+**Description:** As the SheDrive platform, I want to store a rider's trusted contacts and, when she triggers SOS during an active trip, notify those contacts with a live trip-tracking link so that the people she trusts can follow her location in real time during an emergency.
+
+### Background
+This endpoint set supports two things: (1) CRUD for a rider's trusted contacts (name + phone number), and (2) on SOS trigger (#1725), dispatching a notification that contains a secure, time-limited live trip-tracking link to each stored trusted contact. Live-location sharing is scoped to the SOS event only — there is no standalone share-my-trip feature in Phase 1. The tracking link exposes the in-progress trip's live driver/vehicle location and trip details to the contact until the trip ends or a configured time limit elapses.
+
+### Acceptance Criteria
+
+**Scenario 1 — Rider stores trusted contacts**
+- Given an authenticated rider submits one or more trusted contacts, each with a name and a valid Egyptian mobile number
+- When the endpoint processes the request
+- Then the contacts are persisted against her account and returned on subsequent reads
+
+**Scenario 2 — Validation: contact limit and phone format**
+- Given the rider submits more than the allowed number of contacts or an invalid phone number
+- When the endpoint processes the request
+- Then a validation error is returned identifying the offending field
+- And no contact is saved
+
+**Scenario 3 — SOS dispatches a live link to all trusted contacts**
+- Given a rider with at least one trusted contact triggers SOS during an active trip (#1725)
+- When the SOS is recorded
+- Then each trusted contact is sent a notification containing a secure live trip-tracking link
+- And the dispatch is logged against the SOS incident
+
+**Scenario 4 — Live link reflects real-time location until the trip ends**
+- Given a trusted contact opens the tracking link for an in-progress trip
+- Then the link shows the live driver/vehicle location and trip details
+- And the link stops resolving once the trip completes or the configured time limit elapses
+
+**Scenario 5 — SOS with no trusted contacts still records the incident**
+- Given a rider with no trusted contacts triggers SOS
+- Then the SOS incident is still recorded for operations (#1725)
+- And no trusted-contact notification is dispatched
+
+**Scenario 6 — Unauthenticated request is rejected**
+- Given a request arrives without a valid session token
+- Then it is rejected and no contacts are read or written
+
+### Out of Scope
+- Standalone (non-SOS) live trip sharing
+- Two-way chat or calling with trusted contacts
+- Trusted-contact identity verification
+- Notifying trusted contacts on normal (non-SOS) trip events
+
+### Dependencies
+- #1725 — Rider triggers SOS during active trip (must be live)

@@ -52,7 +52,7 @@
 - [ ] Onboarding status tracker
 - [ ] Online / Offline toggle
 - [ ] Ride request handling (accept / decline)
-- [ ] Navigation deep-link to external maps (Google Maps / Apple Maps)
+- [ ] In-app turn-by-turn navigation, with an optional "open in external app" hand-off (Google Maps / Waze)
 - [ ] Trip lifecycle controls (arrived → start trip → end trip)
 - [ ] Ride cancellation
 - [ ] Cash collection confirmation
@@ -133,6 +133,7 @@
 - [ ] Rider women-only enforcement via driver visual confirmation at first trip
 
 ### ❌ Not in MVP
+- Rider identity verification (National ID / selfie / liveness / face match)
 - AI-driven risk scoring during onboarding
 - Ongoing identity re-verification for active accounts
 - Non-Egyptian identity documents
@@ -172,7 +173,8 @@
 
 ### ✅ In MVP
 - [ ] Driver–rider matching algorithm
-- [ ] Zone-aware eligibility filtering (working zone + availability + rating)
+- [ ] Eligibility filtering (availability + rating)
+- [ ] One-time scheduled ride request handling
 - [ ] Ride broadcast with configurable timeout
 - [ ] Atomic acceptance handling (prevent double-assignment)
 - [ ] Decline / timeout → automatic reassignment
@@ -186,7 +188,7 @@
 
 ### ❌ Not in MVP
 - Ride pooling / multi-stop matching
-- Scheduled ride queuing
+- Recurring scheduled-ride queuing
 - Surge / peak-hour demand multipliers (hooks exist, not activated)
 - AI demand forecasting for pre-positioning drivers
 - Dispatcher-initiated manual dispatch
@@ -223,14 +225,15 @@
 - [ ] Real-time alert to Ops SOS queue
 - [ ] Response SLA tracking per incident
 - [ ] Defined escalation workflow (Ops → external authorities)
-- [ ] Live trip sharing (shareable link sent to trusted contacts)
+- [ ] Live trip sharing with trusted contacts (triggered on SOS only)
 - [ ] Trusted contacts notification on SOS trigger
 - [ ] Incident logging
 - [ ] Post-incident follow-up workflow
-- [ ] Women-only policy enforcement
+- [ ] Women-only policy enforcement (declared child passenger is the only exception)
 - [ ] Age eligibility policy enforcement
 
 ### ❌ Not in MVP
+- Standalone (non-SOS) live trip sharing
 - In-trip audio recording
 - In-trip video recording
 - AI-driven behavior monitoring and risk scoring

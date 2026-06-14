@@ -1,6 +1,6 @@
 # SheDrive — Mobile Driver Stories
 > Canonical backlog for all [Mobile] Driver stories. Organized by sprint and feature.
-> Last updated: 2026-06-10
+> Last updated: 2026-06-14
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -264,7 +264,7 @@ After a successful login or registration the session token is stored in the devi
 **Description:** As a driver, I want to enter my personal details in the first step of the onboarding wizard so that SheDrive can verify my identity before approving my application.
 
 ### Background
-The personal details screen is Step 1 of a multi-step onboarding wizard. It is shown only to drivers who have completed phone OTP login but have not yet submitted an application. The driver enters her full name, date of birth, and Egyptian National ID number. On successful save, she advances to Step 2 (vehicle details). All fields must pass validation before the wizard can advance.
+The personal details screen is Step 1 of a multi-step onboarding wizard. It is shown only to drivers who have completed phone OTP login but have not yet submitted an application. The driver enters her full name, date of birth, and Egyptian National ID number. She must also accept a background-check consent checkbox before she can advance. On successful save, she advances to Step 2 (vehicle details). All fields must pass validation before the wizard can advance.
 
 ### Field Validation
 
@@ -273,12 +273,13 @@ The personal details screen is Step 1 of a multi-step onboarding wizard. It is s
 | Full name | Yes | Free text | 2 chars | 50 chars | Arabic letters, Latin letters, spaces | أدخلي اسمك الكامل | الاسم لا يحتوي على أرقام أو رموز | الاسم قصير جداً |
 | Date of birth | Yes | DD/MM/YYYY | — | — | Digits and "/" separator | أدخلي تاريخ ميلادك | صيغة التاريخ غير صحيحة | — |
 | National ID (NID) | Yes | 14-digit numeric | 14 digits | 14 digits | Digits only | أدخلي رقم الهوية الوطنية | رقم الهوية يجب أن يكون 14 رقمًا | رقم الهوية يجب أن يكون 14 رقمًا |
+| Background-check consent | Yes | Checkbox (must be checked) | — | — | — | يجب الموافقة على إجراء فحص الخلفية | — | — |
 
 ### Acceptance Criteria
 
 **Scenario 1 — Happy path: all fields valid, wizard advances**
 - Given the driver is on Step 1 of the onboarding wizard
-- When she enters a valid full name, date of birth (age ≥ 21), and a 14-digit NID
+- When she enters a valid full name, date of birth (age ≥ 21), and a 14-digit NID, and accepts the background-check consent
 - Then all inline errors are absent
 - And tapping "Next" submits the step and navigates to Step 2 (vehicle details)
 
@@ -317,6 +318,12 @@ The personal details screen is Step 1 of a multi-step onboarding wizard. It is s
 - Given the driver types letters or symbols in the NID field
 - When she taps "Next"
 - Then the field shows "رقم الهوية يجب أن يكون 14 رقمًا"
+
+**Scenario 9 — Background-check consent is required**
+- Given the driver has entered valid personal details but has not ticked the background-check consent checkbox
+- When she taps "Next"
+- Then the wizard does not advance and the error "يجب الموافقة على إجراء فحص الخلفية" / "You must agree to the background check to continue" is shown
+- And when she ticks the checkbox and taps "Next", the step submits
 
 ### Out of Scope
 - NID authenticity verification against government databases
@@ -389,53 +396,70 @@ The vehicle details screen is Step 2 of the multi-step onboarding wizard, reache
 ## [Mobile] #1574 — Driver photographs her vehicle
 **Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
 
-**Description:** As a driver, I want to photograph my vehicle in Step 3 of the onboarding wizard so that the admin can visually verify the vehicle matches the details I provided.
+**Description:** As a driver, I want to photograph my vehicle from five required angles in Step 3 of the onboarding wizard so that the admin can fully verify the vehicle matches the details I provided and riders can identify it on arrival.
 
 ### Background
-The vehicle photo screen is Step 3 of the multi-step onboarding wizard, reached after completing Step 2 (vehicle details). The driver takes a photo using the device camera or selects one from the gallery. The photo must show the vehicle exterior with the plate number visible. On successful upload, the wizard advances to Step 4 (documents).
+The vehicle photo screen is Step 3 of the multi-step onboarding wizard, reached after completing Step 2 (vehicle details). The driver must capture exactly **5 photos**, one per required angle, using the device camera. The screen presents each angle slot in order with a labelled guide frame and an illustrative icon showing the expected shot. All five slots must be filled before the driver can advance. On successful upload of all five photos, the wizard advances to Step 4 (documents).
+
+**Required angles (in order):**
+
+| # | Angle | What must be visible |
+|---|---|---|
+| 1 | Front | Full front of vehicle, headlights visible |
+| 2 | Rear | Full rear of vehicle, plate number clearly visible |
+| 3 | Driver side | Full left/driver-side profile |
+| 4 | Passenger side | Full right/passenger-side profile |
+| 5 | Interior | Front cabin from driver's door, dashboard and seats visible |
 
 ### Field Validation
 
-| Field | Required | Format | Min | Max | Accepted characters | Error — empty | Error — invalid format | Error — length |
-|---|---|---|---|---|---|---|---|---|
-| Vehicle photo | Yes | JPEG, PNG, or HEIC image | — | 10 MB | — | يرجى التقاط صورة للسيارة | يرجى رفع صورة صالحة (JPEG أو PNG) | حجم الصورة كبير جداً، الحد الأقصى 10 ميجابايت |
+| Field | Required | Format | Min | Max | Error — empty | Error — invalid format | Error — size |
+|---|---|---|---|---|---|---|---|
+| Each of the 5 angle photos | Yes | JPEG, PNG, or HEIC | — | 10 MB per photo | يرجى التقاط الصورة المطلوبة | يرجى رفع صورة صالحة (JPEG أو PNG) | حجم الصورة كبير جداً، الحد الأقصى 10 ميجابايت |
 
 ### Acceptance Criteria
 
-**Scenario 1 — Happy path: photo taken via camera**
+**Scenario 1 — Happy path: all 5 photos captured via camera**
 - Given the driver is on Step 3 and camera permission has been granted
-- When she taps the camera button and captures a photo
-- Then a preview of the photo is displayed
-- And tapping "Next" uploads the photo and navigates to Step 4
+- When she taps a slot and the camera opens
+- And she captures a photo for each of the 5 angle slots
+- Then each completed slot shows a thumbnail preview with a checkmark
+- And the "Next" button becomes active only after all 5 slots are filled
+- And tapping "Next" uploads all 5 photos and navigates to Step 4
 
-**Scenario 2 — Happy path: photo selected from gallery**
-- Given the driver taps "Choose from gallery" and selects a valid image
-- When the selection is confirmed
-- Then a preview of the selected photo is displayed
-- And tapping "Next" uploads the photo and navigates to Step 4
+**Scenario 2 — Gallery option is not available**
+- Given the driver is on Step 3
+- Then no "Choose from gallery" or photo library option is shown for any slot
+- And the only capture method available is the device camera
 
-**Scenario 3 — Camera permission denied**
-- Given the driver taps the camera button but camera permission is denied
-- Then the app displays an explanation of why the camera is needed
-- And shows a link to the device settings page so she can grant permission
-- And the gallery fallback option remains visible and functional
-
-**Scenario 4 — File too large**
-- Given the driver selects or captures an image exceeding 10 MB
-- Then the field shows "حجم الصورة كبير جداً، الحد الأقصى 10 ميجابايت"
+**Scenario 3 — Attempting to advance with incomplete slots**
+- Given the driver has filled fewer than 5 slots
+- When she taps "Next"
+- Then the incomplete slots are highlighted in red
 - And the wizard does not advance
 
-**Scenario 5 — Invalid file type**
-- Given the driver selects a file that is not JPEG, PNG, or HEIC
-- Then the field shows "يرجى رفع صورة صالحة (JPEG أو PNG)"
+**Scenario 4 — Replacing a photo**
+- Given the driver has already filled a slot
+- When she taps that slot's thumbnail
+- Then she is prompted to retake the photo using the camera
+- And confirming a new capture replaces the previous photo in that slot
 
-**Scenario 6 — No photo selected**
-- Given the driver taps "Next" without providing a vehicle photo
-- Then the field shows "يرجى التقاط صورة للسيارة"
+**Scenario 5 — Camera permission denied**
+- Given the driver taps a slot but camera permission is denied
+- Then the slot shows an explanation that camera access is required
+- And a link to device settings is shown so she can grant permission
+- And the slot cannot be filled until camera permission is granted
+- And the wizard does not advance until all slots are filled
+
+**Scenario 6 — Captured image too large**
+- Given the camera produces an image exceeding 10 MB
+- Then that slot shows "حجم الصورة كبير جداً، الحد الأقصى 10 ميجابايت"
+- And the slot is not marked complete
 
 ### Out of Scope
 - Automatic plate-number recognition or image quality scoring
 - Video capture
+- Gallery / photo library upload
 - Re-submission flow after admin rejection
 
 ### Dependencies
@@ -784,6 +808,44 @@ While the driver is online, the app runs a background location polling loop that
 
 ---
 
+## [Mobile] #1792 — Driver views her overall rating 🆕
+**Feature:** Feature 6 — Driver Home & Availability | **Sprint:** Phase 1
+
+**Description:** As a driver, I want to see my overall star rating so that I know how riders rate me.
+
+### Background
+The driver's home/profile shows her aggregate star rating to one decimal and her total ratings count, retrieved via #1786. A new driver who has not been rated yet sees a clear no-rating-yet state. The display is read-only. All strings flow through `data-i18n` keys with Arabic fallback.
+
+### Acceptance Criteria
+
+**Scenario 1 — Driver sees her average rating and count**
+- Given an authenticated approved driver with at least one rating
+- When she opens her home/profile
+- Then her average star rating (one decimal) and total ratings count are shown
+
+**Scenario 2 — New driver with no ratings**
+- Given a driver who has not been rated
+- When she opens her home/profile
+- Then a bilingual no-rating-yet state is shown
+
+**Scenario 3 — Rating updates after new ratings**
+- Given new rider ratings have been recorded
+- When the driver reopens her home/profile
+- Then the displayed average and count reflect the latest data
+
+**Scenario 4 — Network error**
+- Given the rating-summary request fails
+- Then a bilingual toast error is shown
+
+### Out of Scope
+- Per-trip rating list (driver trip history)
+- Responding to or disputing ratings
+
+### Dependencies
+- #1786 — Driver retrieves her aggregate rating summary (API — must be live)
+
+---
+
 ## Sprint 2
 
 ### Feature 9 — Driver Trip Acceptance
@@ -919,6 +981,7 @@ When the driver taps "Accept" within the 10-second window, the app calls the acc
 - When the endpoint returns a conflict error
 - Then the driver sees a message: "This request has expired"
 - And the driver is returned to her home/available screen
+- And the system has already reassigned the trip
 
 **Scenario 3 — Network error on acceptance**
 - Given the driver taps "Accept"
@@ -1022,6 +1085,7 @@ If the driver neither accepts nor rejects within the 10-second window, the platf
 - When 10 seconds elapse from dispatch
 - Then the server-side timer expires and reassigns the trip
 - And if the driver later opens the app, no acceptance screen is shown for the expired request
+- And a brief "Request expired" message is shown if the screen was mid-open
 
 ### Out of Scope
 - Configurable acceptance window duration
@@ -1039,38 +1103,43 @@ If the driver neither accepts nor rejects within the 10-second window, the platf
 ## [Mobile] #1586 — Driver navigates to pickup
 **Feature:** Feature 10 — Active Trip | **Sprint:** 2
 
-**Description:** As a driver, I want to see the rider's pickup location on a map and open turn-by-turn navigation so that I can reach the pickup point efficiently.
+**Description:** As a driver, I want to navigate to the rider's pickup location with in-app turn-by-turn navigation and the option to open an external maps app, so that I can reach the pickup point efficiently using my preferred tool.
 
 ### Background
-After accepting a trip request, the driver's screen displays a map with a pin marking the rider's pickup location. A navigation button allows the driver to deep-link into Google Maps or Waze with the pickup coordinates pre-filled. An "I've Arrived" button is visible at all times. The driver's GPS position is streamed every 5 seconds so the rider can track progress in real time.
+After accepting a trip request, the driver's active trip screen shows in-app turn-by-turn navigation to the rider's pickup location by default — the route, the pickup pin, and step-by-step guidance are rendered inside SheDrive. A secondary "Open in external app" button lets the driver hand off to Google Maps or Waze with the pickup coordinates pre-filled. An "I've Arrived" button is visible at all times. The driver's GPS position is streamed every 5 seconds so the rider can track progress in real time. Route and turn-by-turn directions data are served by #1817.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Map and arrival button are shown after acceptance**
+**Scenario 1 — In-app navigation is shown by default after acceptance**
 - Given the driver has accepted a trip request
 - When the active trip screen loads
-- Then the map displays a pin at the rider's pickup coordinates
+- Then in-app turn-by-turn navigation to the pickup is displayed by default, showing the route, the pickup pin, and step-by-step guidance
 - And an "I've Arrived" button is visible on screen
 
-**Scenario 2 — Navigation deep-link opens external app**
+**Scenario 2 — Driver opts to use an external app**
 - Given the driver is on the active trip screen in en_route_pickup state
-- When the driver taps the navigation button
+- When the driver taps the "Open in external app" button
 - Then the app opens Google Maps (or Waze if installed) with the pickup coordinates pre-filled as the destination
-- And the driver returns to the SheDrive active trip screen when she exits the navigation app
+- And the driver returns to the SheDrive in-app navigation when she exits the external app
 
-**Scenario 3 — Driver location streams to the platform**
-- Given the driver is navigating to the pickup location
+**Scenario 3 — In-app guidance updates as the driver moves**
+- Given in-app navigation to the pickup is active
+- When the driver's position changes along the route
+- Then the in-app turn-by-turn guidance and map advance to reflect her current position
+
+**Scenario 4 — Driver location streams to the platform**
+- Given the driver is en route to the pickup location
 - When the driver's device has an active GPS signal
 - Then the app sends the driver's current latitude and longitude to the platform every 5 seconds
 - And those coordinates are available for the rider to see in real time
 
 ### Out of Scope
-- In-app turn-by-turn navigation
-- Automatic ETA calculation in the driver app
+- Offline / cached-map navigation
 - SOS functionality
 - Trip cancellation from this screen
 
 ### Dependencies
+- #1817 — Platform serves active-trip route and turn-by-turn directions to the driver (must be live)
 - #1649 — Trip acceptance flow (must be live)
 - #1652 — Driver advances trip state machine (must be live)
 - #1653 — Driver streams GPS from acceptance to completion (must be live)
@@ -1166,13 +1235,13 @@ After the driver taps "I've Arrived" and the trip state advances to arrived_pick
 **Description:** As a driver, I want to visually verify that the rider is female on her first trip so that SheDrive's women-only service guarantee is upheld, with the option to cancel and report if the rider does not appear to be female.
 
 ### Background
-When `is_first_trip` is true, the driver sees the rider's registered full name on the arrived_pickup screen. The driver visually checks that the person who approaches the vehicle is female. If she is satisfied, she taps "Rider Verified — Board" to proceed. If the approaching person does not appear to be female, the driver taps "Cancel — Rider Not Female," which triggers #1687 (trip cancellation and rider account suspension for review). For all returning riders (is_first_trip = false), this step is skipped entirely and the driver proceeds directly to the "Start Trip" button.
+When `is_first_trip` is true, the driver sees the rider's registered full name on the arrived_pickup screen. The driver visually checks that the person who approaches the vehicle is female. If she is satisfied, she taps "Rider Verified — Board" to proceed. If the approaching person does not appear to be female, the driver taps "Cancel — Rider Not Female," which triggers #1687 (trip cancellation and rider account suspension for review). **Exception:** if the trip is flagged as a declared child passenger (flag carried by #1783, declared by the rider in #1790), a child of any gender is permitted to ride — the only exception to the women-only rule. In that case the driver verifies that a child is boarding and must not cancel for a gender mismatch. For all returning riders (is_first_trip = false), this step is skipped entirely and the driver proceeds directly to the "Start Trip" button.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Verification screen is shown for first-trip riders**
+**Scenario 1 — Verification screen is shown for first-trip adult riders**
 - Given the driver has arrived at the pickup location
-- And the trip's is_first_trip flag is true
+- And the trip's is_first_trip flag is true and the passenger is not a declared child
 - When the arrived_pickup screen loads
 - Then the driver sees the rider's registered full name
 - And a "Rider Verified — Board" button is displayed
@@ -1207,6 +1276,12 @@ When `is_first_trip` is true, the driver sees the rider's registered full name o
 - Then her online status is preserved
 - And she remains eligible for the next dispatched trip
 
+**Scenario 6 — Declared child passenger is permitted regardless of gender**
+- Given the trip's is_first_trip flag is true and the trip is flagged as a declared child passenger (#1783)
+- When the arrived_pickup screen loads
+- Then the driver sees a notice that the passenger is a declared child who may ride as the only exception to the women-only policy
+- And the driver may board the child without a gender-mismatch cancellation
+
 ### Out of Scope
 - Biometric or document scanning
 - Automatic identity verification via camera
@@ -1217,16 +1292,17 @@ When `is_first_trip` is true, the driver sees the rider's registered full name o
 - #1635 — Trip detail includes first-trip flag (must be live)
 - #1652 — Driver advances trip state machine (must be live)
 - #1687 — Rider account is suspended after gender mismatch report (must be live)
+- #1783 — Trip request captures a per-trip child-passenger flag and exposes it to the driver (must be live)
 
 ---
 
 ## [Mobile] #1589 — Driver confirms rider has boarded
 **Feature:** Feature 10 — Active Trip | **Sprint:** 2
 
-**Description:** As a driver, I want to tap "Start Trip" after the rider boards so that the trip officially begins and I can navigate to the destination.
+**Description:** As a driver, I want to tap "Start Trip" after the rider boards so that the trip officially begins and in-app navigation switches to the destination.
 
 ### Background
-After the driver has arrived (and confirmed the rider's gender if it is a first trip via #1588), she taps the "Start Trip" button. This advances the trip state from arrived_pickup to trip_started. The map transitions to display the destination pin instead of the pickup pin. The navigation button now deep-links to the destination coordinates. GPS streaming continues throughout.
+After the driver has arrived (and confirmed the rider's gender if it is a first trip via #1588), she taps the "Start Trip" button. This advances the trip state from arrived_pickup to trip_started. The in-app navigation re-routes from the pickup to the destination, and the map shows the destination pin instead of the pickup pin. The "Open in external app" button now targets the destination coordinates. GPS streaming continues throughout.
 
 ### Acceptance Criteria
 
@@ -1237,11 +1313,11 @@ After the driver has arrived (and confirmed the rider's gender if it is a first 
 - Then the trip state advances to trip_started
 - And the map updates to show the destination pin
 
-**Scenario 2 — Navigation button points to destination after boarding**
+**Scenario 2 — In-app navigation and external option point to the destination after boarding**
 - Given the trip state is trip_started
-- When the driver taps the navigation button
-- Then the app opens Google Maps or Waze with the destination coordinates pre-filled
-- And the driver returns to the SheDrive active trip screen on exit
+- When the active trip screen is displayed
+- Then in-app turn-by-turn navigation re-routes to the destination
+- And tapping "Open in external app" opens Google Maps or Waze with the destination coordinates pre-filled, returning to SheDrive on exit
 
 **Scenario 3 — "Start Trip" is not accessible before verification on first trip**
 - Given is_first_trip is true and the driver has not yet completed the verification step (#1588)
@@ -1254,6 +1330,7 @@ After the driver has arrived (and confirmed the rider's gender if it is a first 
 - SOS functionality
 
 ### Dependencies
+- #1817 — Platform serves active-trip route and turn-by-turn directions to the driver (must be live)
 - #1652 — Driver advances trip state machine (must be live)
 
 ---
@@ -1261,24 +1338,24 @@ After the driver has arrived (and confirmed the rider's gender if it is a first 
 ## [Mobile] #1590 — Driver navigates to destination
 **Feature:** Feature 10 — Active Trip | **Sprint:** 2
 
-**Description:** As a driver, I want to see the destination on the map and open navigation so that I can bring the rider to her destination safely.
+**Description:** As a driver, I want to navigate to the destination with in-app turn-by-turn navigation and the option to open an external maps app, so that I can bring the rider to her destination safely using my preferred tool.
 
 ### Background
-Once the trip is started, the driver's active trip screen shows a pin at the destination. A navigation button allows the driver to deep-link to Google Maps or Waze with the destination coordinates. An "End Trip" button is visible so the driver can mark completion. GPS streaming continues every 5 seconds so the rider can follow progress on her screen.
+Once the trip is started, the driver's active trip screen shows in-app turn-by-turn navigation to the destination by default — the route, the destination pin, and step-by-step guidance are rendered inside SheDrive. A secondary "Open in external app" button lets the driver hand off to Google Maps or Waze with the destination coordinates pre-filled. An "End Trip" button is visible so the driver can mark completion. GPS streaming continues every 5 seconds so the rider can follow progress on her screen.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Destination pin appears after trip starts**
+**Scenario 1 — Destination route appears after trip starts**
 - Given the trip state has advanced to trip_started
 - When the active trip screen is displayed
-- Then the map shows a pin at the destination coordinates
-- And the pickup pin is no longer shown
+- Then in-app turn-by-turn navigation to the destination is shown, with the destination pin on the map
+- And the pickup pin and pickup route are no longer shown
 
-**Scenario 2 — Navigation deep-link opens external app with destination**
+**Scenario 2 — Driver opts to use an external app**
 - Given the trip is in trip_started state
-- When the driver taps the navigation button
+- When the driver taps "Open in external app"
 - Then the app opens Google Maps or Waze with the destination coordinates pre-filled
-- And the driver can return to the SheDrive screen on exit
+- And the driver can return to the SheDrive in-app navigation on exit
 
 **Scenario 3 — "End Trip" button is visible during navigation**
 - Given the trip is in trip_started state
@@ -1291,11 +1368,12 @@ Once the trip is started, the driver's active trip screen shows a pin at the des
 - Then the app continues sending the driver's coordinates to the platform every 5 seconds
 
 ### Out of Scope
-- In-app turn-by-turn navigation
+- Offline / cached-map navigation
 - Geofence-based automatic trip ending
 - SOS functionality
 
 ### Dependencies
+- #1817 — Platform serves active-trip route and turn-by-turn directions to the driver (must be live)
 - #1652 — Driver advances trip state machine (must be live)
 - #1653 — Driver streams GPS from acceptance to completion (must be live)
 
@@ -1417,6 +1495,50 @@ The driver is always shown her net earnings — the amount after the platform co
 
 ---
 
+## [Mobile] #1789 — Driver sees digital payment status at trip end 🆕
+**Feature:** Feature 11 — Trip Completion & Cash Payment | **Sprint:** Phase 1
+
+**Description:** As a driver, I want the trip-end screen to tell me when the rider paid by card so that I do not ask for cash on a card trip.
+
+### Background
+At trip completion the driver's screen reflects the rider's payment method, retrieved via #1782. For cash trips it shows the amount to collect; for card (digital) trips it shows a clear "paid by card — collect nothing" state with the digital payment status. Digital payment is part of Phase 1 scope. This complements #1592 (cash collection and return to available). All strings flow through `data-i18n` keys with Arabic fallback.
+
+### Acceptance Criteria
+
+**Scenario 1 — Cash trip shows the amount to collect**
+- Given the completed trip's payment method is cash
+- When the trip-end screen loads
+- Then the cash amount to collect is displayed (per #1592)
+
+**Scenario 2 — Card trip shows nothing to collect**
+- Given the completed trip's payment method is card and the charge succeeded
+- When the trip-end screen loads
+- Then a bilingual "paid by card — collect nothing" state is shown with the digital payment status
+
+**Scenario 3 — Card trip with pending or failed payment**
+- Given the completed trip's payment method is card and the charge is pending or failed
+- When the trip-end screen loads
+- Then the status is shown and the driver is not asked to collect cash
+
+**Scenario 4 — Driver returns to available**
+- Given the driver acknowledges the trip-end screen
+- Then she returns to her available/home state
+
+**Scenario 5 — Network error**
+- Given the payment-status request fails
+- Then a bilingual toast error is shown
+
+### Out of Scope
+- Card payment processing (#1733/#1734)
+- Refunds
+- Cash settlement workflow
+
+### Dependencies
+- #1782 — Driver retrieves payment method and collection status for a completed trip (API — must be live)
+- #1592 — Driver sees cash fare to collect and returns to available
+
+---
+
 ### Feature 12 — Trip History (Driver)
 
 ---
@@ -1511,35 +1633,91 @@ A language selector on the driver profile screen allows the driver to toggle bet
 
 ### Acceptance Criteria
 
-**Scenario 1 — Driver changes language to English**
-- Given the driver is on her profile screen with language set to Arabic
-- When she taps the English option
-- Then the preference is saved via #1728
-- And the entire app UI updates to English immediately
+**Scenario 1 — Driver switches from Arabic to English**
+- Given the driver is using the app in Arabic
+- When she selects English on the language toggle on her profile screen
+- Then the UI language switches to English immediately
+- And the layout direction changes from RTL to LTR
+- And the preference is saved via #1728
 
-**Scenario 2 — Driver changes language to Arabic**
-- Given the driver is on her profile screen with language set to English
-- When she taps the Arabic option
-- Then the preference is saved via #1728
-- And the entire app UI updates to Arabic immediately
+**Scenario 2 — Driver switches from English to Arabic**
+- Given the driver is using the app in English
+- When she selects Arabic on the language toggle
+- Then the UI language switches to Arabic immediately
+- And the layout direction changes to RTL
+- And the preference is saved via #1728
 
-**Scenario 3 — Language change persists across sessions**
-- Given the driver has changed her language preference
+**Scenario 3 — Language preference is restored after app restart**
+- Given the driver has selected English
 - When she closes and reopens the app
-- Then all content is displayed in her chosen language
+- Then the app launches in English
 
-**Scenario 4 — Network error during save**
-- Given the driver taps a language option
-- When the network request to #1728 fails
-- Then a toast error is shown
-- And the language remains unchanged
+**Scenario 4 — Language preference is restored after re-login**
+- Given the driver has selected English, logged out, and logs back in
+- Then the app restores the English preference from the server
+
+**Scenario 5 — Network error during preference save**
+- Given the driver switches language while offline
+- Then the language updates immediately in the UI
+- And the preference is saved locally
+- And it is synced to the server when connectivity is restored
 
 ### Out of Scope
-- Regional language variants
-- Device language sync
+- Languages other than Arabic and English
+- Per-notification language settings
 
 ### Dependencies
 - #1728 — User language preference is stored and retrieved (API — must be live)
+
+---
+
+## [Mobile] #1801 — Driver views her profile 🆕
+**Feature:** Feature 3 — Driver Authentication | **Sprint:** 2
+
+**Description:** As a driver, I want to view my profile information so that I can confirm the personal, vehicle, and account details SheDrive has verified for me.
+
+### Background
+The driver profile screen is accessible from the driver app's drawer/menu. It displays, in read-only form, the details captured and verified during onboarding: profile photo, full name, phone number, date of birth, masked National ID (last 4 digits only), and vehicle details (make, model, year, color, plate number, vehicle type). It also shows her account/onboarding status (Approved), her aggregate star rating (linking to #1792), and her current language preference (with a link to change it via #1731). Because all profile and vehicle data is verified during onboarding, none of it can be edited in the app in this phase; a bilingual note explains that to correct any detail she should contact support. In-app editing and document re-submission will be introduced later alongside the onboarding-maturity and resubmission work. Profile data is retrieved via #1800. All strings flow through `data-i18n` keys with Arabic fallback.
+
+### Acceptance Criteria
+
+**Scenario 1 — Driver opens her profile**
+- Given an authenticated approved driver opens the profile screen from the menu/drawer
+- When the screen loads (data via #1800)
+- Then her profile photo, full name, phone number, date of birth, masked National ID, and vehicle details (make, model, year, color, plate, type) are displayed
+- And her account status and aggregate rating are shown
+
+**Scenario 2 — All fields are read-only**
+- Given the driver views any profile or vehicle field
+- When she taps it
+- Then the field does not enter edit mode
+- And a bilingual note explains the data was verified during onboarding and to contact support to change it
+
+**Scenario 3 — National ID is masked**
+- Given the profile screen is displayed
+- Then only the last 4 digits of the National ID are shown
+
+**Scenario 4 — Rating and language links**
+- Given the driver is on her profile screen
+- Then her aggregate rating is shown (linking to #1792)
+- And her current language preference is shown with a link to change it (#1731)
+
+**Scenario 5 — Network error**
+- Given the profile request fails
+- Then a bilingual toast error is shown
+- And a retry option is available
+
+### Out of Scope
+- Editing any profile or vehicle field (deferred to onboarding-maturity work)
+- Profile photo change / document re-upload (deferred with resubmission)
+- Phone number change
+- Account deletion
+- SOS functionality
+
+### Dependencies
+- #1800 — Driver retrieves her profile (API — must be live)
+- #1792 — Driver views her overall rating (rating display)
+- #1731 — Driver changes language preference from profile screen
 
 ---
 
@@ -1553,37 +1731,95 @@ A language selector on the driver profile screen allows the driver to toggle bet
 **Description:** As a driver, I want to view my earnings summary so that I can track my income and performance metrics.
 
 ### Background
-An earnings dashboard is accessible from the menu or profile section. It displays total earnings for the current day, week, and month; total trips completed; average rating; and acceptance/rejection rate. The data is fetched from #1735 and refreshes when the driver navigates to the screen.
+The earnings dashboard is accessible from the driver home screen menu or profile screen. It shows earnings summary cards for today, this week, and this month. Each card shows total earnings in EGP and number of trips completed. Below the summary cards, a list of recent trips shows each trip's date, route summary, and fare. Data is fetched from #1735 on screen load. Pull-to-refresh updates all figures.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Driver opens the earnings dashboard**
-- Given the driver navigates to her earnings screen
-- When the page loads
-- Then it displays: today's earnings, week's earnings, month's earnings, total trips (current period), average rating, and acceptance rate
-
-**Scenario 2 — Earnings are displayed in EGP**
-- Given the earnings dashboard is loaded
-- When she views the earnings figures
-- Then all amounts are displayed in EGP with proper currency formatting
-
-**Scenario 3 — Earnings refresh on screen open**
-- Given the driver opens the earnings dashboard
+**Scenario 1 — Driver sees earnings summary on load**
+- Given an authenticated driver navigates to the earnings dashboard
 - When the screen loads
-- Then the latest earnings data is fetched via #1735
+- Then summary cards show total EGP and trip count for today, this week, and this month
+- And figures are fetched from #1735
 
-**Scenario 4 — No trips completed**
-- Given the driver has not completed any trips in the current period
-- When the dashboard loads
-- Then it displays zero for trips and earnings metrics
+**Scenario 2 — Zero earnings displayed correctly**
+- Given the driver has completed no trips in the current period
+- When the earnings dashboard loads
+- Then the relevant summary card shows "0 جنيه" / "0 EGP" and "0 رحلات" / "0 trips"
+- And no error state is shown
+
+**Scenario 3 — Recent trip list is shown below summary**
+- Given the driver has completed at least one trip
+- When the earnings dashboard loads
+- Then a list of recent trips is shown below the summary cards
+- And each item shows the trip date, pickup area to destination area, and fare in EGP
+
+**Scenario 4 — Pull-to-refresh updates figures**
+- Given the driver is on the earnings dashboard
+- When she pulls down to refresh
+- Then a loading indicator is shown
+- And updated figures are fetched from #1735
+
+**Scenario 5 — Network error on load**
+- Given the device has no connectivity when the screen loads
+- Then an error state is shown: "تعذر تحميل الأرباح. تحقق من اتصالك" / "Unable to load earnings. Check your connection."
+- And a retry button is visible
 
 ### Out of Scope
-- Historical earnings charts
-- Earnings breakdown by trip type
-- Withdrawal or payment processing
+- Earnings breakdown by individual day within a week
+- Export or download of earnings report
+- Tip amounts
 
 ### Dependencies
 - #1735 — Driver retrieves earnings summary (API — must be live)
+
+---
+
+## [Mobile] #1788 — Driver views cash balance owed to the platform 🆕
+**Feature:** Feature 18 — Driver Earnings | **Sprint:** Phase 1
+
+**Description:** As a driver, I want to see how much cash I owe the platform so that I know what I need to settle.
+
+### Background
+A balance view reachable from the earnings/home area shows the driver's outstanding cash owed to the platform in EGP, retrieved via #1781. It explains that for cash trips she keeps the fare and owes the platform its commission, and it lists the contributing trips and the last settlement. The view is read-only — settlement itself is an operational process handled by Finance. All strings flow through `data-i18n` keys with Arabic fallback.
+
+### Acceptance Criteria
+
+**Scenario 1 — Driver opens her balance**
+- Given an authenticated approved driver opens the balance view
+- When it loads
+- Then her outstanding cash owed to the platform is shown in EGP
+
+**Scenario 2 — Balance reflects a completed cash trip**
+- Given the driver completes a cash trip
+- When she opens her balance
+- Then the trip's commission portion is included in the outstanding total
+
+**Scenario 3 — Card trips do not change the cash-owed total**
+- Given the driver completes a card-paid trip
+- When she opens her balance
+- Then the outstanding total is unchanged by that trip
+
+**Scenario 4 — Last settlement is shown**
+- Given a settlement was recorded against the driver
+- When she opens her balance
+- Then the last settlement amount and date are shown
+
+**Scenario 5 — New driver with no cash trips**
+- Given a driver with no cash trips
+- When she opens her balance
+- Then a zero-balance state is shown
+
+**Scenario 6 — Network error**
+- Given the balance request fails
+- Then a bilingual toast error is shown
+
+### Out of Scope
+- In-app settlement payment by the driver
+- Automated payouts
+- In-app driver wallet
+
+### Dependencies
+- #1781 — Driver retrieves cash balance owed to the platform (API — must be live)
 
 ---
 
@@ -1594,44 +1830,66 @@ An earnings dashboard is accessible from the menu or profile section. It display
 ## [Mobile] #1722 — Driver cancels an accepted trip 🆕
 **Feature:** Feature 20 — Trip Cancellation | **Sprint:** 2
 
-**Description:** As a driver, I want to cancel an accepted trip so that I can handle unexpected situations without penalty.
+**Description:** As a driver, I want to cancel an accepted trip and choose a reason so that I can handle unexpected situations, and I am only charged a cancellation fee when I cancel late for reasons within my control.
 
 ### Background
-A cancel button is available on the active trip screen from the moment the driver accepts until the rider is boarded. Tapping it shows a confirmation dialog. Upon confirmation, the driver calls #1720 to cancel the trip. The driver is returned to her home screen and available for new trip requests.
+The driver can cancel at two points: while navigating to the pickup (en_route_pickup) or after confirming arrival (arrived_pickup). Cancellation is not available once the trip has started (trip_started). When the driver taps "Cancel Trip" she must select a cancellation reason from a list (rider no-show, rider unreachable, vehicle issue, safety concern, wrong pickup location, other). Before she confirms, the dialog tells her whether a fee will apply: no fee within the driver cancellation grace period; the driver cancellation fee amount after it; and no fee for a rider no-show once she has marked arrived and the rider no-show wait time has elapsed. The "Rider no-show" fee-free option only becomes available after arrival once that wait time has passed — a countdown shows the remaining time. The cancellation request (with the reason) calls #1720. On success the driver's status returns to online/available and the rider receives a push notification.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Driver cancels an accepted trip before arriving**
-- Given the driver has accepted a trip and is navigating to pickup
-- When she taps "Cancel"
-- Then a confirmation dialog appears
-- And upon confirmation, the trip is cancelled via #1720
-- And the driver is returned to her home screen in available status
+**Scenario 1 — Driver cancels while en route within the grace period — no fee**
+- Given the trip is in en_route_pickup and the driver cancellation grace period has not expired
+- When the driver taps "Cancel Trip", selects a reason, and confirms
+- Then the trip is cancelled with no fee
+- And the rider receives a push notification: "Your driver has cancelled. We are finding you a new driver."
+- And the driver's status returns to online/available
 
-**Scenario 2 — Driver cannot cancel after rider is boarded**
-- Given the driver has marked the rider as boarded (trip_started state)
-- When she views the active trip screen
-- Then the "Cancel" button is no longer visible
+**Scenario 2 — Driver cancels after the grace period — fee warning shown**
+- Given the trip is past the driver cancellation grace period
+- When the driver taps "Cancel Trip" and selects a reason that is not a qualifying rider no-show
+- Then the confirmation dialog shows the driver cancellation fee amount that will apply
+- And on confirm the trip is cancelled, the fee is recorded, and the rider is notified
 
-**Scenario 3 — Cancellation is immediate**
-- Given the driver confirms cancellation
-- When the cancellation is processed
-- Then the driver is immediately available for new requests
-- And no fare penalty is applied
+**Scenario 3 — Driver cancels a rider no-show after the wait time — no fee**
+- Given the trip is in arrived_pickup and the rider no-show wait time has elapsed
+- When the driver selects "Rider no-show" and confirms
+- Then the trip is cancelled with no fee
+- And the rider is notified and the driver's status returns to online/available
 
-**Scenario 4 — Network error during cancellation**
+**Scenario 4 — No-show wait time not yet elapsed**
+- Given the trip is in arrived_pickup but the rider no-show wait time is still counting down
+- Then the fee-free "Rider no-show" option is disabled and shows the remaining wait time
+- And cancelling now under any other reason shows that the driver cancellation fee will apply
+
+**Scenario 5 — Reason is required**
+- Given the driver taps "Cancel Trip"
+- When no reason is selected
+- Then the confirm action is disabled until a reason is chosen
+
+**Scenario 6 — Driver dismisses the cancellation dialog**
+- Given the driver taps "Cancel Trip"
+- When the confirmation dialog appears and the driver taps "Go Back"
+- Then the dialog is dismissed, the driver remains on the current screen, and the trip is not cancelled
+
+**Scenario 7 — Cancel button is not shown after the trip starts**
+- Given the trip is in trip_started state
+- Then no cancel trip button is visible on the active trip screen
+
+**Scenario 8 — Network error during cancellation**
 - Given the driver confirms cancellation
 - When the network request fails
-- Then a toast error is shown
-- And the driver remains on the active trip screen
+- Then a toast message is shown: "Unable to cancel. Please try again."
+- And the driver remains on the current screen
 
 ### Out of Scope
-- Cancellation penalties or strikes
-- Reason collection for cancellation
-- Rider notification of driver cancellation
+- Driver cancellation after the trip starts
+- Driver appeal/dispute of the cancellation fee (Phase 2)
+- Rider-initiated cancellation (separate story)
 
 ### Dependencies
 - #1720 — Driver cancels an accepted trip (API — must be live)
+- #1652 — Driver advances trip state machine (must be live)
+- #1758 — Super admin configures cancellation policy (drives the fee, grace period, and wait time shown)
 
 ---
 

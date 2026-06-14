@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-06-10
+> Last updated: 2026-06-14
 > Stories with changes from original are marked ✏️
 
 ---
@@ -230,7 +230,7 @@ After a successful login or registration the session token is stored in the devi
 - And no background validation request is made
 
 ### Scenario 3 — Expired token on launch → login screen
-- Given a rider's stored token has passed its 30-day lifetime
+- Given a rider's stored token has passed its 90-day lifetime
 - When the app validates it on launch and the server returns 401
 - Then the local token is cleared from secure storage
 - And the rider is shown the login screen
@@ -609,6 +609,96 @@ When a driver accepts the trip, the matching screen transitions to display a dri
 
 ---
 
+## [Mobile] #1790 — Rider declares the passenger is a child before requesting a ride 🆕
+**Feature:** Feature 8 — Trip Request & Matching | **Sprint:** Phase 1
+
+**Description:** As a rider, I want to declare when the passenger for this trip will be a child so that a child may ride and the driver knows to expect one — the only exception to the women-only rule.
+
+### Background
+On the home screen, before requesting a ride, the rider can turn on "This ride is for a child (under 12)". Gender is not asked. The flag is sent with the trip request (#1783) and shown to the matched driver. Because SheDrive is women-only, a male passenger is normally not allowed; declaring a child permits a child passenger of any gender to ride. The default is off (adult woman). All strings flow through `data-i18n` keys with Arabic fallback.
+
+### Acceptance Criteria
+
+**Scenario 1 — Rider declares a child passenger**
+- Given the rider is on the home screen with pickup and destination set
+- When she turns on the child-passenger declaration and taps "Request Ride"
+- Then the declaration is included in the trip request via #1783
+
+**Scenario 2 — Default is off**
+- Given the rider has not changed the toggle
+- When she requests a ride
+- Then the declaration is sent as false (adult woman)
+
+**Scenario 3 — Helper text explains the exception**
+- Given the rider views the child-passenger option
+- Then bilingual helper text explains that a child may ride as the only exception to the women-only policy
+
+**Scenario 4 — Declaration cannot change after submission**
+- Given the trip request has been submitted
+- Then the child declaration can no longer be changed for that trip
+
+**Scenario 5 — Declaration is visible to the driver**
+- Given a child passenger was declared
+- When the driver views the trip
+- Then she sees that the passenger is a declared child (supports #1588)
+
+### Out of Scope
+- Capturing the child's gender or exact age
+- Child safety-seat handling
+- Child-specific fares
+
+### Dependencies
+- #1783 — Trip request captures a per-trip child-passenger flag and exposes it to the driver (API — must be live)
+- #1588 — Driver verifies rider is female on first trip (honors the child exception)
+
+---
+
+## [Mobile] #1791 — Rider cannot book outside operating hours 🆕
+**Feature:** Feature 8 — Trip Request & Matching | **Sprint:** Phase 1
+
+**Description:** As a rider, I want to see when SheDrive is closed for the day so that I understand why I cannot book and when I can.
+
+### Background
+SheDrive runs daytime-only in Phase 1 (open decision OD-001). Outside the operating window, the home screen shows a clear service-closed state, disables "Request Ride", and shows the next opening time. Any request attempted outside hours is rejected by #1785. A trip already in progress is not affected. All strings flow through `data-i18n` keys with Arabic fallback.
+
+### Acceptance Criteria
+
+**Scenario 1 — Inside operating hours**
+- Given the current time is within the operating window
+- When the rider opens the home screen
+- Then booking is available as normal
+
+**Scenario 2 — Outside operating hours**
+- Given the current time is outside the operating window
+- When the rider opens the home screen
+- Then a bilingual service-closed state is shown with the next opening time
+- And "Request Ride" is disabled
+
+**Scenario 3 — Request attempted outside hours is rejected**
+- Given the rider submits a request outside hours
+- When it reaches the platform (#1785)
+- Then it is rejected and a bilingual service-closed message is shown
+
+**Scenario 4 — In-progress trip is unaffected**
+- Given a trip is in progress when the window closes
+- Then the trip continues uninterrupted
+
+**Scenario 5 — State updates when hours resume**
+- Given the operating window reopens
+- When the rider returns to the home screen
+- Then booking becomes available again
+
+### Out of Scope
+- Per-zone operating hours
+- Scheduled rides (#1737)
+- 24/7 operation
+
+### Dependencies
+- #1785 — Trip requests outside operating hours are rejected (API — must be live)
+- Open decision OD-001 — operating hours
+
+---
+
 ### Feature 10 — Active Trip (Rider)
 
 ---
@@ -710,10 +800,10 @@ When the driver taps "I've Arrived", the platform sends a push notification to t
 ## [Mobile] #1561 — Rider sees driver live location and details during trip
 **Feature:** Feature 10 — Active Trip | **Sprint:** 2
 
-**Description:** As a rider, I want to see the driver's moving location on the map and the driver's name, photo, and vehicle details throughout the trip so that I can follow our progress and confirm I am with the correct driver.
+**Description:** As a rider, I want to see the driver's moving location and the trip route on the map, plus the driver's name, photo, and vehicle details throughout the trip, so that I can follow our progress in-app and confirm I am with the correct driver.
 
 ### Background
-Once the driver taps "Start Trip" and the state advances to trip_started, the rider's map updates to show the driver's location moving toward the destination. The destination pin is visible on the map. GPS coordinates received from the driver every 5 seconds update the moving dot in near real time. The rider remains on this screen until the trip ends.
+Once the driver taps "Start Trip" and the state advances to trip_started, the rider's map updates to show the driver's location moving toward the destination. The destination pin is visible on the map. GPS coordinates received from the driver every 5 seconds update the moving dot in near real time. The trip route is rendered on the rider's map in-app. This is a live view of the driver's location — not navigation — so the rider is never offered an external maps app. The rider remains on this screen until the trip ends.
 
 Throughout the active trip — from en_route_pickup through trip_ended — the rider sees a persistent driver card on the active trip screen. The card displays the driver's name, profile photo (or a placeholder avatar if no photo is set), vehicle make and model, vehicle color, and license plate number. This information is sourced from the trip details returned by the platform.
 
@@ -730,36 +820,43 @@ Throughout the active trip — from en_route_pickup through trip_ended — the r
 - When the platform receives a new GPS position from the driver
 - Then the driver's dot on the rider's map moves to the new position within 5 seconds
 
-**Scenario 3 — Rider screen transitions automatically on trip end**
+**Scenario 3 — Trip route is rendered on the rider's map in-app**
+- Given the trip is in trip_started state
+- When the rider views the active trip screen
+- Then the trip route to the destination is rendered on the map within the app
+- And the rider is not offered an external maps app option
+
+**Scenario 4 — Rider screen transitions automatically on trip end**
 - Given the rider is watching the map during trip_started state
 - When the driver taps "End Trip" and the state advances to trip_ended
 - Then the rider's screen automatically transitions to the trip summary
 
-**Scenario 4 — Driver card shows name and vehicle details**
+**Scenario 5 — Driver card shows name and vehicle details**
 - Given the rider is on the active trip screen in any active state
 - When the driver card is rendered
 - Then the driver's full name is displayed
 - And the vehicle make, model, color, and plate number are displayed
 
-**Scenario 5 — Driver photo or placeholder is shown**
+**Scenario 6 — Driver photo or placeholder is shown**
 - Given the rider is viewing the driver card
 - When the driver has a profile photo on file
 - Then the driver's profile photo is shown in the card avatar
 - And when the driver has no profile photo, a placeholder avatar is shown instead
 
-**Scenario 6 — Driver card is visible across all active states**
+**Scenario 7 — Driver card is visible across all active states**
 - Given the trip is in en_route_pickup, arrived_pickup, or trip_started state
 - When the rider views the active trip screen
 - Then the driver card remains visible without requiring any action
 
 ### Out of Scope
-- Route polyline rendering on the rider's map
+- Turn-by-turn navigation for the rider (the rider only views the route)
 - Estimated arrival time to destination for the rider
 - Rider-initiated contact with the driver (chat or call)
 - Sharing driver details with a third party from this screen
 - SOS functionality
 
 ### Dependencies
+- #1818 — Platform serves active-trip route geometry to the rider for an in-app trip view (must be live)
 - #1633 — Rider retrieves live trip state and driver location (must be live)
 - #1653 — Driver streams GPS from acceptance to completion (must be live)
 
@@ -928,7 +1025,7 @@ The rating screen shows a 5-star selector where the rider taps to choose a ratin
 
 ---
 
-## [Mobile] #1566 — Rider skips rating
+## [Mobile] #1799 — Rider skips rating
 **Feature:** Feature 11 — Trip Completion & Cash Payment | **Sprint:** 2
 
 **Description:** As a rider, I want to skip rating so that I can go home quickly without being forced to provide feedback.
@@ -1081,29 +1178,43 @@ The profile screen is accessible from the menu or drawer. It displays the rider'
 - When the page loads
 - Then her registered phone number, full name, email, and language preference are displayed
 
-**Scenario 2 — Rider edits her name**
-- Given the rider is on her profile screen
-- When she taps the edit button next to her name and enters a valid name
-- Then the name is updated after validation
-- And a success message is shown
-
-**Scenario 3 — Invalid name format**
-- Given the rider enters a name containing digits or special characters
+**Scenario 2 — Rider edits and saves her name successfully**
+- Given the rider taps the name field to edit it
+- And she enters a valid new name
 - When she taps "Save"
-- Then the error "الاسم يجب أن يحتوي على حروف فقط" is shown
-- And the change is not saved
+- Then the profile is updated via #1721
+- And a success toast is shown: "تم حفظ التغييرات" / "Changes saved"
+- And the profile screen reflects the updated name
 
-**Scenario 4 — Language preference is shown**
+**Scenario 3 — Name field validation fails**
+- Given the rider clears the name field or enters invalid characters
+- When she taps "Save"
+- Then the inline validation error is shown
+- And the save request is not sent
+
+**Scenario 4 — Phone number field is read-only**
+- Given the rider views her profile
+- When she taps the phone number field
+- Then the field does not enter edit mode
+- And a note indicates: رقم الهاتف لا يمكن تغييره / Phone number cannot be changed
+
+**Scenario 5 — Language preference is shown**
 - Given the rider is on her profile screen
 - When she views the language section
 - Then the current language preference (ar or en) is indicated
 - And a link to change it is available (leading to #1729)
 
+**Scenario 6 — Network error during save**
+- Given the rider taps "Save"
+- When the network request fails
+- Then a toast message is shown: "فشل الحفظ. حاول مجدداً" / "Save failed. Please try again."
+- And the rider remains on the profile screen in edit mode
+
 ### Out of Scope
-- Changing phone number
-- Email verification
-- Photo upload
-- Profile deletion
+- Phone number change
+- Profile photo upload
+- Account deletion
+- Password management (OTP-based auth only)
 
 ### Dependencies
 - #1721 — Rider retrieves and updates her profile (API — must be live)
@@ -1132,20 +1243,24 @@ A language selector on the profile screen allows the rider to toggle between Ara
 - Then the preference is saved via #1728
 - And the entire app UI updates to Arabic immediately
 
-**Scenario 3 — Language change persists across sessions**
-- Given the rider has changed her language preference
+**Scenario 3 — Language preference is restored after app restart**
+- Given the rider has selected English
 - When she closes and reopens the app
-- Then all content is displayed in her chosen language
+- Then the app launches in English
 
-**Scenario 4 — Network error during save**
-- Given the rider taps a language option
-- When the network request to #1728 fails
-- Then a toast error is shown
-- And the language remains unchanged
+**Scenario 4 — Language preference is restored after re-login**
+- Given the rider has selected English, logged out, and logs back in
+- Then the app restores the English preference from the server
+
+**Scenario 5 — Network error during preference save**
+- Given the rider switches language while offline
+- Then the language updates immediately in the UI
+- And the preference is saved locally
+- And it is synced to the server when connectivity is restored
 
 ### Out of Scope
-- Regional language variants
-- Device language sync
+- Languages other than Arabic and English
+- Per-notification language settings
 
 ### Dependencies
 - #1728 — User language preference is stored and retrieved (API — must be live)
@@ -1162,40 +1277,44 @@ A language selector on the profile screen allows the rider to toggle between Ara
 **Description:** As a rider, I want to select my preferred payment method before or after a trip so that I can choose between cash and card payment.
 
 ### Background
-A payment method selector is accessible from the profile screen or during trip completion. The rider can choose between "Cash" and "Debit/Credit Card". The selection is persisted via #1730 and used as the default for future trips. (Card payment processing is handled by #1734 at trip completion; this story focuses only on selection and persistence.)
+A payment method selector is shown on the home screen between the fare estimate and the "Request Ride" button. The available options for this sprint are Cash and Card (online payment). The default is Cash unless the rider has a saved preference. The selected method is included in the trip request payload via #1730 and is visible to the driver on the active trip screen. The payment method cannot be changed after the trip request is submitted.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Rider selects cash payment**
-- Given the rider is on the payment method screen
-- When she taps "Cash"
-- Then the selection is saved via #1730
-- And "Cash" is marked as the default payment method
+**Scenario 1 — Rider selects Cash**
+- Given the rider is on the home screen with a pickup and destination set
+- When she selects "Cash" as her payment method
+- Then "Cash" is highlighted as the selected option
+- And the fare estimate area shows "الدفع نقداً" / "Pay with Cash"
 
-**Scenario 2 — Rider selects card payment**
-- Given the rider is on the payment method screen
-- When she taps "Debit/Credit Card"
-- Then the selection is saved via #1730
-- And "Card" is marked as the default payment method
+**Scenario 2 — Rider selects Card (online payment)**
+- Given the rider selects "Card" as her payment method
+- Then "Card" is highlighted as the selected option
+- And the fare estimate area shows the estimated charge amount
 
-**Scenario 3 — Payment method preference persists**
-- Given the rider has selected a payment method
-- When she completes trips and returns to the payment screen
-- Then her previously selected method is shown as the default
+**Scenario 3 — Default is Cash for a new rider**
+- Given the rider has never selected a payment method before
+- When she opens the home screen
+- Then "Cash" is pre-selected by default
 
-**Scenario 4 — Network error during selection**
-- Given the rider taps a payment method
-- When the save request fails
-- Then a toast error is shown
-- And the payment method remains unchanged
+**Scenario 4 — Last used method is pre-selected on return**
+- Given the rider previously used Card for her last trip
+- When she opens the home screen for a new booking
+- Then "Card" is pre-selected
+
+**Scenario 5 — Selected method is passed with trip request**
+- Given the rider has selected a payment method and taps "Request Ride"
+- Then the selected payment method is included in the trip request payload sent via #1730
 
 ### Out of Scope
-- Card details entry (deferred to #1734)
-- Payment processing
-- Refunds
+- Card details entry or saved card management (handled separately)
+- Wallet top-up
+- Payment method change after trip submission
+- Promo codes
 
 ### Dependencies
 - #1730 — Rider selects payment method for trip (API — must be live)
+- #1552 — Rider sees fare estimate before requesting (must be built)
 
 ---
 
@@ -1205,41 +1324,86 @@ A payment method selector is accessible from the profile screen or during trip c
 **Description:** As a rider, I want to pay by card at the end of my trip so that I don't need to carry cash.
 
 ### Background
-When a trip ends and the rider has selected "Card" as the payment method, the trip summary screen displays a "Pay Now" button instead of a cash collection notice. Tapping "Pay Now" opens a payment processing screen (via #1733) where the rider's card details can be entered or a saved card can be selected. On successful payment, a receipt is shown and the rider is taken to the home screen.
+When the trip's payment method is Card, the trip-complete screen shows a payment processing state before the usual trip summary and rating prompt. The payment is charged automatically via #1733. If payment succeeds, the rider sees the charged amount and a receipt note. If payment fails, the rider is offered a Retry option and a "Pay Cash to Driver" fallback.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Happy path: rider completes card payment**
-- Given the trip has ended and the rider's payment method is "Card"
-- When the trip summary screen loads
-- Then a "Pay Now" button is displayed with the total fare
-- And tapping "Pay Now" opens the payment processing screen
+**Scenario 1 — Card payment processes successfully**
+- Given the trip ends and the payment method is Card
+- When the trip-complete screen loads
+- Then a payment processing indicator is shown briefly
+- And on success, the trip summary is shown with the charged amount
+- And a receipt confirmation is shown to the rider
+- And the driver is notified that payment was received
 
-**Scenario 2 — Payment success flow**
-- Given the rider has entered valid card details
-- When the payment is processed successfully via #1733
-- Then a success receipt is shown
-- And the rider is taken to the home screen
+**Scenario 2 — Card payment fails — rider retries**
+- Given the card payment fails
+- When the rider taps "Retry Payment"
+- Then the payment is attempted again via #1733
+- And on success, the normal completion flow continues
 
-**Scenario 3 — Payment failure**
-- Given the rider enters invalid card details or the payment provider declines
-- When the payment is processed
-- Then an error message is shown
-- And the rider can retry or cancel
+**Scenario 3 — Card payment fails — rider switches to cash**
+- Given the card payment fails after retry
+- When the rider taps "Pay Cash to Driver"
+- Then the trip is marked as cash-settled
+- And the driver is notified to collect cash
+- And the rider sees the cash amount to hand over
 
-**Scenario 4 — Network error during payment**
-- Given a network error occurs during payment processing
-- When the request fails
-- Then a clear error message is shown
-- And the rider can retry
+**Scenario 4 — Cash trip skips card payment screen**
+- Given the trip's payment method is Cash
+- When the trip-complete screen loads
+- Then no payment processing state is shown
+- And the cash fare amount to hand to the driver is displayed
 
 ### Out of Scope
-- Card tokenization or storage
-- Payment refunds
-- Multiple card management
+- Card details entry (card is pre-saved separately)
+- Partial payments
+- Refunds
 
 ### Dependencies
 - #1733 — Trip fare is charged to rider's card at trip completion (API — must be live)
+- #1564 — Rider sees trip summary with cash fare (must be built)
+
+---
+
+## [Mobile] #1793 — Rider with an unresolved payment failure is blocked from booking 🆕
+**Feature:** Feature 17 — Payments (Rider) | **Sprint:** Phase 1
+
+**Description:** As a rider, I want to be told when a past payment failed and be guided to settle it so that I can book rides again.
+
+### Background
+If a previous card payment failed (#1734/#1733) and remains unresolved, the platform rejects new trip requests (#1784). When the rider taps "Request Ride", she sees a clear, bilingual blocking message stating the outstanding amount and offering a path to settle it. Once the amount is settled, booking works again. All strings flow through `data-i18n` keys with Arabic fallback; transient errors use a toast.
+
+### Acceptance Criteria
+
+**Scenario 1 — Blocked rider is informed on booking**
+- Given the rider has an unresolved payment failure
+- When she taps "Request Ride"
+- Then a bilingual message shows the outstanding amount and a way to settle it
+- And no trip request is submitted
+
+**Scenario 2 — Rider settles and can book**
+- Given the rider settles the outstanding amount
+- When she taps "Request Ride" again
+- Then the booking proceeds normally
+
+**Scenario 3 — Rider with no failure books normally**
+- Given the rider has no unresolved payment failure
+- When she taps "Request Ride"
+- Then booking proceeds normally
+
+**Scenario 4 — Network error**
+- Given the eligibility check fails on the network
+- Then a bilingual toast error is shown and she can retry
+
+### Out of Scope
+- The card charge flow itself (#1734/#1733)
+- Refunds
+- Operations manual override
+
+### Dependencies
+- #1784 — Booking is blocked when the rider has an unresolved payment failure (API — must be live)
+- #1734 — Rider completes online card payment at trip end
 
 ---
 
@@ -1250,22 +1414,88 @@ When a trip ends and the rider has selected "Card" as the payment method, the tr
 ## [Mobile] #1737 — Rider schedules a ride in advance 🆕
 **Feature:** Feature 19 — Scheduled Rides | **Sprint:** 2
 
-**Description:** As a rider, I want to schedule a ride for a future date and time so that I can book transportation ahead of time.
+**Description:** As a rider, I want to schedule a ride for a future date and time within operating hours so that I can arrange transportation in advance and be matched with a driver automatically when the time approaches.
 
 ### Background
-[TBD - Placeholder for future scheduled ride functionality. Content to be added when the feature is designed.]
+From the home screen the rider can switch from "Request now" to "Schedule for later". After setting pickup (#1550) and destination (#1551), she opens a date/time picker and chooses when she wants to be picked up. The scheduled pickup time must be at least 30 minutes ahead, no more than 7 days ahead, and fall inside the daytime operating window (OD-001; see #1791). She selects a payment method (#1732) and, if applicable, declares a child passenger (#1790). An indicative fare estimate (#1552) is shown but is recalculated at dispatch. On confirmation the scheduled trip is created via #1738 and appears in her "Scheduled rides" list, where she can review or cancel it before dispatch. Approximately 15 minutes before the scheduled pickup time the platform automatically begins matching (creating a live trip request and entering the matching flow #1554); the rider is notified by push when matching starts and again when a driver is found. Modifying a scheduled ride is done by cancelling and rebooking. The lead time (30 minutes minimum ahead), booking horizon (7 days maximum ahead), and dispatch window (matching begins 15 minutes before the scheduled pickup time) are final, confirmed product values. All user-visible strings flow through `data-i18n` keys with Arabic fallback.
+
+### Field Validation
+
+| Field | Required | Rule | Error (AR / EN) |
+|---|---|---|---|
+| Scheduled date & time | Yes | ≥ 30 min from now; ≤ 7 days ahead; within daytime operating hours (OD-001) | يجب اختيار وقت ضمن ساعات العمل وبعد 30 دقيقة على الأقل / Choose a time at least 30 minutes ahead and within operating hours |
+| Pickup | Yes | Set via map/autocomplete (per #1550) | اختاري موقع الانطلاق / Choose a pickup |
+| Destination | Yes | Set via map/autocomplete (per #1551) | اختاري وجهتك / Choose a destination |
+| Payment method | Yes | Cash or Card (per #1732) | اختاري طريقة الدفع / Choose a payment method |
 
 ### Acceptance Criteria
 
-**Scenario 1 — [TBD]**
-- [TBD]
+**Scenario 1 — Rider schedules a ride successfully**
+- Given the rider has set a valid pickup, destination, payment method, and a scheduled time that is ≥ 30 min ahead, ≤ 7 days ahead, and within operating hours
+- When she taps "Schedule ride"
+- Then the scheduled trip is created via #1738
+- And it appears in her "Scheduled rides" list with its date, time, pickup, destination, and payment method
+
+**Scenario 2 — Scheduled time is too soon**
+- Given the rider selects a time less than 30 minutes from now
+- When she confirms
+- Then a bilingual validation error is shown and no scheduled trip is created
+
+**Scenario 3 — Scheduled time is outside operating hours**
+- Given the rider selects a time outside the daytime operating window (OD-001)
+- When she confirms
+- Then a bilingual message explains the service is closed at that time and suggests a time inside the window
+- And no scheduled trip is created
+
+**Scenario 4 — Scheduled time is beyond the booking horizon**
+- Given the rider selects a time more than 7 days ahead
+- When she confirms
+- Then a bilingual validation error is shown and no scheduled trip is created
+
+**Scenario 5 — Payment method and child declaration are carried into the scheduled trip**
+- Given the rider selected a payment method (#1732) and optionally declared a child passenger (#1790)
+- When the scheduled trip is created
+- Then both are stored with the scheduled trip and applied when it is dispatched
+
+**Scenario 6 — Rider views her upcoming scheduled rides**
+- Given the rider has at least one upcoming scheduled ride
+- When she opens the "Scheduled rides" list
+- Then each entry shows the scheduled date/time, pickup, destination, and payment method, soonest first
+
+**Scenario 7 — Rider cancels a scheduled ride before dispatch**
+- Given a scheduled ride has not yet been dispatched
+- When the rider cancels it and confirms
+- Then it is removed from her scheduled rides via #1738 with no fee
+
+**Scenario 8 — Platform auto-dispatches at lead time**
+- Given a scheduled ride reaches its dispatch window (about 15 minutes before pickup) and the service is open
+- When the platform dispatches it
+- Then a live trip request is created and the matching flow (#1554) begins
+- And the rider receives a push that matching has started, and again when a driver is found
+
+**Scenario 9 — No driver available at dispatch**
+- Given a scheduled ride is dispatched but no driver is found within the matching window
+- Then standard no-driver handling applies and the rider is notified
+
+**Scenario 10 — Network error during scheduling**
+- Given the rider taps "Schedule ride"
+- When the request fails
+- Then a bilingual toast error is shown and she can retry
+- And no duplicate scheduled trip is created
 
 ### Out of Scope
-- Recurring scheduled rides
-- Scheduled ride modification after booking
+- Recurring / repeating scheduled rides
+- Modifying a scheduled ride in place (cancel and rebook instead)
+- Scheduled-ride-specific surge or pricing
+- Guaranteed driver assignment at the exact scheduled minute
 
 ### Dependencies
-- #1738 — Rider creates a scheduled trip request (API — must be live)
+- #1738 — Rider schedules a ride in advance (API — must be live)
+- #1552 — Rider sees fare estimate before requesting (indicative estimate)
+- #1732 — Rider selects a payment method
+- #1790 — Rider declares the passenger is a child (optional, per trip)
+- #1791 — Rider cannot book outside operating hours / OD-001
+- #1554 — Rider sees matching screen (reused at dispatch)
 
 ---
 
@@ -1279,42 +1509,58 @@ When a trip ends and the rider has selected "Card" as the payment method, the tr
 **Description:** As a rider, I want to cancel an active trip request so that I can change my mind before a driver accepts and I'm not charged a fare.
 
 ### Background
-A cancel button is available on both the matching screen (#1554) and the active trip screen until the driver has marked arrival. Tapping it shows a confirmation dialog. Upon confirmation, the rider calls #1715 to cancel the trip. The trip is immediately cancelled with no fare charge, and the rider is returned to the home screen.
+The rider can cancel at two points in the trip lifecycle: (1) while the trip is in searching state on the matching screen — no driver has been assigned yet — in which case no cancellation fee is charged; (2) after a driver has been matched and is en_route_pickup, with no fee if the driver took less than 3 minutes en route (if more, a fee applies); (3) if the driver has already arrived (arrived_pickup state), a cancellation fee applies to discourage late cancellations. Once the driver starts the trip (trip_started), cancellation is no longer available to the rider. On successful cancellation the rider is returned to the home screen with her pickup and destination fields still populated, and the assigned driver (if any) is notified via #1715.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Rider cancels during matching phase**
-- Given the rider is on the matching screen
-- When she taps "Cancel"
-- Then a confirmation dialog appears asking to confirm cancellation
-- And upon confirmation, the trip is cancelled with no fare charged
-- And the rider is returned to the home screen
+**Scenario 1 — Rider cancels while searching (no driver assigned, no fee)**
+- Given the rider has submitted a trip request and is on the matching screen in searching state
+- When the rider taps "Cancel" and confirms in the confirmation dialog
+- Then the trip is cancelled with no fee
+- And the rider is navigated to the home screen with her pickup and destination still populated with the fare estimate recalculated
 
-**Scenario 2 — Rider cancels before driver arrival**
-- Given the trip is in accepted state and the driver is en route
+**Scenario 2 — Rider cancels after match, driver en route**
+- Given a driver has been matched and the trip is in en_route_pickup state
+- When the rider taps "Cancel" and confirms
+- Then the trip is cancelled with no fee if the driver took less than 3 minutes en route; if more, a fee applies
+- And the driver receives a push notification informing her the trip was cancelled
+- And the rider is navigated to the home screen
+
+**Scenario 3 — Rider cancels after driver arrives (cancellation fee applies)**
+- Given the trip is in arrived_pickup state
 - When the rider taps "Cancel"
-- Then a confirmation dialog appears
-- And upon confirmation, the trip is cancelled with no fare charged
+- Then a confirmation dialog is shown informing the rider that a cancellation fee applies
+- When the rider confirms
+- Then the trip is cancelled and the cancellation fee is recorded against the rider's account
+- And the driver receives a push notification
+- And the rider is navigated to the home screen
 
-**Scenario 3 — Cancellation is final**
-- Given the rider has cancelled the trip
-- When she returns to the home screen
-- Then the trip is no longer visible in active state
-- And she can immediately submit a new trip request
+**Scenario 4 — Rider dismisses the cancellation dialog**
+- Given the rider taps "Cancel" at any stage
+- When the confirmation dialog appears and the rider taps "Go Back"
+- Then the dialog is dismissed and the rider remains on the current screen
+- And the trip is not cancelled
 
-**Scenario 4 — Network error during cancellation**
-- Given the rider taps "Cancel" and confirms
+**Scenario 5 — Cancel button is not shown after trip starts**
+- Given the trip is in trip_started state
+- Then no cancel button is shown on the active trip screen
+
+**Scenario 6 — Network error during cancellation**
+- Given the rider confirms cancellation
 - When the network request fails
-- Then a toast is shown indicating the cancellation failed
+- Then a toast message is shown: "Unable to cancel. Please try again."
 - And the rider remains on the current screen
 
 ### Out of Scope
-- Cancellation fees or penalties
-- Cancelling after driver arrival
-- Reason collection for cancellation
+- Cancellation fee payment processing
+- Cancellation fee waiver or dispute
+- Admin-initiated cancellation
+- Driver-initiated trip cancellation (separate story)
 
 ### Dependencies
 - #1715 — Rider cancels a trip (API — must be live)
+- #1554 — Rider sees matching screen (must be built)
+- #1652 — Driver advances trip state machine (must be live)
 
 ---
 
@@ -1342,3 +1588,56 @@ This is a placeholder story. The SOS and emergency flow is SheDrive's primary sa
 
 ### Dependencies
 - TBD — requires Ministry of Interior integration specification
+
+---
+
+## [Mobile] #1787 — Rider sets up trusted contacts who receive a live trip link on SOS 🆕
+**Feature:** Feature 21 — Emergency & Safety (Rider) | **Sprint:** Phase 1
+
+**Description:** As a rider, I want to save trusted contacts and have them automatically receive a live trip-tracking link when I trigger SOS so that people I trust can follow my location during an emergency.
+
+### Background
+From the profile/safety section the rider can add, edit, and remove trusted contacts (name + phone number). Having a contact is encouraged but not required. Live-location sharing is tied to SOS only: when the rider triggers SOS during an active trip (#1723), the platform sends each saved trusted contact a secure live trip-tracking link (#1780). There is no standalone "share my trip" button in Phase 1. All user-visible strings flow through `data-i18n` keys with Arabic fallback.
+
+### Field Validation
+
+| Field | Required | Rule | Error (AR) |
+|---|---|---|---|
+| Contact name | Yes | 2–50 letters and spaces | أدخلي اسم جهة الاتصال |
+| Contact phone | Yes | Valid Egyptian mobile number | رقم الهاتف غير صالح |
+
+### Acceptance Criteria
+
+**Scenario 1 — Rider adds a trusted contact (max 5 contacts)**
+- Given an authenticated rider opens the trusted contacts screen
+- When she enters a valid name and phone number and saves
+- Then the contact is stored via #1780 and shown in her list
+
+**Scenario 2 — Rider edits or removes a trusted contact**
+- Given the rider has at least one trusted contact
+- When she edits or removes it
+- Then the change is persisted via #1780
+
+**Scenario 3 — Invalid phone shows a validation error**
+- Given the rider enters an invalid phone number
+- When she taps save
+- Then a bilingual validation error is shown and nothing is saved
+
+**Scenario 4 — On SOS, trusted contacts are alerted with a live link**
+- Given the rider has at least one trusted contact and triggers SOS during an active trip (#1723)
+- When the SOS is sent
+- Then the app confirms that her trusted contacts have been alerted with a live trip-tracking link
+
+**Scenario 5 — SOS with no trusted contacts**
+- Given the rider has no trusted contacts and triggers SOS
+- Then SOS is still sent
+- And she is informed that no trusted contacts are configured and is prompted to add one
+
+### Out of Scope
+- Standalone (non-SOS) live trip sharing
+- Calling or chatting with trusted contacts
+- Notifying trusted contacts on normal (non-SOS) trip events
+
+### Dependencies
+- #1780 — Rider's trusted contacts are notified with a live trip link on SOS (API — must be live)
+- #1723 — Rider triggers SOS during active trip
