@@ -909,6 +909,43 @@ The rating screen shows a 5-star selector where the rider taps to choose a ratin
 
 **Description:** As a rider, I want to skip rating so that I can go home quickly without being forced to provide feedback.
 
+### Background
+
+A "Skip" option is available on both the trip summary screen and the rating screen. When the rider taps "Skip", no rating is submitted and the rider is taken directly to the home screen. The post-trip rating prompt is no longer shown for that trip. The rider can still rate the trip later by opening the trip detail screen in her trip history (#1568). The trip is still recorded as complete and visible in trip history.
+
+### Acceptance Criteria
+
+**Scenario 1 — Tapping "Skip" from trip summary takes rider home**
+- Given the rider is on the trip summary screen
+- When she taps "Skip"
+- Then the rider is taken to the home screen
+- And no rating submission is made
+
+**Scenario 2 — Tapping "Skip" from rating screen takes rider home**
+- Given the rider is on the rating screen
+- When she taps "Skip"
+- Then the rider is taken to the home screen
+- And no rating submission is made
+
+**Scenario 3 — Post-trip rating screen is no longer accessible after skip**
+- Given the rider has skipped the rating for a trip
+- When she navigates back in the app
+- Then the post-trip rating screen for that trip is no longer accessible
+- And the trip is visible in trip history with a "Rate this trip" prompt in the detail screen (#1568)
+
+**Scenario 4 — Trip is still visible in history after skip**
+- Given the rider has skipped the rating
+- When the trip is viewed in trip history
+- Then the trip record is present and complete
+- And a "Rate this trip" prompt is shown in the trip detail screen (#1568)
+
+### Out of Scope
+- Partial rating save
+- SOS functionality
+
+### Dependencies
+- #1640 — Trip closes without rating on skip (must be live)
+
 ---
 
 ### Feature 12 — Trip History (Rider)
