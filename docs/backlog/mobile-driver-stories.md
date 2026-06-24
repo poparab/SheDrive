@@ -326,6 +326,54 @@ The personal details screen is Step 1 of a multi-step onboarding wizard. It is s
 
 ---
 
+## [Mobile] #1854 — Driver captures her National ID photo 🆕
+**Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
+
+**Description:** As a driver, I want to upload clear photos of the front and back of my National ID during onboarding so that SheDrive can verify my identity document.
+
+### Background
+
+The National ID capture screen is Step 2 of the onboarding wizard, shown after Step 1 (personal details) and before the vehicle-details step. The driver uploads two photos — the front and back of her National ID card — using the device camera or gallery. Both photos are required before she can advance. Files must be JPEG, PNG or HEIC, max 10 MB each. This complements the typed 14-digit National ID number captured in personal details (#1572).
+
+### Field Validation
+
+| Field | Required | Format | Max | Error — empty | Error — size |
+|---|---|---|---|---|---|
+| National ID — front | Yes | JPEG, PNG, or HEIC | 10 MB | يرجى رفع الوجه الأمامي لبطاقة الهوية | حجم الصورة كبير جداً، الحد الأقصى 10 ميجابايت |
+| National ID — back | Yes | JPEG, PNG, or HEIC | 10 MB | يرجى رفع الوجه الخلفي لبطاقة الهوية | حجم الصورة كبير جداً، الحد الأقصى 10 ميجابايت |
+
+### Acceptance Criteria
+
+**Scenario 1 — Both sides uploaded, wizard advances**
+- Given the driver is on the National ID capture step
+- When she uploads a valid front photo and a valid back photo
+- Then both slots show a thumbnail preview
+- And tapping "Next" advances to the vehicle-details step
+
+**Scenario 2 — A side is missing**
+- Given the driver has uploaded only one side
+- When she taps "Next"
+- Then a bilingual error is shown and the wizard does not advance
+
+**Scenario 3 — File too large**
+- Given the driver selects a photo exceeding 10 MB
+- Then a bilingual size error toast is shown and the slot is not marked complete
+
+**Scenario 4 — Invalid file type**
+- Given the driver selects a non-JPEG/PNG/HEIC file
+- Then a bilingual invalid-format toast is shown
+
+### Out of Scope
+- OCR / automatic extraction of ID data
+- ID authenticity verification against government databases
+- Re-submission flow after admin rejection
+
+### Dependencies
+- #1642 — Driver submits onboarding application (photos included in the multipart payload)
+- #1572 — Driver submits personal details (typed National ID number)
+
+---
+
 ## [Mobile] #1573 — Driver submits vehicle details
 **Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
 
