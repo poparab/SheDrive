@@ -377,18 +377,18 @@ The National ID capture screen is Step 2 of the onboarding wizard, shown after S
 ## [Mobile] #1573 — Driver submits vehicle details
 **Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
 
-**Description:** As a driver, I want to enter my vehicle details in Step 2 of the onboarding wizard so that SheDrive can verify that my vehicle meets service requirements.
+**Description:** As a driver, I want to enter my vehicle details in Step 3 of the onboarding wizard so that SheDrive can verify that my vehicle meets service requirements.
 
 ### Background
 
-The vehicle details screen is Step 2 of the multi-step onboarding wizard, reached after completing Step 1 (personal details). The driver enters information about the vehicle she will use to provide rides. Supported vehicle types are Sedan, SUV, and Minivan. On successful save, she advances to Step 3 (vehicle photo). All fields must pass validation before advancing.
+The vehicle details screen is Step 3 of the multi-step onboarding wizard, reached after completing the National ID capture step (Step 2). The driver enters information about the vehicle she will use to provide rides. Make and model are chosen from dropdowns, each with an "Other" option that reveals a free-text field; Model options depend on the selected Make. Supported vehicle types are Sedan, SUV, and Minivan. On successful save, she advances to Step 4 (documents). All fields must pass validation before advancing.
 
 ### Field Validation
 
 | Field | Required | Format | Min | Max | Accepted characters | Error — empty | Error — invalid format | Error — length |
 |---|---|---|---|---|---|---|---|---|
-| Make (brand) | Yes | Free text | 2 chars | 30 chars | Letters, spaces | أدخلي ماركة السيارة | — | — |
-| Model | Yes | Free text | 2 chars | 30 chars | Letters, spaces, digits | أدخلي موديل السيارة | — | — |
+| Make (brand) | Yes | Dropdown + Other → free text | — | 30 chars | Brand from list, or free text via Other | اختاري ماركة السيارة | — | — |
+| Model | Yes | Dependent dropdown + Other → free text | — | 30 chars | Model from list, or free text via Other | اختاري موديل السيارة | — | — |
 | Year | Yes | 4-digit year | 2010 | Current year | Digits only | أدخلي سنة الصنع | سنة الصنع غير صحيحة | سنة الصنع غير صحيحة |
 | Plate number | Yes | Egyptian plate format | 4 chars | 6 chars | Letters, digits | أدخلي رقم اللوحة | رقم اللوحة غير صحيح | رقم اللوحة غير صحيح |
 | Color | Yes | Selection from predefined list | — | — | — | اختاري لون السيارة | — | — |
@@ -397,10 +397,10 @@ The vehicle details screen is Step 2 of the multi-step onboarding wizard, reache
 ### Acceptance Criteria
 
 **Scenario 1 — Happy path: all fields valid, wizard advances**
-- Given the driver is on Step 2 of the onboarding wizard
-- When she enters a valid make, model, year (2010–current), plate number, and selects a color and vehicle type
+- Given the driver is on Step 3 of the onboarding wizard
+- When she selects a make and model from the dropdowns (or chooses "Other" and types them), enters a valid year (2010–current) and plate number, and selects a colour and vehicle type
 - Then no inline errors are shown
-- And tapping "Next" navigates to Step 3 (vehicle photo)
+- And tapping "Next" navigates to Step 4 (documents)
 
 **Scenario 2 — Empty required field**
 - Given the driver leaves any required field blank
@@ -436,11 +436,11 @@ The vehicle details screen is Step 2 of the multi-step onboarding wizard, reache
 ## [Mobile] #1574 — Driver photographs her vehicle
 **Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
 
-**Description:** As a driver, I want to photograph my vehicle from five required angles in Step 3 of the onboarding wizard so that the admin can fully verify the vehicle matches the details I provided and riders can identify it on arrival.
+**Description:** As a driver, I want to photograph my vehicle from five required angles in Step 5 of the onboarding wizard so that the admin can fully verify the vehicle matches the details I provided and riders can identify it on arrival.
 
 ### Background
 
-The vehicle photo screen is Step 3 of the multi-step onboarding wizard, reached after completing Step 2 (vehicle details). The driver must capture exactly **5 photos**, one per required angle, using the device camera. The screen presents each angle slot in order with a labelled guide frame and an illustrative icon showing the expected shot. All five slots must be filled before the driver can advance. On successful upload of all five photos, the wizard advances to Step 4 (documents).
+The vehicle photo screen is Step 5 of the multi-step onboarding wizard, reached after completing the Documents step (Step 4). The driver must capture exactly **5 photos**, one per required angle, using the device camera. The screen presents each angle slot in order with a labelled guide frame and an illustrative icon showing the expected shot. All five slots must be filled before the driver can advance. On successful upload of all five photos, the wizard advances to Step 6 (profile selfie).
 
 ### Required Angles (in order)
 
@@ -461,15 +461,15 @@ The vehicle photo screen is Step 3 of the multi-step onboarding wizard, reached 
 ### Acceptance Criteria
 
 **Scenario 1 — Happy path: all 5 photos captured via camera**
-- Given the driver is on Step 3 and camera permission has been granted
+- Given the driver is on Step 5 and camera permission has been granted
 - When she taps a slot and the camera opens
 - And she captures a photo for each of the 5 angle slots
 - Then each completed slot shows a thumbnail preview with a checkmark
 - And the "Next" button becomes active only after all 5 slots are filled
-- And tapping "Next" uploads all 5 photos and navigates to Step 4
+- And tapping "Next" uploads all 5 photos and navigates to Step 6
 
 **Scenario 2 — Gallery option is not available**
-- Given the driver is on Step 3
+- Given the driver is on Step 5
 - Then no "Choose from gallery" or photo library option is shown for any slot
 - And the only capture method available is the device camera
 
@@ -511,11 +511,11 @@ The vehicle photo screen is Step 3 of the multi-step onboarding wizard, reached 
 ## [Mobile] #1686 — Driver captures her profile photo 🆕
 **Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
 
-**Description:** As a driver, I want to capture a clear portrait photo of myself in Step 5 of the onboarding wizard so that riders can visually identify me when I arrive and the admin can verify my gender before approving my application.
+**Description:** As a driver, I want to capture a clear portrait photo of myself in Step 6 of the onboarding wizard so that riders can visually identify me when I arrive and the admin can verify my gender before approving my application.
 
 ### Background
 
-The profile photo screen is Step 5 (the final step) of the multi-step onboarding wizard, reached after completing Step 4 (documents). The driver takes a selfie using the front camera or selects a portrait photo from her gallery. The photo must clearly show her face. A gallery fallback is available if the front camera is unavailable or permission is denied. On successful capture, the driver taps "Submit Application" to send the full application including this photo via #1642. This image is displayed to riders on the matched driver card and active trip screen, and is used by admins to verify the driver's gender during application review.
+The profile photo screen is Step 6 (the final step) of the multi-step onboarding wizard, reached after completing the vehicle photo step (Step 5). The driver takes a selfie using the front camera or selects a portrait photo from her gallery. The photo must clearly show her face. A gallery fallback is available if the front camera is unavailable or permission is denied. On successful capture, the driver taps "Submit Application" to send the full application including this photo via #1642. This image is displayed to riders on the matched driver card and active trip screen, and is used by admins to verify the driver's gender during application review.
 
 ### Field Validation
 
