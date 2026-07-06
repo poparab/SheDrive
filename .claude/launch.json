@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8001", "--directory", "shedrive-web"],
       "port": 8001
+    },
+    {
+      "name": "shedrive-verify",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8017", "--directory", "shedrive-web"],
+      "port": 8017
     }
   ]
 }
