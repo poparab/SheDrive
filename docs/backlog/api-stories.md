@@ -548,7 +548,7 @@ This is the internal fare-calculation engine used by the fare estimate (#1627) a
 ## [API] #1642 — Driver submits onboarding application ✏️
 **Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
 
-**Description:** As a developer, I want the onboarding submission endpoint to accept the driver's complete application payload — personal details, vehicle details, background-check consent, four document files, vehicle photo, and profile photo — and create a pending application record so that the admin can review and approve or reject the driver before she can go online.
+**Description:** As a developer, I want the onboarding submission endpoint to accept the driver's complete application payload — personal details, vehicle details, background-check consent, four document files, the driving licence number, the driving licence expiry date, the vehicle registration expiry date, vehicle photo, and profile photo — and create a pending application record so that the admin can review and approve or reject the driver before she can go online.
 
 **Scenario 1 — Valid application creates a pending record**
 - Given an authenticated driver with no existing application submits a complete, valid multipart payload including all required fields and files
@@ -562,10 +562,10 @@ This is the internal fare-calculation engine used by the fare estimate (#1627) a
 - Then a validation error is returned identifying the name field and the rule violated
 - And no application record is created
 
-**Scenario 3 — Personal details validation — driver must be at least 21 years old**
-- Given the driver submits a date of birth that makes her younger than 21 years old at the time of submission
+**Scenario 3 — Personal details validation — driver must be at least 18 years old**
+- Given the driver submits a date of birth that makes her younger than 18 years old at the time of submission
 - When the endpoint processes the request
-- Then a validation error is returned: driver must be at least 21 years old
+- Then a validation error is returned: driver must be at least 18 years old
 
 **Scenario 4 — Personal details validation — National ID must be exactly 14 digits**
 - Given the driver submits a National ID that is not exactly 14 numeric digits
@@ -618,6 +618,24 @@ This is the internal fare-calculation engine used by the fare estimate (#1627) a
 - Given the driver submits the application payload without the background-check consent flag set to accepted
 - When the endpoint processes the request
 - Then a validation error is returned: background-check consent is required
+- And no application record is created
+
+**Scenario 14 — Driving licence number is required and length-checked**
+- Given the driver submits a payload with a missing driving licence number, or one shorter than 6 or longer than 20 characters
+- When the endpoint processes the request
+- Then a validation error is returned identifying the driving licence number field
+- And no application record is created
+
+**Scenario 15 — Driving licence expiry is required and must be a future date**
+- Given the driver submits a payload with a missing driving licence expiry date, or an expiry date that is today or in the past
+- When the endpoint processes the request
+- Then a validation error is returned: the driving licence is missing an expiry date or has expired
+- And no application record is created
+
+**Scenario 16 — Vehicle registration expiry is required and must be a future date**
+- Given the driver submits a payload with a missing vehicle registration expiry date, or an expiry date that is today or in the past
+- When the endpoint processes the request
+- Then a validation error is returned: the vehicle registration is missing an expiry date or has expired
 - And no application record is created
 
 ---

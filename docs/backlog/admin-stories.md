@@ -186,7 +186,7 @@ In this phase a single role — **super admin** — exists and every admin accou
 
 ### Background
 
-This screen lists all admin user accounts so the super admin **( only )** can see who has portal access. Each row shows email, status, created date, and last login. The list is searchable by email, filterable by status, and paginated. Creating accounts is #1807; enabling/disabling is #1821.
+This screen lists all admin user accounts so the super admin ( only ) can see who has portal access. Each row shows email, status, created date, and last login. The list is searchable by email, filterable by status, and paginated. Creating accounts is #1807; enabling/disabling is #1821.
 
 ### Acceptance Criteria
 
@@ -415,14 +415,14 @@ The pending applications queue is a screen in the admin portal listing all drive
 
 ---
 
-## [Admin] #1658 — Admin views full driver application
+## [Admin] #1658 — Admin views full driver application ✏️
 **Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
 
 **Description:** As an operations admin, I want to view all submitted details for a single driver application so that I can make an informed approval or rejection decision.
 
 ### Background
 
-The full application detail screen is accessed by clicking a row in the pending queue (#1657) or from a driver’s profile. It displays personal details (name, date of birth, NID), vehicle details (make, model, year, plate, color, type), all four uploaded documents (viewable inline as images or PDF previews), and the vehicle photo. Approve and Reject action buttons are shown at the bottom of the screen. The screen is accessible only to authenticated admins.
+The full application detail screen is accessed by clicking a row in the pending queue (#1657) or from a driver’s profile. It displays personal details (name, date of birth, NID), vehicle details (make, model, year, plate, color, type), the driving licence number, the driving licence expiry date and the vehicle registration expiry date, all four uploaded documents (viewable inline as images or PDF previews), and the vehicle photo. Approve and Reject action buttons are shown at the bottom of the screen. The screen is accessible only to authenticated admins.
 
 ### Acceptance Criteria
 
@@ -431,6 +431,7 @@ The full application detail screen is accessed by clicking a row in the pending 
 - When the detail screen loads
 - Then all personal details (name, DOB, NID) are displayed
 - And all vehicle details (make, model, year, plate, color, type) are displayed
+- And the driving licence number, the driving licence expiry date, and the vehicle registration expiry date are displayed
 - And all four documents are viewable inline (images rendered, PDFs shown as previews)
 - And the vehicle photo is rendered inline
 - And Approve and Reject buttons are visible
@@ -1666,7 +1667,7 @@ These are the **global** pricing policies under Pricing & Rate Management, appli
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
 |---|---|---|---|---|---|---|---|---|---|
 | Rider grace period | Yes | Integer (minutes) | Whole number ≥ 0 | 0 | — | empty | Enter the rider grace period / أدخل مهلة سماح الراكب | Enter a whole number of minutes / أدخل عدد دقائق صحيح | Cannot be negative / لا يمكن أن تكون القيمة سالبة |
-|  |  |  |  |  |  |  |  |  |  |
+| — | — | — | — | — | — | — | — | — | — |
 | Driver cancellation fee | Yes | Decimal (EGP) | Zero or positive, up to 2 decimals | 0 | — | empty | Enter the driver cancellation fee / أدخل رسوم إلغاء السائق | Enter a valid amount / أدخل مبلغًا صحيحًا | Cannot be negative / لا يمكن أن تكون القيمة سالبة |
 | Driver cancellation grace period | Yes | Integer (minutes) | Whole number ≥ 0 | 0 | — | empty | Enter the driver cancellation grace period / أدخل مهلة إلغاء السائق | Enter a whole number of minutes / أدخل عدد دقائق صحيح | Cannot be negative / لا يمكن أن تكون القيمة سالبة |
 | Rider no-show wait time | Yes | Integer (minutes) | Whole number ≥ 0 | 0 | — | empty | Enter the rider no-show wait time / أدخل مدة انتظار عدم حضور الراكب | Enter a whole number of minutes / أدخل عدد دقائق صحيح | Cannot be negative / لا يمكن أن تكون القيمة سالبة |

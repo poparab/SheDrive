@@ -262,7 +262,7 @@ After a successful login or registration the session token is stored in the devi
 
 ---
 
-## [Mobile] #1572 — Driver submits personal details
+## [Mobile] #1572 — Driver submits personal details ✏️
 **Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
 
 **Description:** As a driver, I want to enter my personal details in the first step of the onboarding wizard so that SheDrive can verify my identity before approving my application.
@@ -284,7 +284,7 @@ The personal details screen is Step 1 of a multi-step onboarding wizard. It is s
 
 **Scenario 1 — Happy path: all fields valid, wizard advances**
 - Given the driver is on Step 1 of the onboarding wizard
-- When she enters a valid full name, date of birth (age ≥ 21), and a 14-digit NID, and accepts the background-check consent
+- When she enters a valid full name, date of birth (age ≥ 18), and a 14-digit NID, and accepts the background-check consent
 - Then all inline errors are absent
 - And tapping "Next" submits the step and navigates to Step 2 (vehicle details)
 
@@ -296,9 +296,9 @@ The personal details screen is Step 1 of a multi-step onboarding wizard. It is s
 - Then the field shows "صيغة التاريخ غير صحيحة"
 
 **Scenario 3 — Driver is underage**
-- Given the driver enters a date of birth that makes her younger than 21 years old
+- Given the driver enters a date of birth that makes her younger than 18 years old
 - When she taps "Next"
-- Then the field shows "يجب أن يكون عمرك 21 عامًا على الأقل"
+- Then the field shows "يجب أن يكون عمرك 18 عامًا على الأقل"
 
 **Scenario 4 — NID not 14 digits**
 - Given the driver enters fewer or more than 14 digits in the NID field
@@ -561,14 +561,14 @@ The profile photo screen is Step 6 (the final step) of the multi-step onboarding
 
 ---
 
-## [Mobile] #1575 — Driver uploads licence and vehicle registration documents
+## [Mobile] #1575 — Driver uploads licence and vehicle registration documents ✏️
 **Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
 
 **Description:** As a driver, I want to upload my driving licence and vehicle registration documents in Step 4 of the onboarding wizard so that SheDrive can verify my eligibility to drive.
 
 ### Background
 
-The documents screen is Step 4 (the final step) of the multi-step onboarding wizard, reached after completing Step 3 (vehicle photo). The driver uploads four documents: driving licence front, driving licence back, vehicle registration front, and vehicle registration back. Each is a separate file upload. When all four documents are provided and valid, the driver taps "Submit" to send the full application. On success, she is navigated to the pending state screen (#1576).
+The documents screen is Step 4 of the multi-step onboarding wizard. The driver uploads four documents — driving licence front, driving licence back, vehicle registration front, and vehicle registration back — and enters three typed fields: her **driving licence number**, her **driving licence expiry date**, and her **vehicle registration expiry date**. Each document is a separate file upload; both expiry dates must be in the future (the document must not be expired). When all four documents and the three typed fields are provided and valid, the driver taps "Submit" to send the full application. On success, she is navigated to the pending state screen (#1576).
 
 ### Field Validation
 
@@ -578,11 +578,14 @@ The documents screen is Step 4 (the final step) of the multi-step onboarding wiz
 | Driving licence — back | Yes | JPEG, PNG, or PDF | — | 10 MB | — | يرجى رفع هذه الوثيقة | يرجى رفع صورة أو ملف PDF | حجم الملف كبير جداً، الحد الأقصى 10 ميجابايت |
 | Vehicle registration — front | Yes | JPEG, PNG, or PDF | — | 10 MB | — | يرجى رفع هذه الوثيقة | يرجى رفع صورة أو ملف PDF | حجم الملف كبير جداً، الحد الأقصى 10 ميجابايت |
 | Vehicle registration — back | Yes | JPEG, PNG, or PDF | — | 10 MB | — | يرجى رفع هذه الوثيقة | يرجى رفع صورة أو ملف PDF | حجم الملف كبير جداً، الحد الأقصى 10 ميجابايت |
+| Driving licence number | Yes | Alphanumeric | 6 | 20 | Letters and digits | أدخلي رقم رخصة القيادة | رقم الرخصة غير صحيح | يجب أن يكون رقم الرخصة بين 6 و20 خانة |
+| Driving licence expiry date | Yes | DD/MM/YYYY, future date | — | — | Digits and "/" separator | أدخلي تاريخ انتهاء رخصة القيادة | صيغة التاريخ غير صحيحة | رخصة القيادة منتهية الصلاحية |
+| Vehicle registration expiry date | Yes | DD/MM/YYYY, future date | — | — | Digits and "/" separator | أدخلي تاريخ انتهاء رخصة تسيير السيارة | صيغة التاريخ غير صحيحة | رخصة تسيير السيارة منتهية الصلاحية |
 
 ### Acceptance Criteria
 
 **Scenario 1 — Happy path: all four documents uploaded, application submitted**
-- Given the driver has uploaded all four valid documents
+- Given the driver has uploaded all four valid documents and entered a valid licence number and non-expired licence and vehicle-registration expiry dates
 - When she taps "Submit"
 - Then the full application is sent to the API (#1642)
 - And she is navigated to the pending state screen (#1576)
@@ -607,8 +610,26 @@ The documents screen is Step 4 (the final step) of the multi-step onboarding wiz
 - Then an error toast is shown
 - And the driver remains on the documents screen with her uploads intact
 
+**Scenario 6 — Licence number required and validated**
+- Given the driver leaves the driving licence number empty or enters fewer than 6 or more than 20 characters
+- When she taps "Submit"
+- Then the licence number field shows "أدخلي رقم رخصة القيادة" (empty) or "يجب أن يكون رقم الرخصة بين 6 و20 خانة" (length)
+- And the submission is blocked until a valid licence number is entered
+
+**Scenario 7 — Driving licence must not be expired**
+- Given the driver leaves the licence expiry date empty or enters a date that is today or in the past
+- When she taps "Submit"
+- Then the licence expiry field shows "أدخلي تاريخ انتهاء رخصة القيادة" (empty) or "رخصة القيادة منتهية الصلاحية" (expired)
+- And the submission is blocked until a future expiry date is entered
+
+**Scenario 8 — Vehicle registration must not be expired**
+- Given the driver leaves the registration expiry date empty or enters a date that is today or in the past
+- When she taps "Submit"
+- Then the registration expiry field shows "أدخلي تاريخ انتهاء رخصة تسيير السيارة" (empty) or "رخصة تسيير السيارة منتهية الصلاحية" (expired)
+- And the submission is blocked until a future expiry date is entered
+
 ### Out of Scope
-- Document authenticity or expiry verification
+- Document authenticity verification against government databases
 - Re-submission after admin rejection
 - Uploading more than four document files
 
