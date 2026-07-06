@@ -1213,7 +1213,7 @@ Before accepting or rejecting, the driver app fetches the dispatched trip's deta
 **Scenario 3 — arrived_at timestamp included when driver has arrived**
 - Given the trip is in arrived_pickup state
 - When the rider app polls this endpoint
-- Then the response includes an arrived_at field containing the UTC timestamp of when the state transitioned to arrived_pickup
+- Then the response includes an arrived_at field containing the timestamp of when the state transitioned to arrived_pickup
 - And the rider app uses this timestamp to compute the correct elapsed waiting time
 - And if the rider app is restarted while the driver is waiting, the counter resumes from the correct elapsed time rather than resetting to 0:00
 
@@ -1314,7 +1314,7 @@ When the driver advances the trip to *trip_ended* (#1652), the platform finalize
 
 **Scenario 2 — Fare is consistent between rider and driver**
 - Given the final fare has been calculated
-- When the rider retrieves the trip summary (#1637) and the driver views the cash collection screen
+- When the rider retrieves the trip summary and the driver views the cash collection screen
 - Then both receive exactly the same fare amount
 
 **Scenario 3 — Fare is immutable after calculation**
@@ -1956,6 +1956,70 @@ This endpoint is called when an authenticated driver confirms a trip cancellatio
 **Scenario 7 — Unauthenticated request is rejected**
 - Given a request arrives without a valid driver session token
 - Then the request is rejected
+
+---
+
+## [API] #1780 — Rider's emergency contacts are notified with a live location link on SOS 🆕
+**Feature:** Feature 21 — Emergency & Safety API | **Sprint:** 2
+
+**Description:** As the rider app, I want to store a rider's emergency contacts and, when she triggers SOS during an active trip, notify those contacts with a live trip-tracking link so that the people she trusts can follow her location in real time during an emergency.
+
+**Scenario 1 — Manage emergency contacts**
+- Given an authenticated rider
+- When she creates, updates, retrieves, or deletes an emergency contact (name, phone, relationship)
+- Then the change is persisted and returned on subsequent reads
+
+**Scenario 2 — Contacts notified with a live link on SOS**
+- Given the rider has one or more emergency contacts and an active trip
+- When she triggers SOS
+- Then each contact is sent an alert containing a live trip-tracking link to her current location
+
+**Scenario 3 — Live link reflects location for the trip duration**
+- Given an SOS alert has been sent
+- When a contact opens the live link
+- Then it shows the rider's location, updating for the duration of the trip / emergency
+
+**Scenario 4 — Only the rider's own contacts are notified**
+- Given an SOS is triggered
+- Then only the rider's saved emergency contacts are notified; no control room, operations team, or Ministry of Interior is contacted
+
+**Scenario 5 — Unauthenticated request is rejected**
+- Given a request arrives without a valid rider session token
+- Then the request is rejected
+
+**Dependencies:** Consumed by [Mobile] #1787 (rider) and #1951 (driver).
+
+---
+
+## [API] #1952 — Driver's emergency contacts are notified with a live location link on SOS 🆕
+**Feature:** Feature 21 — Emergency & Safety API | **Sprint:** 2
+
+**Description:** As the driver app, I want to store a driver's emergency contacts and, when she triggers SOS during an active trip, notify those contacts with a live trip-tracking link so that the people she trusts can follow her location in real time during an emergency.
+
+**Scenario 1 — Manage emergency contacts**
+- Given an authenticated driver
+- When she creates, updates, retrieves, or deletes an emergency contact (name, phone, relationship)
+- Then the change is persisted and returned on subsequent reads
+
+**Scenario 2 — Contacts notified with a live link on SOS**
+- Given the driver has one or more emergency contacts and an active trip
+- When she triggers SOS
+- Then each contact is sent an alert containing a live trip-tracking link to her current location
+
+**Scenario 3 — Live link reflects location for the trip duration**
+- Given an SOS alert has been sent
+- When a contact opens the live link
+- Then it shows the driver's location, updating for the duration of the trip / emergency
+
+**Scenario 4 — Only the driver's own contacts are notified**
+- Given an SOS is triggered
+- Then only the driver's saved emergency contacts are notified; no control room, operations team, or Ministry of Interior is contacted
+
+**Scenario 5 — Unauthenticated request is rejected**
+- Given a request arrives without a valid driver session token
+- Then the request is rejected
+
+**Dependencies:** Consumed by [Mobile] #1951 (driver).
 
 ---
 

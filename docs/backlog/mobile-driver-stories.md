@@ -1898,3 +1898,53 @@ The driver can cancel at two points: while navigating to the pickup (en_route_pi
 
 ---
 
+### Feature 21 — Emergency & Safety (Driver)
+
+---
+
+## [Mobile] #1951 — Driver sets up emergency contacts who receive a live location link on SOS 🆕
+**Feature:** Feature 21 — Emergency & Safety (Driver) | **Sprint:** 2
+
+**Description:** As a driver, I want to save emergency contacts and have them alerted with a live link to my location when I trigger SOS during a trip, so that the people I trust can follow my location in real time during an emergency.
+
+### Background
+
+Phase 1 SOS is limited to personal emergency contacts and sharing the driver's live location with those contacts. There is no control room, no operations team, and no direct line to the Ministry of Interior. Public emergency numbers (Police 122, Ambulance 123) are shown for direct dialling. Contacts are managed from the Emergency Contacts screen (reached from the driver profile) and are alerted automatically when the driver triggers SOS on the active-trip screen.
+
+### Acceptance Criteria
+
+**Scenario 1 — Driver adds an emergency contact**
+- Given the driver opens the Emergency Contacts screen
+- When she taps "Add contact", enters a name and phone number (relationship optional), and saves
+- Then the contact is saved, shown in her contacts list, and persists across sessions
+
+**Scenario 2 — Driver edits or removes a contact**
+- Given the driver has at least one saved contact
+- When she edits a contact's details and saves, or removes a contact
+- Then the change is reflected in the list immediately and persisted
+
+**Scenario 3 — Empty state guides setup**
+- Given the driver has no saved contacts
+- Then an empty state prompts her to add someone she trusts
+
+**Scenario 4 — Contacts are alerted with live location on SOS**
+- Given the driver has one or more saved contacts and is on an active trip
+- When she triggers SOS and confirms
+- Then every saved contact is alerted and receives a live link to her current location
+- And the confirmation overlay states her contacts have been notified and her live location is being shared with them
+
+**Scenario 5 — SOS with no contacts saved**
+- Given the driver has no saved contacts
+- When she triggers SOS
+- Then she is prompted to add contacts, and the public emergency numbers (122 / 123) remain available to dial directly
+
+### Out of Scope
+- Control-room / operations-team escalation (post-Phase 1)
+- Direct line to the Ministry of Interior (post-Phase 1)
+- Live in-vehicle camera and third-party monitoring (post-Phase 1)
+
+### Dependencies
+- #1952 — Driver's emergency contacts are notified with a live location link on SOS (API — must be live)
+
+---
+
