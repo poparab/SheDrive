@@ -14,11 +14,11 @@
 ## [Mobile] #1569 — Driver registers and is directed to onboarding
 **Feature:** Feature 3 — Driver Authentication | **Sprint:** 1
 
-**Description:** As a driver, I want to register an account using my phone number and a one-time passcode so that I can begin the onboarding process to become a verified SheDrive driver.
+**Description:** As a driver, I want to register an account using my phone number, a one-time passcode, my basic identity details (full name, date of birth, and National ID), and my consent to a background check so that I can begin the onboarding process to become a verified SheDrive driver.
 
 ### Background
 
-The driver registration flow mirrors rider registration (two screens: phone entry then OTP + full name) but diverges at success: instead of landing on a home screen, the driver is taken directly to the onboarding flow (personal details screen). A driver with no completed or approved onboarding cannot reach the driver home/availability screen. The OTP rules (5-minute expiry, 3-attempt limit, 60-second resend cooldown) are identical to rider registration.
+The driver registration flow mirrors rider registration (two screens: phone entry then OTP + full name, date of birth, and National ID) but diverges at success: instead of landing on a home screen, the driver is taken directly to the onboarding flow. A driver with no completed or approved onboarding cannot reach the driver home/availability screen. She must also accept a background-check consent before the account is created. The OTP rules (5-minute expiry, 3-attempt limit, 60-second resend cooldown) are identical to rider registration.
 
 ### Field Validation
 
@@ -27,18 +27,21 @@ The driver registration flow mirrors rider registration (two screens: phone entr
 | رقم الهاتف | Yes | 11-digit Egyptian mobile: 01[0125]XXXXXXXX; +20 prefix accepted and stripped | 11 digits | 11 digits | Digits only (after prefix stripping) | أدخل رقم هاتفك | رقم الهاتف غير صحيح. أدخل رقماً مصرياً صحيحاً | رقم الهاتف يجب أن يكون 11 رقماً |
 | OTP | Yes | 6 digits, numeric keyboard | 6 digits | 6 digits | Digits only | أدخل رمز التحقق | رمز التحقق غير صحيح | رمز التحقق يجب أن يكون 6 أرقام |
 | الاسم الكامل | Yes | Arabic and/or Latin letters and spaces only; no digits or symbols | 2 chars | 50 chars | Arabic letters, Latin letters, spaces | أدخل اسمك الكامل | الاسم يجب أن يحتوي على حروف فقط | الاسم يجب أن يكون بين 2 و 50 حرفاً |
+| تاريخ الميلاد | Yes | DD/MM/YYYY; age ≥ 18 | — | — | Digits and "/" separator | أدخلي تاريخ ميلادك | صيغة التاريخ غير صحيحة | يجب أن يكون عمرك 18 عامًا على الأقل |
+| الرقم القومي (NID) | Yes | 14-digit numeric | 14 digits | 14 digits | Digits only | أدخلي رقم الهوية الوطنية | رقم الهوية يجب أن يكون 14 رقمًا | رقم الهوية يجب أن يكون 14 رقمًا |
+| الموافقة على فحص الخلفية | Yes | Checkbox (must be checked) | — | — | — | يجب الموافقة على إجراء فحص الخلفية | — | — |
 
 ### Acceptance Criteria
 
 **Scenario 1 — Successful registration redirects to onboarding**
 - Given a new driver opens the driver app and taps "إنشاء حساب"
-- When she enters a valid Egyptian mobile number, receives and enters the correct 6-digit OTP, and enters a valid full name
-- Then her account is created and she is taken to the onboarding flow (personal details screen)
+- When she enters a valid Egyptian mobile number, receives and enters the correct 6-digit OTP, and enters a valid full name, date of birth (age ≥ 18), and 14-digit National ID, and accepts the background-check consent
+- Then her account is created and she is taken to the onboarding flow
 - And she cannot navigate to the driver home screen until onboarding is approved
 
 **Scenario 2 — Phone number already registered auto-logs the driver in**
 - Given a driver enters a phone number already linked to an existing account
-- When she proceeds through OTP + name entry and submits, #1621 detects the existing account and auto-logs her in
+- When she proceeds through OTP + identity entry and submits, #1621 detects the existing account and auto-logs her in
 - Then the app receives a session token and routes the driver based on her onboarding status
 
 **Scenario 3 — OTP expires before entry**
@@ -63,7 +66,23 @@ The driver registration flow mirrors rider registration (two screens: phone entr
 - When she taps "إنشاء حساب"
 - Then the relevant inline validation error is displayed and the account is not created
 
-**Scenario 7 — Network error during OTP request**
+**Scenario 7 — Driver is underage**
+- Given the driver enters a date of birth that makes her younger than 18 years old
+- When she taps "إنشاء حساب"
+- Then the app displays "يجب أن يكون عمرك 18 عامًا على الأقل" and the account is not created
+
+**Scenario 8 — National ID is not 14 digits**
+- Given the driver enters a National ID that is not exactly 14 digits or contains non-digit characters
+- When she taps "إنشاء حساب"
+- Then the app displays "رقم الهوية يجب أن يكون 14 رقمًا" and the account is not created
+
+**Scenario 9 — Background-check consent is required**
+- Given the driver has entered valid details but has not ticked the background-check consent checkbox
+- When she taps "إنشاء حساب"
+- Then the account is not created and the error "يجب الموافقة على إجراء فحص الخلفية" is shown
+- And when she ticks the checkbox and taps "إنشاء حساب", the account is created
+
+**Scenario 10 — Network error during OTP request**
 - Given the device has no internet connection when the driver taps "إرسال الرمز"
 - When the request fails
 - Then the app displays "تحقق من اتصالك بالإنترنت وحاول مرة أخرى"
@@ -262,70 +281,6 @@ After a successful login or registration the session token is stored in the devi
 
 ---
 
-## [Mobile] #1572 — Driver submits personal details ✏️
-**Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
-
-**Description:** As a driver, I want to enter my personal details in the first step of the onboarding wizard so that SheDrive can verify my identity before approving my application.
-
-### Background
-
-The personal details screen is Step 1 of a multi-step onboarding wizard. It is shown only to drivers who have completed phone OTP login but have not yet submitted an application. The driver enters her full name, date of birth, and Egyptian National ID number. She must also accept a background-check consent checkbox before she can advance. On successful save, she advances to Step 2 (vehicle details). All fields must pass validation before the wizard can advance.
-
-### Field Validation
-
-| Field | Required | Format | Min | Max | Accepted characters | Error — empty | Error — invalid format | Error — length |
-|---|---|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |  |  |
-| Date of birth | Yes | DD/MM/YYYY | — | — | Digits and "/" separator | أدخلي تاريخ ميلادك | صيغة التاريخ غير صحيحة | — |
-| National ID (NID) | Yes | 14-digit numeric | 14 digits | 14 digits | Digits only | أدخلي رقم الهوية الوطنية | رقم الهوية يجب أن يكون 14 رقمًا | رقم الهوية يجب أن يكون 14 رقمًا |
-| Background-check consent | Yes | Checkbox (must be checked) | — | — | — | يجب الموافقة على إجراء فحص الخلفية | — | — |
-
-### Acceptance Criteria
-
-**Scenario 1 — Happy path: all fields valid, wizard advances**
-- Given the driver is on Step 1 of the onboarding wizard
-- When she enters a valid full name, date of birth (age ≥ 18), and a 14-digit NID, and accepts the background-check consent
-- Then all inline errors are absent
-- And tapping "Next" submits the step and navigates to Step 2 (vehicle details)
-
-
-
-**Scenario 2 — Invalid date of birth format**
-- Given the driver enters a date in a non-DD/MM/YYYY format (e.g., "1996-04-15")
-- When she taps "Next"
-- Then the field shows "صيغة التاريخ غير صحيحة"
-
-**Scenario 3 — Driver is underage**
-- Given the driver enters a date of birth that makes her younger than 18 years old
-- When she taps "Next"
-- Then the field shows "يجب أن يكون عمرك 18 عامًا على الأقل"
-
-**Scenario 4 — NID not 14 digits**
-- Given the driver enters fewer or more than 14 digits in the NID field
-- When she taps "Next"
-- Then the field shows "رقم الهوية يجب أن يكون 14 رقمًا"
-
-**Scenario 5 — NID contains non-digit characters**
-- Given the driver types letters or symbols in the NID field
-- When she taps "Next"
-- Then the field shows "رقم الهوية يجب أن يكون 14 رقمًا"
-
-**Scenario 6 — Background-check consent is required**
-- Given the driver has entered valid personal details but has not ticked the background-check consent checkbox
-- When she taps "Next"
-- Then the wizard does not advance and the error "يجب الموافقة على إجراء فحص الخلفية" / "You must agree to the background check to continue" is shown
-- And when she ticks the checkbox and taps "Next", the step submits
-
-### Out of Scope
-- NID authenticity verification against government databases
-- Re-submission flow after admin rejection
-- Editing personal details after the application has been submitted
-
-### Dependencies
-- #1642 — Driver submits onboarding application (must be live)
-
----
-
 ## [Mobile] #1854 — Driver captures her National ID photo 🆕
 **Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
 
@@ -333,7 +288,7 @@ The personal details screen is Step 1 of a multi-step onboarding wizard. It is s
 
 ### Background
 
-The National ID capture screen is Step 2 of the onboarding wizard, shown after Step 1 (personal details) and before the vehicle-details step. The driver uploads two photos — the front and back of her National ID card — using the device camera or gallery. Both photos are required before she can advance. Files must be JPEG, PNG or HEIC, max 10 MB each. This complements the typed 14-digit National ID number captured in personal details (#1572).
+The National ID capture screen is a step of the onboarding wizard, before the vehicle-details step. The driver uploads two photos — the front and back of her National ID card — using the device camera or gallery. Both photos are required before she can advance. Files must be JPEG, PNG or HEIC, max 10 MB each. This complements the typed 14-digit National ID number captured at registration (#1569).
 
 ### Field Validation
 
@@ -370,7 +325,7 @@ The National ID capture screen is Step 2 of the onboarding wizard, shown after S
 
 ### Dependencies
 - #1642 — Driver submits onboarding application (photos included in the multipart payload)
-- #1572 — Driver submits personal details (typed National ID number)
+- #1569 — Driver registers (typed National ID number captured at registration)
 
 ---
 

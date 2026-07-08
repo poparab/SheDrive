@@ -73,7 +73,9 @@
 ## [API] #1621 — User registers with OTP verification ✏️
 **Feature:** Feature 4 — Authentication API | **Sprint:** 1
 
-**Description:** As a developer, I want the registration endpoint to verify the submitted OTP and create a new user account so that riders and drivers can register securely without a password, receiving a session token and their role on success so the mobile app can route each user type to the correct starting screen.
+**Description:** As a developer, I want the registration endpoint to verify the submitted OTP and create a new user account with the submitted identity details so that riders and drivers can register securely without a password, receiving a session token and their role on success so the mobile app can route each user type to the correct starting screen.
+
+This registration endpoint is shared by the rider and driver apps. Rider registrations (#1545) submit phone, OTP, and full name only. Driver registrations (#1569) additionally submit a date of birth (age ≥ 18), a 14-digit National ID, and a background-check consent flag, all stored on the driver's profile. Identity fields beyond full name are required for driver registrations and are not expected for rider registrations.
 
 **Scenario 1 — Successful registration creates account and returns session token**
 - Given a valid phone, a correct and unexpired OTP, and a valid full name are submitted
@@ -138,6 +140,35 @@
 - Then the old OTP is invalidated and can no longer be submitted
 - And a new OTP is issued with a wrong-attempt counter of 0
 - And the user has a full 3 fresh attempts on the new code
+
+**Scenario 11 — Driver registration stores date of birth, National ID, and consent**
+- Given a driver registration with a valid phone, a correct OTP, a valid full name, a date of birth (age ≥ 18), a 14-digit National ID, and background-check consent = true
+- When the endpoint processes the request
+- Then a new account is created and the date of birth, National ID, and consent are stored on the driver's profile
+- And a session token and role "driver" are returned
+
+**Scenario 12 — Driver registration missing an identity field is rejected**
+- Given a driver registration missing the date of birth, the National ID, or the consent flag
+- When the endpoint processes the request
+- Then a validation error is returned identifying each missing field
+- And no account is created
+
+**Scenario 13 — Date of birth must be 18 or older**
+- Given a driver registration whose date of birth corresponds to an age under 18
+- When the endpoint processes the request
+- Then a validation error is returned indicating the minimum age is 18
+- And no account is created
+
+**Scenario 14 — National ID must be exactly 14 digits**
+- Given a driver registration with a National ID that is not exactly 14 digits or contains non-digit characters
+- When the endpoint processes the request
+- Then a validation error is returned identifying the National ID field
+- And no account is created
+
+**Scenario 15 — Rider registration does not require identity fields**
+- Given a rider registration with a valid phone, a correct OTP, and a valid full name only
+- When the endpoint processes the request
+- Then the account is created without requiring a date of birth, National ID, or consent
 
 ---
 
