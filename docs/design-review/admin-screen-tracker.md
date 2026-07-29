@@ -19,67 +19,44 @@ Legend: ✅ verified · ⚠️ built, partially verified · ⬜ not built
 
 ---
 
-## Foundation wave — landed
+## All 18 screens — landed
+
+Built in a single pass rather than the four planned tracks: the user needed the full
+set for designer review, and with the foundation frozen the remaining screens were
+formulaic. The track structure stayed useful as the build order.
 
 | Screen | Stories | Status | Notes |
 |---|---|---|---|
-| `index.html` — sign in, 2FA, reset | #1656, #1806, #1822 | ✅ | Empty/format/length validation, wrong credentials, invalid code, 3-strike lockout with cool-down, recovery-code path, enrolment step, forced first-login change, reset request — all exercised. |
-| `dashboard.html` — KPIs + live map | #1669, #1823–#1826 | ⚠️ | Five KPI cards, 30 s refresh with last-refreshed stamps, and graceful map-unavailable degradation verified. **Map itself unverified** — see environment note below. |
-| `audit-log.html` — audit log | #1816 | ✅ | 5 columns per spec, 50/page, newest first, 56 seeded entries over 2 pages. Sort (incl. `aria-sort`), actor/action/target/date filters, pagination, and all four forced states verified. Reference implementation for every other grid. |
-| `screens.html` — designer index | — | ✅ | All 18 cards, ADO links, state chips, progress count. |
+| `index.html` — sign in, 2FA, reset | #1656, #1806, #1822 | ✅ | Empty/format/length validation, wrong credentials, invalid code, 3-strike lockout, recovery-code path, enrolment, forced first-login change. |
+| `dashboard.html` — KPIs + live map | #1669, #1823–#1826 | ⚠️ | KPI cards, 30 s refresh, graceful map-unavailable degradation verified. **Map itself unverified** — see the environment note. |
+| `driver-applications.html` | #1657 | ✅ | 4 columns per spec, 7 pending, oldest-first, row → detail. |
+| `driver-application.html` | #1658, #1659, #1660 | ✅ | All four documents + photos inline with lightbox. Reject validation (required reason, ≤500-char note) and approve both exercised; approval persists across navigation and the queue drops to 6. |
+| `drivers.html` | #1665 | ✅ | 5 columns, 34 drivers, status filter incl. Pending suspension. |
+| `driver-profile.html` | #1666, #1742, #1743 | ✅ | Documents, decision-history timeline, trip history 10/page. Suspend/reinstate wired; mid-trip suspension yields Pending suspension. |
+| `riders.html` | #1661 | ✅ | 5 columns, 42 riders. |
+| `rider-profile.html` | #1662, #1740, #1741 | ✅ | Three account states; Pending review links to the originating report. Trip history 10/page. |
+| `trips.html` | #1670 | ✅ | 8 columns; status filter maps onto the state machine — counts reconcile 4 + 6 + 111 + 27 = 148. |
+| `trip-detail.html` | #1671, #1672 | ⚠️ | All three shapes verified: completed (8-step timeline, fare breakdown arithmetic checks out, rating + tags, route section), expired (expiry reason in summary and timeline, estimate shown, fare/rating/route hidden), active (estimate + intervention panel). #1808/#1809 render disabled. **Route map unverified** — environment. |
+| `safety-reports.html` | #1810 | ✅ | 7 columns, oldest-first, defaults to Open, CSV export. |
+| `safety-report.html` | #1810, #1811 | ✅ | Full workflow: Pending review → suspend → Suspended with note propagating to the rider; resolved report exposes no further actions. |
+| `pricing-zones.html` | #1831, #1756, #1830, #1757 | ⚠️ | List, rate-card modal (min-fare ≥ base-fare rule), rename/delete verified. **Polygon drawing unverified** — needs the map. |
+| `pricing-policies.html` | #1759 | ✅ | Both forms; commission >0 and ≤50 enforced, negative and fractional minutes rejected, updatedAt/updatedBy refresh on save, worked commission example. |
+| `reports.html` | #1832 | ✅ | Five totals; reconciliation proof exact (3,165.89 + 14,422.67 = 17,588.56); idle period zeroes with a note; CSV export. |
+| `reconciliation.html` | #1833 | ✅ | Driver required before generating; totals reconcile (114.77 + 522.83 = 637.60); cash/digital split; #1813 settlement is a visible stub. |
+| `audit-log.html` | #1816 | ✅ | 5 columns, 50/page, 56 entries. Sort with `aria-sort`, all four filters, pagination, all four forced states. |
+| `screens.html` — designer index | — | ✅ | 18 cards, ADO links, state chips. |
 
-### Shared foundation (not screens)
+### Whole-portal checks
 
-| Piece | Status |
-|---|---|
-| `admin-tokens.css`, `admin.css` | ✅ No hex outside the token file; px limited to hairlines, the visually-hidden clip, and breakpoints — matching existing shared-CSS convention. |
-| 12 `ad-*` components | ✅ Exercised through the three built screens. |
-| `seed.js` — canonical dataset | ✅ 8 admins, 42 riders, 34 drivers (7 pending), 148 trips, 9 zones (2 without rate cards), 9 safety reports, 56 audit entries. Deterministic shape, live timestamps. |
-| `mock-api.js` | ✅ All list/detail/mutation methods, `?state=` handling, business-rule rejections. |
-| `request-guard.js` | ✅ Required on every list screen — drops stale responses. |
-| Contract doc | ✅ [admin-component-contract.md](../ux/admin-component-contract.md) |
-
----
-
-## Screen tracks — pending
-
-Each track branches from `master` after the foundation wave. File sets are disjoint,
-so merges cannot conflict.
-
-### Track A — `admin/track-a-drivers` · Driver onboarding & management
-
-| Screen | Stories | Status |
-|---|---|---|
-| `driver-applications.html` | #1657 | ⬜ |
-| `driver-application.html` | #1658, #1659, #1660 | ⬜ |
-| `drivers.html` | #1665 | ⬜ |
-| `driver-profile.html` | #1666, #1742, #1743 | ⬜ |
-
-### Track B — `admin/track-b-riders` · Riders & safety
-
-| Screen | Stories | Status |
-|---|---|---|
-| `riders.html` | #1661 | ⬜ |
-| `rider-profile.html` | #1662, #1740, #1741 | ⬜ |
-| `safety-reports.html` | #1810 | ⬜ |
-| `safety-report.html` | #1810, #1811 | ⬜ |
-
-### Track C — `admin/track-c-trips` · Trips & admin users
-
-| Screen | Stories | Status |
-|---|---|---|
-| `trips.html` | #1670 | ⬜ |
-| `trip-detail.html` | #1671, #1672 | ⬜ |
-| `admin-users.html` | #1820, #1807, #1821 | ⬜ |
-
-### Track D — `admin/track-d-money` · Pricing, reports & reconciliation
-
-| Screen | Stories | Status |
-|---|---|---|
-| `pricing-zones.html` | #1831, #1756, #1830, #1757 | ⬜ |
-| `pricing-policies.html` | #1759 | ⬜ |
-| `reports.html` | #1832 | ⬜ |
-| `reconciliation.html` | #1833 | ⬜ |
+- Unauthenticated access to any protected URL redirects to sign-in, including from
+  the Worker's extensionless paths (#1656 Scenario 6). ✅
+- Console clean on every one of the 18 screens (swept in isolated iframes). ✅
+- No hex colours outside `admin-tokens.css`; none in JS outside the documented
+  Mapbox token resolver; no `data-i18n` anywhere in `admin/`. ✅
+- Layout holds at 1280 px and 1440 px; the page body never scrolls horizontally,
+  including at `?state=long` with 98-character values. ✅
+- Mutations persist for the browser session, so a decision on one screen is visible
+  on the next; "Reset demo data" in the sidebar clears them. ✅
 
 ---
 
