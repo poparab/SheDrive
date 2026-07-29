@@ -100,6 +100,39 @@ Rules:
 | `shedrive.pendingTrip` | sessionStorage | JSON `{pickup, destination}` | Home → Matching handoff |
 | `shedrive.activeTrip` | sessionStorage | JSON `{driver, trip}` | Matching → Active Trip handoff |
 | `shedrive.completedRating` | sessionStorage | string `'1'` | Rating submitted flag |
+| `shedrive.adminSession` | localStorage | JSON `{email, role, loginAt}` | Admin portal session (separate from `shedrive.session`) |
+
+---
+
+## Admin Panel (`shedrive-web/admin/`)
+
+The admin portal is a **desktop operations tool**, not a mobile app. It deliberately
+breaks three rules that apply to the rider and driver apps. These deviations are
+sanctioned — do not "fix" them.
+
+| Rule elsewhere | Admin portal | Why |
+|---|---|---|
+| Every string via `data-i18n` | **English only, no `data-i18n`** | Agreed admin UX rule (`docs/ux/admin-wireframes.md`). Keeps 36 stories of dense operational copy out of the rider locale files. |
+| Mobile-first, `@media (min-width: …)` | **Desktop-first**, verified at 1280 px and 1440 px | Operations staff work on desktops; grids need width. |
+| `sd-*` components, Framework7 chrome | **`ad-*` components**, no Framework7 | Admin needs side nav, dense data grids and detail panes — the opposite of bottom sheets and drawers. |
+
+Everything else still applies: vanilla HTML/CSS/ES modules, no build step, light DOM
+only, three files per screen, and **every CSS value from a token**.
+
+- Admin density tokens live in `admin/styles/admin-tokens.css` (extends `tokens.css`).
+- Shared admin layout and primitives live in `admin/styles/admin.css`.
+- `ad-shell` is the page wrapper — it injects the CSS stack, guards the session,
+  renders the sidebar/topbar, and mounts the toast host.
+- Screens read data from `admin/scripts/mock-api.js` (a fake backend over
+  `admin/scripts/seed.js`). Mirrors `shared/scripts/api.js` signatures so the real
+  backend swaps in later.
+- **Before building any admin screen, read
+  `docs/ux/admin-component-contract.md`** — it is the frozen API for every shared
+  component, the mock API, and the standard list-screen controller. Files listed as
+  frozen there must not be edited by a screen.
+
+Designer entry point: `<site>/admin/screens.html`. Every list screen honours
+`?state=empty|loading|error|long`.
 
 ---
 
