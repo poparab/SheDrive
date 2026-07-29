@@ -97,6 +97,19 @@ Consequence for verification:
   visible "map unavailable" message instead of hanging. This degradation path is
   verified, and the dashboard's KPI cards are deliberately not blocked on the map.
 - **Map behaviour itself — markers, clustering, popovers, layer filter, polygon
-  drawing — must be checked once in a real browser window** (Live Server or the
-  deployed Pages URL). Applies to `dashboard.html`, `pricing-zones.html` and
-  `trip-detail.html`.
+  drawing — must be checked once in a real browser window.** Easiest place is the
+  live deployment:
+  https://shedrive-web.abdelrahman-arcorp.workers.dev/admin/dashboard
+  Applies to `dashboard.html`, `pricing-zones.html` and `trip-detail.html`.
+
+## Deployment
+
+Cloudflare **Worker** (static assets) at
+https://shedrive-web.abdelrahman-arcorp.workers.dev, auto-deploying on push to
+`main` — not Cloudflare Pages, despite `wrangler.toml` still carrying a
+`pages_build_output_dir` key. The Worker strips `.html` and 307-redirects to
+extensionless paths; query strings survive, so `?state=` review links work.
+
+Note for the track plan: because a Worker publishes one branch, the **per-branch
+preview URLs originally assumed for track review do not exist**. Review each track
+on the local server, or merge to `main` and review the single live URL.

@@ -9,7 +9,8 @@ Mockups are **coded, not drawn** — they live at `shedrive-web/admin/` and are 
 the production front-end stack (vanilla HTML/CSS/ES modules) so they double as the
 scaffold the dev team extends when the API lands.
 
-- **Designer entry point:** `<site>/admin/screens.html`
+- **Designer entry point:** https://shedrive-web.abdelrahman-arcorp.workers.dev/admin/screens
+  — sign in with `ops.lead@shedrive.app` / `shedrive2026`, then 2FA code `123456`
 - **Component + mock API contract:** [admin-component-contract.md](admin-component-contract.md)
 - **Build status per screen:** [../design-review/admin-screen-tracker.md](../design-review/admin-screen-tracker.md)
 - **Local preview:** see [preview-workflow.md](preview-workflow.md), then `/admin/`
