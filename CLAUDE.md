@@ -121,8 +121,13 @@ only, three files per screen, and **every CSS value from a token**.
 
 - Admin density tokens live in `admin/styles/admin-tokens.css` (extends `tokens.css`).
 - Shared admin layout and primitives live in `admin/styles/admin.css`.
-- `ad-shell` is the page wrapper — it injects the CSS stack, guards the session,
-  renders the sidebar/topbar, and mounts the toast host.
+- `ad-shell` is the page wrapper — it injects the CSS stack, renders the
+  sidebar/topbar, mounts the toast host, and calls `adminAuth.requireAdmin()`.
+- **Internal admin screens are deliberately open.** `requireAdmin()` provisions a
+  demo session instead of redirecting, so any screen can be deep-linked from the
+  screen index or an ADO design story. `?auth=strict` on any screen URL restores the
+  production guard (#1656 Scenario 6) so that criterion stays demonstrable. Do not
+  "fix" this by reinstating an unconditional redirect.
 - Screens read data from `admin/scripts/mock-api.js` (a fake backend over
   `admin/scripts/seed.js`). Mirrors `shared/scripts/api.js` signatures so the real
   backend swaps in later.

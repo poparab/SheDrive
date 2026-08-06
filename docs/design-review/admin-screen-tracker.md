@@ -48,8 +48,12 @@ formulaic. The track structure stayed useful as the build order.
 
 ### Whole-portal checks
 
-- Unauthenticated access to any protected URL redirects to sign-in, including from
-  the Worker's extensionless paths (#1656 Scenario 6). ✅
+- **Internal screens are open by design** so a deep link from the screen index or an
+  ADO design story always lands on its screen. Verified: all 17 authenticated screens
+  open cold with the session cleared before each one, no redirect, shell rendered. ✅
+- The production guard is still demonstrable via `?auth=strict` — verified it redirects
+  to sign-in and provisions no session (#1656 Scenario 6). The sign-in screen also stays
+  reachable with a session present, since it is itself a design screen. ✅
 - Console clean on every one of the 18 screens (swept in isolated iframes). ✅
 - No hex colours outside `admin-tokens.css`; none in JS outside the documented
   Mapbox token resolver; no `data-i18n` anywhere in `admin/`. ✅
