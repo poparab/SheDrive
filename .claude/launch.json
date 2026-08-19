@@ -4,14 +4,36 @@
     {
       "name": "shedrive",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8001", "--directory", "shedrive-web"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8001",
+        "--directory",
+        "shedrive-web"
+      ],
       "port": 8001
     },
     {
       "name": "shedrive-verify",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8017", "--directory", "shedrive-web"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8017",
+        "--directory",
+        "shedrive-web"
+      ],
       "port": 8017
+    },
+    {
+      "name": "shedrive-nocache",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "scripts/serve-nocache.py",
+        "8018",
+        "shedrive-web"
+      ],
+      "port": 8018
     }
   ]
 }

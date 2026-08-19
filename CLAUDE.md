@@ -141,6 +141,31 @@ Designer entry point: `<site>/admin/screens.html`. Every list screen honours
 
 ---
 
+## Admin Panel v2 (`shedrive-web/admin-v2/`)
+
+`admin-v2/` is the same portal rebuilt on the delivered design kit
+`SheDrive.AdminPanel_v18-08-2026` (Bootstrap 5 + Tajawal + Font Awesome + the kit's
+compiled `styles.css`, vendored under `admin-v2/vendor/`). It is a **separate copy** —
+`admin/` is untouched and still works.
+
+- Read `shedrive-web/admin-v2/DESIGN-PORT.md` before touching it. It is the port spec:
+  the CSS stack, the kit's markup vocabulary, the ground rules, and the deviations.
+- The data layer (`mock-api.js`, `seed.js`, `mutations.js`, `format.js`,
+  `request-guard.js`, `admin-auth.js`) is identical to `admin/` — do not fork it.
+- Component public APIs are identical to `admin/`; only what they *render* changed.
+- Covers all 18 original screens plus seven the kit added: `2fa`, `2fa-setup`, `otp`,
+  `recovery-code`, `password-forgot`, `password-new`, `admin-profile`.
+- Smoke test: serve, then open `admin-v2/_verify.html` (checks every screen in both
+  languages). Use the `shedrive-nocache` launch config when verifying — the plain
+  `http.server` lets the browser cache a stale module.
+- **admin-v2 is bilingual**, unlike `admin/`: English (LTR, default) and Arabic (RTL).
+  Read `shedrive-web/admin-v2/I18N-PORT.md` before adding a string. Locales are ES
+  modules under `admin-v2/i18n/`, `t()` is synchronous, and switching language reloads
+  the page. The English-only rule above still applies to `admin/`, not to `admin-v2/`.
+- Desktop-first and the `ad-*` component convention still apply.
+
+---
+
 ## Reusable Utilities — Import These First
 
 ```js
