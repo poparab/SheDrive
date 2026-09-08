@@ -2036,7 +2036,32 @@ This endpoint is called when an authenticated driver confirms a trip cancellatio
 - Given a request arrives without a valid rider session token
 - Then the request is rejected
 
-**Dependencies:** Consumed by [Mobile] #1787 (rider) and #1951 (driver).
+**Scenario 6 — Contact list is capped at five**
+- Given a rider already has 5 stored emergency contacts
+- When an attempt is made to store a sixth
+- Then it is rejected
+
+**Scenario 7 — Per-contact delivery status is reported**
+- Given an SOS alert has been sent to several contacts
+- Then the delivery result of each individual alert is recorded and reported back as sent, delivered, or failed, per contact
+- And a failure to reach one contact does not stop the remaining contacts from being alerted
+
+**Scenario 8 — The live link expires 60 minutes after the trip ends**
+- Given a live location link was issued during a trip
+- When the trip ends
+- Then the link keeps working for 60 more minutes and then stops working on its own
+
+**Scenario 9 — The rider can revoke the live link early**
+- Given a live location link is active
+- When the rider stops sharing from her emergency screen
+- Then the link stops working immediately, however much of the 60 minutes was left
+
+**Scenario 10 — A revoked or expired link shows nothing**
+- Given a live location link has been revoked or has expired
+- When anyone opens it
+- Then no location and no trip detail is returned
+
+**Dependencies:** Consumed by [Mobile] #1787 (rider contacts) and #3968 (rider emergency screen). The live link it sends is the one issued, scoped and expired by #3971. Needs an SMS supplier able to deliver to Egyptian mobile numbers and report delivery results — none is contracted yet, and the per-contact delivery status depends on it.
 
 ---
 
@@ -2068,7 +2093,154 @@ This endpoint is called when an authenticated driver confirms a trip cancellatio
 - Given a request arrives without a valid driver session token
 - Then the request is rejected
 
-**Dependencies:** Consumed by [Mobile] #1951 (driver).
+**Scenario 6 — Contact list is capped at five**
+- Given a driver already has 5 stored emergency contacts
+- When an attempt is made to store a sixth
+- Then it is rejected
+
+**Scenario 7 — Per-contact delivery status is reported**
+- Given an SOS alert has been sent to several contacts
+- Then the delivery result of each individual alert is recorded and reported back as sent, delivered, or failed, per contact
+- And a failure to reach one contact does not stop the remaining contacts from being alerted
+
+**Scenario 8 — The live link expires 60 minutes after the trip ends**
+- Given a live location link was issued during a trip
+- When the trip ends
+- Then the link keeps working for 60 more minutes and then stops working on its own
+
+**Scenario 9 — The driver can revoke the live link early**
+- Given a live location link is active
+- When the driver stops sharing from her emergency screen
+- Then the link stops working immediately, however much of the 60 minutes was left
+
+**Scenario 10 — A revoked or expired link shows nothing**
+- Given a live location link has been revoked or has expired
+- When anyone opens it
+- Then no location and no trip detail is returned
+
+**Dependencies:** Consumed by [Mobile] #1951 (driver contacts) and #3969 (driver emergency screen). The live link it sends is the one issued, scoped and expired by #3971. Needs an SMS supplier able to deliver to Egyptian mobile numbers and report delivery results — none is contracted yet, and the per-contact delivery status depends on it.
 
 ---
 
+## [API] #3970 — SOS incident is recorded with a full trip snapshot 🆕
+**Feature:** Feature 21 — Emergency & Safety API | **Sprint:** 2
+
+**Description:** As the SheDrive platform, I want to create a permanent SOS case with a full snapshot of the trip the instant an SOS is confirmed, so that operations can review, investigate and report on every incident afterwards.
+
+### Background
+
+An SOS case is a first-class, permanent record — one confirmed tap creates exactly one case. The case captures everything known about the incident at the moment it happened, because the trip continues and the car keeps moving afterwards; the case must still show where she was and what was happening when she pressed the button. Creating a case never interrupts the trip and never suspends anyone automatically — those remain separate, later decisions for an admin.
+
+### Acceptance Criteria
+
+**Scenario 1 — A case is created on confirmation**
+- Given a rider or a driver confirms an SOS during an active trip
+- Then exactly one SOS case is created for that confirmation
+
+**Scenario 2 — The snapshot records who raised it**
+- Given a case has been created
+- Then it records whether the rider or the driver raised it and which person that was, together with the rider's name and phone number and the driver's name and phone number
+
+**Scenario 3 — The snapshot records the trip context**
+- Given a case has been created
+- Then it records the trip it belongs to, the state that trip was in at the moment of the trigger (on the way to pickup, waiting at pickup, or trip under way), and the vehicle's make, model, colour and plate
+
+**Scenario 4 — The snapshot records where it happened**
+- Given a case has been created
+- Then it records her position at the moment of the trigger together with the matching street address, the trip's pickup address, the trip's destination address, and how far along the route she was
+
+**Scenario 5 — The snapshot records when it happened**
+- Given a case has been created
+- Then it records the date and time of the trigger in local Egyptian time
+
+**Scenario 6 — The snapshot records the alert outcome**
+- Given a case has been created
+- Then it records which emergency contacts were alerted and the delivery result for each one
+
+**Scenario 7 — The snapshot cannot change afterwards**
+- Given a case has been created
+- When the trip continues, the car moves, or any other trip detail changes later
+- Then none of the recorded snapshot detail changes
+- And only the case's status, outcome, resolution note, who closed it and when may be set later, and only by an admin action
+
+**Scenario 8 — The trip is unaffected**
+- Given a case has been created
+- Then the trip continues, settles and is rated exactly as it would have without an SOS
+
+**Scenario 9 — Nobody is suspended automatically**
+- Given a case has been created
+- Then no account is suspended as an automatic consequence of the case existing
+
+**Scenario 10 — An admin can retrieve the case**
+- Given a case exists
+- When a signed-in admin opens it
+- Then the full case, including the whole snapshot, is returned
+
+**Scenario 11 — Requests without a valid session are refused**
+- Given a request to create or read a case arrives without a valid session
+- Then it is refused and no case detail is returned
+
+### Out of Scope
+- Any admin action on the case — suspending someone, or closing it as resolved or a false alarm (see #3946)
+- Live, continuously updating location tracking for the admin — the case holds a snapshot at the trigger, not a live feed
+- Real-time alerting in the portal (sound, popup)
+- Automatic account suspension on any pattern
+
+### Dependencies
+- Consumed by #3968 (rider emergency screen) and #3969 (driver emergency screen)
+- Feeds #3945 (SOS queue) and #3946 (SOS case detail)
+- #1780 and #1952 supply the contact-alert results recorded in Scenario 6
+
+---
+
+## [API] #3971 — Live location link is issued, scoped, and expires 🆕
+**Feature:** Feature 21 — Emergency & Safety API | **Sprint:** 2
+
+**Description:** As the SheDrive platform, I want to issue one narrowly scoped live location link per SOS case and enforce its expiry and revocation, so that the people she trusts can find her without her location being exposed indefinitely or to anyone else.
+
+### Background
+
+Each SOS case gets exactly one live location link. The link is deliberately narrow: it shows only where she is and the trip it belongs to, nothing else about her account. It does not last forever — it covers the walk from the car to safety and then stops, and she can shut it off herself at any moment.
+
+### Acceptance Criteria
+
+**Scenario 1 — One link per case**
+- Given an SOS case is created
+- Then exactly one live location link is issued for it
+- And the link cannot be guessed from another one
+
+**Scenario 2 — The link shows her location and the trip, and nothing else**
+- Given a contact opens a valid live location link
+- Then it shows where she is now and the details of that trip
+- And it exposes nothing else about her account
+
+**Scenario 3 — The link expires 60 minutes after the trip ends**
+- Given a case's live location link was issued during a trip
+- When the trip ends
+- Then the link keeps working for 60 more minutes and then stops working on its own
+
+**Scenario 4 — She can revoke it early**
+- Given a case has an active live location link
+- When the person who raised the SOS stops sharing from her emergency screen
+- Then the link stops working immediately, however much of the 60 minutes was left
+
+**Scenario 5 — A revoked or expired link shows nothing**
+- Given a live location link has been revoked or has expired
+- When anyone opens it
+- Then no location and no trip detail is shown
+
+**Scenario 6 — Invalid links are refused**
+- Given a link does not correspond to any case, or is malformed
+- Then it is refused and no location data is returned
+
+### Out of Scope
+- Live, continuously updating location tracking for the admin — the case detail shows a snapshot at the trigger, not this link
+- Issuing more than one live link per case
+- Sharing anything about her account beyond her live location and the trip
+
+### Dependencies
+- #3970 — a case must exist before its link can be issued
+- Consumed by #3968 (rider emergency screen) and #3969 (driver emergency screen)
+- #1780 and #1952 — the link is what the alerted contacts receive
+
+---

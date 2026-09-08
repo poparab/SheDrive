@@ -1914,6 +1914,12 @@ Phase 1 SOS is limited to personal emergency contacts and sharing the driver's l
 - When she triggers SOS
 - Then she is prompted to add contacts, and the public emergency numbers (122 / 123) remain available to dial directly
 
+**Scenario 6 — Contact list is capped at five**
+- Given the driver has 5 saved emergency contacts
+- Then the "Add contact" control is unavailable, and she is told she has reached the maximum of 5 and must remove one before adding another
+- And when she removes a contact, the "Add contact" control becomes available again
+- Each saved contact is a paid message on every alert, so the list is a cost driver
+
 ### Out of Scope
 - Control-room / operations-team escalation (post-Phase 1)
 - Direct line to the Ministry of Interior (post-Phase 1)
@@ -1921,6 +1927,91 @@ Phase 1 SOS is limited to personal emergency contacts and sharing the driver's l
 
 ### Dependencies
 - #1952 — Driver's emergency contacts are notified with a live location link on SOS (API — must be live)
+- #3969 — Driver raises SOS and reaches the emergency screen (shows these contacts and their delivery status)
 
 ---
 
+## [Mobile] #3969 — Driver raises SOS and reaches the emergency screen 🆕
+**Feature:** Feature 21 — Emergency & Safety (Driver) | **Sprint:** 2
+
+**Description:** As a driver on an active trip, I want to raise SOS and be taken straight to a full emergency screen that confirms my contacts were alerted and my location is being shared, so that I can get help quickly without alerting the rider I am carrying.
+
+### Background
+
+SOS is reachable only from an active trip. Tapping SOS opens a single confirmation step to guard against an accidental or pocket press; confirming raises the alert and opens a full-screen emergency dashboard, replacing the small in-trip overlay. Raising SOS is silent to the rider — she is never told, because if the rider herself is the threat, alerting her escalates the danger. The trip itself is not affected: it keeps running, and settles and is rated exactly as it would without an SOS. No account is suspended automatically; that decision is made later by an admin.
+
+### Acceptance Criteria
+
+**Scenario 1 — SOS is reachable for the whole active trip**
+- Given the driver is on an active trip, from pickup through drop-off
+- Then the SOS control remains visible and available at every stage of the trip
+
+**Scenario 2 — SOS cannot be raised outside an active trip**
+- Given the driver is not currently on an active trip
+- Then no SOS control is available to her
+
+**Scenario 3 — A single confirmation guards against accidental presses**
+- Given the driver taps SOS
+- When the confirmation step appears
+- Then the alert is raised only if she explicitly confirms; dismissing it raises nothing
+
+**Scenario 4 — The emergency screen confirms contacts notified and location shared**
+- Given the driver confirms SOS
+- Then she is taken to a full-screen emergency dashboard
+- And the screen states that her emergency contacts have been notified and that her live location is being shared
+
+**Scenario 5 — Per-contact delivery status is shown**
+- Given the emergency screen is open
+- Then it lists every emergency contact with its own delivery status of sent, delivered or failed
+- And this replaces any single, unconditional "your contacts have been notified" message, which reassures her even when delivery in fact failed
+
+**Scenario 6 — Police and Ambulance are one tap away**
+- Given the emergency screen is open
+- Then it offers tap-to-call buttons for Police (122) and Ambulance (123) only
+- And no fire brigade number is offered
+
+**Scenario 7 — Trip recap on the emergency screen**
+- Given the emergency screen is open
+- Then it shows a recap of the trip: the rider's name, the vehicle and its plate, and her current coordinates
+
+**Scenario 8 — Stop sharing revokes the live link immediately**
+- Given the emergency screen is open and the live location link is active
+- When the driver chooses to stop sharing
+- Then the live location link is revoked immediately and no longer shows her location to anyone who opens it
+
+**Scenario 9 — Return to trip leaves the alert active**
+- Given the emergency screen is open
+- When the driver chooses to return to the trip
+- Then she is taken back to the trip screen and the alert stays active — contacts stay notified and the live link stays live — until she stops sharing or stands the alert down
+
+**Scenario 10 — False alarm stands the alert down**
+- Given the emergency screen is open
+- When the driver cancels the alert and confirms it was a false alarm
+- Then location sharing stops and the incident is recorded as a false alarm
+
+**Scenario 11 — The rider is never notified**
+- Given the driver raises SOS
+- Then the rider receives no notification, indication or visible change on her own screen as a result
+
+**Scenario 12 — The trip is not interrupted**
+- Given the driver raises SOS
+- Then the trip continues unaffected, and later settles and is rated exactly as a trip without an SOS would be
+
+**Scenario 13 — No automatic suspension**
+- Given the driver raises SOS
+- Then neither her account nor the rider's is suspended automatically as a result
+
+### Out of Scope
+- Notifying the rider that SOS was raised (deliberate — see Background)
+- Control room, staffed operations desk, or a direct line to the Ministry of Interior (post-Phase 1)
+- Fire brigade as a third emergency number
+- Raising SOS outside an active trip
+- Automatic account suspension on any pattern
+- Admin review and case actions — see #3945 and #3946
+
+### Dependencies
+- #3970 — SOS incident is recorded with a full trip snapshot (API — must be live)
+- #3971 — Live location link is issued, scoped, and expires (API — must be live)
+- #1951 — the driver's emergency contacts must exist to be alerted
+
+---
