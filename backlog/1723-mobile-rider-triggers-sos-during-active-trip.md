@@ -18,7 +18,7 @@ As a rider, I want to trigger an SOS alert during an active trip so that emergen
 
 ### Background
 
-This is a placeholder story. The SOS and emergency flow is SheDrive's primary safety differentiator — direct line to the Ministry of Interior — and requires dedicated requirements-gathering with the operations and legal teams before implementation can begin. The full scope will be defined in a future sprint. This story must not be picked up for development until replaced with a complete specification.
+This is a placeholder story. The SOS and emergency flow is SheDrive's primary safety differentiator and requires dedicated requirements-gathering with the operations and legal teams before implementation can begin. The full scope will be defined in a future sprint. This story must not be picked up for development until replaced with a complete specification.
 
 ### Scenario 1 — PLACEHOLDER
 
@@ -36,4 +36,4 @@ This is a placeholder story. The SOS and emergency flow is SheDrive's primary sa
 
 ## Dependencies
 
-- TBD — requires Ministry of Interior integration specification
+- TBD — pending SOS requirements specification

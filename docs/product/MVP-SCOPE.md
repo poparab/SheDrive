@@ -239,7 +239,6 @@
 - AI-driven behavior monitoring and risk scoring
 - Predictive safety analytics
 - Automated fraud detection beyond basic controls
-- Direct SOS integration with Ministry of Interior (aspirational; handled via manual escalation at MVP)
 
 ---
 

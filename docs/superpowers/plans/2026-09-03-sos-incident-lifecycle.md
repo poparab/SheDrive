@@ -1874,7 +1874,7 @@ Cluster A:
 > `#1780` and `#1787` are active (`New`), joined by `#1951` and `#1952`, and extended
 > by the SOS incident lifecycle (six new stories — see the four role-split backlog
 > files). `#1692` is Closed. Only `#1723`, `#1725`, `#1726` and `#1727` remain
-> `Removed`: they describe the control-room and Ministry of Interior design that no
+> `Removed`: they describe the control-room design that no
 > longer exists. See
 > `docs/superpowers/specs/2026-09-03-sos-incident-lifecycle-design.md`.
 ```

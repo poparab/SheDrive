@@ -10,7 +10,7 @@
 
 | Cluster | Rationale |
 |---|---|
-| **SOS / Emergency** | SheDrive's headline safety differentiator (SOS → Ministry of Interior). The API contract is still an undefined placeholder and needs dedicated requirements work with operations and legal before it can be built. Pulled out of Phase 1 so the empty placeholder is not mistaken for ready work. |
+| **SOS / Emergency** | SheDrive's headline safety differentiator. The API contract is still an undefined placeholder and needs dedicated requirements work with operations and legal before it can be built. Pulled out of Phase 1 so the empty placeholder is not mistaken for ready work. |
 | **Online / card payment** | Phase 1 launches **cash-only**. Card/PSP processing and everything depending on it is deferred to keep the MVP lean for a cash-dominant market. The cash settlement stack (driver cash balance, cash reconciliation, revenue reporting) **stays** in Phase 1. |
 | **Scheduled rides** | Advance booking + a continuous dispatch scheduler is a self-contained feature that is not required for launch. |
 | **Overlapping-zone fare resolution** | Edge-case handling; at MVP, zones are configured not to overlap, so smallest-zone resolution is unnecessary complexity. |
@@ -59,7 +59,7 @@
 
 ### Background
 
-This is a placeholder story. The SOS API contract — including alert schema, recipient routing, trip pause behaviour, notification to the assigned driver, and Ministry of Interior integration — will be defined in a future sprint alongside the Mobile SOS story. Notifying the rider's trusted contacts with a live trip link is handled separately by #1780. This story must not be picked up for development until replaced with a complete specification.
+This is a placeholder story. The SOS API contract — including alert schema, recipient routing, trip pause behaviour, and notification to the assigned driver — will be defined in a future sprint alongside the Mobile SOS story. Notifying the rider's trusted contacts with a live trip link is handled separately by #1780. This story must not be picked up for development until replaced with a complete specification.
 
 ### Acceptance Criteria
 
@@ -73,7 +73,6 @@ This is a placeholder story. The SOS API contract — including alert schema, re
 
 ### Dependencies
 - #1780 — Trusted contacts notified with live trip link on SOS
-- TBD — requires Ministry of Interior integration specification
 
 ## [API] #1727 — Driver is notified when a rider triggers SOS during active trip
 **Orig. feature:** Emergency & Safety API (#1779) · **ADO:** Removed (already) · **Pts:** —
@@ -155,7 +154,7 @@ This endpoint set supports two things: (1) CRUD for a rider's trusted contacts (
 
 ### Background
 
-This is a placeholder story. The SOS and emergency flow is SheDrive’s primary safety differentiator — direct line to the Ministry of Interior — and requires dedicated requirements-gathering with the operations and legal teams before implementation can begin. The full scope will be defined in a future sprint. This story must not be picked up for development until replaced with a complete specification.
+This is a placeholder story. The SOS and emergency flow is SheDrive’s primary safety differentiator and requires dedicated requirements-gathering with the operations and legal teams before implementation can begin. The full scope will be defined in a future sprint. This story must not be picked up for development until replaced with a complete specification.
 
 ### Acceptance Criteria
 
@@ -168,7 +167,7 @@ This is a placeholder story. The SOS and emergency flow is SheDrive’s primary 
 - All implementation details — pending requirements
 
 ### Dependencies
-- TBD — requires Ministry of Interior integration specification
+- TBD — pending SOS requirements specification
 
 ## [Mobile] #1726 — Driver is notified when a rider triggers SOS during active trip
 **Orig. feature:** Emergency & Safety / Mobile-Driver (#1774) · **ADO:** Removed · **Pts:** —

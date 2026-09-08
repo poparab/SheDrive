@@ -18,7 +18,7 @@ As the rider app, I want to submit an SOS alert during an active trip so that th
 
 ### Background
 
-This is a placeholder story. The SOS API contract — including alert schema, recipient routing, trip pause behaviour, and Ministry of Interior integration — will be defined in a future sprint alongside the Mobile SOS story. This story must not be picked up for development until replaced with a complete specification.
+This is a placeholder story. The SOS API contract — including alert schema, recipient routing, and trip pause behaviour — will be defined in a future sprint alongside the Mobile SOS story. This story must not be picked up for development until replaced with a complete specification.
 
 ### Scenario 1 — PLACEHOLDER
 
@@ -36,4 +36,4 @@ This is a placeholder story. The SOS API contract — including alert schema, re
 
 ## Dependencies
 
-- TBD — requires Ministry of Interior integration specification
+- TBD — pending SOS requirements specification

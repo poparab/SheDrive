@@ -2366,7 +2366,7 @@ The driver can cancel at two points: while navigating to the pickup (en_route_pi
 
 ### Background
 
-Phase 1 SOS is limited to personal emergency contacts and sharing the driver's live location with those contacts. There is no control room, no operations team, and no direct line to the Ministry of Interior. Public emergency numbers (Police 122, Ambulance 123) are shown for direct dialling. Contacts are managed from the Emergency Contacts screen (reached from the driver profile) and are alerted automatically when the driver triggers SOS on the active-trip screen.
+Phase 1 SOS is limited to personal emergency contacts and sharing the driver's live location with those contacts. There is no control room and no operations team. Public emergency numbers (Police 122, Ambulance 123) are shown for direct dialling. Contacts are managed from the Emergency Contacts screen (reached from the driver profile) and are alerted automatically when the driver triggers SOS on the active-trip screen.
 
 ### Acceptance Criteria
 
@@ -2403,7 +2403,6 @@ Phase 1 SOS is limited to personal emergency contacts and sharing the driver's l
 
 ### Out of Scope
 - Control-room / operations-team escalation (post-Phase 1)
-- Direct line to the Ministry of Interior (post-Phase 1)
 - Live in-vehicle camera and third-party monitoring (post-Phase 1)
 
 ### Dependencies
@@ -2484,7 +2483,7 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 
 ### Out of Scope
 - Notifying the rider that SOS was raised (deliberate — see Background)
-- Control room, staffed operations desk, or a direct line to the Ministry of Interior (post-Phase 1)
+- Control room or staffed operations desk (post-Phase 1)
 - Fire brigade as a third emergency number
 - Raising SOS outside an active trip
 - Automatic account suspension on any pattern

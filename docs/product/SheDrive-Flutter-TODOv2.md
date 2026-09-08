@@ -170,7 +170,7 @@ Pick **Option A** for v1. Document Option B as a stretch if a side-by-side demo 
 - [ ] "Skip" button on slides 1–2.
 - [ ] Persist `onboardingSeen=true` on completion.
 - [ ] Replace generic Material icons with branded illustrations.
-- [ ] Add an explicit slide highlighting the Phase 1 safety pillar: SOS direct line to Ministry of Interior — currently nowhere in the app.
+- [ ] Add an explicit slide highlighting the Phase 1 safety pillar: SOS emergency contacts and live-location sharing — currently nowhere in the app.
 
 ### 2.3 Rider Login
 - [ ] Validate phone format (Egyptian: starts 1xx, 10 digits after +20). Disable Send-OTP until valid.
@@ -214,7 +214,7 @@ Compare to the web app's nav map in CLAUDE.md — these don't exist yet in Flutt
 - [ ] **Ride confirmation / quote** — fare breakdown, ETA, vehicle class, child option, male-driver opt-in, payment method, promo, "Confirm Ride".
 - [ ] **Matching screen** — searching animation; after `scenario.matchDelaySeconds` (default 6 s) pick a driver from `mock_data` and route to active trip. Cancel returns to home.
 - [ ] **Active trip** — live map with the trip engine moving the driver marker along the polyline, driver card (photo, name, rating, plate, ETA), call/message (dialer + SMS deep link), SOS button, share-trip-status (`share_plus`), demo "End trip now" helper.
-- [ ] **Emergency / SOS dashboard** — direct line to Ministry of Interior **mock** (button shows "Connecting to Ministry of Interior…" then "Operator ETA 90 s"), 122 quick-dial via `tel:`, share location with trusted contacts, "I'm safe now" returns to active trip. **Core to safety-first positioning and entirely missing.**
+- [ ] **Emergency / SOS dashboard** — 122 quick-dial via `tel:`, share live location with trusted contacts, "I'm safe now" returns to active trip. **Core to safety-first positioning and entirely missing.**
 - [ ] **Trip complete / rating** — stars 1–5, tag chips, optional tip, optional written feedback, fare summary, mock receipt. Persists into `rideHistory`.
 - [ ] **Receipt / trip detail** — map of route, fare breakdown, "Download receipt" generates a local PDF (or shows a PDF asset).
 - [ ] **Ride history** — list from `rideHistory` pref, filterable.
@@ -320,7 +320,7 @@ This is the demo's central challenge: there is no rider app driving requests to 
 ### 4.4 The reverse problem (rider needs the trip to progress without a real driver)
 - [ ] Rider's matching screen uses `mock_dispatcher` to pick a driver after the scenario delay; no driver app needed.
 - [ ] Rider's active trip uses `mock_trip_engine` to advance position; demo helper "Skip to arrived" jumps to trip-complete.
-- [ ] Rider's SOS path is fully local — the "Ministry of Interior responder" is a scripted 90 s countdown with a mock "operator connected" toast.
+- [ ] Rider's SOS path is fully local — sharing live location with trusted contacts is simulated with a mock "contacts notified" toast.
 
 ### 4.5 Visible "DEMO" signals
 - [ ] Optional thin pink banner at the top reading **"DEMO MODE"** (toggleable from the HUD).
@@ -332,9 +332,9 @@ This is the demo's central challenge: there is no rider app driving requests to 
 
 The Phase 1 safety pillar is **not surfaced anywhere** in either app today. For the demo to land its strategic story, it needs a visible touchpoint:
 
-- [ ] **SOS direct line to Ministry of Interior** (aspirational)
+- [ ] **SOS emergency contacts and live-location sharing**
     - Rider has no SOS button anywhere today; driver has none either. Build the SOS dashboards in both apps.
-    - SOS flow: tap → confirmation modal → "Connecting to Ministry of Interior…" 3 s → "Operator on the line — ETA 90 s" mock state → "I'm safe now" returns to trip.
+    - SOS flow: tap → confirmation modal → trusted contacts alerted with a live-location link → "I'm safe now" returns to trip.
 
 Note: Live in-vehicle cameras and first-aid-trained drivers are post-Phase 1 features and must not appear in Phase 1 UI or documentation.
 

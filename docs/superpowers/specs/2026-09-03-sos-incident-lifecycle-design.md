@@ -256,7 +256,7 @@ the control-room design that no longer exists; the new stories replace them.
 ## 7. Out of scope
 
 - Notifying the other party in the car (deliberate — see §2)
-- Control room, staffed operations desk, Ministry of Interior line
+- Control room or staffed operations desk
 - Fire brigade as a third emergency number (**dropped at user request, 2026-09-03**)
 - Live location tracking for the admin — the case shows a snapshot at trigger, not a
   live feed. Revisit when the ops desk is staffed.

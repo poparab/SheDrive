@@ -3053,7 +3053,7 @@ This story is the escalation. When her outstanding balance is **at or above the 
 
 **Scenario 4 — Only the rider's own contacts are notified**
 - Given an SOS is triggered
-- Then only the rider's saved emergency contacts are notified; no control room, operations team, or Ministry of Interior is contacted
+- Then only the rider's saved emergency contacts are notified; no control room or operations team is contacted
 
 **Scenario 5 — Unauthenticated request is rejected**
 - Given a request arrives without a valid rider session token
@@ -3110,7 +3110,7 @@ This story is the escalation. When her outstanding balance is **at or above the 
 
 **Scenario 4 — Only the driver's own contacts are notified**
 - Given an SOS is triggered
-- Then only the driver's saved emergency contacts are notified; no control room, operations team, or Ministry of Interior is contacted
+- Then only the driver's saved emergency contacts are notified; no control room or operations team is contacted
 
 **Scenario 5 — Unauthenticated request is rejected**
 - Given a request arrives without a valid driver session token

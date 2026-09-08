@@ -2251,7 +2251,7 @@ Resolving a case (suspend and close) is #3946.
 - Real-time alerting in the portal (sound, popup)
 - Live location tracking — the case carries a snapshot at the moment of the tap, not a live feed
 - Notifying the other occupant
-- Control room, staffed operations desk, or a Ministry of Interior line
+- Control room or staffed operations desk
 - Automatic suspension on any pattern
 - Changes to the v1 admin portal
 
