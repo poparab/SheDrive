@@ -34,6 +34,16 @@
         "shedrive-web"
       ],
       "port": 8018
+    },
+    {
+      "name": "shedrive-finance",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "scripts/serve-nocache.py",
+        "8019",
+        "shedrive-web"
+      ],
+      "port": 8019
     }
   ]
 }

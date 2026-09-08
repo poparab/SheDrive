@@ -1,6 +1,6 @@
 # SheDrive — Mobile Driver Stories
 > Canonical backlog for all [Mobile] Driver stories. Organized by sprint and feature.
-> Last updated: 2026-06-21
+> Last updated: 2026-09-08
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -865,6 +865,90 @@ The driver's home/profile shows her aggregate star rating to one decimal and her
 
 ## Sprint 2
 
+## [Mobile] #3988 — Driver is blocked from going online while her balance is over the limit 🆕
+**Feature:** Feature 6 — Driver Home & Availability | **Sprint:** Phase 1
+
+**Description:** As a driver, I want to be told clearly why I cannot go online and exactly what I owe when my balance is over the limit so that I can settle up and get back to work instead of guessing why the toggle will not turn on.
+
+### Background
+
+When the driver taps the online toggle on her home screen and the availability service refuses her because her outstanding balance is at or above the configured limit (#3996), the app must explain the block rather than silently snapping the toggle back.
+
+The toggle returns to offline and a sheet explains that she owes more than the limit, states the amount owed and the limit, and offers a direct "Settle now" action that opens her settlement screen (#3989) with the channels, office address and hours she needs — after Finance records the settlement, her balance clears and she can go online again. From the sheet she can also open her balance screen (#1788) to see the transactions behind the figure.
+
+**Warned before she is blocked.** From the configured warning threshold (default 80% of the limit, set via #3994), her home screen carries a persistent warning band so the block never arrives as a surprise. The band states what she owes and the limit.
+
+**She is never cut off mid-trip.** The block applies only when she asks to go online. A driver already online — and certainly one on a trip — is left alone, consistent with #3996.
+
+All strings flow through data-i18n keys with Arabic fallback, and all amounts are in EGP.
+
+### Acceptance Criteria
+
+**Scenario 1 — Blocked when she tries to go online**
+- Given the driver owes 500 EGP against a 500 EGP limit
+- When she taps the online toggle
+- Then the toggle returns to offline
+- And a sheet reads "لا يمكنكِ الاتصال حتى تسدّدي رصيدك" / "You cannot go online until you settle your balance"
+- And the amount owed and the limit are both shown
+
+**Scenario 2 — Sheet offers a direct path to settle**
+- Given the blocked sheet is displayed
+- Then a "سدّدي الآن" / "Settle now" action opens the settlement screen (#3989) with the channels, office address and hours
+- And a "عرض الرصيد" / "View balance" action opens the balance screen (#1788)
+
+**Scenario 3 — Warning band before the limit**
+- Given the limit is 500 EGP and she owes 400 EGP
+- When her home screen loads
+- Then a warning band reads "اقتربتِ من حد الرصيد ([owed] من [limit] جنيه). سدّدي لتفادي إيقاف العمل." / "You are close to the balance limit ([owed] of [limit] EGP). Settle up to keep working."
+- And she can still go online normally
+
+**Scenario 4 — No band below the warning threshold**
+- Given she owes 100 EGP against a 500 EGP limit
+- Then no warning band is shown and the toggle behaves normally
+
+**Scenario 5 — Settling unblocks her immediately**
+- Given she was blocked and Finance records a settlement (#1813) that brings her outstanding amount below the limit
+- When she taps the online toggle again
+- Then she goes online normally with no further action, no waiting period and no need to close and reopen the app
+
+**Scenario 6 — Already online is never interrupted**
+- Given the driver is online and her balance crosses the limit
+- Then she is not forced offline, any trip in progress continues
+- And the block applies only the next time she tries to go online
+
+**Scenario 7 — Approval block takes precedence**
+- Given a driver who is not yet approved and also over the limit
+- When she taps the toggle
+- Then the existing approval message (#1644) is shown and the balance sheet is not
+
+**Scenario 8 — Limit disabled**
+- Given the outstanding balance limit is configured as 0 (#3994)
+- Then no warning band and no balance block are ever shown
+
+**Scenario 9 — Network error on the toggle**
+- Given the go-online request fails for a network reason
+- Then the existing connection-error toast is shown rather than the balance sheet
+
+**Scenario 10 — Arabic and English**
+- Given the driver switches language
+- Then the warning band, sheet copy, amounts, and actions are displayed in the selected language
+
+### Out of Scope
+- Paying the balance inside the app
+- Forcing an online driver offline when she crosses the limit
+- Automatic suspension of a persistently over-limit driver (Phase 2)
+- The balance statement itself (#1788)
+- The settlement screen itself (#3989) — this story only launches it
+
+### Dependencies
+- #3996 — Driver go-online is blocked while her outstanding balance is over the limit (API — must be live)
+- #3994 — Super admin configures driver balance & withdrawal policy (supplies the limit and the warning threshold)
+- #1788 — Driver views her balance and statement (opened from the sheet)
+- #3989 — Driver settles what she owes and sees her settlement history (opened from the sheet's "Settle now" action)
+- #1578 — Driver sees home screen with map (hosts the toggle and the warning band)
+
+---
+
 ### Feature 9 — Driver Trip Acceptance
 
 ---
@@ -876,7 +960,7 @@ The driver's home/profile shows her aggregate star rating to one decimal and her
 
 ### Background
 
-When the platform dispatches a trip to a matched driver (#1647), a push notification is sent to the driver's registered device. The notification displays the pickup area and estimated fare so the driver can make an informed decision before opening the app. Tapping the notification opens the trip request details screen (#1582) with the 10-second countdown already running. If the driver does not tap the notification in time, the countdown expires on the server side regardless, and the screen auto-dismisses if the driver opens the app late.
+When the platform dispatches a trip to a matched driver (#1647), a push notification is sent to the driver's registered device. The notification displays the pickup area and estimated fare so the driver can make an informed decision before opening the app. Tapping the notification opens the trip request details screen (#1582) with the 30-second countdown already running. The acceptance window duration is the value configured by the super admin (#1759, default 30 seconds) — it is never hardcoded in the app. If the driver does not tap the notification in time, the countdown expires on the server side regardless, and the screen auto-dismisses if the driver opens the app late.
 
 ### Acceptance Criteria
 
@@ -899,13 +983,13 @@ When the platform dispatches a trip to a matched driver (#1647), a push notifica
 - When a push notification arrives for an incoming trip
 - Then the device displays the notification
 - And tapping it launches the app and navigates to the trip request details screen (#1582)
-- And if the 10-second window has already expired by the time the screen loads, the screen shows "Request expired" and the driver returns to her home screen
+- And if the 30-second window has already expired by the time the screen loads, the screen shows "Request expired" and the driver returns to her home screen
 
 **Scenario 4 — Driver's device token is not registered**
 - Given the driver's push notification token is not on file
 - When the platform dispatches a trip to her
 - Then the push silently fails
-- And after the 10-second window elapses with no response, the system treats it as a timeout and reassigns the trip (#1651)
+- And after the 30-second window elapses with no response, the system treats it as a timeout and reassigns the trip (#1651)
 
 ### Out of Scope
 - In-app notification inbox
@@ -921,11 +1005,11 @@ When the platform dispatches a trip to a matched driver (#1647), a push notifica
 ## [Mobile] #1582 — Driver sees trip request details
 **Feature:** Feature 9 — Driver Trip Acceptance | **Sprint:** 2
 
-**Description:** As a driver, I want to see full trip request details with a countdown timer so that I can decide to accept or reject within the 10-second window.
+**Description:** As a driver, I want to see full trip request details with a countdown timer so that I can decide to accept or reject within the 30-second window.
 
 ### Background
 
-When a driver receives a trip request (via push notification or app foreground transition), she is shown a full-screen or modal trip request details screen. The screen displays the pickup address, destination summary, estimated distance, and estimated fare. A 10-second countdown timer is prominently visible and begins immediately when the screen loads. Two action buttons are shown: "Accept" and "Reject." If the timer reaches zero without action, the screen auto-dismisses, a brief "Request expired" message is shown, and the driver returns to her home/available screen. The system treats the non-response as a rejection and reassigns the trip.
+When a driver receives a trip request (via push notification or app foreground transition), she is shown a full-screen or modal trip request details screen. The screen displays the pickup address, destination summary, estimated distance, and estimated fare. A 30-second countdown timer is prominently visible and begins immediately when the screen loads. The countdown length is not hardcoded — it is seeded from the acceptance window configured by the super admin (#1759, default 30 seconds) and delivered with the dispatch payload (#1648). Two action buttons are shown: "Accept" and "Reject." If the timer reaches zero without action, the screen auto-dismisses, a brief "Request expired" message is shown, and the driver returns to her home/available screen. The system treats the non-response as a rejection and reassigns the trip.
 
 ### Acceptance Criteria
 
@@ -936,17 +1020,17 @@ When a driver receives a trip request (via push notification or app foreground t
 - And the destination summary is displayed
 - And the estimated distance is displayed
 - And the estimated fare is displayed
-- And a 10-second countdown timer is prominently shown
+- And a 30-second countdown timer is prominently shown, seeded from the configured acceptance window (#1759)
 - And "Accept" and "Reject" buttons are both visible and tappable
 
 **Scenario 2 — Countdown timer counts down visibly**
 - Given the trip request details screen is open
 - When time passes
 - Then the countdown timer decrements visibly second by second
-- And the timer urgency is communicated clearly (e.g., color change at 3 seconds)
+- And the timer urgency is communicated clearly (e.g., color change at the last 5 seconds)
 
 **Scenario 3 — Timer expires without driver action**
-- Given the driver does not tap Accept or Reject within 10 seconds
+- Given the driver does not tap Accept or Reject within 30 seconds
 - When the countdown reaches zero
 - Then the screen auto-dismisses
 - And a brief "Request expired" toast or message is shown
@@ -967,7 +1051,8 @@ When a driver receives a trip request (via push notification or app foreground t
 - Trip cancellation after acceptance (separate feature)
 
 ### Dependencies
-- #1648 — Driver retrieves pending trip request (API — must be live)
+- #1649 — Driver accepts trip (API — must be live; the merged trip-details scenarios supply the remaining seconds in the window)
+- #1759 — Super admin configures the driver acceptance window (default 30 seconds)
 
 ---
 
@@ -978,13 +1063,13 @@ When a driver receives a trip request (via push notification or app foreground t
 
 ### Background
 
-When the driver taps "Accept" within the 10-second window, the app calls the accept endpoint (#1649). On success, the trip status is updated to accepted, and the driver is taken to the navigation-to-pickup screen (active trip feature). Simultaneously, the rider receives a push confirmation that her driver is on the way (#1634). If the acceptance window has already expired server-side (e.g., due to network lag), the endpoint returns a conflict and the driver sees an expired message and returns to her home screen.
+When the driver taps "Accept" within the 30-second window (the configured acceptance window, #1759), the app calls the accept endpoint (#1649). On success, the trip status is updated to accepted, and the driver is taken to the navigation-to-pickup screen (active trip feature). Simultaneously, the rider receives a push confirmation that her driver is on the way (#1634). If the acceptance window has already expired server-side (e.g., due to network lag), the endpoint returns a conflict and the driver sees an expired message and returns to her home screen.
 
 ### Acceptance Criteria
 
 **Scenario 1 — Successful acceptance within window**
 - Given the driver taps "Accept" while the countdown is still running
-- When the acceptance request reaches the server within the 10-second window
+- When the acceptance request reaches the server within the 30-second window
 - Then the trip status is updated to accepted
 - And the driver is navigated to the active trip / navigation-to-pickup screen
 - And the rider receives a push notification confirming the match (#1634)
@@ -1025,13 +1110,13 @@ When the driver taps "Accept" within the 10-second window, the app calls the acc
 
 ### Background
 
-A driver may choose to reject a trip request within the 10-second window. Tapping "Reject" calls the rejection endpoint (#1650), which marks the driver as available again and triggers reassignment of the trip to the next nearest driver (#1651). The driver returns to her home/available screen immediately. No penalty or strike is applied in this sprint. If the window has already expired server-side, the rejection call returns a conflict (the rejection is effectively a no-op since the system has already treated it as a timeout).
+A driver may choose to reject a trip request within the 30-second window (the configured acceptance window, #1759). Tapping "Reject" calls the rejection endpoint (#1650), which marks the driver as available again and triggers reassignment of the trip to the next nearest driver by ETA to pickup (#1651). The driver returns to her home/available screen immediately. No penalty or strike is applied in this sprint. If the window has already expired server-side, the rejection call returns a conflict (the rejection is effectively a no-op since the system has already treated it as a timeout).
 
 ### Acceptance Criteria
 
 **Scenario 1 — Successful rejection within window**
 - Given the driver taps "Reject" while the countdown is still running
-- When the rejection request reaches the server within the 10-second window
+- When the rejection request reaches the server within the 30-second window
 - Then the trip is returned to the platform for reassignment
 - And the driver's status is set back to available
 - And the driver is returned to her home/available screen immediately
@@ -1065,20 +1150,20 @@ A driver may choose to reject a trip request within the 10-second window. Tappin
 
 ---
 
-## [Mobile] #1585 — Driver acceptance screen expires after 10 seconds
+## [Mobile] #1585 — Driver acceptance screen expires after the acceptance window (30 seconds) ✏️
 **Feature:** Feature 9 — Driver Trip Acceptance | **Sprint:** 2
 
-**Description:** As a driver, I want the acceptance screen to automatically dismiss after 10 seconds if I do not respond so that I am not left on a stale screen and the system can reassign the trip promptly.
+**Description:** As a driver, I want the acceptance screen to automatically dismiss after 30 seconds if I do not respond so that I am not left on a stale screen and the system can reassign the trip promptly.
 
 ### Background
 
-If the driver neither accepts nor rejects within the 10-second window, the platform server-side timer expires and triggers reassignment (#1651). On the client side, the countdown UI reaches zero and automatically dismisses the screen. A brief "Request expired" toast or message is displayed so the driver understands what happened. The driver is returned to her home/available screen and remains online. This behavior mirrors a rejection from the platform's perspective.
+If the driver neither accepts nor rejects within the 30-second window, the platform server-side timer expires and triggers reassignment (#1651). The window length is the acceptance window configured by the super admin (#1759, default 30 seconds); the app renders whatever duration the dispatch payload carries rather than a hardcoded value. On the client side, the countdown UI reaches zero and automatically dismisses the screen. A brief "Request expired" toast or message is displayed so the driver understands what happened. The driver is returned to her home/available screen and remains online. This behavior mirrors a rejection from the platform's perspective.
 
 ### Acceptance Criteria
 
 **Scenario 1 — Screen auto-dismisses at countdown zero**
 - Given the driver is on the trip request details screen and does not tap either button
-- When the 10-second countdown reaches zero
+- When the 30-second countdown reaches zero
 - Then the screen automatically dismisses without requiring any driver action
 - And a brief message is shown: "Request expired"
 - And the driver is returned to her home/available screen
@@ -1090,25 +1175,26 @@ If the driver neither accepts nor rejects within the 10-second window, the platf
 - And she remains eligible for the next dispatched trip
 
 **Scenario 3 — System reassigns the trip**
-- Given the driver's 10-second window has expired
+- Given the driver's 30-second window has expired
 - When the server processes the timeout
-- Then the trip is passed to the next nearest available driver (#1651)
+- Then the trip is passed to the next available driver in the ETA-ranked candidate list (#1651)
 - And the current driver is not double-dispatched for the same trip
 
 **Scenario 4 — App in background during countdown**
 - Given the driver received the push notification but did not open the app
-- When 10 seconds elapse from dispatch
+- When 30 seconds elapse from dispatch
 - Then the server-side timer expires and reassigns the trip
 - And if the driver later opens the app, no acceptance screen is shown for the expired request
 - And a brief "Request expired" message is shown if the screen was mid-open
 
 ### Out of Scope
-- Configurable acceptance window duration
+- Any driver-side control over the acceptance window duration (it is set by the super admin in #1759)
 - Penalty or strike for timeout (future sprint)
 - Notification to driver that she missed a request (beyond the brief toast)
 
 ### Dependencies
 - #1651 — Trip is reassigned on rejection or timeout (API — must be live)
+- #1759 — Super admin configures the driver acceptance window (supplies the window duration)
 
 ---
 
@@ -1245,7 +1331,7 @@ After the driver taps "I've Arrived" and the trip state advances to arrived_pick
 
 ### Dependencies
 - #1587 — Driver confirms arrival at pickup (must be complete)
-- #1633 — Rider retrieves live trip state and driver location (arrived_at timestamp required)
+- #1633 — Rider tracks her active trip (supplies the arrived_at timestamp the waiting counter runs from)
 
 ---
 
@@ -1256,7 +1342,13 @@ After the driver taps "I've Arrived" and the trip state advances to arrived_pick
 
 ### Background
 
-When is_first_trip is true, the driver sees the rider's registered full name on the arrived_pickup screen and visually checks that the person approaching the vehicle is female. If satisfied, she taps "Rider Verified — Board". If the approaching person does not appear to be female, she taps "Cancel — Rider Not Female," which triggers a confirmation dialog and then calls #1687 to cancel the trip and suspend the rider's account for review. **Exception:** if the trip is flagged as a declared child passenger (flag carried by #1783, declared by the rider in #1790), a child of any gender is permitted to ride — this is the only exception to the women-only rule. In that case the driver verifies that a child is boarding and must not cancel for a gender mismatch. For all returning riders (is_first_trip = false) this step is skipped entirely and the driver proceeds directly to the "Start Trip" button.
+When is_first_trip is true, the driver sees the rider's registered full name on the arrived_pickup screen and visually checks that the person approaching the vehicle is female. If satisfied, she taps "Rider Verified — Board". If the approaching person does not appear to be female, she taps "Cancel — Rider Not Female," which opens a confirmation dialog carrying an **optional short statement** describing what happened, and then calls #1687 to cancel the trip and suspend the rider's account for review. The statement is the reporting driver's own account of the incident and is the primary evidence the super admin reads when triaging the report queue (#1810 / #1811); it is optional so a driver is never delayed at the kerbside by a text field. **Exception:** if the trip is flagged as a declared child passenger (flag carried by #1783, declared by the rider in #1790), a child of any gender is permitted to ride — this is the only exception to the women-only rule. In that case the driver verifies that a child is boarding, the "Cancel — Rider Not Female" action is withdrawn entirely rather than merely disabled, and she must not cancel for a gender mismatch. For all returning riders (is_first_trip = false) this step is skipped entirely and the driver proceeds directly to the "Start Trip" button.
+
+### Field Validation
+
+| Field | Required | Format | Min | Max | Accepted characters | Error — empty | Error — invalid format | Error — length |
+|---|---|---|---|---|---|---|---|---|
+| Statement ("What happened?") | No (optional) | Free text (multi-line) | — | 500 chars | Any character | — | — | يجب ألا يتجاوز النص 500 حرف / Must be 500 characters or fewer |
 
 ### Acceptance Criteria
 
@@ -1272,6 +1364,8 @@ When is_first_trip is true, the driver sees the rider's registered full name on 
 - Given the trip's is_first_trip flag is true and the trip is flagged as a declared child passenger (#1783)
 - When the arrived_pickup screen loads
 - Then the driver sees a notice that the passenger is a declared child who may ride as the only exception to the women-only policy
+- And the "Cancel — Rider Not Female" action is not displayed at all
+- And the confirm action reads "Child Confirmed — Board" instead of "Rider Verified — Board"
 - And the driver may board the child without a gender-mismatch cancellation
 
 **Scenario 3 — Driver confirms rider is female and proceeds**
@@ -1284,9 +1378,17 @@ When is_first_trip is true, the driver sees the rider's registered full name on 
 - Given the verification screen is visible and the passenger is not a declared child
 - When the driver taps "Cancel — Rider Not Female"
 - Then a confirmation dialog is shown: "هل أنتِ متأكدة؟ سيتم إلغاء الرحلة وإرسال تقرير أمني." / "Are you sure? This will cancel the trip and submit a safety report."
+- And the dialog offers an optional free-text statement ("What happened?") of up to 500 characters
 - And on confirmation, the platform calls #1687 to cancel the trip and suspend the rider's account for review
+- And the statement, when entered, is submitted with the report and shown to the super admin in the report queue (#1810 / #1811)
 - And the driver is returned to her home/available screen
 - And no fare is charged
+
+**Scenario 7 — Statement is optional**
+- Given the confirmation dialog is shown and the driver leaves the statement empty
+- When she confirms
+- Then the report is submitted with no statement and no required-field error is raised
+- And the admin report detail shows the trip snapshot as the sole evidence
 
 **Scenario 5 — Verification step is skipped for returning riders**
 - Given the trip's is_first_trip flag is false
@@ -1473,7 +1575,88 @@ Immediately after the driver taps "End Trip" and the trip state advances to trip
 - Fare dispute workflow
 
 ### Dependencies
-- #1636 — Final fare calculation (must be live)
+- #3058 — Cash-collection amount is served to the driver and her confirmation is recorded (must be live)
+
+---
+
+## [Mobile] #3990 — Driver collects a recovered rider fee alongside the fare 🆕
+**Feature:** Feature 11 — Trip Completion & Cash Payment | **Sprint:** Phase 1
+
+**Description:** As a driver, I want the cash-collection screen to itemise a recovered rider fee separately from the trip fare so that I can tell my passenger exactly what she owes and why, instead of asking her for an unexplained extra amount.
+
+### Background
+
+Extends the cash-collection screen (#1592). When a trip completes in cash and the rider is carrying one outstanding fee from an earlier late cancellation, that fee is recovered as a surcharge on this trip (#4000) and the cash-collection screen itemises it as its own line, separate from the fare, followed by the total she must collect. Nothing about the screen changes when no fee is being recovered — it shows the fare total exactly as #1592 already does.
+
+Worked example: a 100.00 EGP fare with a 20.00 EGP outstanding fee recovered shows as "Fare: 100.00 EGP", "Outstanding fee recovered: 20.00 EGP", "Total to collect: 120.00 EGP" — the same 120.00 EGP the rider sees on her own fare summary (#3999), so the two figures always match and neither side has to take the other's word for it.
+
+**She is never left holding an unexplained number.** The fee line always carries a short reason — that the rider had an unpaid fee from a previous cancelled trip — so the driver can answer if the passenger asks why the total is higher than the fare shown when she booked.
+
+**Her own earnings are unaffected by the fee.** Commission is calculated on the 100.00 EGP fare only — never on the recovered fee, since the platform already holds its share of that fee from when it was charged. The extra cash she collects is not "extra income": it nets out against the fee on her balance (#1788), where the full picture — including what she is really entitled to for the trip — is visible. This screen's job is only to tell her what to collect and why, not to explain her balance.
+
+**Usually only one fee is added to a single trip.** If the rider is carrying more than one outstanding fee, the oldest is recovered first and the rest stay outstanding for a later trip. The exception is a rider whose total has reached the recovery threshold (#3994, default 60.00 EGP) — then her **whole** outstanding balance is recovered on this one trip and the fee line shows that larger figure (#4000, #3998). The driver does nothing differently; the screen simply itemises whatever amount the platform says to collect.
+
+All strings flow through data-i18n keys with Arabic fallback, and all amounts are in EGP.
+
+### Acceptance Criteria
+
+**Scenario 1 — Trip completes with a recovered fee, itemised**
+- Given a trip with a 100.00 EGP fare and a rider carrying a 20.00 EGP outstanding fee
+- When the trip ends and the cash-collection screen appears
+- Then it shows "Fare: 100.00 EGP", "Outstanding fee recovered: 20.00 EGP" and "Total to collect: 120.00 EGP"
+
+**Scenario 2 — Trip completes with no outstanding fee**
+- Given a trip with a 100.00 EGP fare and no outstanding fee on the rider
+- When the trip ends
+- Then the screen shows only "Total to collect: 100.00 EGP", exactly as #1592 today, with no fee line
+
+**Scenario 3 — Fee line states its reason**
+- Given the itemised screen is shown
+- Then the fee line is labelled "رسوم مستحقة من رحلة سابقة" / "Outstanding fee from a previous trip" so the driver can explain it if asked
+
+**Scenario 4 — Total matches the rider's own fare summary**
+- Given the same trip
+- Then the total shown to the driver (120.00 EGP) is identical to the total shown to the rider on her fare summary (#3999)
+
+**Scenario 5 — Only the oldest fee is recovered**
+- Given the rider has two outstanding fees, 20.00 EGP and 15.00 EGP
+- When her next trip completes
+- Then only the older 20.00 EGP fee is itemised and collected on this trip
+- And the 15.00 EGP fee remains outstanding for a later trip
+
+**Scenario 5b — Above the recovery threshold the whole balance is collected**
+- Given the rider's outstanding fees total 65.00 EGP and the recovery threshold is 60.00 EGP
+- When her next trip completes with a 100.00 EGP fare
+- Then the fee line reads 65.00 EGP, not just her oldest fee
+- And the total to collect is 165.00 EGP
+- And her outstanding balance is cleared in full
+
+**Scenario 6 — Commission and net earnings are unaffected**
+- Given the same 100.00 EGP fare and 20.00 EGP recovered fee, with a 20% commission
+- When the driver views her net earnings for this trip (#1766)
+- Then net earnings are calculated on the 100.00 EGP fare only (80.00 EGP), with no change from the recovered fee
+
+**Scenario 7 — "Done" behaves exactly as before**
+- Given the itemised screen is displayed
+- When she taps "Done"
+- Then she is returned to her home screen in the available state, as in #1592
+
+**Scenario 8 — Arabic and English**
+- Given the driver switches language
+- Then the fare line, fee line, total and reason text are all displayed in the selected language
+
+### Out of Scope
+- Recovering more than one outstanding fee on a single trip
+- The rider disputing the recovered fee (Phase 2)
+- Receipt generation for the fee line
+- Waiving or editing the fee from the driver app — that is admin-only (#4005)
+- Any change to how commission or net earnings are calculated (#1766 unaffected)
+
+### Dependencies
+- #1592 — Driver sees cash fare to collect and returns to available (this story extends it)
+- #4000 — [API] Rider outstanding fee is recovered on her next trip (API — must be live; supplies the fee amount and reason)
+- #3058 — Cash-collection amount is served to the driver and her confirmation is recorded (extended to include the itemised fee line)
+- #3999 — [Mobile] Rider sees the recovered fee on her fare summary (parity — both sides must show the same total)
 
 ---
 
@@ -1513,6 +1696,80 @@ The driver is always shown her net earnings — the amount after the platform co
 ### Dependencies
 - [API] Platform commission is deducted on trip completion
 - [Admin] Super admin configures platform commission (#1759)
+
+---
+
+## [Mobile] #2977 — Driver rates the rider after trip completion 🆕
+**Feature:** Feature 11 — Trip Completion & Cash Payment | **Sprint:** 2
+
+**Description:** As a driver, I want to rate my passenger with stars after the trip ends so that the platform builds a picture of rider behaviour and I can flag a passenger who made the trip difficult.
+
+### Background
+
+After the driver has ended the trip and collected the cash fare (#1592), she is shown a "Rate Passenger" screen. The screen shows the passenger's name, avatar and current rider rating, and a 5-star selector under the prompt "How was your experience with this passenger?". The driver taps a star value from 1 to 5 and submits, which sends the rating via #2978 and returns her to the home/available screen. Rating is **optional**: the driver may skip it and go straight back to available, exactly as the rider may skip rating her driver (#1799) — a driver must never be blocked from taking her next trip because she has not rated the previous passenger. All strings flow through data-i18n keys with Arabic fallback.
+
+This mirrors the rider side of the same flow (#1565 rider rates driver / #1639 API), and completes the two-way rating loop — today only the rider can rate.
+
+### Field Validation
+
+| Field | Required | Format | Min | Max | Accepted values | Error — empty |
+|---|---|---|---|---|---|---|
+| Stars | Yes, to submit (the whole screen may be skipped) | Integer | 1 | 5 | Numeric (tap selection) | يرجى اختيار عدد النجوم قبل الإرسال / Please select a star rating before submitting |
+
+### Acceptance Criteria
+
+**Scenario 1 — Rate Passenger screen appears after the trip is closed out**
+- Given the driver has ended the trip and dismissed the cash collection screen (#1592)
+- When the Rate Passenger screen loads
+- Then the passenger's name, avatar and current rider rating are displayed
+- And a 5-star selector is shown under the prompt "How was your experience with this passenger?"
+- And both a submit action and a skip action are available
+
+**Scenario 2 — Driver submits a valid rating**
+- Given the driver has selected a star value between 1 and 5
+- When she submits
+- Then the rating is sent to the platform via #2978
+- And she is returned to her home screen in the online/available state
+
+**Scenario 3 — Submitting with no stars selected shows an error**
+- Given the driver has not selected any stars
+- When she taps submit
+- Then the bilingual error "يرجى اختيار عدد النجوم قبل الإرسال" / "Please select a star rating before submitting" is shown
+- And no rating is submitted
+
+**Scenario 4 — Driver skips rating and is not blocked**
+- Given the Rate Passenger screen is displayed
+- When the driver skips it without selecting a rating
+- Then no rating is submitted for that trip
+- And she is returned to her home screen in the online/available state and can immediately receive the next trip request
+
+**Scenario 5 — Rating cannot be submitted twice for the same trip**
+- Given the driver has already rated this passenger for this trip
+- When the app attempts a second submission for the same trip
+- Then the server rejects it (#2978) and the driver is informed the trip has already been rated
+
+**Scenario 6 — Network error on submission**
+- Given the driver submits a rating
+- When the network request fails
+- Then a bilingual toast is shown and the rating is not recorded
+- And the driver may retry or skip and continue to her home screen
+
+**Scenario 7 — All strings are bilingual**
+- Given the app language is Arabic or English
+- Then every label, prompt, button and error on this screen renders through a data-i18n key with an Arabic fallback in the markup
+
+### Out of Scope
+- Free-text comment on the passenger
+- Predefined feedback tags — the rider-side equivalent (#1565) has three tags, but no tag row is confirmed in the closed design (#1753); add a follow-up story if design confirms tags
+- Reporting or blocking a passenger (gender-mismatch reporting is #1687)
+- Showing the driver's submitted rating back to the rider
+- Editing a submitted rating
+- Whether a low rider rating affects future matching
+
+### Dependencies
+- #2978 — Driver submits rider rating (API — must be live)
+- #1592 — Driver sees cash fare to collect and returns to available (this screen follows it)
+- #1753 — Driver App - Rating Passenger (closed design; mockup "11_Rate Passenger.jpg" on task #1754)
 
 ---
 
@@ -1675,8 +1932,6 @@ The driver profile screen is accessible from the driver app's drawer/menu. It di
 - Then the field does not enter edit mode
 - And a bilingual note explains the data was verified during onboarding and to contact support to change it
 
-
-
 **Scenario 3 — Rating and language sections**
 - Given the driver is on her profile screen
 - Then her aggregate rating is shown with number of rating.
@@ -1755,53 +2010,279 @@ The earnings dashboard is accessible from the driver home screen menu or profile
 
 ---
 
-## [Mobile] #1788 — Driver views cash balance owed to the platform 🆕
+## [Mobile] #1788 — Driver views her balance and statement ✏️
 **Feature:** Feature 18 — Driver Earnings | **Sprint:** Phase 1
 
-**Description:** As a driver, I want to see how much cash I owe the platform so that I know what I need to settle.
+**Description:** As a driver, I want to see my current balance and every transaction behind it so that I know what I owe the platform, what the platform owes me, and why.
 
 ### Background
 
-A balance view reachable from the earnings/home area shows the driver's outstanding cash owed to the platform in EGP, retrieved via #1781. It explains that for cash trips she keeps the fare and owes the platform its commission, and it lists the contributing trips and the last settlement. The view is read-only — settlement itself is an operational process handled by Finance. All strings flow through data-i18n keys with Arabic fallback.
+A balance screen reachable from the earnings screen and the profile menu shows the driver's position in EGP, retrieved via #1781. It replaces the earlier read-only "cash owed" view: the balance is now a signed figure over a real ledger (#3991), so the screen must present both directions and the movements that produced them.
+
+**The headline states the direction in words, not a sign.** When the driver owes the platform, the screen reads "مستحق عليكِ" / "You owe" with the amount and a short explanation that on cash trips she keeps the fare and the platform's commission is settled later. When the platform owes her, it reads "رصيدك المتاح" / "Your available balance" and the withdrawal action becomes available (#3987). A driver never sees a minus sign in front of her own money.
+
+**Below the headline is the statement** — a newest-first list of transactions, each with its date, a localised description, and the signed amount coloured as a credit or a debit. Credits and debits are visually distinct and each row states its type in plain language: commission on a trip, a cancellation fee charged, a cancellation fee share earned, a settlement received, a withdrawal paid, or an adjustment. Tapping a trip-linked row opens that trip's detail (#1594).
+
+**A warning band appears as she approaches the limit.** When her outstanding amount reaches the configured warning threshold (default 80% of the balance limit, both set via #3994, returned by #1781), a warning band explains that she will not be able to go online once she reaches the limit. At or above the limit the band becomes a blocking notice consistent with #3988, with a link to settle (#3989).
+
+The screen is read-only apart from the withdrawal action. Settling is an operational process handled by Finance (#1813). The commission percentage is never shown, only EGP amounts. All strings flow through data-i18n keys with Arabic fallback.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Driver opens her balance**
-- Given an authenticated approved driver opens the balance view
-- When it loads
-- Then her outstanding cash owed to the platform is shown in EGP
+**Scenario 1 — Driver who owes the platform**
+- Given an authenticated approved driver with an outstanding balance of 120 EGP
+- When she opens the balance screen
+- Then the headline reads "مستحق عليكِ" / "You owe" with 120 EGP
+- And the explanation of cash-trip commission is shown
+- And no withdrawal action is offered
 
-**Scenario 2 — Balance reflects a completed cash trip**
-- Given the driver completes a cash trip
-- When she opens her balance
-- Then the trip's commission portion is included in the outstanding total
+**Scenario 2 — Driver with an available balance**
+- Given the platform owes the driver 340 EGP
+- When she opens the balance screen
+- Then the headline reads "رصيدك المتاح" / "Your available balance" with 340 EGP
+- And a "طلب سحب" / "Request withdrawal" action is shown (#3987)
 
-**Scenario 3 — Card trips do not change the cash-owed total**
-- Given the driver completes a card-paid trip
-- When she opens her balance
-- Then the outstanding total is unchanged by that trip
+**Scenario 3 — Statement lists every movement type**
+- Given the driver has trip commission, a cancellation fee charged, a cancellation fee share, a settlement, and a withdrawal in her history
+- When the statement loads
+- Then each appears as its own row with date, localised description, and signed amount
+- And credits and debits are visually distinguishable
 
-**Scenario 4 — Last settlement is shown**
-- Given a settlement was recorded against the driver
-- When she opens her balance
-- Then the last settlement amount and date are shown
+**Scenario 4 — Cancellation fee is visible to the driver**
+- Given a driver cancellation fee of 10 EGP was charged (#1764)
+- When she opens her statement
+- Then a row reads "رسوم إلغاء" / "Cancellation fee" with −10 EGP and the date
+- And tapping it opens that trip's detail
 
-**Scenario 5 — New driver with no cash trips**
-- Given a driver with no cash trips
-- When she opens her balance
-- Then a zero-balance state is shown
+**Scenario 5 — Commission percentage is never shown**
+- Given any trip commission row
+- Then only the EGP amount is displayed — no percentage and no gross fare
 
-**Scenario 6 — Network error**
+**Scenario 6 — Last settlement is shown**
+- Given a settlement was recorded against the driver (#1813)
+- Then the last settlement amount and date are shown above the statement
+- And a settlement row appears in the statement as a credit
+- And her full settlement history with receipt numbers is one tap away on the settlement screen (#3989)
+
+**Scenario 7 — Statement paginates**
+- Given the driver has more transactions than one page
+- When she scrolls to the end of the list
+- Then the next page loads and appends, with no duplicated rows
+
+**Scenario 8 — Approaching the balance limit**
+- Given the configured limit is 500 EGP and she owes 400 EGP
+- When she opens the balance screen
+- Then a warning band reads "اقتربتِ من حد الرصيد. سدّدي لتفادي إيقاف العمل." / "You are close to the balance limit. Settle up to keep working."
+
+**Scenario 9 — At or above the balance limit**
+- Given she owes 500 EGP against a 500 EGP limit
+- Then the band becomes a blocking notice reading "لا يمكنكِ الاتصال حتى تسدّدي رصيدك." / "You cannot go online until you settle your balance."
+
+**Scenario 10 — Zero balance**
+- Given a driver whose balance is exactly zero
+- Then a zero state is shown reading "لا يوجد رصيد مستحق" / "No outstanding balance" and the statement shows any past transactions
+
+**Scenario 11 — New driver with no transactions**
+- Given a driver with no completed trips and no transactions
+- Then a zero balance and an empty statement state are shown, with no error
+
+**Scenario 12 — Network error**
 - Given the balance request fails
-- Then a bilingual toast error is shown
+- Then an error state is shown: "تعذّر تحميل الرصيد. تحقّقي من اتصالك." / "Unable to load your balance. Check your connection."
+- And a retry action is offered
+
+**Scenario 13 — Arabic and English**
+- Given the driver switches language
+- Then every label, transaction description, and state message is displayed in the selected language
 
 ### Out of Scope
+- Requesting a withdrawal — the action is launched here, the flow is #3987
 - In-app settlement payment by the driver
-- Automated payouts
-- In-app driver wallet
+- Statement export or PDF receipts
+- Disputing a transaction (Phase 2)
+- Earnings totals by period (#1736)
 
 ### Dependencies
-- #1781 — Driver retrieves cash balance owed to the platform (API — must be live)
+- #1781 — Driver retrieves her balance and statement (API — must be live)
+- #3991 — Driver balance ledger records every balance movement (must be live)
+- #3987 — Driver requests a withdrawal of her available balance (launched from this screen)
+- #3989 — Driver settles what she owes and sees her settlement history (full receipt history lives there)
+- #1594 — Driver views past trip detail (opened from a trip-linked row)
+
+---
+
+## [Mobile] #3987 — Driver requests a withdrawal of her available balance 🆕
+**Feature:** Feature 18 — Driver Earnings | **Sprint:** Phase 1
+
+**Description:** As a driver, I want to request a withdrawal of the money the platform owes me and follow that request to completion so that I get paid without having to call support.
+
+### Background
+
+Reached from the balance screen (#1788) when the driver has a positive available balance. The screen shows the amount available, an amount field, the minimum and maximum allowed for one request (#3994), and a submit action. Submitting calls #3993, which reserves the amount rather than paying it — the money moves when Finance marks the request paid.
+
+**The driver is never shown a form she cannot use.** When withdrawals are disabled platform-wide, when she has no available balance, or when she is inside the cooling-off period, the screen explains why instead of presenting a field that will fail on submit.
+
+**Every request is trackable.** Below the form a newest-first list shows her past requests with amount, status (قيد المراجعة / Pending, تمت الموافقة / Approved, تم الصرف / Paid, مرفوض / Rejected, ملغي / Cancelled), the request date, and the rejection reason where one exists. A pending request can be cancelled by the driver, which releases the reserved amount.
+
+All strings flow through data-i18n keys with Arabic fallback, and all amounts are in EGP.
+
+### Field Validation
+
+| Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range |
+|---|---|---|---|---|---|---|---|---|---|
+| Withdrawal amount | Yes | Decimal (EGP) | Positive number, up to 2 decimals | configured minimum | lesser of the configured maximum and the unreserved available balance | empty | أدخلي المبلغ / Enter an amount | أدخلي مبلغًا صحيحًا / Enter a valid amount | المبلغ يجب أن يكون بين [min] و[max] جنيه / Amount must be between [min] and [max] EGP |
+
+### Acceptance Criteria
+
+**Scenario 1 — Successful withdrawal request**
+- Given the driver has 500 EGP available and the minimum is 50 EGP
+- When she enters 200 and submits
+- Then the request is created via #3993
+- And a success toast reads "تم إرسال طلب السحب" / "Withdrawal request submitted"
+- And she is returned to the balance screen where 200 EGP now shows as reserved
+
+**Scenario 2 — Amount above the available balance**
+- Given 100 EGP is available
+- When she enters 150
+- Then the submit action stays disabled and an inline error names the maximum she can request
+
+**Scenario 3 — Amount below the minimum**
+- Given the minimum is 50 EGP
+- When she enters 20
+- Then an inline error names the minimum and submit stays disabled
+
+**Scenario 4 — Reserved amounts reduce what she can request**
+- Given 500 EGP available with a 400 EGP request already pending
+- Then the screen shows 100 EGP as requestable and rejects anything above it
+
+**Scenario 5 — No available balance**
+- Given the driver owes the platform, or her balance is zero
+- Then no amount field is shown and the screen explains "لا يوجد رصيد متاح للسحب حاليًا." / "You have no balance available to withdraw right now."
+
+**Scenario 6 — Cooling-off period active**
+- Given she requested a withdrawal 2 days ago and the cooling-off period is 7 days
+- Then the form is replaced by a message stating when she may request again
+
+**Scenario 7 — Withdrawals disabled platform-wide**
+- Given withdrawals are disabled (#3994)
+- Then the withdrawal action is not offered on the balance screen and the screen, if deep-linked, explains that withdrawals are unavailable
+
+**Scenario 8 — Request history**
+- Given the driver has previous requests
+- Then they are listed newest-first with amount, status, and request date
+- And a rejected request also shows the reason given by the admin
+
+**Scenario 9 — Driver cancels a pending request**
+- Given a request in pending status
+- When she taps "إلغاء الطلب" / "Cancel request" and confirms
+- Then the request status becomes cancelled and the reserved amount is released
+
+**Scenario 10 — A decided request cannot be cancelled**
+- Given a request that is approved, paid, or rejected
+- Then no cancel action is shown for it
+
+**Scenario 11 — Network error on submit**
+- Given she submits and the request fails
+- Then a toast reads "تعذّر إرسال الطلب. حاولي مرة أخرى." / "Unable to submit. Please try again."
+- And she stays on the screen with her entered amount preserved
+
+**Scenario 12 — Arabic and English**
+- Given the driver switches language
+- Then every label, status, validation message, and empty state is displayed in the selected language
+
+### Out of Scope
+- Choosing or entering a payout destination (bank account, wallet) — payout is operational in Phase 1
+- Withdrawal fees
+- Scheduled or recurring withdrawals
+- Appealing a rejected withdrawal (Phase 2)
+- Admin review of the request (#4001)
+
+### Dependencies
+- #3993 — Driver requests a withdrawal of her available balance (API — must be live)
+- #3994 — Super admin configures driver balance & withdrawal policy (supplies minimum, maximum, cooling-off, enabled switch)
+- #1788 — Driver views her balance and statement (entry point)
+
+---
+
+## [Mobile] #3989 — Driver settles what she owes and sees her settlement history 🆕
+**Feature:** Feature 18 — Driver Earnings | **Sprint:** Phase 1
+
+**Description:** As a driver, I want to see exactly what I owe, how and where to hand it back, and a record of everything I have already settled so that I can clear my balance with confidence and never have to wonder whether a payment reached SheDrive.
+
+### Background
+
+Reached from the balance screen (#1788), the blocked go-online sheet (#3988), and the profile menu. The screen opens with her current outstanding amount in EGP — or a zero state if she owes nothing — followed by the settlement channels she can use, drawn from the configured list (#3994): handing cash to the SheDrive office, a bank deposit, a mobile wallet transfer, or a field agent collection, whichever the platform has enabled. The office channel is shown with its address and opening hours, since it is the default path for a cash-collecting driver.
+
+**She never pays inside the app.** This screen is informational, not a payment form: a SheDrive team member or the office records the settlement once she has physically handed back the cash or made the transfer. As soon as that is recorded, her balance updates and — if it brought her below the outstanding limit — she can go online again immediately, with no further action and no need to restart the app (#3988).
+
+**Below the channels is her settlement history** — a newest-first list of every settlement recorded against her, each with its receipt number (format S-nnnnn), amount, channel and date. The receipt number is the same one shown to the admin who recorded it, so a driver can confirm a specific handover in person.
+
+All strings flow through data-i18n keys with Arabic fallback, and all amounts are in EGP.
+
+### Acceptance Criteria
+
+**Scenario 1 — Outstanding amount and channels shown**
+- Given a driver who owes the platform 320 EGP
+- When she opens the settlement screen
+- Then the amount she owes is shown at the top
+- And the enabled settlement channels are listed below it
+
+**Scenario 2 — Office channel shows address and hours**
+- Given the office cash channel is enabled
+- Then the screen shows the office address and opening hours alongside it
+
+**Scenario 3 — Settlement recorded, balance and history update**
+- Given the driver hands over 320 EGP at the office and Finance records the settlement (#1813) with receipt S-00482
+- When she reopens the settlement screen
+- Then her outstanding amount reflects the payment
+- And a new row appears in her history: receipt S-00482, 320 EGP, office cash, today's date
+
+**Scenario 4 — A qualifying settlement unblocks go-online immediately**
+- Given she was blocked from going online (#3988) and the recorded settlement brings her below the limit
+- When she returns to her home screen
+- Then she can go online normally with no further action and no app restart
+
+**Scenario 5 — Partial settlement leaves a balance**
+- Given she owes 320 EGP and hands over 200 EGP, recorded as a settlement
+- Then her outstanding amount updates to 120 EGP
+- And the 200 EGP settlement still appears in her history with its own receipt number
+
+**Scenario 6 — Zero outstanding balance**
+- Given a driver with no outstanding amount
+- Then a zero state is shown reading "لا يوجد مبلغ مستحق" / "You have nothing outstanding"
+- And her settlement history, if any, is still shown below it
+
+**Scenario 7 — No settlement history yet**
+- Given a driver who has never had a settlement recorded
+- Then an empty state is shown under the channels: "لا توجد تسويات سابقة" / "No settlements yet"
+
+**Scenario 8 — History paginates**
+- Given the driver has more settlements than one page
+- When she scrolls to the end of the list
+- Then the next page loads and appends, with no duplicated rows
+
+**Scenario 9 — Network error**
+- Given the settlement data request fails
+- Then an error state is shown: "تعذّر تحميل بيانات التسوية. تحقّقي من اتصالك." / "Unable to load settlement info. Check your connection."
+- And a retry action is offered
+
+**Scenario 10 — Arabic and English**
+- Given the driver switches language
+- Then every label, channel description, receipt row and state message is displayed in the selected language
+
+### Out of Scope
+- Making a payment from inside the app — settlement is always recorded by an admin or the office (#1813)
+- Choosing or changing which channel a specific settlement used — the channel is fixed when it is recorded
+- Downloadable or PDF settlement receipts
+- Disputing a settlement entry (Phase 2)
+- Editing bank or wallet details for settlement — that is a different concern from her payout destination (out of scope for Phase 1)
+
+### Dependencies
+- #1781 — Driver retrieves her balance and statement (API — must be live; settlement entries are part of the same ledger)
+- #3994 — Super admin configures driver balance & withdrawal policy (supplies the settlement channels and the outstanding limit)
+- #1813 — Super admin reconciles driver balances and records settlements (Admin — where a settlement is actually recorded)
+- #1788 — Driver views her balance and statement (entry point)
+- #3988 — Driver is blocked from going online while her balance is over the limit (entry point when blocked)
 
 ---
 

@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-06-21
+> Last updated: 2026-08-05
 > Stories with changes from original are marked ✏️
 
 ---
@@ -395,6 +395,145 @@ Once both pickup and destination are set on the home screen (#1548), the app aut
 
 ---
 
+## [Mobile] #3995 — Rider sees an outstanding fee before she requests a ride 🆕
+**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** Phase 1
+
+**Description:** As a rider with an outstanding fee, I want to see that fee as its own amount before I confirm a ride so that I know it is being added to this trip and never discover it hidden inside the fare.
+
+### Background
+
+When a rider has an outstanding fee (financial core design §3) and both pickup and destination are set on the home screen (#1548), the fee that will be added to this trip is shown as its own line, separate from the fare estimate (#1552) — for example: fare estimate 100.00 EGP, outstanding fee 20.00 EGP, next-ride total 120.00 EGP. The fee amount is never folded silently into the displayed fare estimate; the fare estimate itself is unchanged from what a rider with no outstanding fee would see.
+
+Only one outstanding fee is applied per trip, oldest first, matching the order shown on the payments screen (#3992). If she owes more than one fee, the remaining fees stay outstanding and are carried into a later trip in turn.
+
+This is the moment a rider first sees, concretely, that today's ride is paying for something that happened on an earlier one. The copy names the earlier trip plainly — its date, and that it was a late cancellation — rather than presenting the charge as an unexplained addition to today's fare, so she understands why it is there before she commits to the ride.
+
+All strings — the fee banner, its amount, and its explanation — flow through `data-i18n` keys with Arabic fallback text in the HTML.
+
+### Acceptance Criteria
+
+**Scenario 1 — Outstanding fee shown as its own amount before confirming**
+- Given the rider has one outstanding fee of 20.00 EGP and sets pickup and destination
+- When the fare estimate is displayed
+- Then the outstanding fee is shown as its own line of 20.00 EGP, separate from the fare estimate
+- And the combined total she will pay this trip is also shown
+
+**Scenario 2 — Fee is never folded into the fare estimate silently**
+- Given the rider has an outstanding fee
+- When she views the fare estimate
+- Then the fare estimate itself is unchanged from what a rider with no outstanding fee would see
+- And the fee appears only as its own separate, clearly labelled line
+
+**Scenario 3 — Fee names the trip it came from**
+- Given the rider has an outstanding fee
+- When she views the fee line before requesting
+- Then it states which earlier trip the fee is from and that it was a late cancellation
+
+**Scenario 4 — Oldest fee first, one trip at a time**
+- Given the rider has more than one outstanding fee
+- When she views the fee line before requesting
+- Then only the oldest outstanding fee is shown as being added to this trip
+- And the remaining fees stay outstanding for a later trip
+
+**Scenario 5 — No outstanding fee**
+- Given the rider owes nothing
+- When she sets pickup and destination
+- Then no fee line is shown and the fare estimate is displayed as it is today
+
+**Scenario 6 — Fee line persists through to the request**
+- Given an outstanding fee is shown before she requests
+- When she taps "Request Ride"
+- Then the same fee amount is carried through with the trip request so it can be recovered when the trip completes (#3999)
+
+### Out of Scope
+- Paying the fee directly instead of carrying it into the next trip
+- Splitting one fee's recovery across multiple trips
+- Card or wallet payment of the fee (payment-provider integration is post-Phase 1)
+- Disputing the fee from this screen (Phase 2)
+
+### Dependencies
+- `#4000` — Rider outstanding fee is recovered on her next trip (API — must be live)
+- #1552 — Rider sees fare estimate before requesting (extended by this story)
+- `#3992` — Rider views her payment method and outstanding fees (fee ordering shown here matches that screen)
+
+---
+
+## [Mobile] #3998 — Rider is told when her full outstanding balance will be added to her next ride 🆕
+**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** Phase 1
+
+**Description:** As a rider whose outstanding fees have reached the recovery threshold, I want to be told clearly that my whole balance will be added to this ride rather than one fee at a time so that the larger amount on my fare is never a surprise.
+
+### Background
+
+Below the recovery threshold a rider clears her fees gently — one fee per ride, oldest first (#3995). At or above the threshold that changes: **her entire outstanding balance is recovered on her next ride, in a single payment.** This story is that escalated state.
+
+**There is deliberately no booking block.** An earlier draft of the design blocked a rider from booking once she passed the threshold. That deadlocks — a Phase 1 rider has no card, so the only way she can ever clear a fee is by taking a ride. Blocking her booking would make the debt permanent and lose the customer with no money recovered. Escalating the *recovery* instead is self-clearing: she books, she pays it all, she is square. Persistent abuse is handled by an admin suspending the rider (#1740), which is a human decision, not an automatic trap.
+
+The recovery threshold is a policy value (financial core design §4; default 60.00 EGP) that a super admin configures with no code deploy. A threshold of 0 disables the escalation entirely — recovery then always stays at one fee per ride.
+
+The notice in this state is **not dismissible**, unlike the ordinary #3995 banner. She must see the amount before she confirms. The tone stays factual, never punitive: state the amount, state that it clears her completely, and let her decide.
+
+All strings — the heading, the amount, and the explanation — flow through `data-i18n` keys with Arabic fallback text in the HTML.
+
+### Acceptance Criteria
+
+**Scenario 1 — Full balance is recovered above the threshold**
+- Given the recovery threshold is 60.00 EGP and the rider owes 65.00 EGP across three fees
+- When she opens the home screen
+- Then she is told her full 65.00 EGP will be added to this ride
+- And the notice cannot be dismissed
+
+**Scenario 2 — She can still book normally**
+- Given the rider is above the recovery threshold
+- Then the "Request Ride" action is available exactly as it is for any other rider
+- And she is never blocked from booking on account of what she owes
+
+**Scenario 3 — The fare summary reflects the full amount**
+- Given she owes 65.00 EGP and the fare for the ride is 100.00 EGP
+- When the ride completes
+- Then the fee line reads 65.00 EGP and the total to pay is 165.00 EGP (#3999)
+- And her outstanding balance becomes 0.00 EGP
+
+**Scenario 4 — Below the threshold she gets the gentle drip instead**
+- Given the rider owes 40.00 EGP across two fees and the threshold is 60.00 EGP
+- When she opens the home screen
+- Then she sees the ordinary dismissible notice for her oldest fee only (#3995)
+
+**Scenario 5 — Crossing the threshold changes the state**
+- Given the rider owes 55.00 EGP and cancels late again for a further 20.00 EGP
+- When she next opens the home screen
+- Then she is in the full-recovery state for the whole 75.00 EGP
+
+**Scenario 6 — A threshold of 0 disables the escalation**
+- Given the recovery threshold is configured at 0
+- When the rider owes any amount
+- Then recovery always stays at one fee per ride and this state is never shown
+
+**Scenario 7 — An admin waiver drops her back**
+- Given an admin waives a fee (#4005) bringing her below the threshold
+- When she returns to the home screen
+- Then she sees the ordinary #3995 notice instead
+
+**Scenario 8 — Network error checking her fee status**
+- Given the app cannot reach the platform to check her outstanding-fee status
+- When the home screen loads
+- Then it retries silently and shows the ordinary booking state rather than a wrong amount from a stale read
+
+### Out of Scope
+- Paying a fee directly from this screen (no payment provider in Phase 1)
+- Any automatic booking block — abuse is handled by rider suspension (#1740)
+- Appealing or disputing a fee (Phase 2)
+- Partial clearing of a single fee
+
+### Dependencies
+- `#4002` — Rider fees above the recovery threshold are recovered in a single payment (API — must be live)
+- `#3994` — Super admin configures balance, fee and withdrawal policy (sets the threshold)
+- `#3995` — Rider sees an outstanding fee before she requests a ride (the below-threshold state)
+- `#3999` — Rider sees the recovered fee on her fare summary
+- `#1740` — Operations admin suspends a rider account (the only block on a rider)
+
+---
+
 ## Sprint 2
 
 ### Feature 8 — Trip Request & Matching
@@ -491,7 +630,7 @@ When a driver accepts the trip, the matching screen transitions to display a dri
 
 ### Dependencies
 - #1631 — Rider polls for match status (API — must be live)
-- #1633 — Driver profile retrieval (API — must be live)
+- #1633 — Rider tracks her active trip (API — must be live; supplies the driver's live position and ETA on this screen)
 
 ---
 
@@ -537,6 +676,68 @@ On the home screen, before requesting a ride, the rider can turn on "This ride i
 ### Dependencies
 - #1783 — Trip request captures a per-trip child-passenger flag and exposes it to the driver (API — must be live)
 - #1588 — Driver verifies rider is female on first trip (honors the child exception)
+
+---
+
+## [Mobile] #3768 — Rider is told her account is under review after a gender-mismatch report 🆕
+**Feature:** Feature 8 — Trip Request & Matching | **Sprint:** Phase 1
+
+**Description:** As a rider whose account has been flagged, I want to be told clearly that my account is under review and that I cannot book right now so that I understand why my ride request was refused and how to reach support.
+
+### Background
+
+When a driver raises a gender-mismatch report at pickup (#1588), the API cancels the trip and sets the rider's account to `pending_review` (#1687). #1687 Scenario 4 requires that a subsequent trip request is refused with a forbidden error and that "the rider app shows a message indicating the account is suspended pending review" — this story owns that screen, which had no owner until now.
+
+The rider completes her booking as normal; the block is applied at the moment she requests the ride, mirroring the server behaviour rather than pre-emptively disabling the UI. She is then shown a dedicated account-under-review screen: account status, the report reference, the date it was raised, a note that no fare was charged for the cancelled trip, and routes to support or sign-out. The wording is deliberately non-accusatory — the report has not yet been adjudicated (#1811), and the rider may be reinstated on dismissal. All strings flow through data-i18n keys with Arabic fallback.
+
+### Acceptance Criteria
+
+**Scenario 1 — Request is refused while the account is under review**
+- Given the rider's account is in pending_review after a gender-mismatch report
+- When she sets pickup and destination and taps the request-ride action
+- Then no trip request is created
+- And she is shown the account-under-review screen
+
+**Scenario 2 — Screen explains the status without accusing**
+- Given the account-under-review screen is displayed
+- Then it shows the account status as "Pending review"
+- And it states that a report relating to the women-only policy is being reviewed by the safety team
+- And it does not state that a violation has been established
+
+**Scenario 3 — Report reference and date are shown**
+- Given the account-under-review screen is displayed
+- Then it shows the report reference and the date the report was raised
+
+**Scenario 4 — No fare was charged**
+- Given the trip was cancelled by the gender-mismatch report
+- Then the screen confirms that no fare was charged for the cancelled trip
+
+**Scenario 5 — Routes out of the screen**
+- Given the account-under-review screen is displayed
+- Then the rider can contact support
+- And she can sign out
+
+**Scenario 6 — Access is restored on dismissal**
+- Given the super admin dismisses the report (#1811) and the account returns to active
+- When the rider next requests a ride
+- Then the request proceeds normally and the account-under-review screen is not shown
+
+**Scenario 7 — Suspension is distinguished from review**
+- Given the super admin upholds the report and suspends the account (#1811)
+- When the rider opens the app
+- Then she is shown the suspended state rather than the pending-review state
+
+### Out of Scope
+- Appealing or disputing the report in-app
+- In-app chat with the safety team
+- Showing the reporting driver's identity or statement to the rider
+- The generic account-suspension screen for non-gender-mismatch suspensions
+
+### Dependencies
+- #1687 — Rider account is suspended after gender mismatch report (API — must be live)
+- #1588 — Driver verifies rider is female on first trip (raises the report)
+- #1811 — Super admin actions a gender-mismatch report (clears or upholds it)
+- #1629 — Rider creates trip request (the call that is refused)
 
 ---
 
@@ -635,7 +836,7 @@ When the driver taps "I've Arrived" and the trip state advances to arrived_picku
 - Waiting fee calculation or billing (separate story if needed)
 
 ### Dependencies
-- #1633 — Rider retrieves live trip state and driver location (must be live)
+- #1633 — Rider tracks her active trip (must be live; drives this screen's state)
 - #1634 — System pushes driver-arrived to rider (must be live)
 
 ---
@@ -740,7 +941,7 @@ Throughout the active trip — from en_route_pickup through trip_ended — the r
 
 ### Dependencies
 - #1818 — Platform serves active-trip route geometry to the rider for an in-app trip view (must be live)
-- #1633 — Rider retrieves live trip state and driver location (must be live)
+- #1633 — Rider tracks her active trip (must be live; drives this screen's state)
 - #1653 — Driver streams GPS from acceptance to completion (must be live)
 
 ---
@@ -840,8 +1041,8 @@ After the trip ends, the rider's screen displays a trip summary. The total fare 
 - SOS functionality
 
 ### Dependencies
-- #1637 — Completed trip served with fare breakdown (must be live)
-- #1636 — Final fare calculation (must be live)
+- #3058 — Completed-trip fare is served to rider and driver (must be live)
+- #3058 — Completed-trip fare and summary are served to the rider (must be live)
 
 ---
 
@@ -945,6 +1146,62 @@ A "Skip" option is available on both the trip summary screen and the rating scre
 
 ### Dependencies
 - #1640 — Trip closes without rating on skip (must be live)
+
+---
+
+## [Mobile] #3999 — Rider sees the recovered fee on her fare summary 🆕
+**Feature:** Feature 11 — Trip Completion & Cash Payment | **Sprint:** Phase 1
+
+**Description:** As a rider whose outstanding fee was recovered on this trip, I want to see it as its own line on my fare summary, both right after the trip and later in my trip history, so that I can see clearly what I paid and why.
+
+### Background
+
+When a rider's outstanding fee is recovered on a trip (#3995 shows it to her before she confirms; the platform posts the recovery when the trip completes, #4000), the fare summary screen (#1564) gains an explicit "recovered fee" line above the total — for example: fare 100.00 EGP, recovered fee 20.00 EGP, total 120.00 EGP. The total shown is what she actually paid the driver in cash, matching what she was told before she confirmed the ride (#3995). The same recovered-fee line appears later whenever she opens that trip's detail in her trip history (#1568), so the record does not quietly change once she has already paid it.
+
+When no fee was recovered on a trip, the fare summary and trip detail look exactly as they do today — no empty or zero recovered-fee row is shown.
+
+All strings — the recovered-fee line label and its explanation — flow through `data-i18n` keys with Arabic fallback text in the HTML.
+
+### Acceptance Criteria
+
+**Scenario 1 — Recovered fee shown on the fare summary**
+- Given a trip completes with a fare of 100.00 EGP and a 20.00 EGP outstanding fee is recovered on it
+- When the rider views the trip summary screen
+- Then a "recovered fee" line of 20.00 EGP is shown above the total
+- And the total shown is 120.00 EGP, the amount she actually paid
+
+**Scenario 2 — No recovered fee, summary is unchanged**
+- Given a trip completes with no outstanding fee recovered
+- When the rider views the trip summary screen
+- Then no recovered-fee line is shown
+- And the total equals the fare, as today
+
+**Scenario 3 — Recovered fee persists in trip history**
+- Given a past trip had a recovered fee
+- When the rider opens that trip's detail screen (#1568) later
+- Then the same recovered-fee line and total are shown
+
+**Scenario 4 — Recovered fee amount matches what was shown before the ride**
+- Given the rider saw a 20.00 EGP fee added before she requested the ride (#3995)
+- When the trip completes
+- Then the recovered-fee line on the summary shows the same 20.00 EGP
+
+**Scenario 5 — Only one fee is recovered per trip**
+- Given the rider had more than one outstanding fee before this trip
+- When the trip completes
+- Then only the oldest fee is shown as recovered on this summary
+- And any remaining fees stay outstanding for a later trip
+
+### Out of Scope
+- Itemising the recovered fee further (it is shown as a single line, not broken down)
+- Receipts or invoices as PDFs
+- Disputing the recovered fee from this screen (Phase 2)
+- Card or wallet payment of a recovered fee (payment-provider integration is post-Phase 1)
+
+### Dependencies
+- `#4000` — Rider outstanding fee is recovered on her next trip (API — must be live)
+- #1564 — Rider sees trip summary with cash fare (extended by this story)
+- #1568 — Rider views past trip detail and rates unrated trips (extended by this story)
 
 ---
 
@@ -1271,7 +1528,6 @@ Phase 1 SOS is limited to personal emergency contacts and sharing the rider's li
 
 ---
 
-
 ## [Mobile] #3968 — Rider raises SOS and reaches the emergency screen 🆕
 **Feature:** Feature 21 — Emergency & Safety (Rider) | **Sprint:** 2
 
@@ -1356,3 +1612,73 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 - #1787 — the rider's emergency contacts must exist to be alerted
 
 ---
+
+### Feature 22 — Payments & Outstanding Fees (Rider)
+
+---
+
+## [Mobile] #3992 — Rider views her payment method and outstanding fees 🆕
+**Feature:** Feature 22 — Payments & Outstanding Fees (Rider) | **Sprint:** Phase 1
+
+**Description:** As a rider, I want to see my active payment method and any outstanding fees I owe so that I understand how I pay for rides and know exactly what will be added to my next trip.
+
+### Background
+
+Phase 1 riders pay in cash; there is no card or wallet on file. This story rewrites the payments screen, which today is a coming-soon stub, into a working one. It shows "Cash" as her active, selected payment method. An "Online payment — coming soon" row sits alongside it for visibility into the roadmap, but it is visibly disabled — not tappable, not selectable, no toggle to switch to it.
+
+Below the payment method, an outstanding-fees section lists every fee she currently owes: the amount, which trip it came from, and the date it was charged. Each fee carries the line "This will be added to your next ride" — it is not charged immediately, because Phase 1 has no way to charge her directly; instead it rides as a surcharge on a future trip, collected by the driver in cash (#3995). Tapping a fee opens its detail: the trip date and addresses, the reason the fee was charged, and the amount. When she owes nothing, a zero state confirms she has no outstanding fees.
+
+This is the first time a rider is shown a debt she did not immediately pay off. The copy has to carry that weight: it states plainly that the fee is not being charged right now and names exactly when it will be — her next ride — rather than leaving an amount sitting against her name with no explanation of how or when it is settled.
+
+All strings — the payment-method labels, the "coming soon" state, fee list items, the zero state, and the fee-detail screen — flow through `data-i18n` keys with Arabic fallback text in the HTML.
+
+### Acceptance Criteria
+
+**Scenario 1 — Cash shown as the active payment method**
+- Given the rider opens the payments screen
+- Then "Cash" is shown as her active, selected payment method
+- And no other payment method can be selected
+
+**Scenario 2 — Online payment shown as not yet available**
+- Given the rider opens the payments screen
+- Then an "Online payment — coming soon" row is visible
+- And it is visually disabled and cannot be tapped or selected
+
+**Scenario 3 — Outstanding fees are listed with trip, date, and amount**
+- Given the rider has an outstanding fee of 20.00 EGP from a trip she cancelled late on 5 September
+- When she views the outstanding-fees section
+- Then the fee shows its amount, the trip it came from, and the date it was charged
+- And it shows the line "This will be added to your next ride"
+
+**Scenario 4 — Fee detail**
+- Given the rider taps an outstanding fee
+- Then a detail view shows the trip date and addresses, the reason the fee was charged, and the amount
+
+**Scenario 5 — Zero state when nothing is owed**
+- Given the rider has no outstanding fees
+- When she opens the payments screen
+- Then the outstanding-fees section shows a zero state confirming she owes nothing
+- And no fee rows are rendered
+
+**Scenario 6 — Multiple outstanding fees are ordered oldest first**
+- Given the rider has more than one outstanding fee
+- When she views the list
+- Then the fees are ordered oldest first, matching the order in which they will be recovered (#3995)
+
+**Scenario 7 — Network error loading fees**
+- Given the payments screen cannot reach the platform for her outstanding-fee status
+- When the screen loads
+- Then a retry option is shown in place of the outstanding-fees section
+- And her payment method (Cash) still displays normally
+
+### Out of Scope
+- Selecting or paying with a card or wallet (payment-provider integration is post-Phase 1)
+- Paying an outstanding fee directly from this screen
+- Disputing a fee (Phase 2)
+- Receipts or invoices as PDFs
+
+### Dependencies
+- `#4004` — Rider retrieves her outstanding fees and statement (API — must be live)
+
+---
+
