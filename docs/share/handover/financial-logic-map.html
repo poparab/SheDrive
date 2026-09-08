@@ -1,0 +1,1368 @@
+<title>SheDrive Money Rulebook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+/>
+
+<style>
+  :root {
+    --ink: #1a1530;
+    --ink-soft: #55506b;
+    --ink-faint: #857f9c;
+    --ground: #faf9fc;
+    --panel: #ffffff;
+    --rule: #e5e2ee;
+    --rule-soft: #efedf5;
+    --brand: #6b2bd9;
+    --brand-deep: #5b21b6;
+    --accent: #d63ae2;
+    --pos: #0f7a5a;
+    --neg: #c0392f;
+    --warn: #a56a06;
+    --api: #6b2bd9;
+    --api-bg: rgba(107, 43, 217, 0.09);
+    --admin: #b0269a;
+    --admin-bg: rgba(214, 58, 226, 0.1);
+    --mobile: #0f766e;
+    --mobile-bg: rgba(15, 118, 110, 0.1);
+    --design: #52525b;
+    --design-bg: rgba(82, 82, 91, 0.1);
+    --shadow: 0 1px 2px rgba(26, 21, 48, 0.05), 0 8px 24px -16px rgba(26, 21, 48, 0.3);
+    --measure: 68ch;
+    color-scheme: light;
+  }
+
+  :root:not([data-theme="light"]) {
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #ede9f7;
+      --ink-soft: #b3adc9;
+      --ink-faint: #8b85a3;
+      --ground: #141122;
+      --panel: #1c1830;
+      --rule: #322c4a;
+      --rule-soft: #262138;
+      --brand: #a98bf5;
+      --brand-deep: #c4b0fb;
+      --accent: #ec7bf3;
+      --pos: #4bd6a5;
+      --neg: #ff8b7e;
+      --warn: #f0b64a;
+      --api: #a98bf5;
+      --api-bg: rgba(169, 139, 245, 0.14);
+      --admin: #ec7bf3;
+      --admin-bg: rgba(236, 123, 243, 0.14);
+      --mobile: #4ec9bb;
+      --mobile-bg: rgba(78, 201, 187, 0.14);
+      --design: #a7a4b5;
+      --design-bg: rgba(167, 164, 181, 0.14);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -16px rgba(0, 0, 0, 0.9);
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #ede9f7;
+    --ink-soft: #b3adc9;
+    --ink-faint: #8b85a3;
+    --ground: #141122;
+    --panel: #1c1830;
+    --rule: #322c4a;
+    --rule-soft: #262138;
+    --brand: #a98bf5;
+    --brand-deep: #c4b0fb;
+    --accent: #ec7bf3;
+    --pos: #4bd6a5;
+    --neg: #ff8b7e;
+    --warn: #f0b64a;
+    --api: #a98bf5;
+    --api-bg: rgba(169, 139, 245, 0.14);
+    --admin: #ec7bf3;
+    --admin-bg: rgba(236, 123, 243, 0.14);
+    --mobile: #4ec9bb;
+    --mobile-bg: rgba(78, 201, 187, 0.14);
+    --design: #a7a4b5;
+    --design-bg: rgba(167, 164, 181, 0.14);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -16px rgba(0, 0, 0, 0.9);
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 40px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 44px;
+  }
+
+  h1,
+  h2,
+  h3,
+  .lede,
+  .eyebrow {
+    font-family: Tajawal, "IBM Plex Sans", system-ui, sans-serif;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 2.9rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h2 {
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-size: 1.03rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+
+  p {
+    margin: 0;
+    max-width: var(--measure);
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brand);
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-bottom: 34px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .lede {
+    font-size: 1.2rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 60ch;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.76rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.02em;
+  }
+
+  /* ---------- the one rule ---------- */
+
+  .keystone {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--accent);
+    border-radius: 4px;
+    padding: 22px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: var(--shadow);
+  }
+
+  .keystone strong {
+    font-family: Tajawal, sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--ink);
+  }
+
+  /* ---------- sections ---------- */
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-margin-top: 20px;
+  }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 10px;
+  }
+
+  .sec-num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink-faint);
+    flex: none;
+    padding-top: 2px;
+  }
+
+  /* ---------- story chips ---------- */
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    align-items: center;
+    padding-top: 2px;
+  }
+
+  .chips-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-inline-end: 4px;
+  }
+
+  .chip {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 3px 9px 3px 8px;
+    border-radius: 3px;
+    border: 1px solid currentColor;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.5;
+    transition: transform 0.12s ease;
+  }
+
+  a.chip:hover {
+    transform: translateY(-1px);
+  }
+
+  a.chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .chip small {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.72;
+  }
+
+  .t-api {
+    color: var(--api);
+    background: var(--api-bg);
+  }
+  .t-admin {
+    color: var(--admin);
+    background: var(--admin-bg);
+  }
+  .t-mobile {
+    color: var(--mobile);
+    background: var(--mobile-bg);
+  }
+  .t-design {
+    color: var(--design);
+    background: var(--design-bg);
+  }
+
+  /* ---------- tables ---------- */
+
+  .scroller {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--panel);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.87rem;
+    min-width: 520px;
+  }
+
+  th,
+  td {
+    text-align: start;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: top;
+  }
+
+  thead th {
+    font-family: Tajawal, sans-serif;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--ground);
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  td.num,
+  td code,
+  th.num {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  td.num {
+    text-align: end;
+    white-space: nowrap;
+  }
+
+  .pos {
+    color: var(--pos);
+    font-weight: 600;
+  }
+  .neg {
+    color: var(--neg);
+    font-weight: 600;
+  }
+
+  tr.total td {
+    border-top: 2px solid var(--rule);
+    font-weight: 600;
+    background: var(--rule-soft);
+  }
+
+  code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.88em;
+    background: var(--rule-soft);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ---------- figures ---------- */
+
+  figure {
+    margin: 4px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .figbox {
+    overflow-x: auto;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 20px 18px;
+  }
+
+  figure svg {
+    display: block;
+    width: 100%;
+    min-width: 560px;
+    height: auto;
+    color: var(--ink);
+  }
+
+  figcaption {
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    max-width: var(--measure);
+  }
+
+  .svg-label {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 12px;
+    fill: currentColor;
+  }
+  .svg-strong {
+    font-family: Tajawal, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    fill: currentColor;
+  }
+  .svg-mono {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    fill: currentColor;
+  }
+  .svg-mini {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 10.5px;
+    fill: currentColor;
+    opacity: 0.68;
+    letter-spacing: 0.06em;
+  }
+  .svg-box {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.2;
+    opacity: 0.5;
+  }
+  .svg-line {
+    stroke: currentColor;
+    stroke-width: 1.2;
+    fill: none;
+    opacity: 0.65;
+  }
+  .svg-accent {
+    stroke: var(--accent);
+    color: var(--accent);
+    opacity: 1;
+  }
+  .svg-dash {
+    stroke-dasharray: 5 4;
+  }
+
+  /* ---------- callouts ---------- */
+
+  .note {
+    border: 1px solid var(--rule);
+    border-inline-start: 3px solid var(--ink-faint);
+    background: var(--panel);
+    border-radius: 3px;
+    padding: 14px 18px;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .note p {
+    max-width: none;
+  }
+
+  .note--stop {
+    border-inline-start-color: var(--neg);
+  }
+  .note--open {
+    border-inline-start-color: var(--warn);
+  }
+
+  .note b {
+    color: var(--ink);
+  }
+
+  ul {
+    margin: 0;
+    padding-inline-start: 20px;
+    max-width: var(--measure);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  li::marker {
+    color: var(--ink-faint);
+  }
+
+  /* ---------- legend + toc ---------- */
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+  }
+
+  .toc {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 18px 22px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 6px 26px;
+  }
+
+  .toc a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 0.87rem;
+    display: flex;
+    gap: 9px;
+    padding: 2px 0;
+    border-bottom: 1px solid transparent;
+  }
+
+  .toc a:hover {
+    color: var(--brand);
+  }
+
+  .toc span {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.76rem;
+    color: var(--ink-faint);
+    flex: none;
+  }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  footer a {
+    color: var(--brand);
+  }
+
+  @media (max-width: 620px) {
+    .wrap {
+      padding: 28px 16px 72px;
+      gap: 36px;
+    }
+    .sec-head {
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+    }
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">SheDrive · Financial core · Phase 1</p>
+    <h1>SheDrive Money Rulebook</h1>
+    <p class="lede">
+      Every rule about money in SheDrive, in the order money actually moves — and next to
+      each rule, the story number that owns it.
+    </p>
+    <div class="meta">
+      <span>2026-09-08</span>
+      <span>37 stories</span>
+      <span>branch feat/financial-core</span>
+      <span>Cash only · built card-ready</span>
+    </div>
+  </header>
+
+  <div class="keystone">
+    <p class="eyebrow" style="color: var(--accent)">The one rule</p>
+    <strong>Custody decides the ledger entry. The payment method only decides custody.</strong>
+    <p>
+      On a cash ride the driver is handed the whole fare, so she ends up holding our
+      commission — she owes us. When online payment arrives we hold the fare instead, so we
+      owe her. Same account, same screens, same reports; only the direction of the debt
+      changes, and that is decided by one field on the trip called <code>custody</code>.
+      That is why adding a payment provider later is a configuration change and not a
+      rebuild — and why a driver who takes some rides in cash and some online still has
+      exactly one balance.
+    </p>
+  </div>
+
+  <nav class="toc" aria-label="Contents">
+    <a href="#s1"><span>01</span> A trip completes</a>
+    <a href="#s2"><span>02</span> Two accounts, one rule</a>
+    <a href="#s3"><span>03</span> Someone cancels late</a>
+    <a href="#s4"><span>04</span> The fee comes back</a>
+    <a href="#s5"><span>05</span> Owing too much to work</a>
+    <a href="#s6"><span>06</span> Handing the cash back</a>
+    <a href="#s7"><span>07</span> Paying a driver out</a>
+    <a href="#s8"><span>08</span> The dials</a>
+    <a href="#s9"><span>09</span> What Finance sees</a>
+    <a href="#s10"><span>10</span> Four things that must never break</a>
+    <a href="#index"><span>11</span> Every story, one table</a>
+    <a href="#open"><span>12</span> Still open</a>
+  </nav>
+
+  <div class="legend" aria-hidden="true">
+    <span>Story colours:</span>
+    <span class="chips">
+      <span class="chip t-api" style="cursor: default">API</span>
+      <span class="chip t-admin" style="cursor: default">Admin</span>
+      <span class="chip t-mobile" style="cursor: default">Mobile</span>
+      <span class="chip t-design" style="cursor: default">Design</span>
+    </span>
+    <span>Every chip opens the work item in Azure DevOps.</span>
+  </div>
+
+  <!-- ================= 1 ================= -->
+  <section id="s1">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>A trip completes</h2>
+    </div>
+    <p>
+      Every finished trip produces the same three numbers, whatever the payment method:
+      the fare is split into the platform's commission and the driver's net earnings.
+      What differs is only who was physically handed the fare.
+    </p>
+
+    <figure>
+      <div class="figbox">
+        <svg viewBox="0 0 720 268" role="img" aria-label="A completed trip splits the fare into commission and net earnings, then branches on custody: with driver custody the ledger posts minus commission, with platform custody it posts plus net earnings, and both branches leave the driver entitled to the same net amount.">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <rect class="svg-box" x="200" y="8" width="320" height="46" rx="3" />
+          <text class="svg-strong" x="360" y="28" text-anchor="middle">Trip completes</text>
+          <text class="svg-mono" x="360" y="45" text-anchor="middle">fare F  =  commission C  +  net N</text>
+
+          <line class="svg-line" x1="360" y1="54" x2="360" y2="80" marker-end="url(#ar)" />
+          <text class="svg-mono" x="370" y="74">custody?</text>
+
+          <line class="svg-line" x1="180" y1="84" x2="540" y2="84" />
+          <line class="svg-line" x1="180" y1="84" x2="180" y2="112" marker-end="url(#ar)" />
+          <line class="svg-line" x1="540" y1="84" x2="540" y2="112" marker-end="url(#ar)" />
+
+          <rect class="svg-box" x="40" y="116" width="280" height="82" rx="3" />
+          <text class="svg-mini" x="56" y="136">PHASE 1 — IN USE</text>
+          <text class="svg-strong" x="56" y="156">custody = driver · cash</text>
+          <text class="svg-mono" x="56" y="175">post  −C   trip_commission</text>
+          <text class="svg-label" x="56" y="191">She holds F, so she owes us C.</text>
+
+          <rect class="svg-box svg-dash" x="400" y="116" width="280" height="82" rx="3" />
+          <text class="svg-mini" x="416" y="136">SHIPS UNUSED — CARD, LATER</text>
+          <text class="svg-strong" x="416" y="156">custody = platform · online</text>
+          <text class="svg-mono" x="416" y="175">post  +N   trip_earnings</text>
+          <text class="svg-label" x="416" y="191">We hold F, so we owe her N.</text>
+
+          <line class="svg-line" x1="180" y1="198" x2="180" y2="222" />
+          <line class="svg-line" x1="540" y1="198" x2="540" y2="222" />
+          <line class="svg-line" x1="180" y1="222" x2="540" y2="222" />
+          <line class="svg-line svg-accent" x1="360" y1="222" x2="360" y2="234" marker-end="url(#ar)" />
+
+          <rect x="200" y="236" width="320" height="26" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.4" />
+          <text class="svg-strong" x="360" y="254" text-anchor="middle" fill="var(--accent)">
+            Either way she is entitled to N
+          </text>
+        </svg>
+      </div>
+      <figcaption>
+        The one branch in the whole system. Nothing downstream of this fork knows which side
+        it came from — that is what makes online payment a one-field change.
+      </figcaption>
+    </figure>
+
+    <div class="note note--stop">
+      <p>
+        <b>Build rule.</b> Never branch on <code>paymentMethod</code> anywhere in financial
+        code. Branch on <code>custody</code>, in exactly one place: the function that posts
+        trip entries.
+      </p>
+    </div>
+
+    <div class="chips">
+      <span class="chips-label">Owned by</span>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3997">#3997 <small>trip completion posts by custody</small></a>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3991">#3991 <small>the ledger</small></a>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1636">#1636 <small>fare + commission (done)</small></a>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3058">#3058 <small>completed fare to both apps</small></a>
+    </div>
+  </section>
+
+  <!-- ================= 2 ================= -->
+  <section id="s2">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>Two accounts, one rule</h2>
+    </div>
+    <p>
+      Money is owed in both directions, so both sides get an account. Each is one signed
+      balance in EGP, and the balance is never stored — it is always the sum of its
+      entries.
+    </p>
+
+    <figure>
+      <div class="figbox">
+        <svg viewBox="0 0 720 210" role="img" aria-label="Ledger entries feed a driver balance which is the sum of them; a negative balance means she owes SheDrive and gates her going online until she settles, a positive balance means SheDrive owes her and can be withdrawn.">
+          <defs>
+            <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <rect class="svg-box" x="10" y="26" width="212" height="158" rx="3" />
+          <text class="svg-mini" x="26" y="46">WHAT POSTS IN</text>
+          <text class="svg-mono" x="26" y="68">− trip_commission</text>
+          <text class="svg-mono" x="26" y="88">+ trip_earnings</text>
+          <text class="svg-mono" x="26" y="108">± cancellation entries</text>
+          <text class="svg-mono" x="26" y="128">− rider_fee_recovery</text>
+          <text class="svg-mono" x="26" y="148">+ settlement · − withdrawal</text>
+          <text class="svg-mono" x="26" y="168">± adjustment</text>
+
+          <line class="svg-line" x1="222" y1="105" x2="252" y2="105" marker-end="url(#ar2)" />
+
+          <rect x="256" y="76" width="188" height="58" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.4" />
+          <text class="svg-strong" x="350" y="100" text-anchor="middle" fill="var(--accent)">Balance</text>
+          <text class="svg-mono" x="350" y="120" text-anchor="middle" fill="var(--accent)">= sum of the entries</text>
+
+          <line class="svg-line" x1="444" y1="90" x2="490" y2="62" marker-end="url(#ar2)" />
+          <line class="svg-line" x1="444" y1="120" x2="490" y2="148" marker-end="url(#ar2)" />
+
+          <rect class="svg-box" x="494" y="26" width="216" height="66" rx="3" />
+          <text class="svg-strong" x="510" y="48">Negative — she owes us</text>
+          <text class="svg-label" x="510" y="66">Called outstanding. Gates going</text>
+          <text class="svg-label" x="510" y="82">online. Cleared by a settlement.</text>
+
+          <rect class="svg-box" x="494" y="118" width="216" height="66" rx="3" />
+          <text class="svg-strong" x="510" y="140">Positive — we owe her</text>
+          <text class="svg-label" x="510" y="158">Called available. Drawn on by</text>
+          <text class="svg-label" x="510" y="174">a withdrawal request.</text>
+        </svg>
+      </div>
+      <figcaption>
+        The apps never interpret the sign. The API returns <code>outstanding</code> and
+        <code>available</code> as two separate numbers and the app renders whichever is
+        non-zero.
+      </figcaption>
+    </figure>
+
+    <h3>Driver ledger</h3>
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Entry</th><th class="num">Sign</th><th>Posted when</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>trip_commission</code></td><td class="num neg">−</td><td>A trip completes with custody <code>driver</code></td></tr>
+          <tr><td><code>trip_earnings</code></td><td class="num pos">+</td><td>A trip completes with custody <code>platform</code></td></tr>
+          <tr><td><code>driver_cancellation_fee</code></td><td class="num neg">−</td><td>She cancels late with no qualifying no-show waiver</td></tr>
+          <tr><td><code>rider_cancellation_fee_share</code></td><td class="num pos">+</td><td>A rider cancels late — her configured share of that fee</td></tr>
+          <tr><td><code>rider_fee_recovery</code></td><td class="num neg">−</td><td>She collected a rider's old fee in cash, on our behalf</td></tr>
+          <tr><td><code>settlement</code></td><td class="num pos">+</td><td>An admin records that she handed the cash back</td></tr>
+          <tr><td><code>withdrawal</code></td><td class="num neg">−</td><td>Finance marks a payout paid</td></tr>
+          <tr><td><code>adjustment</code></td><td class="num">±</td><td>An admin posts a correction with a reason</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Rider ledger — zero for almost every rider, almost always</h3>
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Entry</th><th class="num">Sign</th><th>Posted when</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>cancellation_fee</code></td><td class="num neg">−</td><td>She cancels after the grace period</td></tr>
+          <tr><td><code>fee_collected</code></td><td class="num pos">+</td><td>The fee is recovered — cash surcharge now, card later</td></tr>
+          <tr><td><code>fee_waived</code></td><td class="num pos">+</td><td>An admin writes it off with a reason</td></tr>
+          <tr><td><code>adjustment</code></td><td class="num">±</td><td>An admin posts a correction with a reason</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="chips">
+      <span class="chips-label">Owned by</span>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3991">#3991 <small>party balance ledger</small></a>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1781">#1781 <small>driver balance read · reopened</small></a>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4004">#4004 <small>rider fees + statement read</small></a>
+      <a class="chip t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1788">#1788 <small>driver balance screen · rescoped</small></a>
+      <a class="chip t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3992">#3992 <small>rider payment method + fees</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1813">#1813 <small>admin driver balances · reopened</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4005">#4005 <small>admin rider fees</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3977">#3977 <small>driver balance design</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3974">#3974 <small>rider payments design</small></a>
+    </div>
+  </section>
+
+  <!-- ================= 3 ================= -->
+  <section id="s3">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>Someone cancels late</h2>
+    </div>
+    <p>
+      Both sides can cancel, and after the grace period both sides pay for it. The
+      difference is that a driver's fee can simply be debited from an account we already
+      hold — and a rider's cannot, because in Phase 1 she has no card. That gap is what
+      section 04 exists to close.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Who cancels</th><th>Rider ledger</th><th>Driver ledger</th><th>Waived when</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Rider</b>, after the grace period</td>
+            <td class="neg">− the fee</td>
+            <td class="pos">+ her configured share (default 75%)</td>
+            <td>Only by an admin, with a reason</td>
+          </tr>
+          <tr>
+            <td><b>Driver</b>, after the grace period</td>
+            <td>—</td>
+            <td class="neg">− the driver cancellation fee</td>
+            <td>She waited out the rider no-show window</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <p>
+        <b>Values are frozen at driver acceptance.</b> Changing a policy mid-trip never
+        alters a trip already running — the numbers in force were snapshotted when she
+        accepted.
+      </p>
+    </div>
+
+    <div class="note note--stop">
+      <p>
+        <b>This is the leak we closed.</b> #1764 used to credit the driver her share of the
+        rider's fee while explicitly putting "collect it from the rider" out of scope — so
+        SheDrive funded that share out of its own pocket, every single time. It is now in
+        scope, via #4000.
+      </p>
+    </div>
+
+    <div class="chips">
+      <span class="chips-label">Owned by</span>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1764">#1764 <small>cancellation fees both ways · reopened</small></a>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3991">#3991 <small>the ledger</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3994">#3994 <small>grace periods + fee amounts</small></a>
+    </div>
+  </section>
+
+  <!-- ================= 4 ================= -->
+  <section id="s4">
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2>The fee comes back on her next ride</h2>
+    </div>
+    <p>
+      A cash rider has nothing we can charge. So her unpaid fee rides along on her next
+      trip as a surcharge, the driver collects it with the fare, and it passes through the
+      driver's ledger back to us.
+    </p>
+
+    <figure>
+      <div class="figbox">
+        <svg viewBox="0 0 740 250" role="img" aria-label="Swimlane showing the rider ledger and driver ledger across two events. When the rider cancels late her ledger is debited twenty and the driver credited fifteen. When her next trip completes her ledger is credited twenty, returning to zero, while the driver is debited twenty commission and twenty recovered fee, leaving her owing twenty-five against the hundred and twenty cash she holds.">
+          <defs>
+            <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <text class="svg-mini" x="150" y="18" text-anchor="middle">EVENT 1</text>
+          <text class="svg-mini" x="400" y="18" text-anchor="middle">EVENT 2</text>
+          <text class="svg-mini" x="640" y="18" text-anchor="middle">RESULT</text>
+
+          <text class="svg-strong" x="150" y="38" text-anchor="middle">She cancels late</text>
+          <text class="svg-strong" x="400" y="38" text-anchor="middle">Her next trip, fare 100</text>
+          <text class="svg-strong" x="640" y="38" text-anchor="middle">Where it lands</text>
+
+          <line class="svg-line" x1="12" y1="50" x2="728" y2="50" />
+
+          <text class="svg-mini" x="12" y="88">RIDER LEDGER</text>
+          <rect class="svg-box" x="76" y="66" width="148" height="40" rx="3" />
+          <text class="svg-mono" x="150" y="83" text-anchor="middle" fill="var(--neg)">− 20.00</text>
+          <text class="svg-mini" x="150" y="99" text-anchor="middle">cancellation_fee</text>
+
+          <line class="svg-line" x1="224" y1="86" x2="324" y2="86" marker-end="url(#ar3)" />
+
+          <rect class="svg-box" x="326" y="66" width="148" height="40" rx="3" />
+          <text class="svg-mono" x="400" y="83" text-anchor="middle" fill="var(--pos)">+ 20.00</text>
+          <text class="svg-mini" x="400" y="99" text-anchor="middle">fee_collected</text>
+
+          <line class="svg-line" x1="474" y1="86" x2="560" y2="86" marker-end="url(#ar3)" />
+
+          <rect x="562" y="66" width="156" height="40" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.4" />
+          <text class="svg-strong" x="640" y="91" text-anchor="middle" fill="var(--accent)">0.00 — clear</text>
+
+          <line class="svg-line svg-dash" x1="400" y1="106" x2="400" y2="132" marker-end="url(#ar3)" />
+          <text class="svg-mini" x="410" y="124">driver collects 120 cash</text>
+
+          <text class="svg-mini" x="12" y="176">DRIVER LEDGER</text>
+          <rect class="svg-box" x="76" y="140" width="148" height="40" rx="3" />
+          <text class="svg-mono" x="150" y="157" text-anchor="middle" fill="var(--pos)">+ 15.00</text>
+          <text class="svg-mini" x="150" y="173" text-anchor="middle">her 75% share</text>
+
+          <line class="svg-line" x1="224" y1="160" x2="324" y2="160" marker-end="url(#ar3)" />
+
+          <rect class="svg-box" x="326" y="134" width="148" height="52" rx="3" />
+          <text class="svg-mono" x="400" y="152" text-anchor="middle" fill="var(--neg)">− 20.00 commission</text>
+          <text class="svg-mono" x="400" y="170" text-anchor="middle" fill="var(--neg)">− 20.00 recovery</text>
+          <text class="svg-mini" x="400" y="182" text-anchor="middle">no commission on the fee</text>
+
+          <line class="svg-line" x1="474" y1="160" x2="560" y2="160" marker-end="url(#ar3)" />
+
+          <rect x="562" y="134" width="156" height="52" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.4" />
+          <text class="svg-strong" x="640" y="155" text-anchor="middle" fill="var(--accent)">owes 25.00</text>
+          <text class="svg-mini" x="640" y="172" text-anchor="middle">holds 120, entitled to 95</text>
+
+          <line class="svg-line" x1="12" y1="204" x2="728" y2="204" />
+          <text class="svg-label" x="12" y="226">
+            Everything balances: the platform ends up with its 20.00 commission plus the 5.00 of the fee it kept.
+          </text>
+          <text class="svg-label" x="12" y="242">
+            Under online payment the driver ends at +95.00 instead of −25.00 — the same entitlement, the other direction.
+          </text>
+        </svg>
+      </div>
+      <figcaption>
+        The worked example from the spec, to the piastre. Implement against these numbers.
+      </figcaption>
+    </figure>
+
+    <h3>The rules of recovery</h3>
+    <ul>
+      <li>The surcharge is shown to her <b>before</b> she confirms the ride, and again on the fare summary as its own line. It is never folded silently into the fare.</li>
+      <li>Below the recovery threshold: <b>oldest fee first, one per ride</b>.</li>
+      <li>At or above the threshold (default 60 EGP): <b>her whole outstanding balance</b> comes off the next ride in one payment, and that notice cannot be dismissed.</li>
+      <li>A threshold of 0 turns the escalation off entirely.</li>
+      <li><b>Commission is never taken from a recovered fee.</b> We already hold our share of it.</li>
+    </ul>
+
+    <div class="note note--stop">
+      <p>
+        <b>There is deliberately no rider booking block.</b> The first draft of this design
+        blocked her once her fees crossed a limit. That deadlocks: a cash rider has no
+        card, so taking a ride is the <i>only</i> way she can ever clear a fee — blocking
+        her makes the debt permanent and recovers nothing. Escalating the recovery is
+        self-clearing. Persistent abuse is handled by an admin suspending the rider
+        (#1740), which is a human decision, not an automatic trap. If this comes back up in
+        review, that is the reason.
+      </p>
+    </div>
+
+    <div class="chips">
+      <span class="chips-label">Owned by</span>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4000">#4000 <small>recovered on her next trip</small></a>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4002">#4002 <small>above threshold — one payment</small></a>
+      <a class="chip t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3995">#3995 <small>fee notice before requesting</small></a>
+      <a class="chip t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3998">#3998 <small>full-recovery notice</small></a>
+      <a class="chip t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3999">#3999 <small>recovered fee on the fare summary</small></a>
+      <a class="chip t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3990">#3990 <small>driver collects fare + fee</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4005">#4005 <small>review + waive rider fees</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1740">#1740 <small>suspend a rider</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3975">#3975 <small>fee notice + full-recovery</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3976">#3976 <small>fare summary with a fee</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3981">#3981 <small>cash collection with a fee</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3984">#3984 <small>admin rider fees</small></a>
+    </div>
+  </section>
+
+  <!-- ================= 5 ================= -->
+  <section id="s5">
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <h2>When she owes too much to keep working</h2>
+    </div>
+    <p>
+      Cash owed to SheDrive is real exposure, so there is a ceiling on it. Cross it and she
+      cannot go online until she settles. This is the one automatic block in the whole
+      design, and it exists because — unlike a rider — a driver has a way to clear the debt
+      without taking another ride.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Outstanding</th><th>What she sees</th><th>Can she go online?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="num">below 80% of the limit</td><td>Her balance, nothing more</td><td class="pos">Yes</td></tr>
+          <tr><td class="num">80% to 100%</td><td>A warning band with the amount and the limit</td><td class="pos">Yes</td></tr>
+          <tr><td class="num">at or above the limit</td><td>Blocked, with the amount owed, the limit, and a direct link to Settle</td><td class="neg">No</td></tr>
+          <tr><td class="num">limit set to 0</td><td>Nothing — the gate is off</td><td class="pos">Yes, always</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <p>
+        <b>A settlement releases her immediately.</b> No batch job, no second approval, no
+        app restart, no re-login. She hands the cash over, the admin records it, she is
+        back online.
+      </p>
+    </div>
+
+    <div class="chips">
+      <span class="chips-label">Owned by</span>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3996">#3996 <small>go-online gate</small></a>
+      <a class="chip t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3988">#3988 <small>blocked + warning band</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3980">#3980 <small>blocked + warning design</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3994">#3994 <small>the limit + warning band</small></a>
+    </div>
+  </section>
+
+  <!-- ================= 6 ================= -->
+  <section id="s6">
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <h2>Handing the cash back</h2>
+    </div>
+    <p>
+      A settlement is a driver physically returning what she owes. Recording it
+      <b>posts a ledger entry</b> — it never edits a balance.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Channel</th><th>Reference number</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>office_cash</code> — she pays at an office</td><td>Optional; defaults to the generated receipt number</td></tr>
+          <tr><td><code>bank_deposit</code></td><td>Required</td></tr>
+          <tr><td><code>mobile_wallet</code></td><td>Required</td></tr>
+          <tr><td><code>field_agent</code> — an agent collects</td><td>Required</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ul>
+      <li>Every settlement generates a receipt number (<code>S-nnnnn</code>) shown to the admin and visible in the driver's own statement.</li>
+      <li>Settlements land in a <b>day book</b> that totals by channel and by admin for the day — that is the artefact Finance reconciles against the bank.</li>
+      <li>The channel list is configurable, not hard-coded, because the business has not yet decided which of these it will actually run.</li>
+    </ul>
+
+    <div class="chips">
+      <span class="chips-label">Owned by</span>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1813">#1813 <small>record a settlement · reopened</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4006">#4006 <small>settlement day book</small></a>
+      <a class="chip t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3989">#3989 <small>driver settles + history</small></a>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3991">#3991 <small>settlement entry</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3979">#3979 <small>settle what you owe</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3982">#3982 <small>admin balances + settle</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3985">#3985 <small>day book</small></a>
+    </div>
+  </section>
+
+  <!-- ================= 7 ================= -->
+  <section id="s7">
+    <div class="sec-head">
+      <span class="sec-num">07</span>
+      <h2>Paying a driver out</h2>
+    </div>
+    <p>
+      The mirror image of a settlement, and today the rarer one — a driver only has a
+      positive balance if fee shares or adjustments outrun her commission. It matters
+      because the day online payment arrives, this becomes the normal case.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Step</th><th>What happens to the money</th><th>Ledger</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>pending</b> — she requests</td><td>The amount is <b>reserved</b> against her available balance</td><td>Nothing posted</td></tr>
+          <tr><td><b>approved</b></td><td>Finance accepts it. Impossible without a payout destination on file</td><td>Nothing posted</td></tr>
+          <tr><td><b>paid</b></td><td>The money actually leaves</td><td class="neg">− withdrawal</td></tr>
+          <tr><td><b>rejected</b> or cancelled by her</td><td>The reservation is released; a rejection reason is shown to her</td><td>Nothing posted</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ul>
+      <li>Withdrawals are behind a master switch that is <b>off by default</b>.</li>
+      <li>Minimum, maximum and a cooling-off period between requests are all policy, not code.</li>
+      <li>She can cancel her own request while it is pending.</li>
+    </ul>
+
+    <div class="chips">
+      <span class="chips-label">Owned by</span>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3993">#3993 <small>request a withdrawal</small></a>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4003">#4003 <small>payout destination required</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4001">#4001 <small>review + process requests</small></a>
+      <a class="chip t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3987">#3987 <small>driver requests a withdrawal</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3978">#3978 <small>request a withdrawal</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3983">#3983 <small>admin withdrawal queue</small></a>
+    </div>
+  </section>
+
+  <!-- ================= 8 ================= -->
+  <section id="s8">
+    <div class="sec-head">
+      <span class="sec-num">08</span>
+      <h2>The dials</h2>
+    </div>
+    <p>
+      Every number above is configuration on one admin screen. None of it needs a code
+      deploy, and every change is written to the audit log with who, when, the old value
+      and the new one.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Setting</th><th class="num">Default</th><th>What it does</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Platform commission</td><td class="num">20%</td><td>The split at trip completion</td></tr>
+          <tr><td>Rider grace period</td><td class="num">2 min</td><td>Free cancellation from driver acceptance</td></tr>
+          <tr><td>Driver cancellation fee</td><td class="num">20.00</td><td>Charged to a driver who cancels late</td></tr>
+          <tr><td>Driver grace period</td><td class="num">2 min</td><td>From her acceptance</td></tr>
+          <tr><td>Rider no-show wait</td><td class="num">5 min</td><td>Waives the driver's fee if she waited it out</td></tr>
+          <tr><td>Driver share of a rider fee</td><td class="num">75%</td><td>The rest is the platform's</td></tr>
+          <tr><td><b>Driver outstanding limit</b></td><td class="num">500.00</td><td>Blocks go-online at this amount. <b>0 disables the gate.</b></td></tr>
+          <tr><td>Driver warning band</td><td class="num">80%</td><td>Warns her in-app from this fraction of the limit</td></tr>
+          <tr><td><b>Rider fee recovery threshold</b></td><td class="num">60.00</td><td>At or above, her whole balance is recovered at once. <b>0 disables it.</b> Never blocks booking.</td></tr>
+          <tr><td>Withdrawals enabled</td><td class="num">off</td><td>Master switch</td></tr>
+          <tr><td>Minimum / maximum withdrawal</td><td class="num">50 / 2000</td><td>Per request; blank maximum means no cap</td></tr>
+          <tr><td>Cooling-off period</td><td class="num">7 days</td><td>Between withdrawal requests</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="chips">
+      <span class="chips-label">Owned by</span>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3994">#3994 <small>balance, fee + withdrawal policy</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1759">#1759 <small>existing global policy screen</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1816">#1816 <small>audit log</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3986">#3986 <small>policy screen design</small></a>
+    </div>
+  </section>
+
+  <!-- ================= 9 ================= -->
+  <section id="s9">
+    <div class="sec-head">
+      <span class="sec-num">09</span>
+      <h2>What Finance actually sees</h2>
+    </div>
+    <p>
+      Commission earned is not commission collected. On cash, every piastre we earn sits in
+      a driver's pocket until she settles — so the revenue report has to show all three
+      numbers, not one.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Figure</th><th>Means</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Commission earned</b></td><td>What completed trips generated for us</td></tr>
+          <tr><td><b>Commission settled</b></td><td>What has actually come back through settlements</td></tr>
+          <tr><td><b>Outstanding commission</b></td><td>What is still sitting in drivers' pockets — the exposure</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="chips">
+      <span class="chips-label">Owned by</span>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1832">#1832 <small>revenue + commission summary · extended</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1833">#1833 <small>per-driver earnings + settlement</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4006">#4006 <small>day book totals</small></a>
+    </div>
+  </section>
+
+  <!-- ================= 10 ================= -->
+  <section id="s10">
+    <div class="sec-head">
+      <span class="sec-num">10</span>
+      <h2>Four things that must never break</h2>
+    </div>
+    <p>
+      Every screen, report and audit trail above assumes these. They are not
+      implementation preferences.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th class="num">#</th><th>Rule</th><th>Why it matters</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="num">1</td>
+            <td><b>The balance is the sum of the entries.</b> Nothing ever writes a balance.</td>
+            <td>The driver's app, the admin ledger and the revenue report cannot disagree — they read the same sum.</td>
+          </tr>
+          <tr>
+            <td class="num">2</td>
+            <td><b>Entries are immutable.</b> A mistake is corrected with a new adjustment. No edit, no delete.</td>
+            <td>It is the audit trail. An edited ledger is not evidence.</td>
+          </tr>
+          <tr>
+            <td class="num">3</td>
+            <td><b>Posting is idempotent</b>, keyed <code>{event}:{trip|request}:{party}</code>.</td>
+            <td>A retried trip completion must not charge twice. This is the single most likely production bug.</td>
+          </tr>
+          <tr>
+            <td class="num">4</td>
+            <td><b>Every entry names its cause</b> — a trip, a receipt, a request, or an admin plus a reason.</td>
+            <td>Support has to be able to answer "why do I owe this?"</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="chips">
+      <span class="chips-label">Owned by</span>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3991">#3991 <small>party balance ledger</small></a>
+    </div>
+  </section>
+
+  <!-- ================= INDEX ================= -->
+  <section id="index">
+    <div class="sec-head">
+      <span class="sec-num">11</span>
+      <h2>Every story, one table</h2>
+    </div>
+    <p>
+      Thirty-seven work items: twenty-four new dev stories, three reopened, one rescoped,
+      two extended, and thirteen design briefs. Every one has a verified Feature parent.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th class="num">Story</th><th>Title</th><th>Team</th><th class="num">Logic</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="num">#3991</td><td>Party balance ledger records every balance movement</td><td>API</td><td class="num">02, 10</td></tr>
+          <tr><td class="num">#3997</td><td>Trip completion posts to the ledger by fare custody</td><td>API</td><td class="num">01</td></tr>
+          <tr><td class="num">#1764</td><td>Cancellation fees after the grace period <b>· reopened</b></td><td>API</td><td class="num">03</td></tr>
+          <tr><td class="num">#4000</td><td>Rider outstanding fee is recovered on her next trip</td><td>API</td><td class="num">04</td></tr>
+          <tr><td class="num">#4002</td><td>Rider fees above the recovery threshold are recovered in one payment</td><td>API</td><td class="num">04</td></tr>
+          <tr><td class="num">#3996</td><td>Driver go-online blocked over the outstanding limit</td><td>API</td><td class="num">05</td></tr>
+          <tr><td class="num">#3993</td><td>Driver requests a withdrawal of her available balance</td><td>API</td><td class="num">07</td></tr>
+          <tr><td class="num">#4003</td><td>Driver payout destination captured and required</td><td>API</td><td class="num">07</td></tr>
+          <tr><td class="num">#1781</td><td>Driver retrieves her balance and statement <b>· reopened</b></td><td>API</td><td class="num">02</td></tr>
+          <tr><td class="num">#4004</td><td>Rider retrieves her outstanding fees and statement</td><td>API</td><td class="num">02</td></tr>
+
+          <tr><td class="num">#3994</td><td>Configures balance, fee and withdrawal policy</td><td>Admin</td><td class="num">08</td></tr>
+          <tr><td class="num">#1813</td><td>Reconciles driver balances, records settlements <b>· reopened</b></td><td>Admin</td><td class="num">06</td></tr>
+          <tr><td class="num">#4006</td><td>Views the settlement day book</td><td>Admin</td><td class="num">06, 09</td></tr>
+          <tr><td class="num">#4001</td><td>Reviews and processes driver withdrawal requests</td><td>Admin</td><td class="num">07</td></tr>
+          <tr><td class="num">#4005</td><td>Reviews rider outstanding fees and waives them</td><td>Admin</td><td class="num">04</td></tr>
+          <tr><td class="num">#1832</td><td>Revenue &amp; commission summary <b>· extended</b></td><td>Admin</td><td class="num">09</td></tr>
+          <tr><td class="num">#1833</td><td>Per-driver earnings &amp; settlement report <b>· extended</b></td><td>Admin</td><td class="num">09</td></tr>
+
+          <tr><td class="num">#1788</td><td>Driver views her balance and statement <b>· rescoped</b></td><td>Mobile</td><td class="num">02</td></tr>
+          <tr><td class="num">#3987</td><td>Driver requests a withdrawal</td><td>Mobile</td><td class="num">07</td></tr>
+          <tr><td class="num">#3989</td><td>Driver settles what she owes, sees settlement history</td><td>Mobile</td><td class="num">06</td></tr>
+          <tr><td class="num">#3988</td><td>Driver blocked from going online over the limit</td><td>Mobile</td><td class="num">05</td></tr>
+          <tr><td class="num">#3990</td><td>Driver collects a recovered rider fee with the fare</td><td>Mobile</td><td class="num">04</td></tr>
+          <tr><td class="num">#3992</td><td>Rider views payment method and outstanding fees</td><td>Mobile</td><td class="num">02</td></tr>
+          <tr><td class="num">#3995</td><td>Rider sees an outstanding fee before requesting</td><td>Mobile</td><td class="num">04</td></tr>
+          <tr><td class="num">#3998</td><td>Rider is told when her full outstanding balance will be added</td><td>Mobile</td><td class="num">04</td></tr>
+          <tr><td class="num">#3999</td><td>Rider sees the recovered fee on her fare summary</td><td>Mobile</td><td class="num">04</td></tr>
+
+          <tr><td class="num">#3974</td><td>[Rider] Payment Method &amp; Outstanding Fees</td><td>Design</td><td class="num">02</td></tr>
+          <tr><td class="num">#3975</td><td>[Rider] Outstanding Fee Notice &amp; Full-Recovery State</td><td>Design</td><td class="num">04</td></tr>
+          <tr><td class="num">#3976</td><td>[Rider] Fare Summary with a Recovered Fee</td><td>Design</td><td class="num">04</td></tr>
+          <tr><td class="num">#3977</td><td>[Driver] Balance &amp; Statement</td><td>Design</td><td class="num">02</td></tr>
+          <tr><td class="num">#3978</td><td>[Driver] Request a Withdrawal</td><td>Design</td><td class="num">07</td></tr>
+          <tr><td class="num">#3979</td><td>[Driver] Settle What You Owe</td><td>Design</td><td class="num">06</td></tr>
+          <tr><td class="num">#3980</td><td>[Driver] Go-Online Blocked &amp; Warning Band</td><td>Design</td><td class="num">05</td></tr>
+          <tr><td class="num">#3981</td><td>[Driver] Cash Collection with a Recovered Fee</td><td>Design</td><td class="num">04</td></tr>
+          <tr><td class="num">#3982</td><td>[Admin] Driver Balances &amp; Record Settlement</td><td>Design</td><td class="num">06</td></tr>
+          <tr><td class="num">#3983</td><td>[Admin] Driver Withdrawal Requests</td><td>Design</td><td class="num">07</td></tr>
+          <tr><td class="num">#3984</td><td>[Admin] Rider Outstanding Fees</td><td>Design</td><td class="num">04</td></tr>
+          <tr><td class="num">#3985</td><td>[Admin] Settlement Day Book</td><td>Design</td><td class="num">06</td></tr>
+          <tr><td class="num">#3986</td><td>[Admin] Balance, Fee &amp; Withdrawal Policy</td><td>Design</td><td class="num">08</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Build order</h3>
+    <p>
+      Nothing else can finish before the backend ships <b>#3991</b> (the ledger),
+      <b>#3997</b> (custody posting) and <b>#1781</b> / <b>#4004</b> (the reads). Screens
+      can be built against the prototype's shapes in the meantime — those shapes are what
+      the API stories specify.
+    </p>
+  </section>
+
+  <!-- ================= OPEN ================= -->
+  <section id="open">
+    <div class="sec-head">
+      <span class="sec-num">12</span>
+      <h2>Still open — these need a business decision</h2>
+    </div>
+
+    <div class="note note--open">
+      <p>
+        <b>1. How does the cash physically come back?</b> The screens support office cash,
+        bank deposit, mobile wallet and field agent. Nobody has decided which of those
+        SheDrive will actually run, or who staffs it. #1813 cannot be finalised until this
+        is settled.
+      </p>
+    </div>
+
+    <div class="note note--open">
+      <p>
+        <b>2. Payout destinations are not collected at onboarding.</b> #4003 adds the field
+        and makes it required before a payout is approved, but driver onboarding does not
+        ask for a bank account or wallet number today. That needs adding to the onboarding
+        flow.
+      </p>
+    </div>
+
+    <div class="note note--open">
+      <p>
+        <b>3. #1645 — Driver sets availability status — is Removed in ADO</b>, yet #3996
+        extends the go-online check it owned and #3058's completion flow depends on its
+        availability write. No story currently owns that transition. Raise with the API
+        team before starting #3996.
+      </p>
+    </div>
+
+    <div class="note note--open">
+      <p>
+        <b>4. Deliberately deferred — worth re-confirming rather than inheriting:</b> surge
+        pricing, promo codes, referral credits, tips, driver bonuses, VAT and tax
+        reporting, PDF receipts, accounting exports beyond CSV, and fee disputes. A promo
+        mechanic in particular is the usual answer to a cold-start liquidity problem, and
+        SheDrive is launching into exactly that.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      Source of truth:
+      <code>docs/superpowers/specs/2026-09-08-financial-core-design.md</code>. Team
+      packets: <code>docs/share/handover/</code>. Working prototype:
+      <code>shedrive-web/</code>, every screen clickable with demo data.
+    </p>
+    <p>SheDrive · financial core · Phase 1 is cash-only, built so that card is a configuration change.</p>
+  </footer>
+</div>
