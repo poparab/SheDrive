@@ -9,3 +9,15 @@ node_modules/
 # OS
 .DS_Store
 Thumbs.db
+
+# Delivered design kit -- raw vendor drop (~20 MB). The parts the portal
+# actually uses are vendored into shedrive-web/admin-v2/vendor/.
+SheDrive.AdminPanel_v18-08-2026/
+
+# Redundant archive: the unpacked bundle beside it is the tracked copy.
+docs/share/SheDrive_SRS_v0.2_Bundle.zip
+
+# Ad-hoc Azure DevOps query dumps
+.iters.json
+.wiql.json
+.p.py
