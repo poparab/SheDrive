@@ -19,6 +19,7 @@
 
 - **Kept in Phase 1 (not deferred):** in-app routing (`#1817` driver turn-by-turn, `#1818` rider route geometry); the cash settlement stack (`#1781` driver cash balance, `#1813` cash reconciliation, `#1812` revenue & settlement reporting); `#1687` rider suspension after gender-mismatch report (women-only enforcement, **not** emergency SOS).
 - **#1815 (manual refund)** is deferred **with** the payment cluster (its primary mechanism is PSP/online refunds).
+- **#1783 (per-trip child-passenger flag) is NOT deferred — corrected 2026-09-03.** It was set to Removed in ADO on 2026-06-17 with a comment claiming it was recorded here, but it never appeared in the index below and no section was written for it. The rest of the backlog kept treating it as Phase 1: rider `#1790` is active and pointed, driver `#1588` Scenario 2 names it "must be live", the child toggle is already delivered in the rider mockup, and design story `#1518` documenting that toggle is Closed. The women-only rule's single carve-out cannot ship without it. `#1783` has been restored to State=New and its section returned to `api-stories.md`.
 
 ---
 
@@ -739,7 +740,7 @@ This covers the scheduled-trip endpoints. POST creates a scheduled trip from pic
 
 ### Dependencies
 - #1629 — Rider creates trip request (dispatch path)
-- #1630 — Platform matches trip to nearest driver
+- #1630 — Platform matches trip to the nearest driver by ETA to pickup
 - #1632 — No-driver handling
 - #1730 — Rider selects payment method for trip
 - #1783 — Trip request captures a per-trip child-passenger flag

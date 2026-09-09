@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-08-05
+> Last updated: 2026-09-09
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model (this phase):** A single admin role — **super admin** — with full
@@ -411,6 +411,83 @@ The pending applications queue is a screen in the admin portal listing all drive
 
 ---
 
+## [Admin] #4008 — Admin sees outcome summary cards above the driver applications queue 🆕
+**Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** Phase 1
+
+**Description:** As an operations admin, I want a row of summary cards above the driver applications queue showing total, approved, pending and rejected application counts so that I can size the review workload and the decisions already made at a glance.
+
+### Background
+
+The driver applications queue (#1657) carries a row of four summary cards above the filter bar and the grid. Each card shows a caption, a whole-number count and an icon. The cards answer "how much of each kind is there" before the admin narrows anything down, so they are platform-wide totals: they do not react to the search box, the outcome dropdown or the submission-date range applied to the grid below.
+
+Every outcome count must agree with the grid — the number on a card is exactly the number of rows the grid would show if that card's outcome were selected in the outcome filter. The pending-count badge already shown on the section header (#1657) is unchanged and stays where it is; the card row sits above it. The cards are read-only: a card is not a filter shortcut and clicking one does nothing. Counts are read when the screen loads.
+
+### Card Specification
+
+| Card | What it counts | Agrees with |
+|---|---|---|
+| Total applications | Every driver application ever submitted, all outcomes | Grid with outcome filter = All |
+| Approved | Applications an admin has approved | Grid with outcome filter = Approved |
+| Pending | Applications still awaiting review — the live review workload | Grid with outcome filter = Pending, and the header's pending badge |
+| Rejected | Applications an admin has rejected, with a reason recorded | Grid with outcome filter = Rejected |
+
+### Acceptance Criteria
+
+**Scenario 1 — Admin opens the driver applications queue**
+- Given the admin navigates to the Driver applications screen
+- When the page loads
+- Then a row of four summary cards is displayed above the filter bar: Total applications, Approved, Pending, Rejected
+- And each card shows its caption and a whole-number count
+
+**Scenario 2 — A card count agrees with the grid**
+- Given the summary cards are displayed
+- When the admin selects the outcome filter matching a card (for example Rejected)
+- Then the grid's total number of results equals the number shown on that card
+
+**Scenario 3 — The Pending card and the header badge agree**
+- Given applications are awaiting review
+- Then the Pending card and the queue's pending badge show the same number
+- And both keep showing the pending workload whatever filter is applied to the grid
+
+**Scenario 4 — Cards do not react to the grid's filters**
+- Given the summary cards are displayed with their counts
+- When the admin types a search term, changes the outcome filter or applies a submission-date range
+- Then only the grid below narrows
+- And the card counts continue to show the platform-wide totals, unchanged
+
+**Scenario 5 — A count is zero**
+- Given no application currently matches one of the cards — for example the queue has been fully cleared
+- Then that card shows 0
+- And it is not left blank or hidden
+
+**Scenario 6 — One count cannot be retrieved**
+- Given the platform cannot return the count for one card
+- Then that card shows a placeholder instead of a number, never a stale or guessed value
+- And the other three cards still show their counts
+- And the grid below still loads normally
+
+**Scenario 7 — Cards are read-only**
+- Given the summary cards are displayed
+- When the admin clicks a card
+- Then nothing happens — no navigation, and no change to the grid's filters
+
+**Scenario 8 — Cards are independent of the grid's state**
+- Given the grid is still loading, is empty, or has failed to load
+- Then the card row still occupies its place above the filter bar and shows whatever counts it was able to retrieve
+
+### Out of Scope
+- Clicking a card to apply the matching filter to the grid
+- Trend indicators, percentage change, sparklines or period comparison on a card
+- An ageing or SLA figure on a card (for example oldest pending application) — waiting time stays on the row
+- Refreshing the counts on a timer — they are read when the screen loads
+- Exporting the card values (the grid's CSV export from #1657 is unchanged)
+
+### Dependencies
+- #1657 — Admin views pending applications queue (the grid these cards sit above, and the pending badge the Pending card must agree with)
+- #1659 / #1660 — Approve and reject a driver application (the decisions that move a count from Pending to Approved or Rejected)
+
+---
+
 ## [Admin] #1658 — Admin views full driver application ✏️
 **Feature:** Feature 5 — Driver Onboarding & Admin Approval | **Sprint:** 1
 
@@ -636,6 +713,86 @@ The rider list is the primary entry point for rider management in the admin port
 | Account status | Yes | Yes | Dropdown (All / Active / Suspended) |
 | Registration date | Yes | No | — |
 | Total trips completed | Yes | No | — |
+
+---
+
+## [Admin] #4010 — Admin sees status summary cards above the rider list 🆕
+**Feature:** Feature 13 — Admin — Rider Management | **Sprint:** Phase 1
+
+**Description:** As an operations admin, I want a row of summary cards above the rider list showing total, active, pending-review and suspended rider counts so that I can read the rider base and the review workload at a glance without filtering the grid.
+
+### Background
+
+The rider list (#1661) carries a row of four summary cards above the filter bar and the grid. Each card shows a caption, a whole-number count and an icon. The cards answer "how much of each kind is there" before the admin narrows anything down, so they are platform-wide totals: they do not react to the search box or the account-status dropdown applied to the grid below.
+
+Every status count must agree with the grid — the number on a card is exactly the number of rows the grid would show if that card's account status were selected in the status filter. Pending review matters most operationally: a rider lands there automatically when a driver raises a gender-mismatch report, so the card is the standing signal that triage work is waiting. The cards are read-only: a card is not a filter shortcut and clicking one does nothing. Counts are read when the screen loads.
+
+### Card Specification
+
+| Card | What it counts | Agrees with |
+|---|---|---|
+| Total riders | Every rider account on the platform, all statuses | Grid with status filter = All |
+| Active | Riders whose account is in good standing and able to book | Grid with status filter = Active |
+| Pending review | Riders held for review after a gender-mismatch report — the triage workload | Grid with status filter = Pending review |
+| Suspended | Riders whose account is currently suspended | Grid with status filter = Suspended |
+
+### Acceptance Criteria
+
+**Scenario 1 — Admin opens the rider list**
+- Given the admin navigates to the Riders screen
+- When the page loads
+- Then a row of four summary cards is displayed above the filter bar: Total riders, Active, Pending review, Suspended
+- And each card shows its caption and a whole-number count
+
+**Scenario 2 — A card count agrees with the grid**
+- Given the summary cards are displayed
+- When the admin selects the account-status filter matching a card (for example Pending review)
+- Then the grid's total number of results equals the number shown on that card
+
+**Scenario 3 — Pending review reflects the triage workload**
+- Given a driver has raised a gender-mismatch report that put a rider into Pending review
+- When the admin next loads the rider list
+- Then the Pending review card includes that rider
+- And once the case is actioned the rider leaves that count on the next load
+
+**Scenario 4 — Cards do not react to the grid's filters**
+- Given the summary cards are displayed with their counts
+- When the admin types a search term or changes the account-status filter
+- Then only the grid below narrows
+- And the card counts continue to show the platform-wide totals, unchanged
+
+**Scenario 5 — A count is zero**
+- Given no rider currently matches one of the cards — for example nothing is awaiting review
+- Then that card shows 0
+- And it is not left blank or hidden
+
+**Scenario 6 — One count cannot be retrieved**
+- Given the platform cannot return the count for one card
+- Then that card shows a placeholder instead of a number, never a stale or guessed value
+- And the other three cards still show their counts
+- And the grid below still loads normally
+
+**Scenario 7 — Cards are read-only**
+- Given the summary cards are displayed
+- When the admin clicks a card
+- Then nothing happens — no navigation, and no change to the grid's filters
+
+**Scenario 8 — Cards are independent of the grid's state**
+- Given the grid is still loading, is empty, or has failed to load
+- Then the card row still occupies its place above the filter bar and shows whatever counts it was able to retrieve
+
+### Out of Scope
+- Clicking a card to apply the matching filter to the grid
+- Trend indicators, percentage change, sparklines or period comparison on a card
+- New-rider or growth figures (for example riders registered this week)
+- Refreshing the counts on a timer — they are read when the screen loads
+- Exporting the card values
+
+### Dependencies
+- #1661 — Admin views rider list (the grid these cards sit above)
+- #1662 — Admin views rider profile (defines the Pending review account state)
+- #1810 / #1811 — Gender-mismatch report queue and actioning (what puts a rider into, and takes her out of, Pending review)
+- #1740 / #1741 — Suspend and reinstate a rider account (the actions that move a rider in and out of the Suspended count)
 
 ---
 
@@ -931,6 +1088,84 @@ The driver list is the primary entry point for driver management in the admin po
 | Status | Yes | Yes | Dropdown (All / Pending / Approved / Rejected / Suspended) |
 | Onboarding submission date | Yes | No | — |
 | Total trips completed | Yes | No | — |
+
+---
+
+## [Admin] #4009 — Admin sees status summary cards above the driver list 🆕
+**Feature:** Feature 14 — Admin — Driver Management | **Sprint:** Phase 1
+
+**Description:** As an operations admin, I want a row of summary cards above the driver list showing total, online, approved and suspended driver counts so that I can read driver supply and account health at a glance without filtering the grid.
+
+### Background
+
+The driver list (#1665) carries a row of four summary cards above the filter bar and the grid. Each card shows a caption, a whole-number count and an icon. The cards answer "how much of each kind is there" before the admin narrows anything down, so they are platform-wide totals: they do not react to the search box or the status dropdown applied to the grid below.
+
+Three of the cards are status counts and must agree with the grid — the number on such a card is exactly the number of rows the grid would show if that card's status were selected in the status filter. The fourth, Online now, is a live presence figure with no matching status filter; it uses the same definition as the dashboard's Online Drivers (#1669). The cards are read-only: a card is not a filter shortcut and clicking one does nothing. Counts are read when the screen loads; the dashboard's 30-second auto-refresh (#1669) does not apply here.
+
+### Card Specification
+
+| Card | What it counts | Agrees with |
+|---|---|---|
+| Total drivers | Every driver account on the platform, all statuses | Grid with status filter = All |
+| Online now | Drivers currently online and available to receive ride requests | No grid filter; same definition as the dashboard's Online Drivers (#1669) |
+| Approved | Drivers approved and allowed to drive | Grid with status filter = Approved |
+| Suspended | Drivers whose account is currently suspended | Grid with status filter = Suspended |
+
+### Acceptance Criteria
+
+**Scenario 1 — Admin opens the driver list**
+- Given the admin navigates to the Drivers screen
+- When the page loads
+- Then a row of four summary cards is displayed above the filter bar: Total drivers, Online now, Approved, Suspended
+- And each card shows its caption and a whole-number count
+
+**Scenario 2 — A status card count agrees with the grid**
+- Given the summary cards are displayed
+- When the admin selects the status filter matching a card (for example Suspended)
+- Then the grid's total number of results equals the number shown on that card
+
+**Scenario 3 — Online now is a presence figure, not a status**
+- Given the summary cards are displayed
+- Then Online now shows how many drivers are online at that moment, not a count of any account status
+- And it uses the same definition as the Online Drivers metric on the dashboard (#1669)
+
+**Scenario 4 — Cards do not react to the grid's filters**
+- Given the summary cards are displayed with their counts
+- When the admin types a search term or changes the status filter
+- Then only the grid below narrows
+- And the card counts continue to show the platform-wide totals, unchanged
+
+**Scenario 5 — A count is zero**
+- Given no driver currently matches one of the cards — for example no driver is online at that moment
+- Then that card shows 0
+- And it is not left blank or hidden
+
+**Scenario 6 — One count cannot be retrieved**
+- Given the platform cannot return the count for one card
+- Then that card shows a placeholder instead of a number, never a stale or guessed value
+- And the other three cards still show their counts
+- And the grid below still loads normally
+
+**Scenario 7 — Cards are read-only**
+- Given the summary cards are displayed
+- When the admin clicks a card
+- Then nothing happens — no navigation, and no change to the grid's filters
+
+**Scenario 8 — Cards are independent of the grid's state**
+- Given the grid is still loading, is empty, or has failed to load
+- Then the card row still occupies its place above the filter bar and shows whatever counts it was able to retrieve
+
+### Out of Scope
+- Clicking a card to apply the matching filter to the grid
+- Trend indicators, percentage change, sparklines or period comparison on a card
+- Refreshing the counts on a timer — they are read when the screen loads (the dashboard's 30-second refresh, #1669, is not applied here)
+- Exporting the card values (the grid's CSV export from #1665 is unchanged)
+- Per-zone or per-city breakdowns of driver supply
+
+### Dependencies
+- #1665 — Admin views driver list across all statuses (the grid these cards sit above)
+- #1669 — Admin sees live summary dashboard (defines Online Drivers, reused by the Online now card)
+- #1742 / #1743 — Suspend and reinstate a driver account (the actions that move a driver in and out of the Suspended count)
 
 ---
 
@@ -1263,6 +1498,78 @@ The trip list screen shows all trips across all statuses. The admin can filter b
 | Status | Yes | Yes | Dropdown (All / Searching / Active / Completed / Expired) |
 | Fare (EGP) | Yes | No | — |
 | Date | Yes | Yes | Date range (from / to) |
+
+---
+
+## [Admin] #4007 — Admin sees status summary cards above the trip list 🆕
+**Feature:** Feature 15 — Admin Operations Dashboard | **Sprint:** Phase 1
+
+**Description:** As an operations admin, I want a row of summary cards above the trip list showing total, active, completed and expired trip counts so that I can read trip activity at a glance without filtering the grid.
+
+### Background
+
+The trip list (#1670) carries a row of four summary cards above the filter bar and the grid. Each card shows a caption, a whole-number count and an icon. The cards answer "how much of each kind is there" before the admin narrows anything down, so they are platform-wide totals: they do not react to the search box, the status dropdown or the date range applied to the grid below.
+
+Every status count must agree with the grid — the number on a card is exactly the number of rows the grid would show if that card's status were selected in the status filter. The cards are read-only: a card is not a filter shortcut and clicking one does nothing. Counts are read when the screen loads; the dashboard's 30-second auto-refresh (#1669) does not apply here.
+
+### Card Specification
+
+| Card | What it counts | Agrees with |
+|---|---|---|
+| Total trips | Every trip on the platform, all statuses | Grid with status filter = All |
+| Active now | Trips currently in progress (matched through trip started) | Grid with status filter = Active; same definition as the dashboard's Active Trips (#1669) |
+| Completed | Trips that ended successfully | Grid with status filter = Completed |
+| Expired | Trips that expired without completing, all expiry reasons | Grid with status filter = Expired |
+
+### Acceptance Criteria
+
+**Scenario 1 — Admin opens the trip list**
+- Given the admin navigates to the Trips screen
+- When the page loads
+- Then a row of four summary cards is displayed above the filter bar: Total trips, Active now, Completed, Expired
+- And each card shows its caption and a whole-number count
+
+**Scenario 2 — A card count agrees with the grid**
+- Given the summary cards are displayed
+- When the admin selects the status filter matching a card (for example Completed)
+- Then the grid's total number of results equals the number shown on that card
+
+**Scenario 3 — Cards do not react to the grid's filters**
+- Given the summary cards are displayed with their counts
+- When the admin types a search term, changes the status filter or applies a date range
+- Then only the grid below narrows
+- And the card counts continue to show the platform-wide totals, unchanged
+
+**Scenario 4 — A count is zero**
+- Given no trip currently matches one of the cards
+- Then that card shows 0
+- And it is not left blank or hidden
+
+**Scenario 5 — One count cannot be retrieved**
+- Given the platform cannot return the count for one card
+- Then that card shows a placeholder instead of a number, never a stale or guessed value
+- And the other three cards still show their counts
+- And the grid below still loads normally
+
+**Scenario 6 — Cards are read-only**
+- Given the summary cards are displayed
+- When the admin clicks a card
+- Then nothing happens — no navigation, and no change to the grid's filters
+
+**Scenario 7 — Cards are independent of the grid's state**
+- Given the grid is still loading, is empty, or has failed to load
+- Then the card row still occupies its place above the filter bar and shows whatever counts it was able to retrieve
+
+### Out of Scope
+- Clicking a card to apply the matching filter to the grid
+- Trend indicators, percentage change, sparklines or period comparison on a card
+- Refreshing the counts on a timer — they are read when the screen loads (the dashboard's 30-second refresh, #1669, is not applied here)
+- Exporting the card values (the grid's CSV export from #1670 is unchanged)
+- Per-zone or per-city breakdowns
+
+### Dependencies
+- #1670 — Admin views trip list (the grid these cards sit above)
+- #1669 — Admin sees live summary dashboard (defines Active Trips, reused by the Active now card)
 
 ---
 
