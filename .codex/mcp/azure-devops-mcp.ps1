@@ -50,7 +50,21 @@ $launchArgs = @(
   '-d', 'work-items'
 )
 
+# Prefer PAT auth when a credential file is present. The server's default
+# authenticator calls MSAL acquireTokenInteractive, which hands the sign-in URL to
+# the system default browser -- on a machine with multiple Chrome profiles that
+# lands in the wrong profile and fails with AADSTS70007.
+# The file holds base64(":<pat>"); dist/index.js decodes it and strips the part
+# before the first colon.
+$patFile = Join-Path $env:USERPROFILE '.ado-mcp-pat'
+if ([string]::IsNullOrWhiteSpace($env:PERSONAL_ACCESS_TOKEN) -and (Test-Path -LiteralPath $patFile)) {
+  $env:PERSONAL_ACCESS_TOKEN = (Get-Content -LiteralPath $patFile -Raw).Trim()
+}
+
 $auth = $env:AZURE_DEVOPS_MCP_AUTH
+if ([string]::IsNullOrWhiteSpace($auth) -and -not [string]::IsNullOrWhiteSpace($env:PERSONAL_ACCESS_TOKEN)) {
+  $auth = 'pat'
+}
 if (-not [string]::IsNullOrWhiteSpace($auth)) {
   $launchArgs += @('--authentication', $auth)
 }
