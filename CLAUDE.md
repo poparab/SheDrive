@@ -85,7 +85,7 @@ Rules:
 2. **Always add new keys to BOTH** `shared/i18n/ar.json` AND `shared/i18n/en.json` at the same time.
 3. **Never mix Arabic and English inside a single text node.** One key per language — not `<span>طوارئ</span> SOS`.
 4. **Never use hardcoded `aria-label="..."`** on any element — always pair it with `data-i18n-aria-label`.
-5. Key namespaces: `login.*`, `home.*`, `verify.*`, `matching.*`, `trip.*`, `emergency.*`, `complete.*`, `menu.*`, `aria.*`, `nav.*`, `common.*`, `splash.*`.
+5. Key namespaces: `login.*`, `home.*`, `matching.*`, `trip.*`, `emergency.*`, `complete.*`, `menu.*`, `aria.*`, `nav.*`, `common.*`, `splash.*`, `sos.*`, `verifyRider.*`.
 
 `shared/scripts/i18n.js` handles all four attribute types in `applyTranslations()`.
 
@@ -101,6 +101,14 @@ Rules:
 | `shedrive.activeTrip` | sessionStorage | JSON `{driver, trip}` | Matching → Active Trip handoff |
 | `shedrive.completedRating` | sessionStorage | string `'1'` | Rating submitted flag |
 | `shedrive.adminSession` | localStorage | JSON `{email, role, loginAt}` | Admin portal session (separate from `shedrive.session`) |
+
+**Rider and driver screens are deliberately open**, the same way the admin portal is.
+`auth.requireAuth()` provisions a demo session instead of redirecting, so any screen can
+be deep-linked from an ADO design story and actually render — a designer following a
+preview link has no session and would otherwise land on the login form. The role is taken
+from the path, so `/driver/*` gets a driver session and everything else a rider one.
+`?auth=strict` on any screen URL restores the production guard, keeping that acceptance
+criterion demonstrable. Do not "fix" this by reinstating an unconditional redirect.
 
 ---
 
@@ -171,7 +179,7 @@ compiled `styles.css`, vendored under `admin-v2/vendor/`). It is a **separate co
 ```js
 // Auth (shared/scripts/auth.js)
 import { auth } from '../../shared/scripts/auth.js';
-auth.requireAuth();       // redirects to ./index.html if no session
+auth.requireAuth();       // provisions a demo session so deep links render; ?auth=strict redirects
 auth.login(role, phone);  // creates session
 auth.logout();            // removes session
 auth.getSession();        // returns session object or null
