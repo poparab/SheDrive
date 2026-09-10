@@ -1,0 +1,920 @@
+<title>SheDrive Finance Story Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+/>
+
+<style>
+  :root {
+    --ink: #1a1530;
+    --ink-soft: #55506b;
+    --ink-faint: #857f9c;
+    --ground: #faf9fc;
+    --panel: #ffffff;
+    --panel-2: #f4f2f9;
+    --rule: #e5e2ee;
+    --rule-soft: #efedf5;
+    --brand: #6b2bd9;
+    --accent: #d63ae2;
+    --warn: #a56a06;
+    --warn-bg: rgba(165, 106, 6, 0.1);
+    --api: #6b2bd9;
+    --api-bg: rgba(107, 43, 217, 0.09);
+    --admin: #b0269a;
+    --admin-bg: rgba(214, 58, 226, 0.1);
+    --mobile: #0f766e;
+    --mobile-bg: rgba(15, 118, 110, 0.1);
+    --design: #52525b;
+    --design-bg: rgba(82, 82, 91, 0.1);
+    --shadow: 0 1px 2px rgba(26, 21, 48, 0.05), 0 8px 24px -16px rgba(26, 21, 48, 0.3);
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #ede9f7;
+      --ink-soft: #b3adc9;
+      --ink-faint: #8b85a3;
+      --ground: #141122;
+      --panel: #1c1830;
+      --panel-2: #241f3b;
+      --rule: #322c4a;
+      --rule-soft: #262138;
+      --brand: #a98bf5;
+      --accent: #ec7bf3;
+      --warn: #f0b64a;
+      --warn-bg: rgba(240, 182, 74, 0.13);
+      --api: #a98bf5;
+      --api-bg: rgba(169, 139, 245, 0.14);
+      --admin: #ec7bf3;
+      --admin-bg: rgba(236, 123, 243, 0.14);
+      --mobile: #4ec9bb;
+      --mobile-bg: rgba(78, 201, 187, 0.14);
+      --design: #a7a4b5;
+      --design-bg: rgba(167, 164, 181, 0.14);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -16px rgba(0, 0, 0, 0.9);
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #ede9f7;
+    --ink-soft: #b3adc9;
+    --ink-faint: #8b85a3;
+    --ground: #141122;
+    --panel: #1c1830;
+    --panel-2: #241f3b;
+    --rule: #322c4a;
+    --rule-soft: #262138;
+    --brand: #a98bf5;
+    --accent: #ec7bf3;
+    --warn: #f0b64a;
+    --warn-bg: rgba(240, 182, 74, 0.13);
+    --api: #a98bf5;
+    --api-bg: rgba(169, 139, 245, 0.14);
+    --admin: #ec7bf3;
+    --admin-bg: rgba(236, 123, 243, 0.14);
+    --mobile: #4ec9bb;
+    --mobile-bg: rgba(78, 201, 187, 0.14);
+    --design: #a7a4b5;
+    --design-bg: rgba(167, 164, 181, 0.14);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -16px rgba(0, 0, 0, 0.9);
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 40px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 42px;
+  }
+
+  h1,
+  h2,
+  h3,
+  .lede,
+  .eyebrow,
+  thead th {
+    font-family: Tajawal, "IBM Plex Sans", system-ui, sans-serif;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    margin: 0;
+    max-width: 68ch;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brand);
+  }
+
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 30px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .lede {
+    font-size: 1.16rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 62ch;
+  }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 10px;
+  }
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ---------- status strip ---------- */
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .stat {
+    background: var(--panel);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .stat b {
+    font-family: Tajawal, sans-serif;
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat span {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    line-height: 1.35;
+  }
+
+  .stat--flag b {
+    color: var(--warn);
+  }
+
+  /* ---------- the map ---------- */
+
+  .map {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--panel);
+    overflow: hidden;
+  }
+
+  .lane {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .lane:last-child {
+    border-bottom: none;
+  }
+
+  .lane__name {
+    background: var(--panel-2);
+    padding: 14px 16px;
+    border-inline-end: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .lane__name strong {
+    font-family: Tajawal, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .lane__name span {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+  }
+
+  .lane__cards {
+    padding: 12px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-content: flex-start;
+  }
+
+  a.card {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 168px;
+    padding: 8px 10px;
+    border-radius: 3px;
+    border: 1px solid currentColor;
+    text-decoration: none;
+    line-height: 1.35;
+    transition: transform 0.12s ease;
+  }
+
+  a.card:hover {
+    transform: translateY(-1px);
+  }
+
+  a.card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .card__top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .card__what {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink);
+    opacity: 0.86;
+  }
+
+  .card__tag {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 0 4px;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+    margin-inline-start: auto;
+    opacity: 0.8;
+  }
+
+  .t-api {
+    color: var(--api);
+    background: var(--api-bg);
+  }
+  .t-admin {
+    color: var(--admin);
+    background: var(--admin-bg);
+  }
+  .t-mobile {
+    color: var(--mobile);
+    background: var(--mobile-bg);
+  }
+  .t-design {
+    color: var(--design);
+    background: var(--design-bg);
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: center;
+    font-size: 0.79rem;
+    color: var(--ink-faint);
+  }
+
+  .swatch {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+  }
+
+  /* ---------- figure ---------- */
+
+  figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .figbox {
+    overflow-x: auto;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 20px 18px;
+  }
+
+  figure svg {
+    display: block;
+    width: 100%;
+    min-width: 640px;
+    height: auto;
+    color: var(--ink);
+  }
+
+  figcaption {
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    max-width: 68ch;
+  }
+
+  .svg-strong {
+    font-family: Tajawal, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    fill: currentColor;
+  }
+  .svg-label {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 11.5px;
+    fill: currentColor;
+  }
+  .svg-mono {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    fill: currentColor;
+  }
+  .svg-mini {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 10px;
+    fill: currentColor;
+    opacity: 0.66;
+    letter-spacing: 0.06em;
+  }
+  .svg-box {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.2;
+    opacity: 0.5;
+  }
+  .svg-line {
+    stroke: currentColor;
+    stroke-width: 1.2;
+    fill: none;
+    opacity: 0.6;
+  }
+  .svg-dash {
+    stroke-dasharray: 5 4;
+  }
+
+  /* ---------- tables ---------- */
+
+  .scroller {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--panel);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.85rem;
+    min-width: 760px;
+  }
+
+  th,
+  td {
+    text-align: start;
+    padding: 8px 13px;
+    border: 1px solid var(--rule-soft);
+    vertical-align: top;
+  }
+
+  thead th {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--ground);
+    border-color: var(--rule);
+    white-space: nowrap;
+  }
+
+  tbody th {
+    background: var(--panel-2);
+    font-family: Tajawal, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  td.id {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  td.id a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted currentColor;
+  }
+
+  td.mid {
+    text-align: center;
+    white-space: nowrap;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .pill {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 1px 7px;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+
+  .p-new {
+    color: var(--ink-faint);
+  }
+  .p-reopen {
+    color: var(--warn);
+    background: var(--warn-bg);
+  }
+  .p-extend {
+    color: var(--brand);
+    background: var(--api-bg);
+  }
+
+  .note {
+    border: 1px solid var(--rule);
+    border-inline-start: 3px solid var(--warn);
+    background: var(--panel);
+    border-radius: 3px;
+    padding: 14px 18px;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .note p {
+    max-width: none;
+  }
+
+  .note b {
+    color: var(--ink);
+  }
+
+  ul {
+    margin: 0;
+    padding-inline-start: 20px;
+    max-width: 68ch;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  li::marker {
+    color: var(--ink-faint);
+  }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  footer a {
+    color: var(--brand);
+  }
+
+  code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.88em;
+    background: var(--rule-soft);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  @media (max-width: 720px) {
+    .wrap {
+      padding: 28px 16px 72px;
+      gap: 34px;
+    }
+    .lane {
+      grid-template-columns: 1fr;
+    }
+    .lane__name {
+      border-inline-end: none;
+      border-bottom: 1px solid var(--rule);
+    }
+    a.card {
+      width: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+    }
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">SheDrive · Financial core · Backlog status</p>
+    <h1>SheDrive Finance Story Map</h1>
+    <p class="lede">
+      All 39 work items for the financial core — what each one covers, who builds it, and
+      where it actually stands in Azure DevOps today.
+    </p>
+  </header>
+
+  <section>
+    <div class="stats">
+      <div class="stat"><b>39</b><span>work items in the feature</span></div>
+      <div class="stat"><b>39</b><span>at state <b style="font-size: inherit">New</b> — none started</span></div>
+      <div class="stat stat--flag"><b>37</b><span>carry no story points</span></div>
+      <div class="stat stat--flag"><b>0</b><span>assigned to a sprint</span></div>
+    </div>
+    <p>
+      Read straight off ADO on 10 September 2026. The whole feature is written, parented and
+      ready — and none of it is planned yet. <b>Estimation is the next gate</b>, not more
+      analysis: only #1832 (3 points) and #1833 (8) carry an estimate, and both were pointed
+      before this work extended them.
+    </p>
+  </section>
+
+  <div class="legend">
+    <span>Teams:</span>
+    <span class="swatch t-api">API · 10</span>
+    <span class="swatch t-admin">Admin · 7</span>
+    <span class="swatch t-mobile">Mobile · 9</span>
+    <span class="swatch t-design">Design · 13</span>
+    <span>Every card opens the work item in Azure DevOps.</span>
+  </div>
+
+  <!-- ============ THE MAP ============ -->
+  <section>
+    <div class="sec-head"><h2>The map — every story, by what it makes possible</h2></div>
+    <p>
+      Grouped the way the money moves, not the way the teams are organised. A row is a step
+      in the business logic; the cards in it are everything that has to exist for that step
+      to work.
+    </p>
+
+    <div class="map">
+      <div class="lane">
+        <div class="lane__name"><strong>Foundation</strong><span>BLOCKS ALL 38</span></div>
+        <div class="lane__cards">
+          <a class="card t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3991"><span class="card__top">#3991 <span class="card__tag">API</span></span><span class="card__what">The ledger both parties post to; balance = sum of entries</span></a>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane__name"><strong>A trip completes</strong><span>THE CUSTODY BRANCH</span></div>
+        <div class="lane__cards">
+          <a class="card t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3997"><span class="card__top">#3997 <span class="card__tag">API</span></span><span class="card__what">Posts commission or earnings, chosen by who holds the fare</span></a>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane__name"><strong>Seeing a balance</strong><span>READS + SCREENS</span></div>
+        <div class="lane__cards">
+          <a class="card t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1781"><span class="card__top">#1781 <span class="card__tag">API</span></span><span class="card__what">Driver balance + statement; outstanding and available as two numbers</span></a>
+          <a class="card t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4004"><span class="card__top">#4004 <span class="card__tag">API</span></span><span class="card__what">Rider outstanding fees + statement, read-only</span></a>
+          <a class="card t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1788"><span class="card__top">#1788 <span class="card__tag">DRV</span></span><span class="card__what">Driver balance screen — now the full ledger statement</span></a>
+          <a class="card t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3992"><span class="card__top">#3992 <span class="card__tag">RDR</span></span><span class="card__what">Rider payment method + her outstanding fees</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3977"><span class="card__top">#3977 <span class="card__tag">DSN</span></span><span class="card__what">Driver Balance &amp; Statement</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3974"><span class="card__top">#3974 <span class="card__tag">DSN</span></span><span class="card__what">Rider Payment Method &amp; Outstanding Fees</span></a>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane__name"><strong>Someone cancels late</strong><span>THE FEE IS OPENED</span></div>
+        <div class="lane__cards">
+          <a class="card t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1764"><span class="card__top">#1764 <span class="card__tag">API</span></span><span class="card__what">Fees both directions; rider fee opens on her ledger, driver gets her share</span></a>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane__name"><strong>Recovering the fee</strong><span>THE BIGGEST SLICE — 11</span></div>
+        <div class="lane__cards">
+          <a class="card t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4000"><span class="card__top">#4000 <span class="card__tag">API</span></span><span class="card__what">Oldest fee rides as a surcharge on her next trip</span></a>
+          <a class="card t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4002"><span class="card__top">#4002 <span class="card__tag">API</span></span><span class="card__what">Above the threshold, the whole balance in one payment</span></a>
+          <a class="card t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3995"><span class="card__top">#3995 <span class="card__tag">RDR</span></span><span class="card__what">She sees the fee before she requests</span></a>
+          <a class="card t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3998"><span class="card__top">#3998 <span class="card__tag">RDR</span></span><span class="card__what">Full-balance notice — the most sensitive copy in the app</span></a>
+          <a class="card t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3999"><span class="card__top">#3999 <span class="card__tag">RDR</span></span><span class="card__what">The fee as its own line on her fare summary</span></a>
+          <a class="card t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3990"><span class="card__top">#3990 <span class="card__tag">DRV</span></span><span class="card__what">Driver collects fare + fee, itemised</span></a>
+          <a class="card t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4005"><span class="card__top">#4005 <span class="card__tag">ADM</span></span><span class="card__what">Review rider fees, waive with a reason, escalate to suspension</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3975"><span class="card__top">#3975 <span class="card__tag">DSN</span></span><span class="card__what">Fee Notice &amp; Full-Recovery State</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3976"><span class="card__top">#3976 <span class="card__tag">DSN</span></span><span class="card__what">Fare Summary with a Recovered Fee</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3981"><span class="card__top">#3981 <span class="card__tag">DSN</span></span><span class="card__what">Cash Collection with a Recovered Fee</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3984"><span class="card__top">#3984 <span class="card__tag">DSN</span></span><span class="card__what">Admin Rider Outstanding Fees</span></a>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane__name"><strong>The go-online gate</strong><span>THE ONLY AUTO BLOCK</span></div>
+        <div class="lane__cards">
+          <a class="card t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3996"><span class="card__top">#3996 <span class="card__tag">API</span></span><span class="card__what">Refuses go-online at or over the outstanding limit; 0 disables it</span></a>
+          <a class="card t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3988"><span class="card__top">#3988 <span class="card__tag">DRV</span></span><span class="card__what">Blocked state + the warning band below it</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3980"><span class="card__top">#3980 <span class="card__tag">DSN</span></span><span class="card__what">Go-Online Blocked &amp; Warning Band</span></a>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane__name"><strong>Handing the cash back</strong><span>SETTLEMENT</span></div>
+        <div class="lane__cards">
+          <a class="card t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1813"><span class="card__top">#1813 <span class="card__tag">ADM</span></span><span class="card__what">Record a settlement; posts an entry, generates the receipt</span></a>
+          <a class="card t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4006"><span class="card__top">#4006 <span class="card__tag">ADM</span></span><span class="card__what">Day book: totals by channel and admin, CSV</span></a>
+          <a class="card t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3989"><span class="card__top">#3989 <span class="card__tag">DRV</span></span><span class="card__what">She settles what she owes and sees her history</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3979"><span class="card__top">#3979 <span class="card__tag">DSN</span></span><span class="card__what">Settle What You Owe</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3982"><span class="card__top">#3982 <span class="card__tag">DSN</span></span><span class="card__what">Driver Balances &amp; Record Settlement</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3985"><span class="card__top">#3985 <span class="card__tag">DSN</span></span><span class="card__what">Settlement Day Book</span></a>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane__name"><strong>Paying a driver out</strong><span>THE MIRROR</span></div>
+        <div class="lane__cards">
+          <a class="card t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3993"><span class="card__top">#3993 <span class="card__tag">API</span></span><span class="card__what">Request reserves the amount; only "paid" posts an entry</span></a>
+          <a class="card t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4003"><span class="card__top">#4003 <span class="card__tag">API</span></span><span class="card__what">Payout destination captured; required before approval</span></a>
+          <a class="card t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4001"><span class="card__top">#4001 <span class="card__tag">ADM</span></span><span class="card__what">Queue: approve, mark paid, reject with a reason</span></a>
+          <a class="card t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3987"><span class="card__top">#3987 <span class="card__tag">DRV</span></span><span class="card__what">She requests a withdrawal, can cancel it while pending</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3978"><span class="card__top">#3978 <span class="card__tag">DSN</span></span><span class="card__what">Request a Withdrawal</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3983"><span class="card__top">#3983 <span class="card__tag">DSN</span></span><span class="card__what">Admin Withdrawal Requests</span></a>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane__name"><strong>The dials</strong><span>NO CODE DEPLOY</span></div>
+        <div class="lane__cards">
+          <a class="card t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3994"><span class="card__top">#3994 <span class="card__tag">ADM</span></span><span class="card__what">Commission, grace, fees, limits, thresholds, withdrawal rules</span></a>
+          <a class="card t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3986"><span class="card__top">#3986 <span class="card__tag">DSN</span></span><span class="card__what">Balance, Fee &amp; Withdrawal Policy</span></a>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane__name"><strong>What Finance sees</strong><span>THE ONLY POINTED PAIR</span></div>
+        <div class="lane__cards">
+          <a class="card t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1832"><span class="card__top">#1832 <span class="card__tag">ADM</span></span><span class="card__what">Commission earned vs settled vs outstanding · 3 pts</span></a>
+          <a class="card t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1833"><span class="card__top">#1833 <span class="card__tag">ADM</span></span><span class="card__what">Per-driver earnings &amp; settlement report · 8 pts</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BUILD ORDER ============ -->
+  <section>
+    <div class="sec-head"><h2>What blocks what</h2></div>
+    <p>
+      One story gates the entire feature. Nothing else — not a screen, not a report, not a
+      settlement — can be finished before the ledger exists.
+    </p>
+
+    <figure>
+      <div class="figbox">
+        <svg viewBox="0 0 760 300" role="img" aria-label="Four delivery waves: the ledger alone in wave one blocks everything; wave two holds trip completion, cancellation fees, the two balance reads and the policy screen; wave three holds fee recovery, the go-online gate, payouts, settlement and reports; wave four holds the nine mobile screens. The thirteen design stories run in parallel from the start and block nothing.">
+          <defs>
+            <marker id="w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <text class="svg-mini" x="10" y="16">WAVE 1</text>
+          <text class="svg-mini" x="196" y="16">WAVE 2</text>
+          <text class="svg-mini" x="392" y="16">WAVE 3</text>
+          <text class="svg-mini" x="600" y="16">WAVE 4</text>
+
+          <rect x="10" y="26" width="150" height="98" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5" />
+          <text class="svg-strong" x="24" y="48" fill="var(--accent)">The ledger</text>
+          <text class="svg-mono" x="24" y="68" fill="var(--accent)">#3991</text>
+          <text class="svg-label" x="24" y="90">Build this first.</text>
+          <text class="svg-label" x="24" y="106">Everything reads it.</text>
+
+          <line class="svg-line" x1="160" y1="75" x2="192" y2="75" marker-end="url(#w)" />
+
+          <rect class="svg-box" x="196" y="26" width="160" height="98" rx="3" />
+          <text class="svg-strong" x="210" y="48">Posting + reads</text>
+          <text class="svg-mono" x="210" y="68">#3997  #1764</text>
+          <text class="svg-mono" x="210" y="86">#1781  #4004</text>
+          <text class="svg-mono" x="210" y="104">#3994</text>
+
+          <line class="svg-line" x1="356" y1="75" x2="388" y2="75" marker-end="url(#w)" />
+
+          <rect class="svg-box" x="392" y="26" width="176" height="98" rx="3" />
+          <text class="svg-strong" x="406" y="48">Money moves</text>
+          <text class="svg-mono" x="406" y="68">#4000 #4002 #3996</text>
+          <text class="svg-mono" x="406" y="86">#3993 #4003 #1813</text>
+          <text class="svg-mono" x="406" y="104">#4001 #4005 #4006</text>
+
+          <line class="svg-line" x1="568" y1="75" x2="600" y2="75" marker-end="url(#w)" />
+
+          <rect class="svg-box" x="604" y="26" width="146" height="98" rx="3" />
+          <text class="svg-strong" x="618" y="48">The 9 screens</text>
+          <text class="svg-mono" x="618" y="68">#1788 #3987 #3988</text>
+          <text class="svg-mono" x="618" y="86">#3989 #3990 #3992</text>
+          <text class="svg-mono" x="618" y="104">#3995 #3998 #3999</text>
+
+          <line class="svg-line svg-dash" x1="10" y1="152" x2="750" y2="152" />
+
+          <rect class="svg-box svg-dash" x="10" y="170" width="740" height="60" rx="3" />
+          <text class="svg-strong" x="24" y="192">13 design stories — start now, in parallel, blocked by nothing</text>
+          <text class="svg-mono" x="24" y="214">#3974 #3975 #3976 #3977 #3978 #3979 #3980 #3981 #3982 #3983 #3984 #3985 #3986</text>
+
+          <text class="svg-label" x="10" y="258">The prototype already shows every one of these screens working, so design has a</text>
+          <text class="svg-label" x="10" y="276">reference from day one and does not have to wait for a single line of backend.</text>
+          <text class="svg-label" x="10" y="294">#1832 and #1833 (reports) can also start early — they read, they do not post.</text>
+        </svg>
+      </div>
+      <figcaption>
+        Delivery order, not team order. The dashed lane is the point: thirteen of the
+        thirty-nine items are not waiting on anything.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ TABLE ============ -->
+  <section>
+    <div class="sec-head"><h2>Every story: scope, origin, status</h2></div>
+    <p>
+      <b>Origin</b> matters for estimating. A <span class="pill p-new">new</span> story is a
+      fresh build. A <span class="pill p-reopen">reopened</span> or rescoped one was closed
+      or removed and has been rewritten — the old estimate, where there was one, no longer
+      describes the work. An <span class="pill p-extend">extended</span> one keeps its
+      existing points at the product owner's instruction and may need repointing.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr>
+            <th>Story</th>
+            <th>Scope — what it covers</th>
+            <th>Origin</th>
+            <th>State</th>
+            <th class="mid">Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th colspan="5">API — 10 stories</th></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3991">#3991</a></td><td>The append-only ledger for both parties: entry types, immutability, idempotent posting, every entry naming its cause. Balance is the sum, never stored.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3997">#3997</a></td><td>Trip completion posts one entry, chosen by the trip's custody value — the single place in the platform that branches on it.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1764">#1764</a></td><td>Cancellation fees both ways. Rider late-cancel opens a fee on her ledger and credits the driver her share; driver late-cancel debits her, waived on a qualifying no-show. Values snapshotted at acceptance.</td><td><span class="pill p-reopen">reopened</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4000">#4000</a></td><td>Recovery: the oldest outstanding fee rides as a surcharge on her next completed trip, posting to both ledgers. No commission on a recovered fee.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4002">#4002</a></td><td>Escalation: at or above the recovery threshold, her whole outstanding balance comes off one ride instead of one fee at a time.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3996">#3996</a></td><td>Go-online is refused while outstanding is at or over the limit; returns the amount and the limit so the app can explain it. A settlement releases her immediately.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3993">#3993</a></td><td>Withdrawal request lifecycle. Requesting reserves against available and posts nothing; only "mark paid" posts a ledger entry.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4003">#4003</a></td><td>Payout destination on the driver profile, required before any payout can be approved.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1781">#1781</a></td><td>Driver balance and statement. Returns outstanding and available separately so no client interprets a sign. Calculates nothing.</td><td><span class="pill p-reopen">reopened</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4004">#4004</a></td><td>Rider outstanding fees and statement, read-only, each fee naming its cause.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+
+          <tr><th colspan="5">Admin — 7 stories</th></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3994">#3994</a></td><td>The whole policy surface: commission, both grace periods, both cancellation fees, the driver share, the outstanding limit and warning band, the recovery threshold, and the withdrawal rules. Every change audited.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1813">#1813</a></td><td>Driver balances list, ledger drawer, record a settlement across four channels with a reference and a generated receipt, post an adjustment.</td><td><span class="pill p-reopen">reopened</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4006">#4006</a></td><td>Settlement day book: every settlement for a date, totalled by channel and by admin, CSV export. The artefact Finance reconciles against the bank.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4001">#4001</a></td><td>Withdrawal queue: approve, mark paid, reject with a reason. Blocked without a payout destination on file.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4005">#4005</a></td><td>Riders with outstanding fees, rider ledger drawer, waive with a reason, post an adjustment, and the link into rider suspension for persistent abuse.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1832">#1832</a></td><td>Revenue &amp; commission summary, extended with commission earned vs. settled vs. outstanding — the exposure figure.</td><td><span class="pill p-extend">extended</span></td><td>New</td><td class="mid">3</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1833">#1833</a></td><td>Per-driver earnings &amp; settlement report; dependencies repointed onto the ledger.</td><td><span class="pill p-extend">extended</span></td><td>New</td><td class="mid">8</td></tr>
+
+          <tr><th colspan="5">Mobile — driver, 5 stories</th></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1788">#1788</a></td><td>Balance and statement. Was a read-only "cash owed" view; now the signed balance, credits and debits, each entry's cause, the warning band and the withdrawal entry point.</td><td><span class="pill p-reopen">rescoped</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3987">#3987</a></td><td>Request a withdrawal honouring min, max and cooling-off; pending state; cancel her own request; rejection reason surfaced.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3989">#3989</a></td><td>What she owes, the channels she may use, where and when, and her settlement history with receipt numbers.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3988">#3988</a></td><td>The blocked state — amount owed, the limit, a direct link to settle — and the warning band below it. The one that stops her earning.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3990">#3990</a></td><td>Cash collection itemised as fare + recovered fee = total, with a short reason on the fee line so she never has to explain an unexplained number.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+
+          <tr><th colspan="5">Mobile — rider, 4 stories</th></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3992">#3992</a></td><td>Payment method and outstanding fees: each fee, its trip and date, and the line saying it will be added to her next ride. Fee detail behind each row.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3995">#3995</a></td><td>A dismissible notice before she requests, stating the amount that will be added to this ride. She is never blocked from booking.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3998">#3998</a></td><td>Above the threshold: the full amount, stated plainly, not dismissible. Factual and fair, never punitive — the most sensitive copy in the rider app.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3999">#3999</a></td><td>The recovered fee as its own line above the total on the fare summary, and on historic trip detail. Never folded into the fare.</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+
+          <tr><th colspan="5">Design — 13 briefs, area path SheDrive\Design Team</th></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3974">#3974</a></td><td>[Rider] Payment Method &amp; Outstanding Fees</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3975">#3975</a></td><td>[Rider] Outstanding Fee Notice &amp; Full-Recovery State</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3976">#3976</a></td><td>[Rider] Fare Summary with a Recovered Fee</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3977">#3977</a></td><td>[Driver] Balance &amp; Statement</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3978">#3978</a></td><td>[Driver] Request a Withdrawal</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3979">#3979</a></td><td>[Driver] Settle What You Owe</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3980">#3980</a></td><td>[Driver] Go-Online Blocked &amp; Warning Band</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3981">#3981</a></td><td>[Driver] Cash Collection with a Recovered Fee</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3982">#3982</a></td><td>[Admin] Driver Balances &amp; Record Settlement</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3983">#3983</a></td><td>[Admin] Driver Withdrawal Requests</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3984">#3984</a></td><td>[Admin] Rider Outstanding Fees</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3985">#3985</a></td><td>[Admin] Settlement Day Book</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+          <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3986">#3986</a></td><td>[Admin] Balance, Fee &amp; Withdrawal Policy</td><td><span class="pill p-new">new</span></td><td>New</td><td class="mid">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ BEFORE PLANNING ============ -->
+  <section>
+    <div class="sec-head"><h2>Before this can go into a sprint</h2></div>
+
+    <div class="note">
+      <p>
+        <b>1. Estimate 37 items.</b> Only #1832 and #1833 carry points, and both were pointed
+        before this work extended them — their scope grew and the numbers did not. Everything
+        else is unestimated. Three of the unestimated items were previously closed or removed
+        (#1764, #1781, #1813) and one was rescoped (#1788): treat all four as new work, not
+        as carry-over.
+      </p>
+    </div>
+
+    <div class="note">
+      <p>
+        <b>2. #1645 is Removed but still depended on.</b> #3996 extends the go-online check
+        that story owned, and #3058's completion flow depends on its availability write. No
+        story currently owns that transition. This needs resolving with the API team before
+        #3996 is started, or #3996 has nothing to extend.
+      </p>
+    </div>
+
+    <div class="note">
+      <p>
+        <b>3. Two business decisions gate acceptance criteria, not code.</b> Nobody has
+        decided how the cash physically comes back — which of the four settlement channels
+        SheDrive will actually run, or who staffs it — and #1813's criteria cannot be
+        finalised without it. Separately, driver onboarding does not collect a payout
+        destination today, so #4003 adds a field the onboarding flow will also have to ask
+        for.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      Status read from Azure DevOps on 10 September 2026. The logic behind these stories is
+      in the <b>SheDrive Money Rulebook</b>; the contract every team builds from is
+      <code>docs/superpowers/specs/2026-09-08-financial-core-design.md</code>.
+    </p>
+    <p>SheDrive · financial core · 39 items · none started, none scheduled.</p>
+  </footer>
+</div>

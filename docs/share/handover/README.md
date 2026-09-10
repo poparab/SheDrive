@@ -16,6 +16,9 @@ online payment later is a configuration change, not a rebuild.
 | **Anyone who needs the truth** | [`../../superpowers/specs/2026-09-08-financial-core-design.md`](../../superpowers/specs/2026-09-08-financial-core-design.md) — the spec every team builds from |
 
 **Visual explainers** (published, shareable):
+- [**SheDrive Finance Story Map**](https://claude.ai/code/artifact/add3ef30-5b1e-465a-9391-ef646507b223)
+  — all 39 work items: scope, team, origin and live ADO status, grouped by what each one
+  makes possible, plus the delivery waves. Source: [`financial-story-map.html`](financial-story-map.html)
 - [**SheDrive Money Rulebook**](https://claude.ai/code/artifact/5ff1415a-761d-4951-b349-09773fd8203f)
   — every rule in the order money moves, each one tagged with the story number that owns
   it, plus a table of all 37 stories. Source: [`financial-logic-map.html`](financial-logic-map.html)

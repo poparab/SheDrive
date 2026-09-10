@@ -58,8 +58,8 @@ Two content rules apply across every screen in this set, per the design spec:
 
 ```html
 <p>This screen is where a rider checks how she pays and whether she owes anything
-from a past ride. Cash is the only active method in Phase 1; online payment is shown
-but not selectable, so the door is visibly open for later without promising a date.
+from a past ride. Cash is the only payment method, so the top of the screen simply
+confirms how she pays rather than offering a choice.
 Below it, an outstanding fees section lists every fee she currently owes — each tied
 to the trip and date it came from — with a plain-language line explaining it will be
 added to her next ride rather than charged here and now.</p>
@@ -67,8 +67,8 @@ added to her next ride rather than charged here and now.</p>
 <h3>Components</h3>
 <ul>
   <li><code>sd-page</code> shell with <code>sd-app-header</code> (menu, back)</li>
-  <li>Payment method list: a selected/active "Cash" row and a visually disabled
-  "Online payment — coming soon" row (same row style, muted, no tap target)</li>
+  <li>Payment method block: a single "Cash" row, stated rather than chosen, with a
+  short line confirming she pays the driver at the end of the ride</li>
   <li>Outstanding fees section: a card or list per fee showing amount (EGP, 2
   decimals, right-aligned, tabular figures), the originating trip reference and
   date, and the fixed line "this will be added to your next ride"</li>
@@ -120,8 +120,8 @@ recovery threshold, that banner is replaced by a firmer, non-dismissible one say
 must see it before she confirms.</p>
 
 <p><strong>She is never blocked from booking.</strong> An earlier version of this design
-blocked her at the threshold. That deadlocks: a Phase 1 rider pays cash and has no card,
-so the only way she can ever clear a fee is by taking a ride. Blocking the booking would
+blocked her at the threshold. That deadlocks: a rider pays in cash on the ride, so the
+only way she can ever clear a fee is by taking a ride. Blocking the booking would
 make the debt permanent and lose the customer with nothing recovered. Please do not draw
 a blocked artboard for the rider — the only block on a rider is an admin suspending her
 account, which is an existing flow and a human decision.</p>
