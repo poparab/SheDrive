@@ -232,8 +232,10 @@ and the historic trip-detail view, so the two match exactly.</em></p>
 she is owed (available) or money she owes the platform (outstanding), a warning band
 when she is approaching the outstanding limit, and a full statement of every credit
 and debit that produced that number — trip commissions, trip earnings, cancellation
-fees and shares, recovered-fee deductions, settlements and withdrawals, adjustments —
-each with a plain-language cause. It is also where she starts a withdrawal.</p>
+fees and shares, recovered-fee deductions, settlements and payouts —
+each with a plain-language cause. Any payout Finance has sent her appears here with
+its reference and date, exactly like a settlement — there is nothing for her to start;
+a payout is only ever recorded after Finance has already sent the money.</p>
 
 <h3>Components</h3>
 <ul>
@@ -244,18 +246,18 @@ each with a plain-language cause. It is also where she starts a withdrawal.</p>
   rider fee notice) shown once her outstanding balance crosses the configured warning
   fraction of the limit</li>
   <li>Statement list: one row per ledger entry — date, entry type in plain language
-  (e.g. "Trip commission", "Cash fee collected from rider", "Settlement recorded"),
-  signed amount, and a link to the related trip/settlement/withdrawal where one
-  exists</li>
+  (e.g. "Trip commission", "Cash fee collected from rider", "Settlement recorded",
+  "Payout received"), signed amount, and a link to the related trip/settlement/payout
+  where one exists</li>
   <li>Last-settlement summary block (date, amount, receipt number)</li>
-  <li><code>sd-button</code> entry points to <code>withdraw.html</code> and
-  <code>settle.html</code></li>
+  <li><code>sd-button</code> entry point to <code>settle.html</code></li>
 </ul>
 
 <h3>States</h3>
 <ul>
   <li><strong>Default — available (positive) balance:</strong> balance reads as
-  money owed to her; withdraw entry point is the primary action</li>
+  money SheDrive owes her — an explanation, not an action; there is no withdraw entry
+  point anywhere on this screen</li>
   <li><strong>Default — outstanding (negative) balance, under warning band:</strong>
   balance reads as money she owes; settle entry point is the primary action</li>
   <li><strong>Warning band:</strong> outstanding balance at or above the configured
@@ -272,7 +274,8 @@ each with a plain-language cause. It is also where she starts a withdrawal.</p>
 <p><em>Note: credits and debits in the statement must be distinguishable without
 relying on colour alone — pair colour with a leading sign and/or a small icon.
 Every row must name its cause; a bare amount with no explanation is not acceptable
-anywhere on this screen.</em></p>
+anywhere on this screen. Every posted row is permanent — Phase 1 has no correction
+mechanism, so nothing here can be edited or reversed.</em></p>
 
 <h3>Preview</h3>
 <p>Mockup: &lt;to be added&gt;</p>
@@ -280,54 +283,7 @@ anywhere on this screen.</em></p>
 
 ---
 
-## [Driver] Request a Withdrawal
-
-**ADO:** #3978 — created 2026-09-08
-
-**Screen:** `driver/withdraw.html` (finish)
-**Parent:** #1840 — Driver — Trip Completion & Earnings
-**AcceptanceCriteria:** *(leave empty — design story format)*
-
-```html
-<p>This is where a driver with an available balance asks to be paid out. The form
-honours the policy minimum and maximum, and a cooling-off period between requests. A
-driver may cancel her own request while it is still pending, and if it was rejected
-she sees why. This screen also has to be honest when withdrawals are switched off
-platform-wide, or when she is inside a cooling-off window.</p>
-
-<h3>Components</h3>
-<ul>
-  <li><code>sd-page</code> shell with <code>sd-app-header</code></li>
-  <li>Amount <code>sd-*</code> field/input with inline min/max hints, current
-  available balance shown for reference</li>
-  <li>Submit <code>sd-button</code></li>
-  <li>Pending-request card: requested amount, requested date, status, a cancel
-  action</li>
-  <li>Rejection banner: reason surfaced in plain language, with a way back into a
-  fresh request</li>
-  <li>Cooling-off notice: days remaining until she can request again</li>
-</ul>
-
-<h3>States</h3>
-<ul>
-  <li><strong>Default — eligible to request:</strong> form shown, min/max enforced
-  inline</li>
-  <li><strong>Pending request:</strong> form replaced by the pending-request card
-  with a cancel action; no second request possible while one is open</li>
-  <li><strong>Rejected:</strong> most recent request's rejection reason shown, then
-  the form re-opens for a new request</li>
-  <li><strong>Cooling-off blocked:</strong> she has an approved/paid request too
-  recently — form is replaced by a countdown-style notice, no way to submit early</li>
-  <li><strong>Withdrawals disabled:</strong> the platform master switch is off — the
-  whole entry point reads as unavailable, not broken, with a short explanation</li>
-  <li><strong>Zero available balance:</strong> nothing to withdraw — informational
-  state, not an error</li>
-  <li><strong>Loading / Error:</strong> standard fetch states with retry on error</li>
-</ul>
-
-<h3>Preview</h3>
-<p>Mockup: &lt;to be added&gt;</p>
-```
+> **Removed 2026-09-13:** drivers do not request payouts. Finance transfers the funds and records the transfer afterwards — see #3993 and #4001. There is no driver-initiated request in the system.
 
 ---
 
@@ -479,7 +435,7 @@ recovery feel like the driver charging extra on her own initiative.</em></p>
 
 ## [Admin] Driver Balances & Record Settlement
 
-**ADO:** #3982 — created 2026-09-08
+**ADO:** #3982 — created 2026-09-08 · updated 2026-09-13
 
 **Screen:** `admin-v2/balances.html` (finish)
 **Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
@@ -487,9 +443,11 @@ recovery feel like the driver charging extra on her own initiative.</em></p>
 
 ```html
 <p>This is where operations staff see every driver's balance in one place, drill into
-a driver's full ledger, and record a settlement when she hands cash back or post a
-manual adjustment with a reason. Recording a settlement here is what unblocks her
-go-online state if it clears her below the outstanding limit — no separate step.</p>
+a driver's full ledger, and record a settlement when she hands cash back. Recording a
+settlement here is what unblocks her go-online state if it clears her below the
+outstanding limit — no separate step. Settlement entries export to CSV directly from
+this screen, which is Finance's reconciliation input now that the separate day-book
+screen has been cut.</p>
 
 <h3>Components</h3>
 <ul>
@@ -501,12 +459,13 @@ go-online state if it clears her below the outstanding limit — no separate ste
   date; row opens the driver's ledger</li>
   <li>Ledger view: <code>ad-detail-section</code> for the driver summary plus an
   <code>ad-data-table</code> or <code>ad-timeline</code> of ledger entries (type,
-  date, signed amount, cause, related trip/settlement/withdrawal link)</li>
+  date, signed amount, cause, related trip/settlement/payout link)</li>
   <li><code>ad-form-modal</code> "Record settlement" — channel select (configurable
   list), reference field (required except for office cash, where it defaults to the
   generated receipt number), amount, generated receipt number shown on success</li>
-  <li><code>ad-form-modal</code> "Post adjustment" — signed amount and a required
-  reason</li>
+  <li>CSV export action on the settlement entries — driver, amount, channel,
+  reference, receipt number, recording admin, and time — scoped to the active
+  filters</li>
 </ul>
 
 <h3>States</h3>
@@ -519,7 +478,6 @@ go-online state if it clears her below the outstanding limit — no separate ste
   activity yet)</li>
   <li>Record-settlement modal: default, validation errors (missing reference on a
   channel that requires one), success with receipt number and a confirmation toast</li>
-  <li>Post-adjustment modal: default, validation error (missing reason), success</li>
   <li>Zero-balance driver in the list and in the ledger drawer</li>
 </ul>
 
@@ -529,45 +487,47 @@ go-online state if it clears her below the outstanding limit — no separate ste
 
 ---
 
-## [Admin] Driver Withdrawal Requests
+## [Admin] Record a Payout
 
-**ADO:** #3983 — created 2026-09-08
+**ADO:** #3983 — created 2026-09-08 · retitled 2026-09-13
 
-**Screen:** `admin-v2/withdrawals.html` (finish)
+**Screen:** `admin-v2/balances.html` (finish — modal on the driver balances screen, not a separate list screen)
 **Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
 **AcceptanceCriteria:** *(leave empty — design story format)*
 
 ```html
-<p>This is the queue operations staff work to pay drivers out: approve a pending
-request, mark an approved one paid (the only step that actually posts a ledger
-entry), or reject one with a reason. A request cannot be approved until the driver
-has a payout destination on file, and that gap has to be obvious from the row, not
-just from a blocked button.</p>
+<p>This is the record-a-payout form on the driver balances screen
+(<code>admin-v2/balances.html</code>) — the mirror of recording a settlement, in the
+opposite direction. Finance transfers money to a driver on its own cycle, outside the
+system; this form is where that transfer is written down afterward. There is no
+request, no queue, and no approve/reject — recording is the only step.</p>
 
 <h3>Components</h3>
 <ul>
-  <li><code>ad-shell</code> page skeleton</li>
-  <li><code>ad-filter-bar</code>: status filter (pending / approved / paid /
-  rejected), search by driver</li>
-  <li><code>ad-data-table</code> columns: driver, requested amount (EGP,
-  right-aligned, tabular figures), requested date, payout destination summary or a
-  "missing" flag, <code>ad-status-pill</code> for request status</li>
-  <li>Detail view: <code>ad-detail-section</code> with the request, the driver's
-  payout destination (or its absence), and action buttons</li>
-  <li><code>ad-form-modal</code> "Reject request" — required reason</li>
-  <li>Confirm-style action for "Mark paid" (the ledger-posting step)</li>
+  <li><code>ad-form-modal</code> "Record payout" launched from a driver's row or
+  ledger drawer on <code>balances.html</code></li>
+  <li>Read-only driver summary: name, current available balance</li>
+  <li>Payout destination summary, read from the driver's profile (#4003)</li>
+  <li>Amount field (EGP), capped at the driver's available balance</li>
+  <li>Date field, defaulting to today</li>
+  <li>Reference field (the bank/wallet transaction id or receipt)</li>
+  <li>Submit action; success shows a confirmation toast and the new balance</li>
 </ul>
 
 <h3>States</h3>
 <ul>
-  <li>Standard list states: <code>?state=empty</code>, <code>?state=loading</code>,
-  <code>?state=error</code>, <code>?state=long</code></li>
-  <li>Pending request, with and without a payout destination on file</li>
-  <li><strong>Blocked without a payout destination:</strong> approve is disabled with
-  an inline explanation and a link to the driver's profile to add one</li>
-  <li>Approved, awaiting payment</li>
-  <li>Paid — read-only, shows the ledger entry reference</li>
-  <li>Rejected — reason shown</li>
+  <li><strong>Default — eligible to record:</strong> driver has a positive available
+  balance and a payout destination on file</li>
+  <li><strong>Blocked — no payout destination on file:</strong> the form is replaced by
+  an inline explanation and a link to the driver's profile to add one; nothing can be
+  submitted from here until it exists</li>
+  <li><strong>Validation error:</strong> amount exceeds the available balance, or the
+  reference/date is missing</li>
+  <li><strong>Zero or negative available balance:</strong> the record-payout action is
+  not offered for this driver</li>
+  <li><strong>Success:</strong> confirmation toast, the ledger drawer shows the new
+  <code>payout</code> entry, and the driver's available balance updates immediately</li>
+  <li><strong>Loading / Error:</strong> standard fetch states with retry on error</li>
 </ul>
 
 <h3>Preview</h3>
@@ -587,9 +547,8 @@ just from a blocked button.</p>
 ```html
 <p>The rider-side counterpart to the driver balances screen: every rider currently
 carrying an outstanding cancellation fee, her ledger of fee and payment entries, and
-the ability for operations staff to waive a fee with a reason or post a manual
-adjustment. Most riders never appear here — this is exception handling, not a
-routine list.</p>
+the ability for operations staff to waive a fee with a reason. Most riders never
+appear here — this is exception handling, not a routine list.</p>
 
 <h3>Components</h3>
 <ul>
@@ -601,10 +560,8 @@ routine list.</p>
   <code>ad-status-pill</code> for status; a rider over the booking limit is visually
   distinguished</li>
   <li>Ledger view: <code>ad-detail-section</code> plus entries (cancellation fee,
-  fee collected, fee waived, adjustment) with cause and related trip link</li>
+  fee collected, fee waived) with cause and related trip link</li>
   <li><code>ad-form-modal</code> "Waive fee" — required reason</li>
-  <li><code>ad-form-modal</code> "Post adjustment" — signed amount and required
-  reason</li>
 </ul>
 
 <h3>States</h3>
@@ -616,7 +573,6 @@ routine list.</p>
   <li>Rider over the booking limit, both in the list and in the ledger drawer</li>
   <li>Waive-fee modal: default, validation error (missing reason), success with
   confirmation toast</li>
-  <li>Post-adjustment modal: default, validation error, success</li>
 </ul>
 
 <h3>Preview</h3>
@@ -627,74 +583,37 @@ routine list.</p>
 
 ## [Admin] Settlement Day Book
 
-**ADO:** #3985 — created 2026-09-08
-
-**Screen:** `admin-v2/settlements.html` (new)
-**Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
-**AcceptanceCriteria:** *(leave empty — design story format)*
-
-```html
-<p>This is the reconciliation artefact Finance checks against the bank: every
-settlement recorded, totalled by channel and by the admin who recorded it, filterable
-by date, exportable to CSV. Every row here was created from the "Record settlement"
-action on the driver balances screen — this page never posts anything itself, it only
-reports.</p>
-
-<h3>Components</h3>
-<ul>
-  <li><code>ad-shell</code> page skeleton</li>
-  <li><code>ad-filter-bar</code>: date range, channel filter, recording-admin filter</li>
-  <li>Totals row: an <code>ad-stat-card</code> per channel plus a grand total for the
-  selected range, all EGP right-aligned tabular figures</li>
-  <li><code>ad-data-table</code> columns: date/time, driver, channel, amount,
-  reference, receipt number (<code>S-nnnnn</code>), recording admin</li>
-  <li>CSV export action, scoped to the active filters, not just the visible page</li>
-</ul>
-
-<h3>States</h3>
-<ul>
-  <li>Standard list states: <code>?state=empty</code>, <code>?state=loading</code>,
-  <code>?state=error</code>, <code>?state=long</code></li>
-  <li>Default — a day with settlements, totals and list populated</li>
-  <li>Empty — a date range with no settlements, totals read as zero rather than
-  disappearing</li>
-  <li>Filtered by date range, by channel, and by recording admin, individually and
-  combined</li>
-</ul>
-
-<h3>Preview</h3>
-<p>Mockup: &lt;to be added&gt;</p>
-```
+> **Removed 2026-09-13:** cut as a report dressed as a screen. Settlement entries are exportable as CSV from the driver balances screen (#1813), which gives Finance the same reconciliation input. Can return as a real reconciliation — banked amount in, variance out — once the cash-collection model is decided.
 
 ---
 
-## [Admin] Balance, Fee & Withdrawal Policy
+## [Admin] Balance & Fee Policy
 
-**ADO:** #3986 — created 2026-09-08
+**ADO:** #3986 — created 2026-09-08 · retitled 2026-09-13
 
 **Screen:** `admin-v2/pricing-policies.html` (extend)
 **Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
 **AcceptanceCriteria:** *(leave empty — design story format)*
 
 ```html
-<p>This adds the balance, fee and withdrawal policy block to the existing pricing and
+<p>This adds the balance and fee policy block to the existing pricing and
 policies screen — the single place a super admin changes commission, grace periods,
-cancellation fees, the driver outstanding limit and warning band, the rider fee
-recovery threshold, and the withdrawal rules, with no code deploy required. Every
-change here writes an audit-log entry with who, when, old value and new value, and
-values already snapshotted onto a trip at driver acceptance are never affected
-retroactively.</p>
+cancellation fees, the driver outstanding limit and warning band, and the rider fee
+recovery threshold, with no code deploy required. A payout to a driver is recorded,
+never configured here — there is no request, approval, minimum, maximum, or
+cooling-off for it anywhere in the system. Every change here writes an audit-log entry
+with who, when, old value and new value, and values already snapshotted onto a trip at
+driver acceptance are never affected retroactively.</p>
 
 <h3>Components</h3>
 <ul>
   <li><code>ad-shell</code> page skeleton, added as a new section alongside the
   existing pricing-policy form on this screen</li>
   <li>Form fields, grouped logically (trip economics / cancellation fees / driver
-  balance & withdrawals / rider fees): platform commission %, rider grace period,
+  balance / rider fees): platform commission %, rider grace period,
   driver cancellation fee, driver cancellation grace period, rider no-show wait,
   driver share of a rider fee, driver outstanding limit, driver warning band %,
-  rider fee recovery threshold, withdrawals-enabled toggle, minimum withdrawal,
-  maximum withdrawal, cooling-off period</li>
+  rider fee recovery threshold</li>
   <li>Inline helper text on the two threshold fields explicitly stating what a value of
   0 does: for the driver outstanding limit it disables the go-online gate entirely; for
   the rider fee recovery threshold it keeps recovery at one fee per ride however much she
@@ -710,8 +629,7 @@ retroactively.</p>
   <li>Default — current policy values loaded</li>
   <li>Loading / Error — standard fetch states, with retry on error and no partial
   save on a failed submit</li>
-  <li>Validation errors — e.g. minimum withdrawal greater than maximum, negative
-  values, out-of-range percentages</li>
+  <li>Validation errors — e.g. negative values, out-of-range percentages</li>
   <li>Saved confirmation — toast plus the refreshed "last changed" metadata</li>
   <li>Zero-value / gate-disabled state on the outstanding-limit fields, with the
   helper text visibly explaining what that means</li>

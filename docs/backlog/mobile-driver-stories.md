@@ -1,6 +1,6 @@
 # SheDrive — Mobile Driver Stories
 > Canonical backlog for all [Mobile] Driver stories. Organized by sprint and feature.
-> Last updated: 2026-09-08
+> Last updated: 2026-09-10
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -942,7 +942,7 @@ All strings flow through data-i18n keys with Arabic fallback, and all amounts ar
 
 ### Dependencies
 - #3996 — Driver go-online is blocked while her outstanding balance is over the limit (API — must be live)
-- #3994 — Super admin configures driver balance & withdrawal policy (supplies the limit and the warning threshold)
+- #3994 — Super admin configures balance and fee policy (supplies the limit and the warning threshold)
 - #1788 — Driver views her balance and statement (opened from the sheet)
 - #3989 — Driver settles what she owes and sees her settlement history (opened from the sheet's "Settle now" action)
 - #1578 — Driver sees home screen with map (hosts the toggle and the warning band)
@@ -1290,6 +1290,88 @@ When the driver reaches the rider's pickup location, she taps the "I've Arrived"
 
 ---
 
+## [Mobile] #4093 — Driver app gates "I've Arrived" on the pickup geofence 🆕
+**Feature:** Feature 10 — Active Trip | **Sprint:** TBD
+
+**Description:** As a driver, I want the app to confirm that I am actually at the rider's pickup point before it lets me tap "I've Arrived", so that I do not mark arrival from the wrong street and start the rider's waiting counter unfairly.
+
+### Background
+
+Story #1587 lets the driver advance the trip from *en_route_pickup* to *arrived_pickup* by tapping "I've Arrived". That tap starts the rider waiting counter (#1767) and opens the fee-free rider no-show path (#1720), so an arrival marked from far away costs the rider money and time. This story adds the pickup geofence check that gates that button in the driver app.
+
+The check is a **driver-app guardrail**: the app compares the driver's current GPS position with the trip's pickup coordinates and enables or disables the "I've Arrived" button accordingly. It is deliberately scoped to the driver app only — server-side enforcement of the same rule is not part of this story (see Out of Scope).
+
+The driver is never left stuck: whenever the button is disabled the app states the reason and the live distance to the pickup point, and re-evaluates on every GPS sample so the button enables by itself as she gets closer.
+
+### Geofence Parameters
+
+| Parameter | Value | Notes |
+|---|---|---|
+| Pickup geofence radius | 150 m | Measured from the trip's pickup coordinates. Delivered with the trip payload so it can be tuned without an app release; the app falls back to 150 m if the value is absent. |
+| Distance measure | Straight-line distance | Device position to pickup point. Driving distance and ETA are not used for this check. |
+| GPS accuracy threshold | 100 m | A reported horizontal accuracy worse than this is treated as a weak signal. |
+| Weak-signal effective radius | Radius + reported accuracy, capped at 300 m | Keeps the driver moving in dense Cairo/Giza streets where accuracy degrades. |
+| Maximum position age | 10 seconds | An older sample is treated as no position. |
+| Re-evaluation | On every GPS sample | Uses the existing driver GPS stream (#1653); no separate polling loop. |
+
+### Acceptance Criteria
+
+**Scenario 1 — Driver inside the geofence can confirm arrival**
+- Given the trip is in en_route_pickup state
+- And the driver's current position is within the pickup geofence radius
+- When the driver views the active trip screen
+- Then the "I've Arrived" button is enabled
+- And tapping it advances the trip to arrived_pickup exactly as described in #1587
+
+**Scenario 2 — Driver outside the geofence is blocked with the distance shown**
+- Given the trip is in en_route_pickup state
+- And the driver's current position is outside the pickup geofence radius
+- When the driver views the active trip screen
+- Then the "I've Arrived" button is disabled
+- And the screen shows the reason together with the current straight-line distance to the pickup point (for example "You are 480 m away — get closer to confirm arrival")
+- And the trip state does not change
+
+**Scenario 3 — Button enables by itself as the driver approaches**
+- Given the driver is outside the geofence and the "I've Arrived" button is disabled
+- When a new GPS sample places her inside the radius
+- Then the button becomes enabled without any manual refresh, retry, or screen re-entry
+- And the displayed distance updates as she moves
+
+**Scenario 4 — Weak GPS accuracy widens the radius instead of blocking**
+- Given the driver's latest position reports a horizontal accuracy worse than the accuracy threshold
+- When the app evaluates the geofence
+- Then it compares the distance against the weak-signal effective radius
+- And the screen indicates that GPS accuracy is low
+- And the driver can confirm arrival if she is within that widened radius
+
+**Scenario 5 — No usable position blocks arrival and tells the driver how to fix it**
+- Given location permission is denied, location services are off, or no position newer than the maximum age is available
+- When the driver views the active trip screen in en_route_pickup state
+- Then the "I've Arrived" button is disabled
+- And the screen explains that the app needs her location to confirm arrival and offers a shortcut to the device location settings
+- And there is no way to confirm arrival while no position is available
+
+**Scenario 6 — All geofence messages are bilingual**
+- Given the driver has selected Arabic or English
+- When any geofence state is shown (blocked, distance hint, low accuracy, location disabled)
+- Then every string is displayed in the selected language with correct RTL layout in Arabic
+- And no message mixes Arabic and English
+
+### Out of Scope
+- Server-side enforcement of the geofence — this story adds the driver-app check only. There is currently no API story that owns the arrived_pickup write (#1652 is Removed in ADO), so the rule cannot be enforced on the server yet.
+- Automatic arrival detection without a driver tap — the driver still taps "I've Arrived", as stated in #1587.
+- Any geofence at the destination or on trip end (#1589 / #1591).
+- Admin visibility, telemetry, or reporting of blocked arrival attempts.
+- Rider-side geofence detection on the rider's device.
+- Changing the rider waiting counter or the no-show fee rules.
+
+### Dependencies
+- #1587 — Driver confirms arrival at pickup (this story gates that button; #1587's Out of Scope line about geofence-based *automatic* arrival detection still stands)
+- #1653 — Driver streams GPS from acceptance to completion (supplies the position samples)
+- #1649 — Trip acceptance flow (supplies the pickup coordinates and the geofence radius on the trip payload)
+
+---
+
 ## [Mobile] #1767 — Driver sees waiting counter during arrived_pickup state
 **Feature:** Feature 10 — Active Trip | **Sprint:** 2
 
@@ -1342,7 +1424,9 @@ After the driver taps "I've Arrived" and the trip state advances to arrived_pick
 
 ### Background
 
-When is_first_trip is true, the driver sees the rider's registered full name on the arrived_pickup screen and visually checks that the person approaching the vehicle is female. If satisfied, she taps "Rider Verified — Board". If the approaching person does not appear to be female, she taps "Cancel — Rider Not Female," which opens a confirmation dialog carrying an **optional short statement** describing what happened, and then calls #1687 to cancel the trip and suspend the rider's account for review. The statement is the reporting driver's own account of the incident and is the primary evidence the super admin reads when triaging the report queue (#1810 / #1811); it is optional so a driver is never delayed at the kerbside by a text field. **Exception:** if the trip is flagged as a declared child passenger (flag carried by #1783, declared by the rider in #1790), a child of any gender is permitted to ride — this is the only exception to the women-only rule. In that case the driver verifies that a child is boarding, the "Cancel — Rider Not Female" action is withdrawn entirely rather than merely disabled, and she must not cancel for a gender mismatch. For all returning riders (is_first_trip = false) this step is skipped entirely and the driver proceeds directly to the "Start Trip" button.
+When is_first_trip is true, the driver sees the rider's registered full name on the arrived_pickup screen and visually checks that the person approaching the vehicle is female. If satisfied, she taps "Rider Verified — Board". If the approaching person does not appear to be female, she taps "Cancel — Rider Not Female," which opens a confirmation dialog carrying an **optional short statement** describing what happened, and then calls #1687 to cancel the trip and suspend the rider's account for review. The statement is the reporting driver's own account of the incident and is the primary evidence the super admin reads when triaging the report queue (#1810 / #1811); it is optional so a driver is never delayed at the kerbside by a text field. The check is **unconditional** for a first trip: there is no exception for any passenger type. For all returning riders (is_first_trip = false) this step is skipped entirely and the driver proceeds directly to the "Start Trip" button.
+
+> **Scope note (2026-09-09):** the declared child-passenger exception has been removed from Phase 1. It is recorded in `phase-1.5-stories.md` together with #1783 and #1790.
 
 ### Field Validation
 
@@ -1352,30 +1436,22 @@ When is_first_trip is true, the driver sees the rider's registered full name on 
 
 ### Acceptance Criteria
 
-**Scenario 1 — Verification screen is shown for first-trip adult riders**
+**Scenario 1 — Verification screen is shown for first-trip riders**
 - Given the driver has arrived at the pickup location
-- And the trip's is_first_trip flag is true and the passenger is not a declared child
+- And the trip's is_first_trip flag is true
 - When the arrived_pickup screen loads
 - Then the driver sees the rider's registered full name
 - And a "Rider Verified — Board" button is displayed
 - And a "Cancel — Rider Not Female" button is also displayed
 
-**Scenario 2 — Declared child passenger is permitted regardless of gender**
-- Given the trip's is_first_trip flag is true and the trip is flagged as a declared child passenger (#1783)
-- When the arrived_pickup screen loads
-- Then the driver sees a notice that the passenger is a declared child who may ride as the only exception to the women-only policy
-- And the "Cancel — Rider Not Female" action is not displayed at all
-- And the confirm action reads "Child Confirmed — Board" instead of "Rider Verified — Board"
-- And the driver may board the child without a gender-mismatch cancellation
-
-**Scenario 3 — Driver confirms rider is female and proceeds**
+**Scenario 2 — Driver confirms rider is female and proceeds**
 - Given the verification screen is visible
 - When the driver taps "Rider Verified — Board"
 - Then the screen transitions to show the "Start Trip" button
 - And the driver can proceed to board the rider
 
-**Scenario 4 — Driver cancels due to gender mismatch (adult passenger)**
-- Given the verification screen is visible and the passenger is not a declared child
+**Scenario 3 — Driver cancels due to gender mismatch**
+- Given the verification screen is visible
 - When the driver taps "Cancel — Rider Not Female"
 - Then a confirmation dialog is shown: "هل أنتِ متأكدة؟ سيتم إلغاء الرحلة وإرسال تقرير أمني." / "Are you sure? This will cancel the trip and submit a safety report."
 - And the dialog offers an optional free-text statement ("What happened?") of up to 500 characters
@@ -1384,27 +1460,28 @@ When is_first_trip is true, the driver sees the rider's registered full name on 
 - And the driver is returned to her home/available screen
 - And no fare is charged
 
-**Scenario 7 — Statement is optional**
-- Given the confirmation dialog is shown and the driver leaves the statement empty
-- When she confirms
-- Then the report is submitted with no statement and no required-field error is raised
-- And the admin report detail shows the trip snapshot as the sole evidence
-
-**Scenario 5 — Verification step is skipped for returning riders**
+**Scenario 4 — Verification step is skipped for returning riders**
 - Given the trip's is_first_trip flag is false
 - When the driver arrives and the arrived_pickup screen loads
 - Then no verification step is shown
 - And the "Start Trip" button is immediately accessible
 
-**Scenario 6 — Driver remains available after gender mismatch cancellation**
+**Scenario 5 — Driver remains available after gender mismatch cancellation**
 - Given the driver has cancelled due to gender mismatch
 - When she is returned to her home screen
 - Then her online status is preserved
 - And she remains eligible for the next dispatched trip
 
+**Scenario 6 — Statement is optional**
+- Given the confirmation dialog is shown and the driver leaves the statement empty
+- When she confirms
+- Then the report is submitted with no statement and no required-field error is raised
+- And the admin report detail shows the trip snapshot as the sole evidence
+
 ### Out of Scope
 - Biometric or document scanning
 - Automatic identity verification via camera
+- Any per-passenger exception to the women-only rule (removed from Phase 1 — see the scope note above)
 - SOS functionality
 - Penalty for drivers who cancel
 
@@ -1412,7 +1489,7 @@ When is_first_trip is true, the driver sees the rider's registered full name on 
 - #1635 — Trip detail includes first-trip flag (must be live)
 - #1652 — Driver advances trip state machine (must be live)
 - #1687 — Rider account is suspended after gender mismatch report (must be live)
-- #1783 — Trip request captures a per-trip child-passenger flag and exposes it to the driver (must be live)
+- #1810 / #1811 — Admin gender-mismatch report queue and resolution (consume the statement)
 
 ---
 
@@ -2019,13 +2096,13 @@ The earnings dashboard is accessible from the driver home screen menu or profile
 
 A balance screen reachable from the earnings screen and the profile menu shows the driver's position in EGP, retrieved via #1781. It replaces the earlier read-only "cash owed" view: the balance is now a signed figure over a real ledger (#3991), so the screen must present both directions and the movements that produced them.
 
-**The headline states the direction in words, not a sign.** When the driver owes the platform, the screen reads "مستحق عليكِ" / "You owe" with the amount and a short explanation that on cash trips she keeps the fare and the platform's commission is settled later. When the platform owes her, it reads "رصيدك المتاح" / "Your available balance" and the withdrawal action becomes available (#3987). A driver never sees a minus sign in front of her own money.
+**The headline states the direction in words, not a sign.** When the driver owes the platform, the screen reads "مستحق عليكِ" / "You owe" with the amount and a short explanation that on cash trips she keeps the fare and the platform's commission is settled later. When the platform owes her, it reads "رصيدك المتاح" / "Your available balance" — explained as what SheDrive owes her, not a button she can act on. A driver never requests a payout: Finance transfers it on its own cycle, and it appears here, in her statement, once sent. A driver never sees a minus sign in front of her own money.
 
-**Below the headline is the statement** — a newest-first list of transactions, each with its date, a localised description, and the signed amount coloured as a credit or a debit. Credits and debits are visually distinct and each row states its type in plain language: commission on a trip, a cancellation fee charged, a cancellation fee share earned, a settlement received, a withdrawal paid, or an adjustment. Tapping a trip-linked row opens that trip's detail (#1594).
+**Below the headline is the statement** — a newest-first list of transactions, each with its date, a localised description, and the signed amount coloured as a credit or a debit. Credits and debits are visually distinct and each row states its type in plain language: commission on a trip, a cancellation fee charged, a cancellation fee share earned, a settlement received, or a payout sent by Finance. Tapping a trip-linked row opens that trip's detail (#1594).
 
 **A warning band appears as she approaches the limit.** When her outstanding amount reaches the configured warning threshold (default 80% of the balance limit, both set via #3994, returned by #1781), a warning band explains that she will not be able to go online once she reaches the limit. At or above the limit the band becomes a blocking notice consistent with #3988, with a link to settle (#3989).
 
-The screen is read-only apart from the withdrawal action. Settling is an operational process handled by Finance (#1813). The commission percentage is never shown, only EGP amounts. All strings flow through data-i18n keys with Arabic fallback.
+The screen is read-only. Settling is an operational process handled by Finance (#1813), and so is a payout — she cannot request one; it is recorded once Finance has already sent it and appears here automatically. Every entry on this screen is permanent — Phase 1 has no correction mechanism (#3991), so a mis-recorded entry stands as posted. The commission percentage is never shown, only EGP amounts. All strings flow through data-i18n keys with Arabic fallback.
 
 ### Acceptance Criteria
 
@@ -2034,16 +2111,16 @@ The screen is read-only apart from the withdrawal action. Settling is an operati
 - When she opens the balance screen
 - Then the headline reads "مستحق عليكِ" / "You owe" with 120 EGP
 - And the explanation of cash-trip commission is shown
-- And no withdrawal action is offered
+- And no payout action is offered — there is nothing for her to request
 
 **Scenario 2 — Driver with an available balance**
 - Given the platform owes the driver 340 EGP
 - When she opens the balance screen
 - Then the headline reads "رصيدك المتاح" / "Your available balance" with 340 EGP
-- And a "طلب سحب" / "Request withdrawal" action is shown (#3987)
+- And a short explanation states this is what SheDrive owes her, with no action shown to request it
 
 **Scenario 3 — Statement lists every movement type**
-- Given the driver has trip commission, a cancellation fee charged, a cancellation fee share, a settlement, and a withdrawal in her history
+- Given the driver has trip commission, a cancellation fee charged, a cancellation fee share, a settlement, and a payout in her history
 - When the statement loads
 - Then each appears as its own row with date, localised description, and signed amount
 - And credits and debits are visually distinguishable
@@ -2064,39 +2141,44 @@ The screen is read-only apart from the withdrawal action. Settling is an operati
 - And a settlement row appears in the statement as a credit
 - And her full settlement history with receipt numbers is one tap away on the settlement screen (#3989)
 
-**Scenario 7 — Statement paginates**
+**Scenario 7 — Payout appears in the statement**
+- Given Finance has recorded a payout of 200 EGP to the driver (#3993, #4001)
+- Then a payout row of −200 EGP appears in her statement with its reference and date
+- And her available balance reduces by 200 EGP accordingly
+
+**Scenario 8 — Statement paginates**
 - Given the driver has more transactions than one page
 - When she scrolls to the end of the list
 - Then the next page loads and appends, with no duplicated rows
 
-**Scenario 8 — Approaching the balance limit**
+**Scenario 9 — Approaching the balance limit**
 - Given the configured limit is 500 EGP and she owes 400 EGP
 - When she opens the balance screen
 - Then a warning band reads "اقتربتِ من حد الرصيد. سدّدي لتفادي إيقاف العمل." / "You are close to the balance limit. Settle up to keep working."
 
-**Scenario 9 — At or above the balance limit**
+**Scenario 10 — At or above the balance limit**
 - Given she owes 500 EGP against a 500 EGP limit
 - Then the band becomes a blocking notice reading "لا يمكنكِ الاتصال حتى تسدّدي رصيدك." / "You cannot go online until you settle your balance."
 
-**Scenario 10 — Zero balance**
+**Scenario 11 — Zero balance**
 - Given a driver whose balance is exactly zero
 - Then a zero state is shown reading "لا يوجد رصيد مستحق" / "No outstanding balance" and the statement shows any past transactions
 
-**Scenario 11 — New driver with no transactions**
+**Scenario 12 — New driver with no transactions**
 - Given a driver with no completed trips and no transactions
 - Then a zero balance and an empty statement state are shown, with no error
 
-**Scenario 12 — Network error**
+**Scenario 13 — Network error**
 - Given the balance request fails
 - Then an error state is shown: "تعذّر تحميل الرصيد. تحقّقي من اتصالك." / "Unable to load your balance. Check your connection."
 - And a retry action is offered
 
-**Scenario 13 — Arabic and English**
+**Scenario 14 — Arabic and English**
 - Given the driver switches language
 - Then every label, transaction description, and state message is displayed in the selected language
 
 ### Out of Scope
-- Requesting a withdrawal — the action is launched here, the flow is #3987
+- A driver-initiated payout request — there is no such action anywhere in the system; Finance transfers the money and records it (#3993, #4001)
 - In-app settlement payment by the driver
 - Statement export or PDF receipts
 - Disputing a transaction (Phase 2)
@@ -2105,102 +2187,12 @@ The screen is read-only apart from the withdrawal action. Settling is an operati
 ### Dependencies
 - #1781 — Driver retrieves her balance and statement (API — must be live)
 - #3991 — Driver balance ledger records every balance movement (must be live)
-- #3987 — Driver requests a withdrawal of her available balance (launched from this screen)
 - #3989 — Driver settles what she owes and sees her settlement history (full receipt history lives there)
 - #1594 — Driver views past trip detail (opened from a trip-linked row)
 
 ---
 
-## [Mobile] #3987 — Driver requests a withdrawal of her available balance 🆕
-**Feature:** Feature 18 — Driver Earnings | **Sprint:** Phase 1
-
-**Description:** As a driver, I want to request a withdrawal of the money the platform owes me and follow that request to completion so that I get paid without having to call support.
-
-### Background
-
-Reached from the balance screen (#1788) when the driver has a positive available balance. The screen shows the amount available, an amount field, the minimum and maximum allowed for one request (#3994), and a submit action. Submitting calls #3993, which reserves the amount rather than paying it — the money moves when Finance marks the request paid.
-
-**The driver is never shown a form she cannot use.** When withdrawals are disabled platform-wide, when she has no available balance, or when she is inside the cooling-off period, the screen explains why instead of presenting a field that will fail on submit.
-
-**Every request is trackable.** Below the form a newest-first list shows her past requests with amount, status (قيد المراجعة / Pending, تمت الموافقة / Approved, تم الصرف / Paid, مرفوض / Rejected, ملغي / Cancelled), the request date, and the rejection reason where one exists. A pending request can be cancelled by the driver, which releases the reserved amount.
-
-All strings flow through data-i18n keys with Arabic fallback, and all amounts are in EGP.
-
-### Field Validation
-
-| Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range |
-|---|---|---|---|---|---|---|---|---|---|
-| Withdrawal amount | Yes | Decimal (EGP) | Positive number, up to 2 decimals | configured minimum | lesser of the configured maximum and the unreserved available balance | empty | أدخلي المبلغ / Enter an amount | أدخلي مبلغًا صحيحًا / Enter a valid amount | المبلغ يجب أن يكون بين [min] و[max] جنيه / Amount must be between [min] and [max] EGP |
-
-### Acceptance Criteria
-
-**Scenario 1 — Successful withdrawal request**
-- Given the driver has 500 EGP available and the minimum is 50 EGP
-- When she enters 200 and submits
-- Then the request is created via #3993
-- And a success toast reads "تم إرسال طلب السحب" / "Withdrawal request submitted"
-- And she is returned to the balance screen where 200 EGP now shows as reserved
-
-**Scenario 2 — Amount above the available balance**
-- Given 100 EGP is available
-- When she enters 150
-- Then the submit action stays disabled and an inline error names the maximum she can request
-
-**Scenario 3 — Amount below the minimum**
-- Given the minimum is 50 EGP
-- When she enters 20
-- Then an inline error names the minimum and submit stays disabled
-
-**Scenario 4 — Reserved amounts reduce what she can request**
-- Given 500 EGP available with a 400 EGP request already pending
-- Then the screen shows 100 EGP as requestable and rejects anything above it
-
-**Scenario 5 — No available balance**
-- Given the driver owes the platform, or her balance is zero
-- Then no amount field is shown and the screen explains "لا يوجد رصيد متاح للسحب حاليًا." / "You have no balance available to withdraw right now."
-
-**Scenario 6 — Cooling-off period active**
-- Given she requested a withdrawal 2 days ago and the cooling-off period is 7 days
-- Then the form is replaced by a message stating when she may request again
-
-**Scenario 7 — Withdrawals disabled platform-wide**
-- Given withdrawals are disabled (#3994)
-- Then the withdrawal action is not offered on the balance screen and the screen, if deep-linked, explains that withdrawals are unavailable
-
-**Scenario 8 — Request history**
-- Given the driver has previous requests
-- Then they are listed newest-first with amount, status, and request date
-- And a rejected request also shows the reason given by the admin
-
-**Scenario 9 — Driver cancels a pending request**
-- Given a request in pending status
-- When she taps "إلغاء الطلب" / "Cancel request" and confirms
-- Then the request status becomes cancelled and the reserved amount is released
-
-**Scenario 10 — A decided request cannot be cancelled**
-- Given a request that is approved, paid, or rejected
-- Then no cancel action is shown for it
-
-**Scenario 11 — Network error on submit**
-- Given she submits and the request fails
-- Then a toast reads "تعذّر إرسال الطلب. حاولي مرة أخرى." / "Unable to submit. Please try again."
-- And she stays on the screen with her entered amount preserved
-
-**Scenario 12 — Arabic and English**
-- Given the driver switches language
-- Then every label, status, validation message, and empty state is displayed in the selected language
-
-### Out of Scope
-- Choosing or entering a payout destination (bank account, wallet) — payout is operational in Phase 1
-- Withdrawal fees
-- Scheduled or recurring withdrawals
-- Appealing a rejected withdrawal (Phase 2)
-- Admin review of the request (#4001)
-
-### Dependencies
-- #3993 — Driver requests a withdrawal of her available balance (API — must be live)
-- #3994 — Super admin configures driver balance & withdrawal policy (supplies minimum, maximum, cooling-off, enabled switch)
-- #1788 — Driver views her balance and statement (entry point)
+> **Removed 2026-09-13:** drivers do not request payouts. Finance transfers the funds and records the transfer afterwards — see #3993 and #4001. There is no driver-initiated request in the system.
 
 ---
 
@@ -2279,7 +2271,7 @@ All strings flow through data-i18n keys with Arabic fallback, and all amounts ar
 
 ### Dependencies
 - #1781 — Driver retrieves her balance and statement (API — must be live; settlement entries are part of the same ledger)
-- #3994 — Super admin configures driver balance & withdrawal policy (supplies the settlement channels and the outstanding limit)
+- #3994 — Super admin configures balance and fee policy (supplies the settlement channels and the outstanding limit)
 - #1813 — Super admin reconciles driver balances and records settlements (Admin — where a settlement is actually recorded)
 - #1788 — Driver views her balance and statement (entry point)
 - #3988 — Driver is blocked from going online while her balance is over the limit (entry point when blocked)
@@ -2370,36 +2362,55 @@ Phase 1 SOS is limited to personal emergency contacts and sharing the driver's l
 
 ### Acceptance Criteria
 
-**Scenario 1 — Driver adds an emergency contact**
-- Given the driver opens the Emergency Contacts screen
-- When she taps "Add contact", enters a name and phone number (relationship optional), and saves
-- Then the contact is saved, shown in her contacts list, and persists across sessions
+**Scenario 1 — She adds an emergency contact**
+- Given the driver is on the emergency contacts screen
+- When she enters a name, a phone number and a relationship and saves
+- Then the contact is added to her list
+- And it is still there the next time she opens the app
 
-**Scenario 2 — Driver edits or removes a contact**
-- Given the driver has at least one saved contact
-- When she edits a contact's details and saves, or removes a contact
-- Then the change is reflected in the list immediately and persisted
+**Scenario 2 — She edits a saved contact**
+- Given she has at least one saved emergency contact
+- When she opens that contact, changes any of its details and saves
+- Then the updated details replace the previous ones
 
-**Scenario 3 — Empty state guides setup**
-- Given the driver has no saved contacts
-- Then an empty state prompts her to add someone she trusts
+**Scenario 3 — She removes a contact**
+- Given she has at least one saved emergency contact
+- When she removes it and confirms
+- Then it no longer appears in her list
+- And it is no longer alerted when she raises SOS
 
-**Scenario 4 — Contacts are alerted with live location on SOS**
-- Given the driver has one or more saved contacts and is on an active trip
-- When she triggers SOS and confirms
-- Then every saved contact is alerted and receives a live link to her current location
-- And the confirmation overlay states her contacts have been notified and her live location is being shared with them
+**Scenario 4 — The list is capped at five contacts**
+- Given she has 5 saved emergency contacts
+- When she looks at the emergency contacts screen
+- Then the add control is unavailable
+- And she is told she has reached the maximum of 5 and must remove one before adding another
 
-**Scenario 5 — SOS with no contacts saved**
-- Given the driver has no saved contacts
-- When she triggers SOS
-- Then she is prompted to add contacts, and the public emergency numbers (122 / 123) remain available to dial directly
+**Scenario 5 — Removing at the maximum frees a slot**
+- Given she has 5 saved emergency contacts
+- When she removes one of them
+- Then the add control becomes available again
 
-**Scenario 6 — Contact list is capped at five**
-- Given the driver has 5 saved emergency contacts
-- Then the "Add contact" control is unavailable, and she is told she has reached the maximum of 5 and must remove one before adding another
-- And when she removes a contact, the "Add contact" control becomes available again
-- Each saved contact is a paid message on every alert, so the list is a cost driver
+**Scenario 6 — Empty state guides her to add someone**
+- Given she has no saved emergency contacts
+- When she opens the emergency contacts screen
+- Then an empty state is shown guiding her to add someone she trusts
+
+**Scenario 7 — Every contact is alerted on SOS**
+- Given she has at least one saved emergency contact
+- When she triggers SOS during an active trip
+- Then every saved contact is alerted
+- And each of them receives a live link to her current location
+
+**Scenario 8 — The confirmation states what was done**
+- Given she has confirmed an SOS
+- When the emergency screen opens
+- Then it states that her contacts have been notified and that her live location is being shared with them
+
+**Scenario 9 — SOS with no contacts saved**
+- Given she has no saved emergency contacts
+- When she triggers SOS during an active trip
+- Then she is prompted to add emergency contacts
+- And Police (122) and Ambulance (123) remain available to dial directly
 
 ### Out of Scope
 - Control-room / operations-team escalation (post-Phase 1)
@@ -2423,11 +2434,13 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 ### Acceptance Criteria
 
 **Scenario 1 — SOS is reachable for the whole active trip**
-- Given the driver is on an active trip, from pickup through drop-off
-- Then the SOS control remains visible and available at every stage of the trip
+- Given the driver is on an active trip
+- When she is at any stage from pickup through drop-off
+- Then the SOS control remains visible and available
 
 **Scenario 2 — SOS cannot be raised outside an active trip**
 - Given the driver is not currently on an active trip
+- When she opens the app
 - Then no SOS control is available to her
 
 **Scenario 3 — A single confirmation guards against accidental presses**
@@ -2435,24 +2448,28 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 - When the confirmation step appears
 - Then the alert is raised only if she explicitly confirms; dismissing it raises nothing
 
-**Scenario 4 — The emergency screen confirms contacts notified and location shared**
-- Given the driver confirms SOS
-- Then she is taken to a full-screen emergency dashboard
+**Scenario 4 — A full emergency screen replaces the in-trip overlay**
+- Given the driver taps SOS
+- When she confirms it
+- Then she is taken to a full-screen emergency dashboard, not a small overlay on the trip screen
 - And the screen states that her emergency contacts have been notified and that her live location is being shared
 
 **Scenario 5 — Per-contact delivery status is shown**
 - Given the emergency screen is open
-- Then it lists every emergency contact with its own delivery status of sent, delivered or failed
+- When she looks at her emergency contacts on it
+- Then each contact is listed with its own delivery status of sent, delivered or failed
 - And this replaces any single, unconditional "your contacts have been notified" message, which reassures her even when delivery in fact failed
 
 **Scenario 6 — Police and Ambulance are one tap away**
 - Given the emergency screen is open
-- Then it offers tap-to-call buttons for Police (122) and Ambulance (123) only
+- When she needs to reach the public emergency services
+- Then tap-to-call buttons are offered for Police (122) and Ambulance (123) only
 - And no fire brigade number is offered
 
 **Scenario 7 — Trip recap on the emergency screen**
 - Given the emergency screen is open
-- Then it shows a recap of the trip: the rider's name, the vehicle and its plate, and her current coordinates
+- When she looks at the trip recap
+- Then it shows the rider's name, the vehicle and its plate, and her current coordinates
 
 **Scenario 8 — Stop sharing revokes the live link immediately**
 - Given the emergency screen is open and the live location link is active
@@ -2470,15 +2487,18 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 - Then location sharing stops and the incident is recorded as a false alarm
 
 **Scenario 11 — The rider is never notified**
-- Given the driver raises SOS
+- Given the driver is on an active trip
+- When she raises SOS
 - Then the rider receives no notification, indication or visible change on her own screen as a result
 
 **Scenario 12 — The trip is not interrupted**
-- Given the driver raises SOS
+- Given the driver is on an active trip
+- When she raises SOS
 - Then the trip continues unaffected, and later settles and is rated exactly as a trip without an SOS would be
 
 **Scenario 13 — No automatic suspension**
-- Given the driver raises SOS
+- Given the driver is on an active trip
+- When she raises SOS
 - Then neither her account nor the rider's is suspended automatically as a result
 
 ### Out of Scope

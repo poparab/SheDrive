@@ -743,7 +743,7 @@ The gate compares the driver's **outstanding** balance against the outstanding b
 
 ### Dependencies
 - #3991 — Party balance ledger records every balance movement (must be live — supplies the outstanding amount)
-- #3994 — Super admin configures balance, fee and withdrawal policy (must be live — supplies the limit)
+- #3994 — Super admin configures balance and fee policy (must be live — supplies the limit)
 - #1645 — Driver availability status (the go-online request this gate runs inside)
 - #1644 — Driver onboarding decision — go-online gate (approval gate, evaluated first)
 
@@ -843,64 +843,6 @@ Two pre-acceptance guards protect the trip-request flow. **Service-area guard:**
 - #1756 — Super admin manages service zones (must be live)
 - #1630 — Driver-matching engine (triggered on creation)
 - Open decision OD-001 — operating hours
-
----
-
-## [API] #1783 — Trip request captures a per-trip child-passenger flag and exposes it to the driver ♻️
-**Feature:** Feature 8 — Trip Request & Matching | **Sprint:** 2
-
-**Description:** As the SheDrive platform, I want the trip request to capture whether the passenger for this trip is a child and carry that flag through to the matched driver so that the women-only policy can permit a child passenger while the driver knows to expect one.
-
-### Background
-
-SheDrive is women-only, but a child passenger is permitted to ride regardless of gender — this is the only exception to the women-only rule (BRD RA-010, open decision OD-009). The rider declares per trip whether the passenger will be a child (a simple boolean; gender is not captured). This flag is stored on the trip request (#1629) and included in the trip detail served to the matched driver (#1648 and the first-trip detail #1635) so the driver's first-trip verification (#1588) can permit a declared child. The default is false (adult woman).
-
-> **Restored 2026-09-03.** This story was set to Removed on 2026-06-17 as part of the Phase 1.5 deferral batch, but the deferral was never recorded in `phase-1.5-stories.md` and the rest of the backlog still depends on it: rider #1790 is active and pointed, driver #1588 Scenario 2 names it "must be live", and the child toggle is already delivered in the rider mockup and signed-off design story #1518. Restored to the active Phase 1 backlog.
-
-### Acceptance Criteria
-
-**Scenario 1 — Request stores the child-passenger flag**
-- Given a rider submits a trip request declaring the passenger is a child
-- When the request is created
-- Then the trip records the child-passenger flag as true
-
-**Scenario 2 — Default is false when not declared**
-- Given a rider submits a trip request without declaring a child passenger
-- When the request is created
-- Then the child-passenger flag is stored as false
-
-**Scenario 3 — Flag is exposed in the driver's trip detail**
-- Given a driver retrieves the detail for a trip where the child-passenger flag is true
-- When the trip detail is served
-- Then the response indicates the passenger is a declared child
-
-**Scenario 4 — Flag is immutable after submission**
-- Given a trip request has been submitted
-- When a change to the child-passenger flag is attempted
-- Then it is rejected
-
-**Scenario 5 — Flag relaxes only the gender check**
-- Given a trip with the child-passenger flag set to true
-- When eligibility is evaluated
-- Then only the women-only gender check is relaxed for that passenger, and all other eligibility rules still apply
-
-**Scenario 6 — Flag suppresses the gender-mismatch report**
-- Given a trip with the child-passenger flag set to true
-- When the driver is in arrived_pickup state
-- Then a gender-mismatch report (#1687) is not accepted for that trip
-- And the server returns a validation error stating the passenger is a declared child
-
-### Out of Scope
-- Capturing the child's gender or exact age beyond the boolean
-- Child safety-seat handling
-- Child-specific fare differences
-
-### Dependencies
-- #1629 — Rider creates trip request
-- #1648 — Driver retrieves pending trip request
-- #1635 — Trip detail includes first-trip flag
-- #1790 — Rider declares the passenger is a child (Mobile counterpart)
-- #1588 — Driver verifies rider is female on first trip (consumer of the flag)
 
 ---
 
@@ -1465,15 +1407,15 @@ Once a trip reaches *trip_ended* and settlement has run (#1636), the final fare,
 ## [API] #3997 — Trip completion posts to the ledger according to fare custody 🆕
 **Feature:** Feature 11 — Trip Completion & Cash Payment | **Sprint:** Phase 1
 
-**Description:** As the trip-completion service, I want to post the correct ledger entry for a completed trip based on its custody value — never its payment method — so that a driver's balance always reflects who is holding the fare, and adding a new payment method later changes no downstream code.
+**Description:** As the trip-completion service, I want to post the correct ledger entry for a completed trip based on its custody value — which records who is holding the fare — so that a driver's balance always reflects who actually has the money, and the ledger never has to assume how a fare was collected.
 
 ### Background
 
-Every completed trip settles to the same three numbers (#1636): fare F, platform commission C, and driver net earnings N, where F = C + N. What differs between a cash trip today and a digital trip later is not those numbers — it is **who physically holds F**. That fact is captured on the trip as its **custody** value, `driver` or `platform`, set when the trip is created and always `driver` in Phase 1, since there is no live payment provider yet.
+Every completed trip settles to the same three numbers (#1636): fare F, platform commission C, and driver net earnings N, where F = C + N. What those numbers do not say is **who physically holds F**. That fact is captured on the trip as its **custody** value, `driver` or `platform`, set when the trip is created. In Phase 1 it is always `driver`, because the rider hands the fare to the driver at the end of the ride.
 
-**Custody decides the ledger entry. The payment method only ever decides custody.** When `custody = driver`, she holds the fare, so she owes the platform its commission — a `trip_commission` debit of C is posted against her (#3991). When `custody = platform`, the platform holds the fare, so it owes her the net — a `trip_earnings` credit of N is posted for her. Both land on the same economic position: she is entitled to N. This story is the **one and only place** in the platform that reads custody and branches on it to choose a ledger entry — nowhere else ever branches on payment method to decide what a trip owes.
+**Custody decides the ledger entry.** When `custody = driver`, she holds the fare, so she owes the platform its commission — a `trip_commission` debit of C is posted against her (#3991). When `custody = platform`, the platform holds the fare, so it owes her the net — a `trip_earnings` credit of N is posted for her. Both land on the same economic position: she is entitled to N. This story is the **one and only place** in the platform that reads custody and branches on it to choose a ledger entry — no other code decides what a trip owes.
 
-**This is what makes online payment a configuration change, not a rebuild.** Adding a payment provider later means writing `custody = platform` on the trip. Nothing here changes: not this story, not the ledger, not the balance, not any downstream report.
+**Why the branch exists at all.** A ledger that assumes the driver always holds the fare is correct only for as long as that assumption holds, and it fails silently the day it stops. Reading custody instead makes the entry correct by construction. No Phase 1 flow produces `custody = platform`; the branch is defined and tested so that the ledger, the balance and every downstream report stay right without being rewritten.
 
 **No calculation happens here.** The fare, commission, and net earnings are read exactly as stored by settlement (#1636); this story never recomputes them, it only decides which of the two entries carries them onto the ledger.
 
@@ -1484,27 +1426,27 @@ Every completed trip settles to the same three numbers (#1636): fare F, platform
 - Then a `trip_commission` entry of −20.00 EGP is posted to the driver's ledger (#3991), referencing the trip id
 - And no `trip_earnings` entry is posted for that trip
 
-**Scenario 2 — Online trip (custody = platform) posts an earnings credit**
+**Scenario 2 — A platform-custody trip posts an earnings credit**
 - Given a trip completes with custody = platform, total fare 100 EGP and driver net earnings 80 EGP (#1636)
 - Then a `trip_earnings` entry of +80.00 EGP is posted to the driver's ledger (#3991)
 - And no `trip_commission` entry is posted for that trip
 
 **Scenario 3 — The branch reads custody, never the payment method**
-- Given a trip record whose payment method is cash but whose custody value is platform (a configuration a later phase may produce)
+- Given a trip record whose custody value is platform
 - When settlement completes
 - Then a `trip_earnings` entry is posted, exactly as it would be for any other custody = platform trip
-- And the payment method field plays no part in choosing which entry is posted
+- And nothing other than the custody value plays any part in choosing which entry is posted
 
 **Scenario 4 — Phase 1 always writes custody = driver**
-- Given the platform has no live payment provider (Phase 1)
+- Given a Phase 1 trip, where the rider hands the fare to the driver
 - When any trip is created
 - Then its custody value is driver
 - And every completed trip in Phase 1 therefore posts a `trip_commission` debit, never a `trip_earnings` credit
 
 **Scenario 5 — A mixed-custody driver nets to one correct balance**
-- Given a driver completes a cash trip (custody = driver, fare 100 EGP, commission 20 EGP) and, on a later date, an online trip (custody = platform, fare 100 EGP, net earnings 80 EGP)
+- Given a driver completes a driver-custody trip (fare 100 EGP, commission 20 EGP) and, on a later date, a platform-custody trip (fare 100 EGP, net earnings 80 EGP)
 - Then her ledger holds a −20.00 EGP `trip_commission` entry and a +80.00 EGP `trip_earnings` entry
-- And her balance is the sum of both, +60.00 EGP, with no special-case handling for the mix — the cash debt is cancelled by the online earnings automatically
+- And her balance is the sum of both, +60.00 EGP, with no special-case handling for the mix — what she owes is cancelled by what she is owed automatically
 
 **Scenario 6 — Entitlement is identical under both custody values**
 - Given the same trip figures — fare 100 EGP, commission 20 EGP, net earnings 80 EGP — settled once under custody = driver and, hypothetically, once more under custody = platform
@@ -1538,7 +1480,7 @@ Every completed trip settles to the same three numbers (#1636): fare F, platform
 - The ledger itself, its entry types, and its posting guarantees (#3991)
 - Cancellation-fee ledger entries (#1764)
 - Recovering a rider's outstanding fee as a surcharge on this trip (#4000) — a separate, additional posting layered onto the same trip-completion event when a surcharge applies
-- Introducing an actual second payment method or provider (Phase 2) — this story only makes the branch exist and default correctly in Phase 1
+- Producing `custody = platform` from any live flow — no Phase 1 flow does; this story only makes the branch exist and default correctly
 - Serving the fare or earnings to the rider or driver apps (#3058)
 - Surge and dynamic pricing, promo codes, referral credits, tips, driver bonuses and incentives
 
@@ -1877,6 +1819,169 @@ Called when a driver taps a row in her trip history list (#1593). The endpoint r
 
 ---
 
+## [API] #4022 — Driver trip history returns all trip outcomes with today, week and month filters 🆕
+**Feature:** Feature 12 — Trip History | **Sprint:** 2
+
+**Description:** As the driver app, I want the trip history list endpoint to return both completed and cancelled trips, scoped to a period of today, this week or this month, so that a driver can review her activity for a chosen period, including the trips that ended in cancellation.
+
+### Background
+
+#1655 defined the driver trip history list as **completed trips only**. That is not the whole of a driver's activity: trips that she or the rider cancelled belong to the same record, and a driver who cannot see them reads her own history as incomplete — and raises support tickets about "missing" trips. This story widens the same list endpoint to return both completed and cancelled trips, and scopes it to a period of today, this week or this month.
+
+The Trip History screen shows three period tabs — **Today**, **This Week**, **This Month** — with **Today** selected when the screen opens. There is no "All" tab, so the endpoint no longer offers an unbounded history: `today` is the default when the parameter is omitted. Each row is a summary card only; the full record lives on the trip detail screen (#1718) behind the row's chevron.
+
+#### What a list row carries
+
+| Field | Shown on the card as | Notes |
+|---|---|---|
+| Trip date | Card header, e.g. "Mon, June 8" | Date only on the card. The time of day is a trip detail field (#1718), not a list field. |
+| Pickup area | First line, labelled "Pickup" | Area name, e.g. "Sheikh Zayed City, Giza" — not a full street address. |
+| Destination area | Second line, labelled "Destination" | Area name, same shape as pickup. |
+| Outcome | Status badge — "Completed" or "Cancelled" | **Two values only.** The badge is the entire difference between a completed and a cancelled card — see Outcomes returned below. |
+| Trip fare (EGP) | Amount + "Trip Fare" | Present on a **completed** row only. A cancelled row returns no fare value at all and the card renders a dash. **Commission is not a list field** — see Out of Scope. |
+| Rider name | Avatar initial + first name | The rider the driver carried, so she can recognise the trip. Display name and avatar image reference; the avatar initial is derived by the app. |
+| Trip identifier | Not rendered — backs the chevron | Lets the app open the trip detail record (#1718). |
+
+#### Outcomes returned
+
+The list returns **completed and cancelled** trips. A cancelled card differs from a completed one in exactly two ways: **the status badge reads "Cancelled"**, and **the fare shows a dash instead of an amount**. Nothing else changes. The list does *not* say who cancelled, does *not* carry a cancellation reason, and shows no extra label, icon or line of any kind on a cancelled card.
+
+| Badge on the card | Which trips it covers | Trip fare on the row |
+|---|---|---|
+| Completed | Driver tapped "End Trip" (#1591, status `trip_ended`) | The cash fare collected from the rider. |
+| Cancelled | Rider cancelled (#1715) **or** driver cancelled (#1720) — status `cancelled`, either value of `cancelled_by`. Both render identically. | **None.** No amount is returned and the card renders a dash — not 0.00, and not a cancellation fee, even where one was credited (#1764). |
+
+Trips that never reached this driver — still searching, or expired with no match — never appear in any driver's history. Who cancelled and why are trip detail fields (#1718); a driver who needs that opens the trip.
+
+#### Period filter
+
+| Filter value | Screen tab | Period covered (Africa/Cairo) | Notes |
+|---|---|---|---|
+| `today` (default) | Today | 00:00:00 today until now | Applied when the parameter is omitted. This is the tab selected when the screen opens. |
+| `this_week` | This Week | 00:00:00 on the Saturday of the current week until now | The Egyptian week starts on Saturday. |
+| `this_month` | This Month | 00:00:00 on the 1st of the current month until now | — |
+
+There is no unbounded "all history" value. The `all` value described in the earlier revision of this story is **removed**: every request is scoped to one of the three periods above. This narrows the #1655 behaviour, so any caller that relied on an unfiltered response must now choose a period.
+
+The filter is evaluated against the moment the trip reached its final outcome — the end time for a completed trip, the cancellation time for a cancelled one — not the time the trip was requested. All period boundaries are computed in **Africa/Cairo** local time, not UTC and not the device timezone.
+
+### Acceptance Criteria
+
+**Scenario 1 — Today is the default period**
+- Given an authenticated driver has trips that ended today and trips that ended on earlier days
+- When the driver app calls the history list endpoint with no filter parameter
+- Then only the trips that reached their final outcome from 00:00:00 today (Africa/Cairo) onwards are returned
+- And the response is identical to an explicit `today` request
+
+**Scenario 2 — Completed and cancelled trips both appear**
+- Given the selected period contains completed trips and cancelled trips
+- When the driver app calls the endpoint with that filter
+- Then both are returned in one list, sorted most recent first
+- And each entry carries its outcome as either completed or cancelled
+
+**Scenario 3 — A row carries the fields the card renders**
+- Given the list contains any trip
+- When the response is returned
+- Then each entry includes the trip date, the pickup area, the destination area, the outcome, the trip fare in EGP, the rider's display name and avatar reference, and a trip identifier
+- And a cancelled entry carries no additional field beyond this set, and no fare value
+
+**Scenario 4 — A completed row carries the fare collected**
+- Given the list contains a completed trip
+- When the response is returned
+- Then that entry is marked completed and its fare is the cash fare collected from the rider in EGP
+
+**Scenario 5 — A cancelled row differs only by its status**
+- Given the list contains a cancelled trip
+- When the response is returned
+- Then that entry is marked cancelled
+- And it carries no cancellation reason
+- And it does not identify who cancelled the trip
+- And it carries no fare value, so the card renders a dash rather than an amount
+- And this holds whether or not a cancellation fee was credited to the driver (#1764)
+
+**Scenario 6 — Rider-cancelled and driver-cancelled rows are indistinguishable on the list**
+- Given the list contains a trip the rider cancelled and a trip the driver cancelled
+- When the response is returned
+- Then both entries carry the same cancelled outcome value
+- And neither entry carries a fare value
+- And nothing in either entry reveals which party cancelled
+- And the party who cancelled remains available on the trip detail record (#1718)
+
+**Scenario 7 — Commission is not returned on the list**
+- Given the list contains completed and cancelled trips
+- When the response is returned
+- Then no entry carries a commission figure
+- And commission remains available on the trip detail record (#1718), where it is deducted from completed trips only and is zero on cancelled trips
+
+**Scenario 8 — Filter this week**
+- Given the driver has trips from the current week and from the previous week
+- When the driver app calls the endpoint with the filter set to `this_week`
+- Then only the trips that reached their final outcome from 00:00:00 on the Saturday of the current week (Africa/Cairo) onwards are returned
+- And no trip from the previous week appears in the response
+
+**Scenario 9 — Filter this month**
+- Given the driver has trips from the current calendar month and from the previous month
+- When the driver app calls the endpoint with the filter set to `this_month`
+- Then only the trips that reached their final outcome from 00:00:00 on the 1st of the current month (Africa/Cairo) onwards are returned
+- And no trip from the previous month appears in the response
+
+**Scenario 10 — Period boundary is evaluated in Cairo local time**
+- Given a trip ended at 23:50 Africa/Cairo yesterday and another ended at 00:10 Africa/Cairo today
+- When the driver app calls the endpoint with the filter set to `today`
+- Then only the 00:10 trip is returned
+- And the result is identical regardless of the device timezone the request originates from
+
+**Scenario 11 — The filter is applied before pagination**
+- Given the selected period contains more trips than fit on one page
+- When the driver app requests subsequent pages with the same filter
+- Then paging walks only the trips inside the selected period
+- And no trip is duplicated or skipped across pages
+- And any total count in the response reflects the filtered set, not the driver's whole history
+
+**Scenario 12 — No trips in the selected period**
+- Given the driver has history but no trip reached its final outcome inside the selected period
+- When the endpoint is called with that filter
+- Then an empty list is returned with a success response, not an error
+- And the driver app shows a period-specific empty state
+
+**Scenario 13 — Unrecognised filter value is rejected**
+- Given the request carries a filter value that is not one of `today`, `this_week` or `this_month`
+- When the endpoint processes the request
+- Then a validation error is returned
+- And no trip data is returned
+- And this includes the value `all`, which is no longer accepted
+
+**Scenario 14 — Only this driver's trips are returned**
+- Given other drivers have trips inside the same period
+- When the authenticated driver calls the endpoint with any filter
+- Then only trips driven by the authenticated driver are returned
+
+**Scenario 15 — Unauthenticated request is rejected**
+- Given a request arrives without a valid driver session token
+- Then the request is rejected with an authentication error
+
+### Out of Scope
+- An "All" period tab or a custom "from / to" date range picker — only the three fixed periods
+- Who cancelled the trip, and the cancellation reason, on the list row — both owned by trip detail (#1718)
+- Commission on the list row, and any cancellation fee amount on a cancelled list row — both owned by trip detail (#1718)
+- The time of day on the list row — the card shows the date only
+- Separate badges for rider-cancelled and driver-cancelled — one "Cancelled" badge covers both
+- Filtering by outcome type (completed only, cancelled only)
+- Period earnings totals or summary figures on the list — owned by Earnings (#1776)
+- Exporting, sharing or printing the history
+- The content of a single trip detail record — owned by #1718
+- Disputing a cancellation or a cancellation fee
+
+### Dependencies
+- #1655 — Driver retrieves trip history (this story widens and re-scopes the same list endpoint)
+- #1718 — Driver retrieves past trip detail (the row tap target, and the home of commission, trip time, who cancelled and the cancellation reason)
+- #1715 — Rider cancels a trip (source of cancelled rows)
+- #1720 — Rider and driver cancellation (source of cancelled rows)
+- #1764 — Cancellation fees are charged after grace period (deliberately *not* surfaced on the list row)
+- #1619 — Auth middleware validates session tokens (must be live)
+
+---
+
 ### Feature 13 — Admin Rider Management API
 
 ---
@@ -2006,9 +2111,9 @@ This endpoint returns aggregated earnings data for the authenticated driver, bro
 
 This is the driver-facing read over the balance ledger (#3991). It returns one signed balance in EGP plus a paginated statement of the entries that produced it — it never calculates anything itself.
 
-**The sign carries the meaning.** A negative balance is money the driver owes the platform (the normal Phase 1 cash case: she keeps the fare, the commission is a debt). A positive balance is money the platform owes her and is what a withdrawal draws on (#3993). The response exposes both readings explicitly — outstanding (what she owes, zero when the balance is positive) and available (what she can withdraw, zero when the balance is negative) — so the app never has to interpret a sign.
+**The sign carries the meaning.** A negative balance is money the driver owes the platform (the normal Phase 1 cash case: she keeps the fare, the commission is a debt). A positive balance is money the platform owes her, reduced only by a payout Finance records against it (#3993). The response exposes both readings explicitly — outstanding (what she owes, zero when the balance is positive) and available (what SheDrive owes her, zero when the balance is negative) — so the app never has to interpret a sign.
 
-**Every entry is explained.** Each statement row returns the entry type, the signed amount, the timestamp (UTC+2), a human-readable description, and the id of the source record so the app can deep-link to the trip, settlement, or withdrawal behind it.
+**Every entry is explained.** Each statement row returns the entry type, the signed amount, the timestamp (UTC+2), a human-readable description, and the id of the source record so the app can deep-link to the trip, settlement, or payout behind it.
 
 **The commission percentage is still never exposed.** A trip-commission row returns the EGP amount owed on that trip and the trip reference — not the rate, and not the gross fare. This preserves the rule established in #1766.
 
@@ -2053,9 +2158,9 @@ The response also carries the last settlement (amount and date) and the configur
 - And the last-settlement amount and date are returned
 - And a settlement statement row is present
 
-**Scenario 8 — Withdrawal appears once it is paid**
-- Given a withdrawal of 200 EGP has been paid out to the driver (#3993)
-- Then a withdrawal row of −200.00 EGP is returned and the available amount is reduced by 200.00
+**Scenario 8 — Payout appears once Finance records it**
+- Given Finance has recorded a 200 EGP payout to the driver (#3993, #4001)
+- Then a payout row of −200.00 EGP is returned, with its reference and date, and the available amount is reduced by 200.00
 
 **Scenario 9 — Statement is paginated, newest first**
 - Given the driver has more entries than one page
@@ -2079,7 +2184,7 @@ The response also carries the last settlement (amount and date) and the configur
 - Then the balance returned equals the sum of her ledger entries exactly, with no recalculation from trip records
 
 **Scenario 14 — A mixed-custody driver sees one balance, both entry types**
-- Given a driver's statement holds both trip-commission rows (cash trips) and trip-earnings rows (digital trips) (#3997)
+- Given a driver's statement holds both trip-commission rows (driver-custody trips) and trip-earnings rows (platform-custody trips) (#3997)
 - Then her balance is the sum of all of them, and both row types are returned in the same statement with no separation into two views
 
 **Scenario 15 — Unauthenticated request is rejected**
@@ -2088,7 +2193,7 @@ The response also carries the last settlement (amount and date) and the configur
 
 ### Out of Scope
 - Posting entries to the ledger (#3991)
-- Requesting a withdrawal (#3993)
+- Recording a payout (#3993) — a driver never requests or triggers one
 - Recording a settlement (#1813)
 - In-app settlement payment by the driver
 - Receipt or statement PDF export
@@ -2096,7 +2201,7 @@ The response also carries the last settlement (amount and date) and the configur
 
 ### Dependencies
 - #3991 — Party balance ledger records every balance movement (must be live — the only source of these figures)
-- #3994 — Super admin configures balance, fee and withdrawal policy (supplies the balance limit returned here)
+- #3994 — Super admin configures balance and fee policy (supplies the balance limit returned here)
 - #3997 — Trip completion posts to the ledger according to fare custody (supplies both trip-commission and trip-earnings rows)
 - #1636 — Trip settlement (supplies commission and net earnings)
 - #1619 — Authentication service (must be live)
@@ -2110,9 +2215,9 @@ The response also carries the last settlement (amount and date) and the configur
 
 ### Background
 
-Today a driver's and a rider's financial position exist only as numbers scattered across trip and cancellation records. That is enough to *report* a figure but not to *change* one: nothing can debit a cancellation fee, credit a settlement, recover a rider's fee in cash, or pay out a withdrawal. This story introduces **two ledgers** — one per driver, one per rider — and the posting rules that every other financial story in this change set writes through.
+Today a driver's and a rider's financial position exist only as numbers scattered across trip and cancellation records. That is enough to *report* a figure but not to *change* one: nothing can debit a cancellation fee, credit a settlement, recover a rider's fee in cash, or record a payout. This story introduces **two ledgers** — one per driver, one per rider — and the posting rules that every other financial story in this change set writes through.
 
-**One signed balance per party, in EGP.** For the driver, negative means she owes the platform (her *outstanding* balance, cleared by a settlement) and positive means the platform owes her (her *available* balance, drawn on by a withdrawal). For the rider, negative means she owes an unpaid fee; a fee opens negative and is closed by an equal credit the moment it is recovered or waived. Either party's balance is the arithmetic sum of her ledger entries. It is never computed from trip records and never written directly. A new party starts at zero.
+**One signed balance per party, in EGP.** For the driver, negative means she owes the platform (her *outstanding* balance, cleared by a settlement) and positive means the platform owes her (her *available* balance, reduced by a payout). For the rider, negative means she owes an unpaid fee; a fee opens negative and is closed by an equal credit the moment it is recovered or waived. Either party's balance is the arithmetic sum of her ledger entries. It is never computed from trip records and never written directly. A new party starts at zero.
 
 **Driver ledger entry types:**
 
@@ -2124,23 +2229,21 @@ Today a driver's and a rider's financial position exist only as numbers scattere
 | `rider_cancellation_fee_share` | credit (+) | A rider cancels late; the driver is awarded her configured share (#1764) |
 | `rider_fee_recovery` | debit (−) | She collected a rider's outstanding fee in cash on the platform's behalf (#4000) — the cash stays in her hand, so the recovered amount is a debt she owes back |
 | `settlement` | credit (+) | Finance records cash received from the driver (#1813) |
-| `withdrawal` | debit (−) | An approved withdrawal is paid out to the driver (#3993) |
-| `adjustment` | credit or debit | A super admin posts a manual correction with a mandatory reason |
+| `payout` | debit (−) | Finance sends the driver a payout on its own cycle and it is recorded against her balance afterward (#3993, #4001) |
 
 **Rider ledger entry types:**
 
 | Entry type | Sign | Posted when |
 |---|---|---|
 | `cancellation_fee` | debit (−) | She cancels after the grace period (#1764) |
-| `fee_collected` | credit (+) | The fee is recovered — a cash surcharge on her next trip in Phase 1, later a card charge (#4000) |
+| `fee_collected` | credit (+) | The fee is recovered — in Phase 1, as a cash surcharge on her next trip (#4000) |
 | `fee_waived` | credit (+) | An admin writes it off with a reason |
-| `adjustment` | credit or debit | A super admin posts a manual correction with a mandatory reason |
 
-**Entries are immutable.** A posted entry is never edited or deleted. A mistake is corrected by posting a reversing adjustment, so the history always explains how the balance reached its current value.
+**Entries are immutable.** Nothing edits an entry and nothing deletes one — ever. Phase 1 ships with **no correction mechanism at all**: a settlement recorded for the wrong driver, an amount keyed wrong, or a duplicate payout has no fix path in this story. A rider fee can still be written off with `fee_waived` — the driver ledger has no equivalent. This gap is a known open item for the team building on this ledger.
 
 **Posting is idempotent.** Every entry carries an idempotency key shaped `{event_type}:{trip_id|request_id}:{party_id}`. The same event never posts twice against the same party — a retried trip completion, a retried cancellation, or a replayed payout produces one entry, not two.
 
-**Every entry names its cause.** Each entry carries its type, its signed EGP amount, a timestamp (UTC+2), the id of the source record (a trip, a cancellation, a settlement, or a withdrawal request), and — for an adjustment — the admin user id and a mandatory reason.
+**Every entry names its cause.** Each entry carries its type, its signed EGP amount, a timestamp (UTC+2), and the id of the source record (a trip, a cancellation, a settlement, or a payout) — and, for a waived fee, the admin user id and a mandatory reason.
 
 ### Acceptance Criteria
 
@@ -2153,7 +2256,7 @@ Today a driver's and a rider's financial position exist only as numbers scattere
 - Then a `trip_commission` entry of −20.00 EGP is posted against the driver, referencing the trip id
 - And her balance decreases by 20.00 EGP
 
-**Scenario 3 — Digital trip credits the driver's net earnings**
+**Scenario 3 — A platform-custody trip credits the driver's net earnings**
 - Given a trip completes with `custody = platform`, total fare 100 EGP and driver net earnings 80 EGP (#3997)
 - Then a `trip_earnings` entry of +80.00 EGP is posted and no `trip_commission` entry is posted for that trip
 
@@ -2183,9 +2286,9 @@ Today a driver's and a rider's financial position exist only as numbers scattere
 - Given a driver's balance is −300.00 EGP and Finance records a 300 EGP settlement (#1813)
 - Then a `settlement` entry of +300.00 EGP is posted and her balance becomes 0.00
 
-**Scenario 10 — Withdrawal debits the driver's balance on payout**
-- Given a driver's balance is +500.00 EGP and a 200 EGP withdrawal is marked paid (#3993)
-- Then a `withdrawal` entry of −200.00 EGP is posted and her balance becomes +300.00
+**Scenario 10 — Payout debits the driver's balance when recorded**
+- Given a driver's balance is +500.00 EGP and Finance records a 200 EGP payout (#3993, #4001)
+- Then a `payout` entry of −200.00 EGP is posted and her balance becomes +300.00
 
 **Scenario 11 — Balance is the sum of the ledger**
 - Given a driver with entries of −20.00, −10.00, +15.00 and +300.00
@@ -2193,34 +2296,27 @@ Today a driver's and a rider's financial position exist only as numbers scattere
 - Then it is +285.00 EGP and matches the sum of her entries exactly
 
 **Scenario 12 — A mixed-custody driver nets to one balance**
-- Given a driver has one cash trip (`trip_commission` −20.00) and one digital trip (`trip_earnings` +80.00)
+- Given a driver has one driver-custody trip (`trip_commission` −20.00) and one platform-custody trip (`trip_earnings` +80.00)
 - Then her balance is the sum of both entries, +60.00 EGP, with no special handling for the mix of custody values
 
 **Scenario 13 — Entries are immutable**
 - Given a posted ledger entry
 - When any request attempts to edit or delete it
-- Then the request is rejected and the entry stands unchanged
+- Then the request is rejected and the entry stands unchanged, with no correction mechanism offered in its place
 
-**Scenario 14 — Corrections are posted, not edited**
-- Given an entry was posted in error, on either ledger
-- When a super admin corrects it
-- Then a reversing `adjustment` entry is posted with a mandatory reason
-- And both the original and the reversal remain visible in the history
-- And the adjustment is recorded in the audit log (#1816)
-
-**Scenario 15 — The same event never posts twice**
-- Given a trip completion, cancellation, fee recovery, settlement, or withdrawal payout is submitted or retried more than once for the same idempotency key
+**Scenario 14 — The same event never posts twice**
+- Given a trip completion, cancellation, fee recovery, settlement, or payout is submitted or retried more than once for the same idempotency key
 - Then exactly one ledger entry is posted per party for that key, and the balance is unaffected by the repeat
 
-**Scenario 16 — Concurrent postings are serialised**
+**Scenario 15 — Concurrent postings are serialised**
 - Given two entries are posted for the same party at the same moment
 - Then both are recorded and the resulting balance reflects both, with no lost update
 
-**Scenario 17 — Amounts are stored to two decimals**
+**Scenario 16 — Amounts are stored to two decimals**
 - Given any posted amount
 - Then it is stored to two decimal places in EGP, VAT-inclusive, and the balance never accumulates rounding drift
 
-**Scenario 18 — A suspended driver's ledger is preserved**
+**Scenario 17 — A suspended driver's ledger is preserved**
 - Given a driver is suspended (#1742)
 - Then her balance and ledger are retained unchanged and remain visible to the super admin
 
@@ -2230,7 +2326,8 @@ Today a driver's and a rider's financial position exist only as numbers scattere
 - Deciding whether and when a rider's fee is recovered (#4000)
 - The driver-facing and rider-facing statement endpoints (#1781, #4004)
 - Recording a settlement in the admin portal (#1813)
-- The withdrawal request, review, and payout flow (#3993, #4001)
+- Recording a payout (#3993, #4001) — a driver never requests one; there is no request, review, or approval step
+- A free-form correction/adjustment entry type or a reverse-this-entry action — cut deliberately on 2026-09-13; see the open item above
 - Surge and dynamic pricing, promo codes, referral credits, tips, driver bonuses and incentives
 - Payment-provider integration, VAT and tax reporting, receipts and invoices as PDFs
 - Accounting exports beyond CSV
@@ -2240,130 +2337,91 @@ Today a driver's and a rider's financial position exist only as numbers scattere
 ### Dependencies
 - #1636 — Trip settlement (supplies the commission and net earnings figures a trip entry posts)
 - #1759 — Super admin configures global platform policies (commission rate, driver share)
-- #1816 — Super admin views the admin activity audit log (records manual adjustments)
+- #1816 — Super admin views the admin activity audit log (records fee waivers)
 
 ---
 
-## [API] #3993 — Driver requests a withdrawal of her available balance 🆕
+## [API] #3993 — Finance records a payout sent to a driver 🆕
 **Feature:** Feature 18 — Driver Earnings API | **Sprint:** Phase 1
 
-**Description:** As the driver app, I want to submit and track a withdrawal request against the driver's available balance so that she can be paid out what the platform owes her and follow the request to completion.
+**Description:** As the admin portal, I want to record a payout that Finance has already sent to a driver against her balance so that the ledger reflects the transfer and her available balance is reduced by exactly what was sent.
 
 ### Background
 
-A withdrawal draws on a **positive** balance only (#3991). In Phase 1 most drivers carry a negative balance from cash commission, so this path is exercised by digital-trip earnings, cancellation-fee shares, and manual credits.
+A driver never requests a payout. There is no request, no approval queue, no reservation against her balance, no minimum or maximum amount, and no cooling-off period. Finance transfers the money to her on its own cycle, outside the system, and this endpoint is where that transfer is recorded **after the fact** — the same act as recording a settlement (#1813), in the opposite direction.
 
-**A request reserves, it does not pay.** Submitting a request does not post a ledger entry. The requested amount is *reserved* against the available balance so a driver cannot submit two requests that together exceed what she has. The ledger is debited only when a super admin marks the withdrawal **paid** (#4001), which is the point money actually leaves the platform.
+**Recording posts, it does not pay.** Calling this endpoint posts a `payout` debit to the driver ledger (#3991) for the amount that was actually sent. The money has already moved; this call only writes it down.
 
-**Request lifecycle:** pending → approved → paid, or pending → rejected. A driver may cancel her own request while it is still pending, which releases the reservation. Rejected and cancelled requests release the reservation without posting anything.
+**A payout destination is required.** A payout cannot be recorded for a driver with no payout destination on file (#4003) — Finance cannot write down a transfer to nowhere.
 
-**Policy is applied at submission.** The minimum amount, optional per-request maximum, cooling-off period, and the withdrawals-enabled switch all come from #3994 and are evaluated against the values in force when the request is submitted. A request already in review keeps the rules it was created under.
+**The amount can never exceed what is owed.** A payout is refused if it is more than the driver's current available balance.
 
-**Approval — not submission — needs a payout destination.** A driver may submit a request with no payout destination on file; the destination (#4003) is only checked, and required, when a super admin attempts to approve the request (#4001). Payout itself is operational — Finance transfers the money outside the system and records it. There is no bank or wallet integration in Phase 1.
+**Posting is idempotent on the payout reference.** Every payout carries a reference (the bank or wallet transaction id, or a receipt number) and a date. Retrying the same reference never posts a second entry.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Successful withdrawal request**
-- Given an authenticated approved driver with an available balance of 500 EGP and a configured minimum of 50 EGP
-- When she submits a request for 200 EGP
-- Then the request is created with status pending and a created-at timestamp
-- And 200 EGP is reserved against her available balance
-- And no ledger entry is posted yet
+**Scenario 1 — Successful payout recorded**
+- Given an authenticated approved driver with an available balance of 500 EGP and a payout destination on file (#4003)
+- When a payout of 200 EGP is recorded with a reference and a date
+- Then a `payout` entry of −200.00 EGP is posted (#3991) and her available balance becomes 300.00
+- And the payout reference and date are stored and returned
 
-**Scenario 2 — Request cannot exceed the available balance**
+**Scenario 2 — Payout cannot exceed the available balance**
 - Given an available balance of 100 EGP
-- When she requests 150 EGP
-- Then a validation error is returned and no request is created
+- When a payout of 150 EGP is submitted
+- Then it is rejected with a validation error and no entry is posted
 
-**Scenario 3 — Reservations are cumulative**
-- Given an available balance of 500 EGP and a pending request for 400 EGP
-- When she submits a second request for 200 EGP
-- Then it is rejected because only 100 EGP remains unreserved
+**Scenario 3 — Payout is refused without a payout destination on file**
+- Given a driver with no payout destination on file (#4003)
+- When a payout is submitted for her
+- Then it is rejected, naming the missing destination, and no entry is posted
 
-**Scenario 4 — Request below the minimum is rejected**
-- Given the configured minimum withdrawal amount is 50 EGP
-- When she requests 20 EGP
-- Then a validation error is returned naming the minimum
+**Scenario 4 — Payout succeeds once a destination is on file**
+- Given the driver adds a payout destination
+- When the payout is retried
+- Then it succeeds and the `payout` entry is posted
 
-**Scenario 5 — Request above the maximum is rejected**
-- Given a per-request maximum of 2,000 EGP is configured
-- When she requests 3,000 EGP
-- Then a validation error is returned naming the maximum
-- And when no maximum is configured, no upper limit is applied
+**Scenario 5 — Idempotent on the payout reference**
+- Given a payout is recorded with reference "PMT-1042"
+- When the same reference is submitted again
+- Then no second entry is posted and the original entry is returned unchanged
 
-**Scenario 6 — Cooling-off period is enforced**
-- Given a cooling-off period of 7 days and a request submitted 2 days ago
-- When she submits another request
-- Then it is rejected and the response states when she may request again
-
-**Scenario 7 — Driver with a negative balance cannot withdraw**
+**Scenario 6 — Driver with a negative balance cannot receive a payout**
 - Given the driver owes the platform 300 EGP
-- When she submits a withdrawal request
+- When a payout is submitted for her
 - Then it is rejected because she has no available balance
 
-**Scenario 8 — Withdrawals disabled platform-wide**
-- Given withdrawals are disabled (#3994)
-- When any driver submits a request
-- Then it is rejected with a withdrawals-unavailable response and no request is created
-
-**Scenario 9 — Only approved drivers may request**
+**Scenario 7 — Only approved drivers may receive a recorded payout**
 - Given a driver whose account is pending approval, rejected, or suspended
-- When she submits a request
+- When a payout is submitted for her
 - Then it is rejected
 
-**Scenario 10 — A request can be submitted without a payout destination on file**
-- Given a driver has no payout destination captured on her profile (#4003)
-- When she submits a withdrawal request that otherwise satisfies policy
-- Then the request is created with status pending — the destination is checked only at approval (#4001)
+**Scenario 8 — Reference and date are required**
+- Given a payout submission missing a reference or a date
+- Then a validation error is returned and nothing is posted
 
-**Scenario 11 — Driver retrieves her withdrawal history**
-- Given the driver has previous requests
-- When she calls the withdrawals endpoint
-- Then they are returned newest-first with amount, status, requested date, decided date, and rejection reason where applicable
-- And the list is paginated
+**Scenario 9 — Driver retrieves the payout in her statement**
+- Given a payout of 200 EGP has been recorded
+- When she retrieves her balance (#1781)
+- Then a payout row of −200.00 EGP is returned in her statement with its reference and date
 
-**Scenario 12 — Driver cancels her own pending request**
-- Given a request in pending status
-- When she cancels it
-- Then the status becomes cancelled, the reservation is released, and no ledger entry is posted
-
-**Scenario 13 — A decided request cannot be cancelled**
-- Given a request in approved, paid, or rejected status
-- When she attempts to cancel it
-- Then a conflict error is returned and the status is unchanged
-
-**Scenario 14 — Payout posts the ledger entry**
-- Given a super admin marks an approved request paid (#4001)
-- Then a withdrawal ledger entry for the full requested amount is posted (#3991)
-- And the reservation is converted to that entry rather than being released
-- And her available balance decreases by the amount exactly once
-
-**Scenario 15 — Rejection releases the reservation**
-- Given a super admin rejects a pending request with a reason
-- Then the status becomes rejected, the reason is stored and returned to the driver, the reservation is released, and no ledger entry is posted
-
-**Scenario 16 — Duplicate submission is not double-counted**
-- Given the driver's app retries the same submission
-- Then exactly one request is created and only one reservation is held
-
-**Scenario 17 — Unauthenticated request is rejected**
-- Given a request without a valid driver session token
+**Scenario 10 — Unauthenticated request is rejected**
+- Given a request without a valid admin session token
 - Then it is rejected
 
 ### Out of Scope
-- Bank transfer, wallet, or payment-provider integration — payout is operational in Phase 1
-- Admin review and payout marking (#4001)
-- Requiring or validating a payout destination at submission time — only approval requires one (#4003, #4001)
-- Withdrawal fees or charges
-- Scheduled or automatic withdrawals
-- Driver appeal of a rejected withdrawal (Phase 2)
+- A driver requesting, tracking, or cancelling a payout — there is no such action anywhere in the system
+- An approval queue, pending/approved/rejected states, or any reservation against her balance
+- A minimum or maximum payout amount, or a cooling-off period between payouts
+- A platform-wide payout enabled/disabled switch
+- Bank transfer, wallet, or payment-provider integration — the transfer itself happens outside the system
+- Reversing a recorded payout — Phase 1 ships with no correction mechanism for a mis-recorded entry (#3991)
 - Tips, bonuses, incentives, and referral credits
 
 ### Dependencies
 - #3991 — Party balance ledger records every balance movement (must be live)
-- #3994 — Super admin configures balance, fee and withdrawal policy (must be live — supplies minimum, maximum, cooling-off, and the enabled switch)
-- #4003 — Driver payout destination is captured and required before payout (supplies the destination #4001 checks at approval)
-- #4001 — Super admin reviews and processes driver withdrawal requests (decides and marks paid)
+- #4003 — Driver payout destination is captured and required before a payout can be recorded (supplies the destination this endpoint checks)
+- #1781 — Driver retrieves her balance and statement (the payout appears there once recorded)
 - #1619 — Authentication service (must be live)
 
 ---
@@ -2371,15 +2429,15 @@ A withdrawal draws on a **positive** balance only (#3991). In Phase 1 most drive
 ## [API] #4003 — Driver payout destination is captured and required before payout 🆕
 **Feature:** Feature 18 — Driver Earnings API | **Sprint:** Phase 1
 
-**Description:** As the driver app, I want to capture, update, and retrieve the driver's payout destination so that a withdrawal can never be approved without somewhere for Finance to actually send the money.
+**Description:** As the driver app, I want to capture, update, and retrieve the driver's payout destination so that a payout can never be recorded without somewhere for Finance to actually send the money.
 
 ### Background
 
-A withdrawal (#3993) reserves against the driver's available balance, but a payout is money leaving the platform to a real destination — a bank account or a mobile wallet, held under the driver's name. Today the driver profile carries no such destination, so nothing stops a request reaching approval with nowhere for Finance to pay it.
+A payout (#3993) is money leaving the platform to a real destination — a bank account or a mobile wallet, held under the driver's name. Today the driver profile carries no such destination, so nothing stops Finance recording a payout with nowhere to send it.
 
-This story adds a **payout destination** to the driver profile: the destination type, the account or wallet number, and the holder name. A driver may add, update, or replace her destination at any time; she is never asked for it before she needs a payout, since most drivers in Phase 1 run a negative balance and never withdraw at all.
+This story adds a **payout destination** to the driver profile: the destination type, the account or wallet number, and the holder name. A driver may add, update, or replace her destination at any time; she is never asked for it before Finance needs to pay her, since most drivers in Phase 1 run a negative balance and never receive a payout at all.
 
-**The gate lives at approval, not at request.** A withdrawal request (#3993) may be submitted with no destination on file. The check happens when a super admin attempts to approve a pending request (#4001): without a destination captured, approval is refused and the admin is told why.
+**The gate lives at recording, not before.** A driver never requests a payout — there is no request to gate. The check happens when a payout is recorded against her balance (#3993, #4001): without a destination captured, recording is refused and the admin is told why.
 
 **The holder name is not silently assumed.** It is captured as its own field, separate from the driver's account name, because a payout destination is sometimes held jointly or under a slightly different legal name.
 
@@ -2411,31 +2469,26 @@ This story adds a **payout destination** to the driver profile: the destination 
 - When she requests her profile
 - Then the destination field is null or absent, and no error is raised
 
-**Scenario 6 — A withdrawal request may be submitted without a destination**
-- Given a driver with no destination on file and an available balance
-- When she submits a withdrawal request (#3993)
-- Then the request is created normally — the destination is not required at this step
+**Scenario 6 — A payout cannot be recorded without a destination on file**
+- Given a driver with no payout destination on file
+- When Finance attempts to record a payout for her (#3993, #4001)
+- Then the recording is refused with a reason naming the missing destination
 
-**Scenario 7 — Approval is refused without a destination on file**
-- Given a pending withdrawal request from a driver with no payout destination
-- When a super admin attempts to approve it (#4001)
-- Then the approval is refused with a reason naming the missing destination, and the request stays pending
-
-**Scenario 8 — Approval succeeds once a destination is on file**
+**Scenario 7 — Recording succeeds once a destination is on file**
 - Given the same driver adds a payout destination
-- When the super admin retries the approval
-- Then it succeeds and the request moves to approved
+- When the payout is retried
+- Then it succeeds and the `payout` entry is posted
 
-**Scenario 9 — The destination number is masked outside the driver's own view**
+**Scenario 8 — The destination number is masked outside the driver's own view**
 - Given a payout destination is captured
 - Then any surface other than the driver's own retrieval of her profile shows the number masked, except the admin surface that must action the payout, which shows it in full
 
-**Scenario 10 — Destination changes do not affect an already-approved request**
-- Given a request is already approved against one destination
-- When the driver updates her destination before it is marked paid
-- Then the change is recorded going forward, and Finance is shown the destination in force at the moment of payout, never a stale cached copy
+**Scenario 9 — The destination in force at the moment of recording is used**
+- Given a driver updates her destination
+- When a payout is later recorded for her
+- Then Finance is shown the destination in force at the moment of recording, never a stale cached copy
 
-**Scenario 11 — Unauthenticated request is rejected**
+**Scenario 10 — Unauthenticated request is rejected**
 - Given a request without a valid driver session token
 - Then it is rejected
 
@@ -2448,8 +2501,8 @@ This story adds a **payout destination** to the driver profile: the destination 
 
 ### Dependencies
 - #1800 — Driver retrieves her profile (the destination is served alongside the rest of her profile)
-- #3993 — Driver requests a withdrawal of her available balance (the request this destination gates at approval)
-- #4001 — Super admin reviews and processes driver withdrawal requests (enforces the gate at approval)
+- #3993 — Finance records a payout sent to a driver (the payout this destination gates at recording)
+- #4001 — Super admin records a payout sent to a driver (enforces the gate at recording)
 - #1619 — Authentication service (must be live)
 
 ---
@@ -2469,7 +2522,7 @@ This is the rider-facing read over the rider ledger (#3991). It returns her curr
 
 **Almost always zero.** For the overwhelming majority of riders this balance is 0.00 and the fee list is empty; the endpoint exists for the minority carrying an open fee.
 
-**Each open fee names its cause.** A fee entry returns its amount, the trip it came from, the date it was charged, and a note that it will be added automatically to her next completed trip (#4000) — never an instruction to pay separately, because Phase 1 has no card on file to charge.
+**Each open fee names its cause.** A fee entry returns its amount, the trip it came from, the date it was charged, and a note that it will be added automatically to her next completed trip (#4000) — never an instruction to pay separately, because there is no way to collect from her between rides.
 
 **A recovered or waived fee still appears in history.** Once a fee is recovered (#4000) or waived by an admin, it is closed — no longer counted in the outstanding balance — but the original entry and the entry that closed it both remain visible in her statement, exactly as with the driver's ledger (#3991).
 
@@ -2529,12 +2582,12 @@ The response also carries the configured rider fee recovery threshold (#3994) so
 - Recovering a fee (#4000)
 - Waiving a fee (admin-side, #4005)
 - Blocking booking while over the limit (#4002)
-- Card or online payment of a fee (Phase 2)
+- Paying a fee through this endpoint — it is read-only
 - Receipt or statement PDF export
 
 ### Dependencies
 - #3991 — Party balance ledger records every balance movement (must be live — the only source of these figures)
-- #3994 — Super admin configures balance, fee and withdrawal policy (supplies the fee limit returned here)
+- #3994 — Super admin configures balance and fee policy (supplies the fee limit returned here)
 - #1764 — Cancellation fees are charged after the grace period (supplies the fee itself)
 - #4000 — Rider outstanding fee is recovered on her next trip (closes the fee this story reports as recovered)
 - #1619 — Authentication service (must be live)
@@ -2677,7 +2730,7 @@ This endpoint is called when an authenticated driver confirms a trip cancellatio
 
 #1715 and #1720 decide *that* a trip is cancelled and record who cancelled and why. This story is the money: it decides **whether** a fee applies, **how much**, **how it is split**, and **posts the movement to both parties' balance ledgers** (#3991). Without it a cancellation fee is a number on a trip record that never reaches anyone's balance — and a rider who cancels late walks away owing nothing to anyone.
 
-**Rider cancellation fee.** The amount is the fixed EGP value on the zone's rate card (#1757). The rider grace period is the global setting (#1759) and the clock starts when the driver accepts. Cancelling inside the grace period costs nothing. Cancelling after it **opens a `cancellation_fee` debit on the rider's own ledger** (#3991) for the full fee amount, and the fee is split between the driver and the platform using the configured driver share percentage — the driver's share is **credited to her balance** as a `rider_cancellation_fee_share` entry. Opening the fee does not collect it: in Phase 1 the rider has no card on file, so the debit sits on her ledger until it is recovered as a surcharge on her next completed trip (#4000).
+**Rider cancellation fee.** The amount is the fixed EGP value on the zone's rate card (#1757). The rider grace period is the global setting (#1759) and the clock starts when the driver accepts. Cancelling inside the grace period costs nothing. Cancelling after it **opens a `cancellation_fee` debit on the rider's own ledger** (#3991) for the full fee amount, and the fee is split between the driver and the platform using the configured driver share percentage — the driver's share is **credited to her balance** as a `rider_cancellation_fee_share` entry. Opening the fee does not collect it: there is no way to collect from a rider between rides, so the debit sits on her ledger until it is recovered as a surcharge on her next completed trip (#4000).
 
 **Driver cancellation fee.** A fixed EGP amount (#1759) is charged to a driver who cancels an accepted trip after the driver cancellation grace period, measured from her acceptance. Cancelling inside the grace period costs nothing. The fee is waived only when the reason is rider no-show *and* she had marked arrived and waited at least the configured rider no-show wait time. In every other late driver cancellation the fee applies and is **debited from her balance** as a `driver_cancellation_fee` entry.
 
@@ -2783,11 +2836,11 @@ This endpoint is called when an authenticated driver confirms a trip cancellatio
 ## [API] #4000 — Rider outstanding fee is recovered on her next trip 🆕
 **Feature:** Feature 20 — Trip Cancellation API | **Sprint:** Phase 1
 
-**Description:** As the trip-completion service, I want to add a rider's oldest outstanding fee as a surcharge on her next completed trip and post the recovery to both the rider's and the driver's ledgers so that a fee she cannot pay by card in Phase 1 is still collected, in cash, without the platform absorbing the loss.
+**Description:** As the trip-completion service, I want to add a rider's oldest outstanding fee as a surcharge on her next completed trip and post the recovery to both the rider's and the driver's ledgers so that a fee she has no way to pay between rides is still collected, in cash, without the platform absorbing the loss.
 
 ### Background
 
-#1764 opens a rider's outstanding fee — it debits her ledger (#3991) but collects nothing, because a Phase 1 rider has no card on file. This story is the collection: it recovers the fee as a **surcharge on her very next completed trip**, added to the fare and collected by the driver in cash alongside it.
+#1764 opens a rider's outstanding fee — it debits her ledger (#3991) but collects nothing, because there is no way to collect from a rider between rides. This story is the collection: it recovers the fee as a **surcharge on her very next completed trip**, added to the fare and collected by the driver in cash alongside it.
 
 **The surcharge is shown up front, not folded in.** It appears on the fare estimate before she confirms the ride and again on the trip's fare summary as its own line, distinct from the fare itself — never silently added to the total she is quoted.
 
@@ -2868,7 +2921,7 @@ The driver is entitled to the same 95.00 EGP (80.00 net earnings plus her 15.00 
 - Escalating to full-balance recovery above the threshold (#4002)
 - Choosing which ledger entry a trip's own fare posts — trip_commission vs trip_earnings (#3997)
 - The rider-facing screens that display the outstanding fee and the surcharge (mobile rider stories)
-- Card or online recovery of a fee (Phase 2 — Phase 1 recovers in cash only)
+- Recovering a fee by any means other than a cash surcharge on a ride
 - Rider or driver dispute of a recovered fee (Phase 2)
 - Partial recovery — a fee is recovered in full or not at all
 
@@ -2892,7 +2945,7 @@ The driver is entitled to the same 95.00 EGP (80.00 net earnings plus her 15.00 
 
 This story is the escalation. When her outstanding balance is **at or above the rider fee recovery threshold** configured in `#3994` (default 60.00 EGP), the surcharge applied to her next completed trip is her **whole** outstanding balance in a single `fee_collected` entry, not just the oldest fee. Setting the threshold to zero disables the escalation entirely and recovery always stays at one fee per trip.
 
-**There is deliberately no booking block.** An earlier draft of this design refused trip requests above the threshold. That deadlocks: a Phase 1 rider pays cash and has no payment instrument, so the *only* mechanism that can ever clear her fee is completing a trip. Refusing the booking would make the balance permanent, recover nothing, and lose the rider. Escalating the recovery instead is self-clearing — she books, she pays it all, she is square.
+**There is deliberately no booking block.** An earlier draft of this design refused trip requests above the threshold. That deadlocks: a rider pays in cash on the ride and cannot be charged between rides, so the *only* mechanism that can ever clear her fee is completing a trip. Refusing the booking would make the balance permanent, recover nothing, and lose the rider. Escalating the recovery instead is self-clearing — she books, she pays it all, she is square.
 
 **Persistent abuse is a human decision, not an automatic one.** A rider who repeatedly runs the balance up is suspended through the existing rider-suspension flow (#1740), actioned by an admin from the rider outstanding-fees screen. The trip-request service applies no fee-based guard of its own.
 
@@ -2953,14 +3006,14 @@ This story is the escalation. When her outstanding balance is **at or above the 
 ### Out of Scope
 - Any booking or request refusal based on outstanding fees — suspension (#1740) is the only block on a rider
 - The gentle one-fee-per-trip recovery itself (#4000)
-- Charging a rider's card — no payment provider in Phase 1
+- Collecting the balance by any means other than the surcharge on her next ride
 - Waiving or adjusting a fee (#4005)
 - The rider-facing copy that warns her (mobile rider backlog)
 
 ### Dependencies
 - `#4000` — Rider outstanding fee is recovered on her next trip (this story escalates it)
 - `#3991` — Party balance ledger records every balance movement (must be live)
-- `#3994` — Super admin configures balance, fee and withdrawal policy (supplies the threshold)
+- `#3994` — Super admin configures balance and fee policy (supplies the threshold)
 - `#1764` — Cancellation fees are charged after the grace period (creates the fees)
 - `#1740` — Operations admin suspends a rider account (the only block on a rider)
 
@@ -3023,11 +3076,7 @@ This story is the escalation. When her outstanding balance is **at or above the 
 - And given a statement longer than 500 characters is submitted
 - Then the server returns a validation error and no report is created
 
-**Scenario 10 — Report is rejected for a declared child passenger**
-- Given the trip carries the child-passenger flag set to true (#1783)
-- When a gender-mismatch report is submitted for that trip
-- Then the server returns a validation error stating the passenger is a declared child
-- And the trip is not cancelled and the rider's account is not flagged
+> **Scope note (2026-09-09):** the declared child-passenger exception has been removed from Phase 1, so this endpoint accepts a report for any first trip with no per-passenger carve-out. The removed scenario and its stories (#1783, #1790) are recorded in `phase-1.5-stories.md`.
 
 ---
 
@@ -3036,53 +3085,65 @@ This story is the escalation. When her outstanding balance is **at or above the 
 
 **Description:** As the rider app, I want to store a rider's emergency contacts and, when she triggers SOS during an active trip, notify those contacts with a live trip-tracking link so that the people she trusts can follow her location in real time during an emergency.
 
-**Scenario 1 — Manage emergency contacts**
-- Given an authenticated rider
-- When she creates, updates, retrieves, or deletes an emergency contact (name, phone, relationship)
-- Then the change is persisted and returned on subsequent reads
+### Acceptance Criteria
 
-**Scenario 2 — Contacts notified with a live link on SOS**
-- Given the rider has one or more emergency contacts and an active trip
-- When she triggers SOS
-- Then each contact is sent an alert containing a live trip-tracking link to her current location
+**Scenario 1 — Emergency contacts can be stored and managed**
+- Given a signed-in rider
+- When the app creates, retrieves, updates or deletes an emergency contact (name, phone number, relationship)
+- Then the change is stored against her account and is returned on the next retrieval
 
-**Scenario 3 — Live link reflects location for the trip duration**
+**Scenario 2 — At most five contacts are accepted**
+- Given a rider already has 5 emergency contacts stored
+- When the app attempts to store a sixth
+- Then the request is rejected and the sixth contact is not stored
+
+**Scenario 3 — Every contact is alerted on SOS**
+- Given a rider with at least one stored emergency contact
+- When she triggers SOS during an active trip
+- Then each of her emergency contacts is sent an alert
+- And that alert contains a live trip-tracking link to her current location
+
+**Scenario 4 — Each alert reports its own delivery result**
+- Given alerts have been sent for an SOS
+- When the app asks for their status
+- Then the delivery result of each individual alert is returned as sent, delivered or failed, per contact
+
+**Scenario 5 — One failed alert does not stop the others**
+- Given the alert to one contact fails
+- When the remaining contacts are processed
+- Then they are still alerted
+- And the failure is reported against that one contact only
+
+**Scenario 6 — The link is live for the duration of the trip**
 - Given an SOS alert has been sent
-- When a contact opens the live link
-- Then it shows the rider's location, updating for the duration of the trip / emergency
+- When a contact opens the live link while the trip is still running
+- Then it reflects the rider's current location
 
-**Scenario 4 — Only the rider's own contacts are notified**
-- Given an SOS is triggered
-- Then only the rider's saved emergency contacts are notified; no control room or operations team is contacted
+**Scenario 7 — The link expires 60 minutes after the trip ends**
+- Given the trip the SOS belongs to has ended
+- When 60 minutes have passed
+- Then the link stops working
 
-**Scenario 5 — Unauthenticated request is rejected**
-- Given a request arrives without a valid rider session token
-- Then the request is rejected
-
-**Scenario 6 — Contact list is capped at five**
-- Given a rider already has 5 stored emergency contacts
-- When an attempt is made to store a sixth
-- Then it is rejected
-
-**Scenario 7 — Per-contact delivery status is reported**
-- Given an SOS alert has been sent to several contacts
-- Then the delivery result of each individual alert is recorded and reported back as sent, delivered, or failed, per contact
-- And a failure to reach one contact does not stop the remaining contacts from being alerted
-
-**Scenario 8 — The live link expires 60 minutes after the trip ends**
-- Given a live location link was issued during a trip
-- When the trip ends
-- Then the link keeps working for 60 more minutes and then stops working on its own
-
-**Scenario 9 — The rider can revoke the live link early**
+**Scenario 8 — She can revoke the link herself**
 - Given a live location link is active
-- When the rider stops sharing from her emergency screen
-- Then the link stops working immediately, however much of the 60 minutes was left
+- When the rider revokes it
+- Then it stops working immediately, however much time was left
 
-**Scenario 10 — A revoked or expired link shows nothing**
+**Scenario 9 — A revoked or expired link returns nothing**
 - Given a live location link has been revoked or has expired
 - When anyone opens it
 - Then no location and no trip detail is returned
+
+**Scenario 10 — Only her own contacts are notified**
+- Given a rider triggers SOS
+- When the alerts are sent
+- Then only the emergency contacts stored against her own account are alerted, and no one else
+
+**Scenario 11 — SOS with no contacts stored**
+- Given a rider with no emergency contacts stored
+- When she triggers SOS during an active trip
+- Then no alert is sent
+- And the app is told there are no contacts, so that it can prompt her to add them
 
 **Dependencies:** Consumed by [Mobile] #1787 (rider contacts) and #3968 (rider emergency screen). The live link it sends is the one issued, scoped and expired by #3971. Needs an SMS supplier able to deliver to Egyptian mobile numbers and report delivery results — none is contracted yet, and the per-contact delivery status depends on it.
 
@@ -3093,53 +3154,65 @@ This story is the escalation. When her outstanding balance is **at or above the 
 
 **Description:** As the driver app, I want to store a driver's emergency contacts and, when she triggers SOS during an active trip, notify those contacts with a live trip-tracking link so that the people she trusts can follow her location in real time during an emergency.
 
-**Scenario 1 — Manage emergency contacts**
-- Given an authenticated driver
-- When she creates, updates, retrieves, or deletes an emergency contact (name, phone, relationship)
-- Then the change is persisted and returned on subsequent reads
+### Acceptance Criteria
 
-**Scenario 2 — Contacts notified with a live link on SOS**
-- Given the driver has one or more emergency contacts and an active trip
-- When she triggers SOS
-- Then each contact is sent an alert containing a live trip-tracking link to her current location
+**Scenario 1 — Emergency contacts can be stored and managed**
+- Given a signed-in driver
+- When the app creates, retrieves, updates or deletes an emergency contact (name, phone number, relationship)
+- Then the change is stored against her account and is returned on the next retrieval
 
-**Scenario 3 — Live link reflects location for the trip duration**
+**Scenario 2 — At most five contacts are accepted**
+- Given a driver already has 5 emergency contacts stored
+- When the app attempts to store a sixth
+- Then the request is rejected and the sixth contact is not stored
+
+**Scenario 3 — Every contact is alerted on SOS**
+- Given a driver with at least one stored emergency contact
+- When she triggers SOS during an active trip
+- Then each of her emergency contacts is sent an alert
+- And that alert contains a live trip-tracking link to her current location
+
+**Scenario 4 — Each alert reports its own delivery result**
+- Given alerts have been sent for an SOS
+- When the app asks for their status
+- Then the delivery result of each individual alert is returned as sent, delivered or failed, per contact
+
+**Scenario 5 — One failed alert does not stop the others**
+- Given the alert to one contact fails
+- When the remaining contacts are processed
+- Then they are still alerted
+- And the failure is reported against that one contact only
+
+**Scenario 6 — The link is live for the duration of the trip**
 - Given an SOS alert has been sent
-- When a contact opens the live link
-- Then it shows the driver's location, updating for the duration of the trip / emergency
+- When a contact opens the live link while the trip is still running
+- Then it reflects the driver's current location
 
-**Scenario 4 — Only the driver's own contacts are notified**
-- Given an SOS is triggered
-- Then only the driver's saved emergency contacts are notified; no control room or operations team is contacted
+**Scenario 7 — The link expires 60 minutes after the trip ends**
+- Given the trip the SOS belongs to has ended
+- When 60 minutes have passed
+- Then the link stops working
 
-**Scenario 5 — Unauthenticated request is rejected**
-- Given a request arrives without a valid driver session token
-- Then the request is rejected
-
-**Scenario 6 — Contact list is capped at five**
-- Given a driver already has 5 stored emergency contacts
-- When an attempt is made to store a sixth
-- Then it is rejected
-
-**Scenario 7 — Per-contact delivery status is reported**
-- Given an SOS alert has been sent to several contacts
-- Then the delivery result of each individual alert is recorded and reported back as sent, delivered, or failed, per contact
-- And a failure to reach one contact does not stop the remaining contacts from being alerted
-
-**Scenario 8 — The live link expires 60 minutes after the trip ends**
-- Given a live location link was issued during a trip
-- When the trip ends
-- Then the link keeps working for 60 more minutes and then stops working on its own
-
-**Scenario 9 — The driver can revoke the live link early**
+**Scenario 8 — She can revoke the link herself**
 - Given a live location link is active
-- When the driver stops sharing from her emergency screen
-- Then the link stops working immediately, however much of the 60 minutes was left
+- When the driver revokes it
+- Then it stops working immediately, however much time was left
 
-**Scenario 10 — A revoked or expired link shows nothing**
+**Scenario 9 — A revoked or expired link returns nothing**
 - Given a live location link has been revoked or has expired
 - When anyone opens it
 - Then no location and no trip detail is returned
+
+**Scenario 10 — Only her own contacts are notified**
+- Given a driver triggers SOS
+- When the alerts are sent
+- Then only the emergency contacts stored against her own account are alerted, and no one else
+
+**Scenario 11 — SOS with no contacts stored**
+- Given a driver with no emergency contacts stored
+- When she triggers SOS during an active trip
+- Then no alert is sent
+- And the app is told there are no contacts, so that it can prompt her to add them
 
 **Dependencies:** Consumed by [Mobile] #1951 (driver contacts) and #3969 (driver emergency screen). The live link it sends is the one issued, scoped and expired by #3971. Needs an SMS supplier able to deliver to Egyptian mobile numbers and report delivery results — none is contracted yet, and the per-contact delivery status depends on it.
 
@@ -3157,28 +3230,34 @@ An SOS case is a first-class, permanent record — one confirmed tap creates exa
 ### Acceptance Criteria
 
 **Scenario 1 — A case is created on confirmation**
-- Given a rider or a driver confirms an SOS during an active trip
+- Given a rider or a driver is on an active trip
+- When she confirms an SOS
 - Then exactly one SOS case is created for that confirmation
 
 **Scenario 2 — The snapshot records who raised it**
-- Given a case has been created
+- Given an SOS has been confirmed
+- When the case is created
 - Then it records whether the rider or the driver raised it and which person that was, together with the rider's name and phone number and the driver's name and phone number
 
 **Scenario 3 — The snapshot records the trip context**
-- Given a case has been created
+- Given an SOS has been confirmed
+- When the case is created
 - Then it records the trip it belongs to, the state that trip was in at the moment of the trigger (on the way to pickup, waiting at pickup, or trip under way), and the vehicle's make, model, colour and plate
 
 **Scenario 4 — The snapshot records where it happened**
-- Given a case has been created
+- Given an SOS has been confirmed
+- When the case is created
 - Then it records her position at the moment of the trigger together with the matching street address, the trip's pickup address, the trip's destination address, and how far along the route she was
 
 **Scenario 5 — The snapshot records when it happened**
-- Given a case has been created
+- Given an SOS has been confirmed
+- When the case is created
 - Then it records the date and time of the trigger in local Egyptian time
 
 **Scenario 6 — The snapshot records the alert outcome**
-- Given a case has been created
-- Then it records which emergency contacts were alerted and the delivery result for each one
+- Given an SOS has been confirmed
+- When her emergency contacts have been alerted
+- Then the case records which contacts were alerted and the delivery result for each one
 
 **Scenario 7 — The snapshot cannot change afterwards**
 - Given a case has been created
@@ -3188,10 +3267,12 @@ An SOS case is a first-class, permanent record — one confirmed tap creates exa
 
 **Scenario 8 — The trip is unaffected**
 - Given a case has been created
-- Then the trip continues, settles and is rated exactly as it would have without an SOS
+- When the trip runs on to completion
+- Then it settles and is rated exactly as it would have without an SOS
 
 **Scenario 9 — Nobody is suspended automatically**
 - Given a case has been created
+- When no admin has yet actioned it
 - Then no account is suspended as an automatic consequence of the case existing
 
 **Scenario 10 — An admin can retrieve the case**
@@ -3200,7 +3281,8 @@ An SOS case is a first-class, permanent record — one confirmed tap creates exa
 - Then the full case, including the whole snapshot, is returned
 
 **Scenario 11 — Requests without a valid session are refused**
-- Given a request to create or read a case arrives without a valid session
+- Given a request to create or read a case
+- When it arrives without a valid session
 - Then it is refused and no case detail is returned
 
 ### Out of Scope
@@ -3228,12 +3310,14 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 ### Acceptance Criteria
 
 **Scenario 1 — One link per case**
-- Given an SOS case is created
+- Given an SOS has been confirmed
+- When the case is created
 - Then exactly one live location link is issued for it
 - And the link cannot be guessed from another one
 
 **Scenario 2 — The link shows her location and the trip, and nothing else**
-- Given a contact opens a valid live location link
+- Given a valid live location link
+- When a contact opens it
 - Then it shows where she is now and the details of that trip
 - And it exposes nothing else about her account
 
@@ -3253,7 +3337,8 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 - Then no location and no trip detail is shown
 
 **Scenario 6 — Invalid links are refused**
-- Given a link does not correspond to any case, or is malformed
+- Given a link that does not correspond to any case, or is malformed
+- When anyone opens it
 - Then it is refused and no location data is returned
 
 ### Out of Scope

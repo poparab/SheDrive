@@ -1,13 +1,13 @@
 # Handover — Design team
 
-**Subject:** SheDrive financial core — 13 screens to draw
+**Subject:** SheDrive financial core — 11 screens to draw
 **Date:** 2026-09-08
 
 ---
 
 ## Read these, in this order
 
-1. **`docs/backlog/design-stories-financial.md`** — your 13 briefs. Each one lists the
+1. **`docs/backlog/design-stories-financial.md`** — your 11 briefs. Each one lists the
    components, every state to draw, and the bilingual requirement.
 2. **`docs/superpowers/specs/2026-09-08-financial-core-design.md`** §3, §5 and §7 — the
    behaviour behind the screens, with worked numbers.
@@ -29,7 +29,7 @@ Every parent Feature is already resolved and verified — see
 
 ---
 
-## The 13 screens
+## The 11 screens
 
 | Screen | Parent | Prototype to draw from |
 |---|---|---|
@@ -37,15 +37,13 @@ Every parent Feature is already resolved and verified — see
 | **[Rider] Outstanding Fee Notice & Full-Recovery State** | #1844 | `rider/home.html?fees=1` and `?full` |
 | **[Rider] Fare Summary with a Recovered Fee** | #1846 | `rider/trip-complete.html?fee=20` |
 | **[Driver] Balance & Statement** | #1840 | `driver/balance.html`, `?owed=430`, `?available=200`, `?zero` |
-| **[Driver] Request a Withdrawal** | #1840 | `driver/withdraw.html`, `?nowithdraw` |
 | **[Driver] Settle What You Owe** | #1840 | `driver/settle.html` |
 | **[Driver] Go-Online Blocked & Warning Band** | #1838 | `driver/home.html?blocked` and `?warn` |
 | **[Driver] Cash Collection with a Recovered Fee** | #1840 | `driver/cash-collection.html?riderfee=20` |
 | **[Admin] Driver Balances & Record Settlement** | #2857 | `admin-v2/balances.html` |
-| **[Admin] Driver Withdrawal Requests** | #2857 | `admin-v2/withdrawals.html` |
+| **[Admin] Record a Payout** | #2857 | `admin-v2/balances.html` |
 | **[Admin] Rider Outstanding Fees** | #2857 | `admin-v2/rider-balances.html` |
-| **[Admin] Settlement Day Book** | #2857 | `admin-v2/settlements.html` |
-| **[Admin] Balance, Fee & Withdrawal Policy** | #2857 | `admin-v2/pricing-policies.html` |
+| **[Admin] Balance & Fee Policy** | #2857 | `admin-v2/pricing-policies.html` |
 
 Every admin list screen also honours `?state=empty|loading|error|long`.
 
@@ -95,8 +93,7 @@ same banner — dismissible below the threshold, non-dismissible above it.
 ## States you must not skip
 
 Empty, loading and error on every list. Plus, per screen: the warning band, the blocked
-panel, the zero balance, the pending withdrawal request, the cooling-off state, the
-rejected-with-reason state, the missing-payout-destination state, and the full-recovery
+panel, the zero balance, the missing-payout-destination state, and the full-recovery
 banner. They are enumerated per story in the briefs — the prototype demonstrates each one
 via the query strings above.
 

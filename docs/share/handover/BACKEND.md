@@ -52,13 +52,13 @@ audit trail we build on top assumes them:**
 | # | Invariant | Why it matters |
 |---|---|---|
 | 1 | The balance is the **sum of the entries**. Nothing writes a balance. | The driver's app, the admin ledger view and the revenue report cannot disagree — they read the same sum. |
-| 2 | Entries are **immutable**. Corrections are new `adjustment` entries. No update, no delete. | It is the audit trail. An edited ledger is not evidence. |
+| 2 | Entries are **immutable**. No update, no delete, and — as of 13 Sep — no adjustment entry either. | It is the audit trail. An edited ledger is not evidence. **See the warning below: this currently leaves no way to correct a mistake.** |
 | 3 | Posting is **idempotent**, keyed `{event_type}:{trip_id\|request_id}:{party_id}`. | A retried trip completion must not charge twice. This is the single most likely production bug. |
 | 4 | Every entry **names its cause** — trip id, settlement reference, request id, or admin id + reason. | Support has to be able to answer "why do I owe this?" |
 
 Reads expose **both** readings so no client ever interprets a sign:
 `outstanding` (what she owes; 0 when the balance is positive) and
-`available` (what she can withdraw; 0 when the balance is negative).
+`available` (what SheDrive owes her; 0 when the balance is negative).
 
 ### 2. Trip completion posts by custody (`#3997`)
 The keystone. Scenarios cover both custody values and a mixed-mode driver.
@@ -94,14 +94,35 @@ limit so the app can explain it. **Limit of 0 disables the gate.** A settlement 
 her below the limit must release her **immediately** — no batch, no approval step.
 
 ### 6. Payouts (`#3993`, `#4003`)
-`pending → approved → paid`, or `pending → rejected`. Requesting **reserves** against the
-available balance and posts nothing. Only *mark paid* posts a `withdrawal` entry.
-Rejecting or cancelling releases the reservation and posts nothing.
-**A payout cannot be approved without a payout destination on file** (`#4003`).
+**A driver never requests a payout.** Finance transfers the money on its own cycle and
+then records the transfer, which posts a `payout` debit. There is no request, no approval
+queue, no reservation against her balance, no minimum or maximum, and no cooling-off
+period — there is nothing to approve, because the money moved before anything was
+recorded. Recording is idempotent on the payout reference, and an amount above her
+available balance is refused.
+**A payout cannot be recorded without a payout destination on file** (`#4003`) — you
+cannot write down a transfer to nowhere.
 
 ### 7. Reads (`#1781` reopened, `#4004`)
 Driver balance + statement; rider outstanding fees + statement. These calculate nothing —
 they read the ledger.
+
+---
+
+## Please raise this before you build the ledger
+
+**There is currently no way to correct a mis-recorded entry.** The ledger is append-only,
+and the product owner has removed the post-adjustment action to keep Phase 1 simple. That
+means nothing can fix a settlement recorded against the wrong driver, an amount keyed as
+300 instead of 30, or a payout written down twice — the entry is permanent and the driver
+sees it in her statement. A rider fee can still be written off (`fee_waived`); the driver
+ledger has no equivalent.
+
+The cheapest fix that does not reintroduce a free-form adjustment form is a
+**reverse-this-entry** action: one button on an existing entry, a required reason, posting
+the exact opposite amount and linking the two rows. Please put this in front of the product
+owner before `#3991` is built — retrofitting a correction path onto a live financial ledger
+is materially harder than shipping one.
 
 ---
 
@@ -129,7 +150,6 @@ in use. That is the whole point.
 ## A working reference implementation exists
 
 `shedrive-web/admin-v2/scripts/seed.js` and `mock-api.js` contain a complete mock of this
-ledger — entry types, balance derivation, settlement posting, withdrawal state machine and
-the day book. It is not production code, but the **shapes and the invariants are the ones
+ledger — entry types, balance derivation, settlement posting and payout recording. It is not production code, but the **shapes and the invariants are the ones
 we want**, and the admin screens are already built against them. Read it before designing
 your tables; it will save an argument later.

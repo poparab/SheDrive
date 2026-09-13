@@ -33,7 +33,7 @@ anywhere.
 
 > **This is the property the business asked for.** Adding a payment provider later
 > means writing `custody = 'platform'` on the trip. Nothing downstream changes: not the
-> ledger, not the balance, not the go-online gate, not settlement, not withdrawals, not
+> ledger, not the balance, not the go-online gate, not settlement, not payouts, not
 > the reports. No screen is rebuilt and no story is rewritten.
 
 **Build rule for every story and every screen in this change set:** never branch on
@@ -51,7 +51,7 @@ Money is owed in both directions, so both parties get an account.
 One signed balance per driver, in EGP.
 
 - **negative** → she owes SheDrive (*outstanding*), cleared only by a settlement
-- **positive** → SheDrive owes her (*available*), drawn on by a withdrawal
+- **positive** → SheDrive owes her (*available*), cleared by a payout Finance sends her
 
 | Entry type | Sign | Posted when |
 |---|---|---|
@@ -61,8 +61,7 @@ One signed balance per driver, in EGP.
 | `rider_cancellation_fee_share` | + | A rider cancels late; her configured share |
 | `rider_fee_recovery` | − | She collected a rider's outstanding fee in cash on the platform's behalf |
 | `settlement` | + | An admin records that she handed cash back |
-| `withdrawal` | − | Finance marks a payout paid |
-| `adjustment` | ± | An admin posts a correction with a reason |
+| `payout` | − | Finance records a transfer it has already sent her |
 
 ### 2.2 Rider ledger
 
@@ -73,18 +72,17 @@ One signed balance per rider, in EGP. Zero for almost every rider, almost always
 | `cancellation_fee` | − | She cancels after the grace period |
 | `fee_collected` | + | The fee is recovered — as a cash surcharge, or later a card charge |
 | `fee_waived` | + | An admin writes it off with a reason |
-| `adjustment` | ± | An admin posts a correction with a reason |
 
 ### 2.3 Invariants — enforce these everywhere
 
 1. **The balance is the sum of the entries.** Nothing ever writes a balance directly.
-2. **Entries are immutable.** A mistake is corrected by posting an `adjustment`, never
-   by editing or deleting. There is no delete.
+2. **Entries are immutable.** Nothing edits an entry and nothing deletes one — ever.
+   Phase 1 ships with **no correction mechanism at all**: see the open item in §10.
 3. **Posting is idempotent.** A retried trip completion, cancellation or payout posts
    at most one entry per party. Every entry carries an idempotency key
    (`{event_type}:{trip_id|request_id}:{party_id}`).
-4. **Every entry names its cause** — a trip id, a settlement reference, a withdrawal
-   request id, or an admin user id plus a reason.
+4. **Every entry names its cause** — a trip id, a settlement receipt, a payout reference,
+   or an admin user id plus a reason.
 5. **Amounts are EGP to 2 decimals**, VAT-inclusive, never rounded twice.
 
 ---
@@ -145,10 +143,6 @@ All of this lives on `pricing-policies.html` (extends #1759 and adds §9's `#399
 | **Driver outstanding limit** | **500.00 EGP** | Blocks go-online at this amount. **0 disables the gate.** |
 | Driver warning band | 80% | Warns her in-app from this fraction of the limit |
 | **Rider fee recovery threshold** | **60.00 EGP** | At or above this, the whole outstanding balance is recovered on her next ride instead of one fee at a time. **0 disables the escalation.** Never blocks booking. |
-| Withdrawals enabled | off | Master switch; off by default |
-| Minimum withdrawal | 50.00 EGP | Per request |
-| Maximum withdrawal | 2000.00 EGP | Per request; blank = no cap |
-| Cooling-off period | 7 days | Between withdrawal requests |
 
 Every change is written to the audit log (#1816) with who, when, old value, new value.
 Values in force are **snapshotted at driver acceptance** — a mid-trip policy change never
@@ -168,13 +162,25 @@ Recording a settlement **posts a ledger entry**; it never edits a balance.
   visible in the driver's own statement.
 - A settlement that clears a driver below the outstanding limit **unblocks her go-online
   immediately**, with no further admin action.
-- Settlements appear in a **day book** (`settlements.html`) that totals by channel and by
-  admin for the day — the artefact Finance reconciles against the bank.
+- Settlement entries are **exportable as CSV** from `balances.html` so Finance can check
+  them line by line against the bank statement. There is no separate day-book screen — it
+  was cut as a report dressed as a screen, and can come back as a real reconciliation
+  (banked amount in, variance out) once the cash-collection model is decided.
 
-Withdrawals are the mirror: `pending → approved → paid`, or `pending → rejected`.
-*Mark paid* is the only step that posts a ledger entry. A driver may cancel her own
-request while pending. Payout destination is captured on the driver profile (§6) and is
-**required before a request can be approved**.
+**Payouts are the mirror, and they work the same way — after the fact.** When a driver's
+balance is positive, SheDrive owes her; Finance transfers the money on its own cycle and
+then **records the transfer**, which posts a `payout` debit against her balance. Recording
+a payout happens in the same place as recording a settlement (`balances.html`) because it
+is the same act in the opposite direction: money moved, now write it down.
+
+> **A driver never requests a payout.** There is no request, no approval queue, no
+> reservation against her balance, no minimum or maximum, and no cooling-off period —
+> nothing to approve, because the money has already moved before anything is recorded.
+> Her `available` figure is what SheDrive owes her, not a button. She sees the payout in
+> her statement, with its reference and date, the same way she sees a settlement.
+
+Payout destination is captured on the driver profile (§6) and is **required before a
+payout can be recorded** — Finance cannot write down a transfer to nowhere.
 
 ---
 
@@ -183,7 +189,7 @@ request while pending. Payout destination is captured on the driver profile (§6
 | Field | Lives on | Why |
 |---|---|---|
 | `custody` (`driver` \| `platform`) | Trip | Drives the ledger entry; always `driver` in Phase 1 |
-| `payoutDestination` (type + number + holder name) | Driver profile | A payout cannot be approved without one |
+| `payoutDestination` (type + number + holder name) | Driver profile | A payout cannot be recorded without one |
 | `riderBalance` / rider ledger | Rider | Closes the cancellation-fee leak |
 | `settlementReceiptNo` | Ledger entry | Ties a ledger line to a physical receipt |
 | `idempotencyKey` | Ledger entry | Stops a retry double-charging |
@@ -210,8 +216,7 @@ change set.
 
 | Screen | State | What it must do |
 |---|---|---|
-| `balance.html` | **finish** | Signed balance, outstanding/available reading, warning band, full statement with credits and debits, entry causes, last settlement, withdrawal entry point |
-| `withdraw.html` | **finish** | Request form honouring min/max/cooling-off/reservation; pending-request state; cancel-own-request; rejection reason surfaced |
+| `balance.html` | **finish** | Signed balance, outstanding/available reading, warning band, full statement with credits and debits, entry causes, last settlement, and any payout Finance has sent her. **No withdrawal request — there is nothing for her to initiate** |
 | `settle.html` | **new** | What she owes, the channels she may use, the office address/hours, and her settlement history with receipt numbers |
 | `home.html` | **extend** | The **blocked** state when over the limit: the amount owed, the limit, and a direct link to `settle.html`; the **warning** band below it |
 | `cash-collection.html` | **extend** | When the rider carries a recovered fee, show fare + fee = total to collect, itemised |
@@ -220,10 +225,8 @@ change set.
 
 | Screen | State | What it must do |
 |---|---|---|
-| `balances.html` | **finish** | Driver balances list, ledger drawer, record settlement, post adjustment |
-| `withdrawals.html` | **finish** | Queue with approve / mark paid / reject; payout destination shown; blocked without one |
-| `rider-balances.html` | **new** | Riders with outstanding fees, rider ledger drawer, waive with reason, post adjustment, and a link into the existing rider-suspension flow (#1740) for persistent abuse — that is the only block on a rider, and it is a human decision |
-| `settlements.html` | **new** | Settlement day book: totals by channel and admin, filterable by date, CSV export |
+| `balances.html` | **finish** | Driver balances list, ledger drawer, record a settlement (cash in), record a payout (money out, after Finance has sent it), CSV export of settlement entries |
+| `rider-balances.html` | **new** | Riders with outstanding fees, rider ledger drawer, waive a fee with a reason, and a link into the existing rider-suspension flow (#1740) for persistent abuse — that is the only block on a rider, and it is a human decision |
 | `pricing-policies.html` | **extend** | The driver-balance and rider-fee policy blocks from §4 |
 | `reconciliation.html` | **finish** | Per-driver earnings & settlement; drop the disabled stub |
 | `reports.html` | **extend** | Revenue summary gains **collected vs. owed**: commission earned, commission settled, outstanding |
@@ -241,7 +244,7 @@ same edit; Arabic fallback text goes in the HTML.
 
 - `payments.*` — rider payment methods and outstanding fees
 - `fees.*` — rider-facing fee copy shared across home, trip-complete, trip-detail
-- `driver.balance.*`, `driver.withdraw.*`, `driver.settle.*`, `driver.txn.*`
+- `driver.balance.*`, `driver.settle.*`, `driver.txn.*`
 - `driver.blocked.*` — the go-online block and warning band
 
 Admin-v2 keys go in `admin-v2/i18n/` (`lists.js`, `details.js`, `config.js`, `core.js`).
@@ -260,12 +263,12 @@ Every story must be parented to a Feature — never create one without a parent.
 | Ref | Title | Parent |
 |---|---|---|
 | `#3991` | [API] Party balance ledger records every balance movement | #1776 |
-| `#3993` | [API] Driver requests a withdrawal of her available balance | #1776 |
+| `#3993` | [API] Finance records a payout sent to a driver | #1776 |
 | `#3996` | [API] Driver go-online is blocked while her outstanding balance is over the limit | #1607 |
 | `#3997` | [API] Trip completion posts to the ledger according to fare custody | #1604 |
 | `#4000` | [API] Rider outstanding fee is recovered on her next trip | #1602 |
 | `#4002` | [API] Rider fees above the recovery threshold are recovered in a single payment | #1602 |
-| `#4003` | [API] Driver payout destination is captured and required before payout | #1776 |
+| `#4003` | [API] Driver payout destination is captured and required before a payout is recorded | #1776 |
 | **#1764** | [API] Cancellation fees are charged after the grace period (rider and driver) | #1602 — **reopen** |
 | **#1781** | [API] Driver retrieves her balance and statement | #1776 — **reopen** |
 | `#4004` | [API] Rider retrieves her outstanding fees and statement | #1775 |
@@ -274,10 +277,9 @@ Every story must be parented to a Feature — never create one without a parent.
 
 | Ref | Title | Parent |
 |---|---|---|
-| `#3994` | [Admin] Super admin configures balance, fee and withdrawal policy | #1755 |
-| `#4001` | [Admin] Super admin reviews and processes driver withdrawal requests | #1803 |
+| `#3994` | [Admin] Super admin configures balance and fee policy | #1755 |
+| `#4001` | [Admin] Super admin records a payout sent to a driver | #1803 |
 | `#4005` | [Admin] Super admin reviews rider outstanding fees and waives them | #1803 |
-| `#4006` | [Admin] Super admin views the settlement day book | #1803 |
 | **#1813** | [Admin] Super admin reconciles driver balances and records settlements | #1803 — **reopen** |
 | **#1832 / #1833** | Dependency repoint only — **confirm story points before touching** | #1803 |
 
@@ -285,7 +287,6 @@ Every story must be parented to a Feature — never create one without a parent.
 
 | Ref | Title | Parent |
 |---|---|---|
-| `#3987` | [Mobile] Driver requests a withdrawal of her available balance | #1769 |
 | `#3988` | [Mobile] Driver is blocked from going online while her balance is over the limit | #1540 |
 | `#3989` | [Mobile] Driver settles what she owes and sees her settlement history | #1769 |
 | `#3990` | [Mobile] Driver collects a recovered rider fee alongside the fare | #1543 |
@@ -324,6 +325,25 @@ Surge and dynamic pricing · promo codes and discounts · referral credits · ti
 bonuses and incentives · payment-provider integration · VAT and tax reporting · receipts
 and invoices as PDFs · accounting exports beyond CSV · rider or driver dispute of a fee
 (Phase 2) · automated dunning.
+
+**Cut deliberately, on 2026-09-13, to keep Phase 1 simple:** the settlement day book
+(`settlements.html`), driver-initiated payout requests, and the **post-adjustment** action
+on both balance screens.
+
+> ### Open item — there is no way to correct a mis-recorded entry
+>
+> The ledger is append-only and adjustments have been removed, so nothing in Phase 1 can
+> fix a settlement recorded for the wrong driver, an amount keyed as 300 instead of 30, or
+> a payout written down twice. The entry is permanent and the driver sees it in her
+> statement. A rider fee can still be written off with `fee_waived`; **the driver ledger
+> has no equivalent.**
+>
+> The cheapest thing that closes this without reintroducing free-form adjustments is a
+> **reverse-this-entry action**: one button on an existing entry, requiring a reason,
+> posting the exact opposite amount and linking the two rows. It is simpler than an
+> adjustment form — nothing to type but the reason — and it keeps the ledger correctable.
+> Raise this before the ledger (#3991) is built; retrofitting a correction path onto a
+> live financial ledger is materially harder than shipping one.
 
 **In scope but easy to miss:** the `custody` field and its ledger branch. It ships in
 Phase 1 with only one value in use. That is the whole point — it is what makes online

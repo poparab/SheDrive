@@ -1,6 +1,6 @@
 # Handover — Mobile team (Rider & Driver apps)
 
-**Subject:** SheDrive financial core — 9 mobile stories
+**Subject:** SheDrive financial core — 8 mobile stories
 **Date:** 2026-09-08
 
 ---
@@ -33,19 +33,18 @@ them.
 
 ---
 
-## Driver app — 5 stories
+## Driver app — 4 stories
 
 | Story | Screen | Prototype |
 |---|---|---|
 | `#1788` **(rescoped)** | Balance & statement | `driver/balance.html` |
-| `#3987` | Request a withdrawal | `driver/withdraw.html` |
 | `#3989` | Settle what she owes + history | `driver/settle.html` |
 | `#3988` | Go-online blocked + warning band | `driver/home.html?blocked` / `?warn` |
 | `#3990` | Cash collection with a recovered fee | `driver/cash-collection.html?riderfee=20` |
 
 **`#1788` is a rescope, not a new build.** It was a read-only "cash owed" view; it is now
 the full ledger statement — signed balance, credits and debits, each entry's cause, the
-warning band and the withdrawal entry point. It carries **no story points in ADO**, so it
+warning band and any payout Finance has sent her. It carries **no story points in ADO**, so it
 needs estimating from scratch against the new scope — do not carry over any earlier guess.
 
 **`#3988` is the one that stops her earning.** Always show the amount owed, the limit, and
@@ -96,8 +95,8 @@ factual and fair, never punitive.
 - **Every user-visible string** goes through `data-i18n` / `data-i18n-placeholder` /
   `data-i18n-aria-label` / `data-i18n-value` with **Arabic fallback text inline**. Never a
   bare `aria-label`. Never Arabic and English mixed in one text node.
-- Namespaces: `payments.*`, `fees.*`, `driver.balance.*`, `driver.withdraw.*`,
-  `driver.settle.*`, `driver.txn.*`, `driver.blocked.*`. Keys are already drafted in
+- Namespaces: `payments.*`, `fees.*`, `driver.balance.*`, `driver.settle.*`,
+  `driver.txn.*`, `driver.blocked.*`. Keys are already drafted in
   `shared/i18n/ar.json` and `en.json` — reuse them so the copy matches the prototype.
 - **RTL is the default.** Arabic first, English second.
 - Amounts: EGP, 2 decimals, tabular figures, explicit sign on ledger entries. Credits and

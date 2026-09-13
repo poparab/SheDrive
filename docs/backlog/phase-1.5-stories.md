@@ -13,13 +13,14 @@
 | **SOS / Emergency** | SheDrive's headline safety differentiator. The API contract is still an undefined placeholder and needs dedicated requirements work with operations and legal before it can be built. Pulled out of Phase 1 so the empty placeholder is not mistaken for ready work. |
 | **Online / card payment** | Phase 1 launches **cash-only**. Card/PSP processing and everything depending on it is deferred to keep the MVP lean for a cash-dominant market. The cash settlement stack (driver cash balance, cash reconciliation, revenue reporting) **stays** in Phase 1. |
 | **Scheduled rides** | Advance booking + a continuous dispatch scheduler is a self-contained feature that is not required for launch. |
+| **Child passenger** | The declared child is the only carve-out in the women-only rule and it touches all four tracks — rider declaration, API flag, driver gate exception, admin triage. Deferred on 2026-09-09 so Phase 1 ships one unconditional rule. Removing it means a child travelling alone is reportable; the policy wording in BRD RA-010 / OD-009 needs revisiting before launch. |
 | **Overlapping-zone fare resolution** | Edge-case handling; at MVP, zones are configured not to overlap, so smallest-zone resolution is unnecessary complexity. |
 
 ## Decisions captured
 
 - **Kept in Phase 1 (not deferred):** in-app routing (`#1817` driver turn-by-turn, `#1818` rider route geometry); the cash settlement stack (`#1781` driver cash balance, `#1813` cash reconciliation, `#1812` revenue & settlement reporting); `#1687` rider suspension after gender-mismatch report (women-only enforcement, **not** emergency SOS).
 - **#1815 (manual refund)** is deferred **with** the payment cluster (its primary mechanism is PSP/online refunds).
-- **#1783 (per-trip child-passenger flag) is NOT deferred — corrected 2026-09-03.** It was set to Removed in ADO on 2026-06-17 with a comment claiming it was recorded here, but it never appeared in the index below and no section was written for it. The rest of the backlog kept treating it as Phase 1: rider `#1790` is active and pointed, driver `#1588` Scenario 2 names it "must be live", the child toggle is already delivered in the rider mockup, and design story `#1518` documenting that toggle is Closed. The women-only rule's single carve-out cannot ship without it. `#1783` has been restored to State=New and its section returned to `api-stories.md`.
+- **#1783 and #1790 (child-passenger declaration) are deferred — decided 2026-09-09.** The declared child passenger will not be handled in Phase 1. Both stories are set to Removed in ADO and their sections are reproduced in Cluster E below. *(History: #1783 was swept into the 2026-06-17 batch without ever being recorded here, and was restored on 2026-09-03 for that reason. The 2026-09-09 decision defers the whole child-passenger feature deliberately — this time both stories are recorded.)* The consequence is that the women-only rule has **no exception** in Phase 1: the driver's first-trip gender check in `#1588` is unconditional. BRD `RA-010` and open decision `OD-009` still describe the child carve-out and need a separate product decision.
 
 ---
 
@@ -46,6 +47,8 @@
 | 1737 | Mobile | Rider schedules a ride in advance | Scheduling | #1770 | — |
 | 1738 | API | Rider schedules a ride in advance | Scheduling | #1777 | — |
 | 1829 | API | Fare engine resolves overlapping zones to smallest | Overlap | #1601 | — |
+| 1783 | API | Trip request captures a per-trip child-passenger flag | Child passenger | #1602 | — |
+| 1790 | Mobile | Rider declares the passenger is a child before requesting a ride | Child passenger | #1534 | 1 |
 
 > `#1692` had no standalone section in the local backlog (legacy ADO-only orphan). `#1829` had no standalone local section — it was described inline in the zone-resolution narrative in `api-stories.md`; its dedicated ADO story is captured below.
 
@@ -883,3 +886,108 @@ Service zones may overlap. When pickup coordinates fall inside two or more overl
 - #1628 — Fare calculation engine (single-zone resolution and fare computation)
 - #1756 — Super admin creates a service zone
 - #1757 — Super admin configures zone rate card (drives Active/Inactive status)
+
+---
+
+# Cluster E — Child passenger
+
+## [API] #1783 — Trip request captures a per-trip child-passenger flag and exposes it to the driver ♻️
+**Feature:** Feature 8 — Trip Request & Matching | **Sprint:** 2
+
+**Description:** As the SheDrive platform, I want the trip request to capture whether the passenger for this trip is a child and carry that flag through to the matched driver so that the women-only policy can permit a child passenger while the driver knows to expect one.
+
+### Background
+
+SheDrive is women-only, but a child passenger is permitted to ride regardless of gender — this is the only exception to the women-only rule (BRD RA-010, open decision OD-009). The rider declares per trip whether the passenger will be a child (a simple boolean; gender is not captured). This flag is stored on the trip request (#1629) and included in the trip detail served to the matched driver (#1648 and the first-trip detail #1635) so the driver's first-trip verification (#1588) can permit a declared child. The default is false (adult woman).
+
+### Acceptance Criteria
+
+**Scenario 1 — Request stores the child-passenger flag**
+- Given a rider submits a trip request declaring the passenger is a child
+- When the request is created
+- Then the trip records the child-passenger flag as true
+
+**Scenario 2 — Default is false when not declared**
+- Given a rider submits a trip request without declaring a child passenger
+- When the request is created
+- Then the child-passenger flag is stored as false
+
+**Scenario 3 — Flag is exposed in the driver's trip detail**
+- Given a driver retrieves the detail for a trip where the child-passenger flag is true
+- When the trip detail is served
+- Then the response indicates the passenger is a declared child
+
+**Scenario 4 — Flag is immutable after submission**
+- Given a trip request has been submitted
+- When a change to the child-passenger flag is attempted
+- Then it is rejected
+
+**Scenario 5 — Flag relaxes only the gender check**
+- Given a trip with the child-passenger flag set to true
+- When eligibility is evaluated
+- Then only the women-only gender check is relaxed for that passenger, and all other eligibility rules still apply
+
+**Scenario 6 — Flag suppresses the gender-mismatch report**
+- Given a trip with the child-passenger flag set to true
+- When the driver is in arrived_pickup state
+- Then a gender-mismatch report (#1687) is not accepted for that trip
+- And the server returns a validation error stating the passenger is a declared child
+
+### Out of Scope
+- Capturing the child's gender or exact age beyond the boolean
+- Child safety-seat handling
+- Child-specific fare differences
+
+### Dependencies
+- #1629 — Rider creates trip request
+- #1648 — Driver retrieves pending trip request
+- #1635 — Trip detail includes first-trip flag
+- #1790 — Rider declares the passenger is a child (Mobile counterpart)
+- #1588 — Driver verifies rider is female on first trip (consumer of the flag)
+
+---
+
+## [Mobile] #1790 — Rider declares the passenger is a child before requesting a ride 🆕
+**Feature:** Feature 8 — Trip Request & Matching | **Sprint:** Phase 1
+
+**Description:** As a rider, I want to declare when the passenger for this trip will be a child so that a child may ride and the driver knows to expect one — the only exception to the women-only rule.
+
+### Background
+
+On the home screen, before requesting a ride, the rider can turn on "This ride is for a child (under 12)". Gender is not asked. The flag is sent with the trip request (#1783) and shown to the matched driver. Because SheDrive is women-only, a male passenger is normally not allowed; declaring a child permits a child passenger of any gender to ride. The default is off (adult woman). All strings flow through data-i18n keys with Arabic fallback.
+
+### Acceptance Criteria
+
+**Scenario 1 — Rider declares a child passenger**
+- Given the rider is on the home screen with pickup and destination set
+- When she turns on the child-passenger declaration and taps Request Ride
+- Then the declaration is included in the trip request via #1783
+
+**Scenario 2 — Default is off**
+- Given the rider has not changed the toggle
+- When she requests a ride
+- Then the declaration is sent as false (adult woman)
+
+**Scenario 3 — Helper text explains the exception**
+- Given the rider views the child-passenger option
+- Then bilingual helper text explains that a child may ride as the only exception to the women-only policy
+
+**Scenario 4 — Declaration cannot change after submission**
+- Given the trip request has been submitted
+- Then the child declaration can no longer be changed for that trip
+
+**Scenario 5 — Declaration is visible to the driver**
+- Given a child passenger was declared
+- When the driver views the trip
+- Then she sees that the passenger is a declared child (supports #1588)
+
+### Out of Scope
+- Capturing the child's gender or exact age
+- Child safety-seat handling
+- Child-specific fares
+
+### Dependencies
+- #1783 — Trip request captures a per-trip child-passenger flag and exposes it to the driver (API — must be live)
+- #1588 — Driver verifies rider is female on first trip (honors the child exception)
+
+---

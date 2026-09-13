@@ -286,7 +286,7 @@ Currently a static map, hard-coded earnings (£450), no real online state, drawe
 - [ ] **Active trip / en route to dropoff** — map (trip engine moves marker), live fare ticker, SOS, "End trip" button, demo helper "Skip to arrived".
 - [ ] **Trip complete / cash collection** — fare due, cash-confirmation, rate the rider, tip notification (driven by rider's tip on the other side; in demo, helper "Add tip").
 - [ ] **Earnings dashboard** — daily/weekly/monthly chart from the ledger; trip-by-trip list; cash-out balance; payout history.
-- [ ] **Cash-out / payout** — UI-only; clicking "Withdraw" zeroes the balance and adds an entry to payout history.
+- [ ] **Payout history** — read-only. Drivers do not request payouts: Finance transfers the funds and records the transfer afterwards, which appears in her statement. There is no "Withdraw" action.
 - [ ] **Vehicle info** — model, plate, photos, inspection date.
 - [ ] **Documents management** — list of submitted docs with status; re-upload expired; expiry alerts (demo helper: "Expire my license" to demonstrate the alert state).
 - [ ] **Driver profile / settings**.

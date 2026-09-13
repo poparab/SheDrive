@@ -448,7 +448,6 @@ All strings — the fee banner, its amount, and its explanation — flow through
 ### Out of Scope
 - Paying the fee directly instead of carrying it into the next trip
 - Splitting one fee's recovery across multiple trips
-- Card or wallet payment of the fee (payment-provider integration is post-Phase 1)
 - Disputing the fee from this screen (Phase 2)
 
 ### Dependencies
@@ -467,7 +466,7 @@ All strings — the fee banner, its amount, and its explanation — flow through
 
 Below the recovery threshold a rider clears her fees gently — one fee per ride, oldest first (#3995). At or above the threshold that changes: **her entire outstanding balance is recovered on her next ride, in a single payment.** This story is that escalated state.
 
-**There is deliberately no booking block.** An earlier draft of the design blocked a rider from booking once she passed the threshold. That deadlocks — a Phase 1 rider has no card, so the only way she can ever clear a fee is by taking a ride. Blocking her booking would make the debt permanent and lose the customer with no money recovered. Escalating the *recovery* instead is self-clearing: she books, she pays it all, she is square. Persistent abuse is handled by an admin suspending the rider (#1740), which is a human decision, not an automatic trap.
+**There is deliberately no booking block.** An earlier draft of the design blocked a rider from booking once she passed the threshold. That deadlocks — a rider pays in cash on the ride, so the only way she can ever clear a fee is by taking a ride. Blocking her booking would make the debt permanent and lose the customer with no money recovered. Escalating the *recovery* instead is self-clearing: she books, she pays it all, she is square. Persistent abuse is handled by an admin suspending the rider (#1740), which is a human decision, not an automatic trap.
 
 The recovery threshold is a policy value (financial core design §4; default 60.00 EGP) that a super admin configures with no code deploy. A threshold of 0 disables the escalation entirely — recovery then always stays at one fee per ride.
 
@@ -520,14 +519,14 @@ All strings — the heading, the amount, and the explanation — flow through `d
 - Then it retries silently and shows the ordinary booking state rather than a wrong amount from a stale read
 
 ### Out of Scope
-- Paying a fee directly from this screen (no payment provider in Phase 1)
+- Paying a fee directly from this screen
 - Any automatic booking block — abuse is handled by rider suspension (#1740)
 - Appealing or disputing a fee (Phase 2)
 - Partial clearing of a single fee
 
 ### Dependencies
 - `#4002` — Rider fees above the recovery threshold are recovered in a single payment (API — must be live)
-- `#3994` — Super admin configures balance, fee and withdrawal policy (sets the threshold)
+- `#3994` — Super admin configures balance and fee policy (sets the threshold)
 - `#3995` — Rider sees an outstanding fee before she requests a ride (the below-threshold state)
 - `#3999` — Rider sees the recovered fee on her fare summary
 - `#1740` — Operations admin suspends a rider account (the only block on a rider)
@@ -631,51 +630,6 @@ When a driver accepts the trip, the matching screen transitions to display a dri
 ### Dependencies
 - #1631 — Rider polls for match status (API — must be live)
 - #1633 — Rider tracks her active trip (API — must be live; supplies the driver's live position and ETA on this screen)
-
----
-
-## [Mobile] #1790 — Rider declares the passenger is a child before requesting a ride 🆕
-**Feature:** Feature 8 — Trip Request & Matching | **Sprint:** Phase 1
-
-**Description:** As a rider, I want to declare when the passenger for this trip will be a child so that a child may ride and the driver knows to expect one — the only exception to the women-only rule.
-
-### Background
-
-On the home screen, before requesting a ride, the rider can turn on "This ride is for a child (under 12)". Gender is not asked. The flag is sent with the trip request (#1783) and shown to the matched driver. Because SheDrive is women-only, a male passenger is normally not allowed; declaring a child permits a child passenger of any gender to ride. The default is off (adult woman). All strings flow through data-i18n keys with Arabic fallback.
-
-### Acceptance Criteria
-
-**Scenario 1 — Rider declares a child passenger**
-- Given the rider is on the home screen with pickup and destination set
-- When she turns on the child-passenger declaration and taps Request Ride
-- Then the declaration is included in the trip request via #1783
-
-**Scenario 2 — Default is off**
-- Given the rider has not changed the toggle
-- When she requests a ride
-- Then the declaration is sent as false (adult woman)
-
-**Scenario 3 — Helper text explains the exception**
-- Given the rider views the child-passenger option
-- Then bilingual helper text explains that a child may ride as the only exception to the women-only policy
-
-**Scenario 4 — Declaration cannot change after submission**
-- Given the trip request has been submitted
-- Then the child declaration can no longer be changed for that trip
-
-**Scenario 5 — Declaration is visible to the driver**
-- Given a child passenger was declared
-- When the driver views the trip
-- Then she sees that the passenger is a declared child (supports #1588)
-
-### Out of Scope
-- Capturing the child's gender or exact age
-- Child safety-seat handling
-- Child-specific fares
-
-### Dependencies
-- #1783 — Trip request captures a per-trip child-passenger flag and exposes it to the driver (API — must be live)
-- #1588 — Driver verifies rider is female on first trip (honors the child exception)
 
 ---
 
@@ -1196,7 +1150,6 @@ All strings — the recovered-fee line label and its explanation — flow throug
 - Itemising the recovered fee further (it is shown as a single line, not broken down)
 - Receipts or invoices as PDFs
 - Disputing the recovered fee from this screen (Phase 2)
-- Card or wallet payment of a recovered fee (payment-provider integration is post-Phase 1)
 
 ### Dependencies
 - `#4000` — Rider outstanding fee is recovered on her next trip (API — must be live)
@@ -1486,36 +1439,55 @@ Phase 1 SOS is limited to personal emergency contacts and sharing the rider's li
 
 ### Acceptance Criteria
 
-**Scenario 1 — Rider adds an emergency contact**
-- Given the rider opens the Emergency Contacts screen
-- When she taps "Add contact", enters a name and phone number (relationship optional), and saves
-- Then the contact is saved, shown in her contacts list, and persists across sessions
+**Scenario 1 — She adds an emergency contact**
+- Given the rider is on the emergency contacts screen
+- When she enters a name, a phone number and a relationship and saves
+- Then the contact is added to her list
+- And it is still there the next time she opens the app
 
-**Scenario 2 — Rider edits or removes a contact**
-- Given the rider has at least one saved contact
-- When she edits a contact's details and saves, or removes a contact
-- Then the change is reflected in the list immediately and persisted
+**Scenario 2 — She edits a saved contact**
+- Given she has at least one saved emergency contact
+- When she opens that contact, changes any of its details and saves
+- Then the updated details replace the previous ones
 
-**Scenario 3 — Empty state guides setup**
-- Given the rider has no saved contacts
-- Then an empty state prompts her to add someone she trusts
+**Scenario 3 — She removes a contact**
+- Given she has at least one saved emergency contact
+- When she removes it and confirms
+- Then it no longer appears in her list
+- And it is no longer alerted when she raises SOS
 
-**Scenario 4 — Contacts are alerted with live location on SOS**
-- Given the rider has one or more saved contacts and is on an active trip
-- When she triggers SOS and confirms
-- Then every saved contact is alerted and receives a live link to her current location
-- And the confirmation screen states her contacts have been notified and her live location is being shared with them
+**Scenario 4 — The list is capped at five contacts**
+- Given she has 5 saved emergency contacts
+- When she looks at the emergency contacts screen
+- Then the add control is unavailable
+- And she is told she has reached the maximum of 5 and must remove one before adding another
 
-**Scenario 5 — SOS with no contacts saved**
-- Given the rider has no saved contacts
-- When she triggers SOS
-- Then she is prompted to add contacts, and the public emergency numbers (122 / 123) remain available to dial directly
+**Scenario 5 — Removing at the maximum frees a slot**
+- Given she has 5 saved emergency contacts
+- When she removes one of them
+- Then the add control becomes available again
 
-**Scenario 6 — Contact list is capped at five**
-- Given the rider has 5 saved emergency contacts
-- Then the "Add contact" control is unavailable, and she is told she has reached the maximum of 5 and must remove one before adding another
-- And when she removes a contact, the "Add contact" control becomes available again
-- Each saved contact is a paid message on every alert, so the list is a cost driver
+**Scenario 6 — Empty state guides her to add someone**
+- Given she has no saved emergency contacts
+- When she opens the emergency contacts screen
+- Then an empty state is shown guiding her to add someone she trusts
+
+**Scenario 7 — Every contact is alerted on SOS**
+- Given she has at least one saved emergency contact
+- When she triggers SOS during an active trip
+- Then every saved contact is alerted
+- And each of them receives a live link to her current location
+
+**Scenario 8 — The confirmation states what was done**
+- Given she has confirmed an SOS
+- When the emergency screen opens
+- Then it states that her contacts have been notified and that her live location is being shared with them
+
+**Scenario 9 — SOS with no contacts saved**
+- Given she has no saved emergency contacts
+- When she triggers SOS during an active trip
+- Then she is prompted to add emergency contacts
+- And Police (122) and Ambulance (123) remain available to dial directly
 
 ### Out of Scope
 - Control-room / operations-team escalation (post-Phase 1)
@@ -1539,11 +1511,13 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 ### Acceptance Criteria
 
 **Scenario 1 — SOS is reachable for the whole active trip**
-- Given the rider is on an active trip, from pickup through drop-off
-- Then the SOS control remains visible and available at every stage of the trip
+- Given the rider is on an active trip
+- When she is at any stage from pickup through drop-off
+- Then the SOS control remains visible and available
 
 **Scenario 2 — SOS cannot be raised outside an active trip**
 - Given the rider is not currently on an active trip
+- When she opens the app
 - Then no SOS control is available to her
 
 **Scenario 3 — A single confirmation guards against accidental presses**
@@ -1552,23 +1526,27 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 - Then the alert is raised only if she explicitly confirms; dismissing it raises nothing
 
 **Scenario 4 — The emergency screen confirms contacts notified and location shared**
-- Given the rider confirms SOS
+- Given the rider taps SOS
+- When she confirms it
 - Then she is taken to a full-screen emergency dashboard
 - And the screen states that her emergency contacts have been notified and that her live location is being shared
 
 **Scenario 5 — Per-contact delivery status is shown**
 - Given the emergency screen is open
-- Then it lists every emergency contact with its own delivery status of sent, delivered or failed
+- When she looks at her emergency contacts on it
+- Then each contact is listed with its own delivery status of sent, delivered or failed
 - And this replaces any single, unconditional "your contacts have been notified" message, which reassures her even when delivery in fact failed
 
 **Scenario 6 — Police and Ambulance are one tap away**
 - Given the emergency screen is open
-- Then it offers tap-to-call buttons for Police (122) and Ambulance (123) only
+- When she needs to reach the public emergency services
+- Then tap-to-call buttons are offered for Police (122) and Ambulance (123) only
 - And no fire brigade number is offered
 
 **Scenario 7 — Trip recap on the emergency screen**
 - Given the emergency screen is open
-- Then it shows a recap of the trip: the driver's name, the vehicle and its plate, and her current coordinates
+- When she looks at the trip recap
+- Then it shows the driver's name, the vehicle and its plate, and her current coordinates
 
 **Scenario 8 — Stop sharing revokes the live link immediately**
 - Given the emergency screen is open and the live location link is active
@@ -1586,15 +1564,18 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 - Then location sharing stops and the incident is recorded as a false alarm
 
 **Scenario 11 — The driver is never notified**
-- Given the rider raises SOS
+- Given the rider is on an active trip
+- When she raises SOS
 - Then the driver receives no notification, indication or visible change on her own screen as a result
 
 **Scenario 12 — The trip is not interrupted**
-- Given the rider raises SOS
+- Given the rider is on an active trip
+- When she raises SOS
 - Then the trip continues unaffected, and later settles and is rated exactly as a trip without an SOS would be
 
 **Scenario 13 — No automatic suspension**
-- Given the rider raises SOS
+- Given the rider is on an active trip
+- When she raises SOS
 - Then neither her account nor the driver's is suspended automatically as a result
 
 ### Out of Scope
@@ -1623,55 +1604,49 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 
 ### Background
 
-Phase 1 riders pay in cash; there is no card or wallet on file. This story rewrites the payments screen, which today is a coming-soon stub, into a working one. It shows "Cash" as her active, selected payment method. An "Online payment — coming soon" row sits alongside it for visibility into the roadmap, but it is visibly disabled — not tappable, not selectable, no toggle to switch to it.
+Riders pay in cash. This story rewrites the payments screen, which today is a coming-soon stub, into a working one. It shows "Cash" as her payment method — the only one — and states plainly that rides are paid to the driver in cash at the end of the trip.
 
-Below the payment method, an outstanding-fees section lists every fee she currently owes: the amount, which trip it came from, and the date it was charged. Each fee carries the line "This will be added to your next ride" — it is not charged immediately, because Phase 1 has no way to charge her directly; instead it rides as a surcharge on a future trip, collected by the driver in cash (#3995). Tapping a fee opens its detail: the trip date and addresses, the reason the fee was charged, and the amount. When she owes nothing, a zero state confirms she has no outstanding fees.
+Below the payment method, an outstanding-fees section lists every fee she currently owes: the amount, which trip it came from, and the date it was charged. Each fee carries the line "This will be added to your next ride" — it is not charged immediately, because there is no way to collect from her between rides; instead it rides as a surcharge on a future trip, collected by the driver in cash (#3995). Tapping a fee opens its detail: the trip date and addresses, the reason the fee was charged, and the amount. When she owes nothing, a zero state confirms she has no outstanding fees.
 
 This is the first time a rider is shown a debt she did not immediately pay off. The copy has to carry that weight: it states plainly that the fee is not being charged right now and names exactly when it will be — her next ride — rather than leaving an amount sitting against her name with no explanation of how or when it is settled.
 
-All strings — the payment-method labels, the "coming soon" state, fee list items, the zero state, and the fee-detail screen — flow through `data-i18n` keys with Arabic fallback text in the HTML.
+All strings — the payment-method label, the fee list items, the zero state, and the fee-detail screen — flow through `data-i18n` keys with Arabic fallback text in the HTML.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Cash shown as the active payment method**
+**Scenario 1 — Cash shown as the payment method**
 - Given the rider opens the payments screen
-- Then "Cash" is shown as her active, selected payment method
-- And no other payment method can be selected
+- Then "Cash" is shown as her payment method
+- And the screen states that she pays the driver in cash at the end of the ride
 
-**Scenario 2 — Online payment shown as not yet available**
-- Given the rider opens the payments screen
-- Then an "Online payment — coming soon" row is visible
-- And it is visually disabled and cannot be tapped or selected
-
-**Scenario 3 — Outstanding fees are listed with trip, date, and amount**
+**Scenario 2 — Outstanding fees are listed with trip, date, and amount**
 - Given the rider has an outstanding fee of 20.00 EGP from a trip she cancelled late on 5 September
 - When she views the outstanding-fees section
 - Then the fee shows its amount, the trip it came from, and the date it was charged
 - And it shows the line "This will be added to your next ride"
 
-**Scenario 4 — Fee detail**
+**Scenario 3 — Fee detail**
 - Given the rider taps an outstanding fee
 - Then a detail view shows the trip date and addresses, the reason the fee was charged, and the amount
 
-**Scenario 5 — Zero state when nothing is owed**
+**Scenario 4 — Zero state when nothing is owed**
 - Given the rider has no outstanding fees
 - When she opens the payments screen
 - Then the outstanding-fees section shows a zero state confirming she owes nothing
 - And no fee rows are rendered
 
-**Scenario 6 — Multiple outstanding fees are ordered oldest first**
+**Scenario 5 — Multiple outstanding fees are ordered oldest first**
 - Given the rider has more than one outstanding fee
 - When she views the list
 - Then the fees are ordered oldest first, matching the order in which they will be recovered (#3995)
 
-**Scenario 7 — Network error loading fees**
+**Scenario 6 — Network error loading fees**
 - Given the payments screen cannot reach the platform for her outstanding-fee status
 - When the screen loads
 - Then a retry option is shown in place of the outstanding-fees section
 - And her payment method (Cash) still displays normally
 
 ### Out of Scope
-- Selecting or paying with a card or wallet (payment-provider integration is post-Phase 1)
 - Paying an outstanding fee directly from this screen
 - Disputing a fee (Phase 2)
 - Receipts or invoices as PDFs

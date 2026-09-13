@@ -2223,14 +2223,14 @@ This is the read-only zones overview: a map showing every service zone as a colo
 
 ---
 
-## [Admin] #3994 — Super admin configures balance, fee and withdrawal policy 🆕
+## [Admin] #3994 — Super admin configures balance and fee policy 🆕
 **Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** Phase 1
 
-**Description:** As a super admin, I want to configure the driver outstanding-balance limit and warning band, the rider fee recovery threshold, and the withdrawal rules so that the platform's cash exposure to both drivers and riders is capped and every payout follows one consistent policy.
+**Description:** As a super admin, I want to configure the driver outstanding-balance limit and warning band and the rider fee recovery threshold so that the platform's cash exposure to both drivers and riders is capped.
 
 ### Background
 
-These are the **global** balance, fee, and withdrawal settings on `pricing-policies.html`, applied to every driver and every rider, and they sit alongside the existing global policies in #1759. The platform commission percentage, the cancellation grace periods, the driver cancellation fee, the rider no-show wait, and the driver's share of a rider fee are configured on #1759 — not here.
+These are the **global** balance and fee settings on `pricing-policies.html`, applied to every driver and every rider, and they sit alongside the existing global policies in #1759. The platform commission percentage, the cancellation grace periods, the driver cancellation fee, the rider no-show wait, and the driver's share of a rider fee are configured on #1759 — not here.
 
 **Driver outstanding-balance limit.** The maximum a driver may owe the platform (a negative ledger balance) before the availability service refuses to put her online (#3996). She is warned in her app from the configured warning band and blocked at the limit itself (#3988). Setting the limit to **0 disables the block entirely**.
 
@@ -2238,11 +2238,9 @@ These are the **global** balance, fee, and withdrawal settings on `pricing-polic
 
 **Rider fee recovery threshold.** The point at which fee recovery escalates. Below it, a rider clears her cancellation fees gently — one fee per ride, oldest first. At or above it, her **whole** outstanding balance is recovered on her next ride in a single payment (#4002, #3998). Setting it to **0 disables the escalation entirely**, leaving recovery at one fee per ride however much she owes.
 
-**This threshold never blocks a booking.** An earlier draft of the design blocked a rider here, which deadlocks: a Phase 1 rider pays cash and has no card, so the only way she can clear a fee is by taking a ride. Blocking her would make the debt permanent and recover nothing. Escalating the recovery instead is self-clearing. Persistent abuse is handled by suspending the rider (#1740) — a human decision made from #4005.
+**This threshold never blocks a booking.** An earlier draft of the design blocked a rider here, which deadlocks: a rider pays in cash on the ride, so the only way she can clear a fee is by taking a ride. Blocking her would make the debt permanent and recover nothing. Escalating the recovery instead is self-clearing. Persistent abuse is handled by suspending the rider (#1740) — a human decision made from #4005.
 
-**Withdrawal settings.** Withdrawals are off by default and must be deliberately enabled. When on, a driver may request a payout of a positive balance (#3993) subject to a minimum amount, an optional per-request maximum, and a cooling-off period between requests.
-
-Changes take effect immediately on save and apply to new evaluations only: a withdrawal already awaiting review keeps the rules it was created under, a driver already online is never knocked offline by a balance-limit change, and a rider already mid-booking is never interrupted by a fee-limit change. Every change is recorded in the pricing audit log (#1760).
+Changes take effect immediately on save and apply to new evaluations only: a driver already online is never knocked offline by a balance-limit change, and a rider already mid-booking is never interrupted by a fee-limit change. Every change is recorded in the pricing audit log (#1760).
 
 ### Field Validation
 
@@ -2251,10 +2249,6 @@ Changes take effect immediately on save and apply to new evaluations only: a wit
 | Driver outstanding-balance limit | Yes | Decimal (EGP) | Zero or positive, up to 2 decimals; 0 disables the go-online block | 0 | 100000 | 500.00 | Enter the outstanding balance limit / أدخل حد الرصيد المستحق | Enter a valid amount / أدخل مبلغًا صحيحًا | Must be between 0 and 100,000 EGP / يجب أن تكون القيمة بين 0 و100,000 جنيه |
 | Driver warning band | Yes | Percentage (%) | Whole number between 1 and 99 | 1 | 99 | 80 | Enter the warning band / أدخل نسبة التحذير | Enter a valid percentage / أدخل نسبة صحيحة | Must be between 1% and 99% / يجب أن تكون بين 1% و99% |
 | Rider fee recovery threshold | Yes | Decimal (EGP) | Zero or positive, up to 2 decimals; 0 disables the escalation and recovery always stays at one fee per ride. Never blocks booking | 0 | 100000 | 60.00 | Enter the rider fee recovery threshold / أدخل حد تحصيل رسوم الراكب | Enter a valid amount / أدخل مبلغًا صحيحًا | Must be between 0 and 100,000 EGP / يجب أن تكون القيمة بين 0 و100,000 جنيه |
-| Withdrawals enabled | Yes | Toggle | Enum: Enabled, Disabled | — | — | Disabled | — | — | — |
-| Minimum withdrawal amount | Yes when withdrawals are enabled | Decimal (EGP) | Positive number, up to 2 decimals | 0.01 | 100000 | 50.00 | Enter the minimum withdrawal amount / أدخل الحد الأدنى لمبلغ السحب | Enter a valid amount / أدخل مبلغًا صحيحًا | Must be greater than 0 and at most 100,000 EGP / يجب أن يكون أكبر من 0 وألا يتجاوز 100,000 جنيه |
-| Maximum withdrawal per request | No | Decimal (EGP) | Positive number, up to 2 decimals; must not be less than the minimum; empty means no cap | 0.01 | 100000 | 2000.00 | — | Enter a valid amount / أدخل مبلغًا صحيحًا | Maximum must not be less than the minimum / يجب ألا يقل الحد الأقصى عن الحد الأدنى |
-| Cooling-off period between requests | Yes when withdrawals are enabled | Integer (days) | Whole number; 0 allows same-day repeat requests | 0 | 30 | 7 | Enter the cooling-off period / أدخل فترة الانتظار بين الطلبات | Enter a whole number of days / أدخل عدد أيام صحيح | Must be between 0 and 30 days / يجب أن تكون بين 0 و30 يومًا |
 
 ### Acceptance Criteria
 
@@ -2287,56 +2281,30 @@ Changes take effect immediately on save and apply to new evaluations only: a wit
 
 **Scenario 6 — Sets the rider fee recovery threshold**
 - Given the super admin enters a rider fee recovery threshold of 60 EGP and saves
-- Then a rider who owes 60 EGP or more in unrecovered fees cannot request a ride (#4002, #3998)
-- And a rider who owes less is unaffected
+- Then a rider who owes 60 EGP or more has her whole outstanding balance recovered on her next ride, in a single payment (#4002, #3998)
+- And a rider who owes less continues to clear one fee per ride, oldest first
+- And no rider is prevented from requesting a ride at any balance
 
-**Scenario 7 — Rider limit of zero disables the block**
+**Scenario 7 — Rider threshold of zero disables the escalation**
 - Given the rider fee recovery threshold is set to 0 and saved
 - Then fee recovery always stays at one fee per ride, however much a rider owes, and no rider is ever blocked from booking
 
-**Scenario 8 — Rider limit change applies to the next booking attempt**
-- Given the limit is lowered while a rider is mid-booking
+**Scenario 8 — Rider threshold change applies to the next booking attempt**
+- Given the threshold is lowered while a rider is mid-booking
 - Then her booking in progress is not interrupted
-- And the new limit applies from her next booking attempt
-
-**Withdrawal settings**
-
-**Scenario 9 — Withdrawals are disabled by default**
-- Given the platform has been set up and the super admin has not changed the setting
-- Then withdrawals are disabled and no driver is offered the withdrawal action (#3987)
-
-**Scenario 10 — Enabling withdrawals**
-- Given the super admin enables withdrawals and saves a minimum, an optional maximum, and a cooling-off period
-- Then drivers with a positive available balance may request a withdrawal within those rules (#3993)
-
-**Scenario 11 — Minimum and maximum are validated against each other**
-- Given the super admin enters a maximum lower than the minimum
-- Then a validation error is returned and the change is not saved
-
-**Scenario 12 — Empty maximum means no cap**
-- Given the maximum withdrawal per request is left empty
-- Then a driver may request any amount at or above the minimum, up to her unreserved available balance
-
-**Scenario 13 — Cooling-off period of zero**
-- Given the cooling-off period is set to 0
-- Then a driver may submit a new request as soon as her previous one is decided
-
-**Scenario 14 — Policy change does not re-judge a request in review**
-- Given a withdrawal request is pending when the minimum is raised above its amount
-- Then that request keeps the rules it was created under and is still decidable
-- And new requests are judged against the new minimum
+- And the new threshold applies from her next booking attempt
 
 **Cross-cutting**
 
-**Scenario 15 — Negative or non-numeric values are rejected**
+**Scenario 9 — Negative or non-numeric values are rejected**
 - Given the super admin enters a negative limit, a negative amount, a warning band outside 1–99, or a non-whole number of days
 - Then a validation error is returned and nothing is saved
 
-**Scenario 16 — Changes are audited**
+**Scenario 10 — Changes are audited**
 - Given any of these settings is changed
 - Then the change is recorded in the pricing audit log (#1760) with actor, field, before and after values, and timestamp (UTC+2)
 
-**Scenario 17 — Save and error states**
+**Scenario 11 — Save and error states**
 - Given the settings are saved successfully, or the save fails
 - Then a success confirmation or an error state is shown and the form retains the entered values on failure
 
@@ -2344,14 +2312,12 @@ Changes take effect immediately on save and apply to new evaluations only: a wit
 - Per-driver, per-zone, or tier-based balance or fee limits — every limit here is a single global value
 - Automatic suspension of a driver or rider who stays over a limit (Phase 2)
 - The driver's share of a rider cancellation fee, the cancellation grace periods, and the platform commission (#1759)
-- Withdrawal fees or charges
-- Payout scheduling
+- Payout minimums, maximums, approval, or scheduling — a payout is recorded after Finance sends it (#3993, #4001), never gated or scheduled here
 - The mechanics of how a rider fee is recovered on her next trip (#4000)
 
 ### Dependencies
 - #3996 — Driver go-online is blocked while her outstanding balance is over the limit (consumes the driver limit)
 - #3988 — Driver is blocked from going online while her balance is over the limit (consumes the warning band)
-- #3993 — Driver requests a withdrawal of her available balance (consumes the withdrawal settings)
 - #4002 — Rider fees above the recovery threshold are recovered in a single payment (consumes the threshold)
 - #3998 — Rider is told when her full outstanding balance will be added to her next ride (consumes the threshold, mobile side)
 - #1760 — Super admin views pricing audit log (records changes)
@@ -2519,12 +2485,14 @@ Resolving a case (suspend and close) is #3946.
 
 **Scenario 2 — Each row identifies the incident at a glance**
 - Given the queue is displayed
+- When the super admin scans the list
 - Then each row shows the time it was raised, who raised it (rider or driver, with their name), trip id, trip state at the moment of the tap, location, how many contacts were alerted, and the case status
 - And an open case is visually distinguished so a safety row does not read like an ordinary trip row
 - And a closed case shows how it was closed, not merely "closed"
 
 **Scenario 3 — A failed contact alert is visible in the list**
 - Given a case where the platform could not deliver to one or more emergency contacts
+- When that case appears in the queue
 - Then the contacts-alerted cell shows the failed count distinctly, so it can be chased without opening the case
 
 **Scenario 4 — Filter the queue**
@@ -2533,25 +2501,35 @@ Resolving a case (suspend and close) is #3946.
 - Then only matching cases are shown and the count badge reflects the filtered total
 
 **Scenario 5 — Open a case**
-- Given the super admin clicks a case row
+- Given the queue is displayed
+- When the super admin clicks a case row
 - Then the case detail opens (#3946)
 
 **Scenario 6 — Open-case count is visible from anywhere**
 - Given one or more cases are open
+- When the super admin is anywhere in the portal
 - Then the SOS item in the side navigation carries the open-case count
 - And the queue is a review surface only — no sound and no popup alert is raised
 
 **Scenario 7 — Export**
 - Given the queue is displayed
-- Then the super admin can export the current view to CSV
+- When the super admin chooses to export
+- Then the current view is exported to CSV
 
 **Scenario 8 — Empty state**
 - Given no cases match the current filters
+- When the queue is displayed
 - Then a clear empty-state message is shown rather than a blank grid
 
-**Scenario 9 — Loading and error states**
-- Given the list is being fetched, then skeleton rows are shown
-- Given the fetch fails, then a failure message with a retry action is shown
+**Scenario 9 — Loading state**
+- Given the queue is open
+- When the list of cases is still being fetched
+- Then skeleton rows are shown in place of the grid
+
+**Scenario 10 — Error state**
+- Given the queue is open
+- When the list of cases fails to load
+- Then a failure message is shown with a retry action
 
 ### Out of Scope
 - Resolving a case — suspend and close (see #3946)
@@ -2596,12 +2574,14 @@ Two facts are stated on the screen because an admin will otherwise assume the op
 ### Acceptance Criteria
 
 **Scenario 1 — The case shows the full snapshot**
-- Given the super admin opens an SOS case
+- Given an SOS case exists
+- When the super admin opens it
 - Then she sees who raised it and what was reported, the time, the trip state at trigger, the location with coordinates and address on a map, the rider, the driver, the vehicle, and the trip with a link through to the trip detail
 - And each emergency contact is listed with their relationship and whether the alert was delivered or failed
 
 **Scenario 2 — The trip is shown as unaffected**
 - Given the case detail is displayed
+- When the super admin reviews it
 - Then it states that the trip was not interrupted and that the SOS is recorded alongside it
 - And it states that neither occupant was told the other had raised it
 
@@ -2627,25 +2607,31 @@ Two facts are stated on the screen because an admin will otherwise assume the op
 - Then it states plainly which accounts will be suspended, or that none will be
 
 **Scenario 7 — The resolution note is required**
-- Given the super admin confirms without entering a note
+- Given an open case
+- When the super admin confirms without entering a note
 - Then the case is not closed and a required-note error is shown
 
 **Scenario 8 — An already-suspended party cannot be suspended again**
 - Given the rider or driver is already suspended for another reason
-- Then that tick box is disabled and the case can still be closed
+- When the super admin opens the case
+- Then that tick box is disabled
+- And the case can still be closed
 
 **Scenario 9 — Closing writes to the audit log**
-- Given a case is closed
+- Given an open case
+- When the super admin closes it
 - Then an entry is written to the admin activity audit log recording the actor, the case id, and the outcome
 - And any suspension appears on that person's profile exactly as a manual suspension would
 
 **Scenario 10 — A closed case cannot be actioned again**
-- Given a case already closed
+- Given a case has already been closed
+- When the super admin opens it
 - Then no action controls are available and the outcome, closing note, who closed it and when are shown instead
 - And the case cannot be reopened
 
 **Scenario 11 — Case not found**
-- Given the case id does not exist
+- Given a case id that does not exist
+- When the super admin opens it
 - Then a not-found message is shown with a link back to the queue
 
 ### Out of Scope
@@ -2813,9 +2799,7 @@ On cash trips the driver collects the full fare and therefore owes the platform 
 
 **Partial settlements are normal.** A driver may hand in less than she owes; the balance reduces by what she paid.
 
-**Manual adjustments are separate and rarer.** Where a settlement records money received, an adjustment corrects a mistake — a fee charged in error, a missing credit. It requires a reason, may be a credit or a debit, and is audited identically. Adjustments never overwrite an entry; they post a reversing one.
-
-The list covers drivers with a **negative** balance (owing the platform) by default, with a filter to show those the platform owes and those settled to zero. Every settlement recorded here also appears on the settlement day book (#4006), totalled by channel and by admin for Finance to reconcile against the bank. Automated payouts and bank transfers remain out of scope — settlement is an operational, in-person or bank-slip process recorded after the money has already moved.
+The list covers drivers with a **negative** balance (owing the platform) by default, with a filter to show those the platform owes and those settled to zero. **Settlement entries are exportable as CSV** directly from this screen — driver, amount, channel, reference, receipt number, recording admin, and time — giving Finance the same reconciliation input the settlement day book used to provide. There is no separate day-book screen (#4006 was cut 2026-09-13 as a report dressed as a screen; it can return as a real reconciliation once the cash-collection model is decided). Recording a payout Finance has sent (money going out, the mirror of this action) happens on the same screen but is a separate action (#4001) — this story covers the settlement side only.
 
 ### Field Validation
 
@@ -2828,8 +2812,6 @@ The list covers drivers with a **negative** balance (owing the platform) by defa
 | Settlement channel | Yes | Dropdown (single-select, admin-configurable list) | Enum: Office cash, Bank deposit, Mobile wallet, Field agent | — | — | Office cash | Select a settlement channel / اختر قناة التسوية | — | — |
 | Settlement reference | Required for every channel except Office cash | Free text | Letters, digits, hyphens; for Office cash, left empty it defaults to the generated receipt number | — | 60 chars | empty | Enter a settlement reference / أدخل مرجع التسوية | — | Reference must be 60 characters or fewer / يجب ألا يزيد المرجع عن 60 حرفًا |
 | Settlement note | No | Free text | Any characters | — | 500 chars | empty | — | — | Note must be 500 characters or fewer / يجب ألا تزيد الملاحظة عن 500 حرف |
-| Adjustment amount | Yes | Decimal (EGP) | Non-zero number, up to 2 decimals; positive credits the driver, negative debits her | −100000 | 100000 | empty | Enter an adjustment amount / أدخل مبلغ التسوية اليدوية | Enter a valid amount / أدخل مبلغًا صحيحًا | Amount must be between −100,000 and 100,000 and not zero / يجب أن يكون المبلغ بين −100,000 و100,000 وألا يساوي صفرًا |
-| Adjustment reason | Yes | Free text | Any characters | 10 chars | 500 chars | empty | Enter a reason for this adjustment / أدخل سبب التسوية اليدوية | — | Reason must be between 10 and 500 characters / يجب أن يكون السبب بين 10 و500 حرف |
 
 ### Acceptance Criteria
 
@@ -2840,7 +2822,7 @@ The list covers drivers with a **negative** balance (owing the platform) by defa
 
 **Scenario 2 — Open a driver's ledger**
 - Given the super admin opens a driver's row
-- Then her full transaction ledger is shown newest-first — trip commission, cancellation fees, fee shares, settlements, withdrawals, and adjustments — each with date, type, signed amount, and source reference
+- Then her full transaction ledger is shown newest-first — trip commission, cancellation fees, fee shares, settlements, and payouts — each with date, type, signed amount, and source reference
 - And each settlement row shows its channel and receipt number
 - And the running balance is shown
 
@@ -2880,53 +2862,40 @@ The list covers drivers with a **negative** balance (owing the platform) by defa
 - Given any settlement is recorded, on any channel
 - Then a unique receipt number in the form `S-nnnnn` is generated, shown to the admin immediately, and visible in the driver's own statement (#1781, #1788)
 
-**Scenario 11 — Post a manual adjustment**
-- Given a fee was charged in error
-- When the super admin posts an adjustment with an amount and a reason
-- Then a reversing entry is posted with that reason, both entries remain visible, and the balance updates
-
-**Scenario 12 — Adjustment requires a reason**
-- Given an adjustment with no reason or a reason under 10 characters
-- Then it is rejected with a validation error and nothing is posted
-
-**Scenario 13 — Every action is audited**
-- Given a settlement or an adjustment is recorded
-- Then it appears in the audit log (#1816) with actor, driver, amount, channel and receipt number where applicable, before/after balance, and timestamp (UTC+2)
+**Scenario 11 — Every settlement is audited**
+- Given a settlement is recorded
+- Then it appears in the audit log (#1816) with actor, driver, amount, channel and receipt number, before/after balance, and timestamp (UTC+2)
 - And it appears on the driver's earnings & settlement report (#1833)
 
-**Scenario 14 — Settlement appears in the day book**
-- Given a settlement is recorded
-- Then it appears on the settlement day book (#4006) for that date, counted in its channel total and its recording-admin total
-
-**Scenario 15 — Driver sees it in her own app**
+**Scenario 12 — Driver sees it in her own app**
 - Given a settlement is recorded
 - Then it appears in the driver's statement with its receipt number and updates her balance (#1781, #1788)
 
-**Scenario 16 — Double submission does not double-post**
+**Scenario 13 — Double submission does not double-post**
 - Given the settlement form is submitted twice for the same settlement
 - Then exactly one entry is posted (#3991)
 
-**Scenario 17 — Empty, loading and error states**
+**Scenario 14 — Empty, loading and error states**
 - Given no drivers match the filter, the list is loading, or the request fails
 - Then the corresponding empty, loading, or error state is shown
 
-**Scenario 18 — Export**
-- Given the balances list is displayed
-- Then the super admin can export it to CSV/Excel
+**Scenario 15 — Settlement entries export to CSV**
+- Given the driver balances list or a driver's ledger is displayed
+- Then the super admin can export the settlement entries to CSV, with driver, amount, channel, reference, receipt number, recording admin, and time on every row
 
 ### Out of Scope
 - Automated payouts, bank transfers, or payment-provider integration — every channel here records an operational fact after the money has already moved
-- Digital-trip settlement (handled by the payment provider once it exists)
 - Adding, renaming, or removing settlement channels from the configurable list (managed outside this screen)
 - Driver-facing settlement notifications
 - Driver dispute of a ledger entry (Phase 2)
-- Reviewing and paying withdrawal requests (#4001)
+- Recording a payout sent to a driver (#4001) — the mirror action, on the same screen but a separate story
+- A standalone settlement day book / reconciliation screen — cut deliberately on 2026-09-13; settlement entries export as CSV from this screen instead
+- A free-form correction/adjustment action — cut deliberately on 2026-09-13; entries here are immutable with no correction mechanism (#3991)
 
 ### Dependencies
-- #3991 — Party balance ledger records every balance movement (must be live — receives every settlement and adjustment)
+- #3991 — Party balance ledger records every balance movement (must be live — receives every settlement)
 - #3996 — Driver go-online is blocked while her outstanding balance is over the limit (unblocked by settlement here)
-- #3994 — Super admin configures balance, fee and withdrawal policy (owns the outstanding-balance limit)
-- #4006 — Super admin views the settlement day book (settlements recorded here are totalled there)
+- #3994 — Super admin configures balance and fee policy (owns the outstanding-balance limit)
 - #1759 — Super admin configures global platform policies (platform commission)
 - #1833 — Super admin views per-driver earnings & settlement report
 - #1816 — Super admin views the admin activity audit log
@@ -2947,102 +2916,7 @@ Expanding a row opens the driver's full ledger sub-grid (Date, Type, Amount, Cha
 
 ---
 
-## [Admin] #4006 — Super admin views the settlement day book 🆕
-**Feature:** Feature 18 — Admin Financial Reporting & Reconciliation | **Sprint:** Phase 1
-
-**Description:** As a super admin, I want a day book of every settlement recorded, totalled by channel and by admin, so that Finance can reconcile what was recorded against what actually arrived at the bank.
-
-### Background
-
-Every settlement recorded on #1813 posts a settlement ledger entry carrying a channel, an optional-or-required reference, and a generated receipt number (`S-nnnnn`). The day book (`settlements.html`) is the read-only reconciliation artefact built from those entries: for a selected date (default today) it lists every settlement recorded, and totals them by channel (Office cash, Bank deposit, Mobile wallet, Field agent) and by the admin who recorded them.
-
-It is filterable by date range, channel, and recording admin, and exportable to CSV so Finance can check it line-by-line against the bank statement and the office cash count. No entry is created, edited, or reversed from this screen — it is a read view of the ledger's settlement entries; a correction is a fresh adjustment posted from #1813.
-
-### Field Validation
-
-| Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
-|---|---|---|---|---|---|---|---|---|---|
-| Date from | Yes | Date (YYYY-MM-DD) | Valid calendar date; not in the future | — | today | today | Enter a start date / أدخل تاريخ البداية | Invalid date format / صيغة التاريخ غير صحيحة | Date cannot be in the future / لا يمكن أن يكون التاريخ في المستقبل |
-| Date to | Yes | Date (YYYY-MM-DD) | Valid calendar date; must not be before Date from; not in the future | — | today | today | Enter an end date / أدخل تاريخ النهاية | Invalid date format / صيغة التاريخ غير صحيحة | End date must be after start date / تاريخ النهاية يجب أن يكون بعد تاريخ البداية |
-| Channel filter | No | Dropdown (single-select) | Enum: All channels, Office cash, Bank deposit, Mobile wallet, Field agent | — | — | All channels | — | — | — |
-| Admin filter | No | Dropdown (single-select) | Any admin who has recorded at least one settlement | — | — | All admins | — | — | — |
-
-### Acceptance Criteria
-
-**Scenario 1 — Day book for today**
-- Given the screen loads with no filters changed
-- Then every settlement recorded today is listed with driver, amount, channel, reference, receipt number, recording admin, and time
-
-**Scenario 2 — Totals by channel**
-- Given settlements exist for the selected date range
-- Then a summary shows the total EGP settled per channel for that range
-
-**Scenario 3 — Totals by admin**
-- Given settlements exist for the selected date range
-- Then a summary shows the total EGP recorded per admin for that range
-
-**Scenario 4 — Filter by date range**
-- Given the super admin selects a different date range
-- Then the rows and totals recompute for that range
-
-**Scenario 5 — Filter by channel**
-- Given the super admin selects one channel
-- Then only settlements on that channel are shown and totals recompute accordingly
-
-**Scenario 6 — Filter by admin**
-- Given the super admin selects one recording admin
-- Then only settlements recorded by that admin are shown and totals recompute accordingly
-
-**Scenario 7 — Idle/empty day**
-- Given no settlements were recorded in the selected range
-- Then all totals display zero with no error
-
-**Scenario 8 — Grand total reconciles**
-- Given a non-empty range
-- Then the sum of the channel totals equals the sum of the admin totals equals the range's total settled amount
-
-**Scenario 9 — Receipt numbers are traceable**
-- Given the day book is displayed
-- Then every row shows its receipt number, and opening a row or its driver name navigates to that driver's ledger on #1813
-
-**Scenario 10 — Read-only**
-- Given the day book is displayed
-- Then no create, edit, or reverse action is available from this screen
-
-**Scenario 11 — Export**
-- Given the day book is displayed
-- Then the super admin can export the filtered rows and their totals to CSV/Excel
-
-**Scenario 12 — Empty, loading and error states**
-- Given no settlements match the filter, the list is loading, or the request fails
-- Then the corresponding empty, loading, or error state is shown
-
-### Out of Scope
-- Recording, editing, or reversing a settlement (done on #1813)
-- Automated bank reconciliation or file import from the bank
-- Withdrawal payouts — the day book covers settlements coming in, not payouts going out (#4001)
-- Adding, renaming, or removing settlement channels from the configurable list
-
-### Dependencies
-- #1813 — Super admin reconciles driver balances and records settlements (source of every row)
-- #3991 — Party balance ledger records every balance movement
-- #1816 — Super admin views the admin activity audit log
-
-### List / Grid Specification
-
-**Page size:** 20 rows/page (server-side pagination) · **Default sort:** Time — newest first
-
-| Column | Sortable | Filterable | Filter type |
-|---|---|---|---|
-| Driver | No | No | — |
-| Amount (EGP) | Yes | No | — |
-| Channel | No | Yes | Dropdown (enum) |
-| Reference | No | No | — |
-| Receipt number | No | No | — |
-| Recorded by | No | Yes | Dropdown (admin list) |
-| Time | Yes | No | — |
-
-A totals footer (by channel, and by admin) sits above the row grid and recomputes with every filter change; it is not itself paginated.
+> **Removed 2026-09-13:** cut as a report dressed as a screen. Settlement entries are exportable as CSV from the driver balances screen (#1813), which gives Finance the same reconciliation input. Can return as a real reconciliation — banked amount in, variance out — once the cash-collection model is decided.
 
 ---
 
@@ -3053,17 +2927,15 @@ A totals footer (by channel, and by admin) sits above the row grid and recompute
 
 ### Background
 
-A rider's ledger is zero almost always. It moves when she cancels after the grace period (a `cancellation_fee` debit), when that fee is recovered as a surcharge on her next trip (a `fee_collected` credit, #4000), or when an admin writes it off (a `fee_waived` credit). This screen (`rider-balances.html`) is the admin counterpart to a rider's outstanding-fees view on her own app (#3992): it lists riders with an outstanding balance, opens a full ledger for any one of them, and lets the super admin **waive an outstanding fee** — always with a reason — or post a manual adjustment.
+A rider's ledger is zero almost always. It moves when she cancels after the grace period (a `cancellation_fee` debit), when that fee is recovered as a surcharge on her next trip (a `fee_collected` credit, #4000), or when an admin writes it off (a `fee_waived` credit). This screen (`rider-balances.html`) is the admin counterpart to a rider's outstanding-fees view on her own app (#3992): it lists riders with an outstanding balance, opens a full ledger for any one of them, and lets the super admin **waive an outstanding fee** — always with a reason.
 
 **Waiving posts a ledger entry.** It never edits a balance directly. A `fee_waived` entry is posted against the specific outstanding fee the admin selects, is immutable, appears in the rider's own statement (#4004, #3992), and is written to the audit log (#1816). Once waived, that fee is no longer picked up as an outstanding surcharge on the rider's next trip.
 
 **A waiver takes effect immediately.** A rider above the recovery threshold (#3994, #4002, #3998) drops straight back to the gentle one-fee-per-ride recovery the moment a waiver brings her below it, with no further admin action.
 
-**There is no automatic booking block on a rider.** Blocking one would deadlock — a Phase 1 rider has no card, so the only way she can clear a fee is by taking a ride. Persistent abuse is escalated by suspending the rider through the existing flow (#1740), reachable from this screen. That is a deliberate human decision, never automatic.
+**There is no automatic booking block on a rider.** Blocking one would deadlock — a rider pays in cash on the ride, so the only way she can clear a fee is by taking a ride. Persistent abuse is escalated by suspending the rider through the existing flow (#1740), reachable from this screen. That is a deliberate human decision, never automatic.
 
-**Manual adjustments are separate and rarer.** Where a waiver writes off a specific fee, an adjustment corrects a mistake elsewhere on the rider ledger. It requires a reason, may be a credit or a debit, and is audited identically. Adjustments never overwrite an entry; they post a reversing one.
-
-The list covers riders with an **outstanding** balance by default, with a filter to show riders settled to zero and all riders.
+The list covers riders with an **outstanding** balance by default, with a filter to show riders settled to zero and all riders. There is no free-form correction action on this screen: waiving is the only write, and every posted entry — including a waiver posted by mistake — is permanent, with no correction mechanism in Phase 1 (#3991).
 
 ### Field Validation
 
@@ -3073,8 +2945,6 @@ The list covers riders with an **outstanding** balance by default, with a filter
 | Balance filter | No | Dropdown (single-select) | Enum: Outstanding, Settled (zero), All | — | — | Outstanding | — | — | — |
 | Waive amount | Yes | Decimal (EGP) | Positive number, up to 2 decimals; not more than the selected fee's outstanding amount | 0.01 | selected fee amount | empty | Enter a waive amount / أدخل مبلغ الإعفاء | Enter a valid amount / أدخل مبلغًا صحيحًا | Amount must be greater than 0 and not exceed the outstanding fee / يجب أن يكون المبلغ أكبر من 0 وألا يتجاوز الرسوم المستحقة |
 | Waive reason | Yes | Free text | Any characters | 10 chars | 500 chars | empty | Enter a reason for waiving this fee / أدخل سبب الإعفاء | — | Reason must be between 10 and 500 characters / يجب أن يكون السبب بين 10 و500 حرف |
-| Adjustment amount | Yes | Decimal (EGP) | Non-zero number, up to 2 decimals; positive credits the rider, negative debits her | −100000 | 100000 | empty | Enter an adjustment amount / أدخل مبلغ التسوية اليدوية | Enter a valid amount / أدخل مبلغًا صحيحًا | Amount must be between −100,000 and 100,000 and not zero / يجب أن يكون المبلغ بين −100,000 و100,000 وألا يساوي صفرًا |
-| Adjustment reason | Yes | Free text | Any characters | 10 chars | 500 chars | empty | Enter a reason for this adjustment / أدخل سبب التسوية اليدوية | — | Reason must be between 10 and 500 characters / يجب أن يكون السبب بين 10 و500 حرف |
 
 ### Acceptance Criteria
 
@@ -3085,7 +2955,7 @@ The list covers riders with an **outstanding** balance by default, with a filter
 
 **Scenario 2 — Open a rider's ledger**
 - Given the super admin opens a rider's row
-- Then her full transaction ledger is shown newest-first — cancellation fees, fee collections, waivers, and adjustments — each with date, type, signed amount, and source trip reference
+- Then her full transaction ledger is shown newest-first — cancellation fees, fee collections, and waivers — each with date, type, signed amount, and source trip reference
 - And the running balance is shown
 
 **Scenario 3 — Waive a fee in full**
@@ -3110,37 +2980,29 @@ The list covers riders with an **outstanding** balance by default, with a filter
 - When a waiver brings her below the limit
 - Then her next booking attempt succeeds with no further admin action
 
-**Scenario 8 — Post a manual adjustment**
-- Given a rider ledger needs a correction outside a specific fee
-- When the super admin posts an adjustment with an amount and a reason
-- Then a reversing entry is posted with that reason, both entries remain visible, and the balance updates
-
-**Scenario 9 — Adjustment requires a reason**
-- Given an adjustment with no reason or a reason under 10 characters
-- Then it is rejected with a validation error and nothing is posted
-
-**Scenario 10 — Every action is audited**
-- Given a waiver or an adjustment is recorded
+**Scenario 8 — Every waiver is audited**
+- Given a waiver is recorded
 - Then it appears in the audit log (#1816) with actor, rider, amount, before/after balance, and timestamp (UTC+2)
 
-**Scenario 11 — Rider sees it in her own app**
+**Scenario 9 — Rider sees it in her own app**
 - Given a fee is waived
 - Then it no longer appears as outstanding on the rider's payments screen (#3992) and her statement reflects the waiver (#4004)
 
-**Scenario 12 — Double submission does not double-post**
+**Scenario 10 — Double submission does not double-post**
 - Given the waive form is submitted twice for the same fee
 - Then exactly one `fee_waived` entry is posted (#3991)
 
-**Scenario 13 — Empty, loading and error states**
+**Scenario 11 — Empty, loading and error states**
 - Given no riders match the filter, the list is loading, or the request fails
 - Then the corresponding empty, loading, or error state is shown
 
-**Scenario 14 — Export**
+**Scenario 12 — Export**
 - Given the rider balances list is displayed
 - Then the super admin can export it to CSV/Excel
 
 ### Out of Scope
-- Waiving a fee that has already been recovered (`fee_collected`) — a collected fare surcharge is corrected only by an adjustment, never un-collected
+- Waiving a fee that has already been recovered (`fee_collected`) — a collected fare surcharge cannot be waived after the fact
+- A free-form correction/adjustment action — cut deliberately on 2026-09-13; a waiver posted in error stands, with no correction mechanism in Phase 1 (#3991)
 - Automated or bulk waivers
 - Rider dispute workflow (Phase 2)
 - Driver balance reconciliation (covered by #1813)
@@ -3148,7 +3010,7 @@ The list covers riders with an **outstanding** balance by default, with a filter
 
 ### Dependencies
 - #3991 — Party balance ledger records every balance movement (must be live)
-- #3994 — Super admin configures balance, fee and withdrawal policy (owns the recovery threshold)
+- #3994 — Super admin configures balance and fee policy (owns the recovery threshold)
 - #4000 — Rider outstanding fee is recovered on her next trip (fee entries this screen manages originate here)
 - #4002 — Rider fees above the recovery threshold are recovered in a single payment (a waiver here can drop her below it)
 - #3998 — Rider is told when her full outstanding balance will be added to her next ride (mobile side)
@@ -3171,126 +3033,86 @@ Expanding a row opens the rider's full ledger sub-grid (Date, Type, Amount, Sour
 
 ---
 
-## [Admin] #4001 — Super admin reviews and processes driver withdrawal requests 🆕
+## [Admin] #4001 — Super admin records a payout sent to a driver 🆕
 **Feature:** Feature 18 — Admin Financial Reporting & Reconciliation | **Sprint:** Phase 1
 
-**Description:** As a super admin, I want to review each driver withdrawal request and record it as approved, paid, or rejected so that drivers are paid what they are owed and every payout is traceable.
+**Description:** As a super admin, I want to record a payout that Finance has already sent to a driver so that her ledger reflects the transfer and her statement shows it with its reference and date.
 
 ### Background
 
-When a driver requests a withdrawal (#3993) the amount is reserved against her available balance but no money has moved. This screen is where a super admin decides. It lists requests newest-first, defaulting to those still pending, and shows for each the driver, the amount, her available balance at the time of the request, her current balance, her payout destination, and the request date.
+Recording a payout happens in the same place as recording a settlement (`balances.html`, #1813) — it is the same act in the opposite direction: money moved, now write it down. A driver never requests a payout; there is no request, no approval queue, no pending/approved/rejected states, and no reservation against her balance. Finance transfers the money on its own cycle, outside the system, and a super admin records it here after the fact.
 
-**A payout cannot be approved without a destination on file.** Every driver profile carries an optional payout destination — type, number, and account holder name (#4003). A pending request from a driver with no destination on file is flagged, and *approve* is unavailable until she completes it on `driver-profile.html`.
+**Recording posts a ledger entry.** It never edits a balance directly. Recording a payout for a driver posts a `payout` debit to her ledger (#3991) for the amount that was actually sent, reducing her available balance by exactly that amount.
 
-**Three outcomes.** *Approve* accepts the request and leaves it awaiting payment; it never posts a ledger entry. *Mark paid* is the only action in this workflow that posts a ledger entry: it posts the withdrawal entry to the ledger (#3991) and reduces the driver's available balance. *Reject* requires a reason, releases the reservation, and returns the reason to the driver in her app.
+**A payout destination is required.** Every driver profile carries an optional payout destination — type, number, and account holder name (#4003). The record-payout form is blocked, with an inline explanation and a link to the driver's profile, until she has one on file.
 
-**Payout is operational.** Finance transfers the money outside the system — cash, bank transfer, or wallet — and records which method was actually used when marking the request paid; it need not match the destination on file if a different channel was used on the day. There is no payment-provider integration in Phase 1.
+**The amount can never exceed what is owed.** A payout cannot be recorded for more than the driver's current available balance.
 
-**A request is decided once.** Approve and reject apply only to a pending request; mark-paid applies only to an approved one. Every transition is audited (#1816).
+Every payout is captured with the destination used, a reference (the bank or wallet transaction id), and a date, is immutable, appears immediately in the driver's own statement (#1781, #1788), and is written to the audit log (#1816).
 
 ### Field Validation
 
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
 |---|---|---|---|---|---|---|---|---|---|
-| Status filter | No | Dropdown (single-select) | Enum: Pending, Approved, Paid, Rejected, Cancelled, All | — | — | Pending | — | — | — |
-| Driver search | No | Free text | Arabic and Latin letters, digits, spaces; partial match on name or phone | — | 50 chars | empty | — | — | Search term must be 50 characters or fewer / يجب ألا يزيد نص البحث عن 50 حرفًا |
-| Date from | No | Date (YYYY-MM-DD) | Valid calendar date | — | — | empty | — | Invalid date format / صيغة التاريخ غير صحيحة | — |
-| Date to | No | Date (YYYY-MM-DD) | Valid calendar date; must not be before Date from | — | — | empty | — | Invalid date format / صيغة التاريخ غير صحيحة | End date must be after start date / تاريخ النهاية يجب أن يكون بعد تاريخ البداية |
-| Payout method (at mark-paid) | Yes | Dropdown (single-select) | Enum: Cash at office, Bank transfer, Mobile wallet | — | — | Cash at office | Select a payout method / اختر طريقة الصرف | — | — |
-| Payout reference | No | Free text | Letters, digits, hyphens | — | 60 chars | empty | — | — | Reference must be 60 characters or fewer / يجب ألا يزيد المرجع عن 60 حرفًا |
-| Rejection reason | Yes | Free text | Any characters | 10 chars | 500 chars | empty | Enter a reason for rejecting this request / أدخل سبب رفض الطلب | — | Reason must be between 10 and 500 characters / يجب أن يكون السبب بين 10 و500 حرف |
+| Payout amount | Yes | Decimal (EGP) | Positive number, up to 2 decimals; not more than the driver's available balance | 0.01 | available balance | empty | Enter a payout amount / أدخل مبلغ الصرف | Enter a valid amount / أدخل مبلغًا صحيحًا | Amount must be greater than 0 and not exceed the available balance / يجب أن يكون المبلغ أكبر من 0 وألا يتجاوز الرصيد المتاح |
+| Payout date | Yes | Date (YYYY-MM-DD) | Valid calendar date; not in the future | — | today | today | Enter the payout date / أدخل تاريخ الصرف | Invalid date format / صيغة التاريخ غير صحيحة | Date cannot be in the future / لا يمكن أن يكون التاريخ في المستقبل |
+| Payout destination (read-only) | n/a — display only | Display field | Shown from the driver's profile (#4003); the form is blocked until one exists | — | — | — | — | — | — |
+| Payout reference | Yes | Free text | Letters, digits, hyphens | — | 60 chars | empty | Enter a payout reference / أدخل مرجع الصرف | — | Reference must be 60 characters or fewer / يجب ألا يزيد المرجع عن 60 حرفًا |
 
 ### Acceptance Criteria
 
-**Scenario 1 — Pending requests are listed by default**
-- Given drivers have submitted withdrawal requests
-- Then the list shows pending requests newest-first with driver, amount, current balance, payout destination on file, and request date
+**Scenario 1 — Record a payout**
+- Given a driver has an available balance of 500 EGP and a payout destination on file
+- When the super admin records a payout of 200 EGP with a reference and date
+- Then a `payout` entry of −200.00 EGP is posted (#3991), her available balance becomes 300.00, and the entry appears in her ledger with the destination, reference, and date
 
-**Scenario 2 — Approve a pending request**
-- Given a pending request for 200 EGP from a driver with a payout destination on file
-- When the super admin approves it
-- Then its status becomes approved, the reservation is still held, and no ledger entry is posted yet
+**Scenario 2 — Recording is blocked without a payout destination**
+- Given a driver with no payout destination on file (#4003)
+- When the super admin opens the record-payout form for her
+- Then the form is blocked with an inline explanation and a link to her driver profile to add one
 
-**Scenario 3 — Approve is blocked without a payout destination**
-- Given a pending request from a driver who has not recorded a payout destination on her profile
-- When the super admin attempts to approve it
-- Then approve is unavailable, an inline message states that the driver has no payout destination on file, and the admin is linked to her driver profile (#4003)
+**Scenario 3 — Amount cannot exceed the available balance**
+- Given a driver's available balance is 100 EGP
+- When the super admin attempts to record a payout of 150 EGP
+- Then it is rejected with a validation error and no entry is posted
 
-**Scenario 4 — Mark an approved request paid**
-- Given an approved request for 200 EGP
-- When the super admin marks it paid with a payout method
-- Then a withdrawal entry of −200.00 EGP is posted (#3991) — the only ledger-posting step in this workflow
-- And the driver's available balance decreases by 200.00 EGP
-- And the status becomes paid with the payout method, optional reference, and paid date recorded
+**Scenario 4 — Recording a payout for a driver who does not have one is refused**
+- Given a driver's balance is negative or zero
+- Then the record-payout action is unavailable for her
 
-**Scenario 5 — Reject a pending request**
-- Given a pending request
-- When the super admin rejects it with a reason
-- Then the status becomes rejected, the reservation is released, no ledger entry is posted, and the reason is shown to the driver in her app (#3987)
+**Scenario 5 — Reference and date are required**
+- Given a payout submission missing a reference or a date
+- Then a validation error is returned and no entry is posted
 
-**Scenario 6 — Rejection requires a reason**
-- Given a rejection with no reason or a reason under 10 characters
-- Then it is refused with a validation error and the request stays pending
+**Scenario 6 — Every payout is audited**
+- Given a payout is recorded
+- Then it appears in the audit log (#1816) with actor, driver, amount, destination, reference, and timestamp (UTC+2)
 
-**Scenario 7 — A request is decided once**
-- Given a request that is already paid, rejected, or cancelled
-- Then no approve, reject, or mark-paid action is available for it
+**Scenario 7 — Driver sees it in her own app**
+- Given a payout is recorded
+- Then it appears in the driver's statement with its reference and date and reduces her available balance (#1781, #1788)
 
-**Scenario 8 — Mark-paid requires approval first**
-- Given a pending request that has not been approved
-- Then the mark-paid action is unavailable until it is approved
+**Scenario 8 — Double submission does not double-post**
+- Given the record-payout form is submitted twice for the same payout
+- Then exactly one `payout` entry is posted (#3991)
 
-**Scenario 9 — Driver cancelled the request first**
-- Given the driver cancelled her request before a decision was made
-- Then it appears as cancelled, no decision actions are available, and the reservation is already released
-
-**Scenario 10 — Balance changed since the request**
-- Given a driver's available balance dropped below the requested amount after she submitted
-- Then the row flags the shortfall and mark-paid is refused until the request is re-approved against the current balance
-
-**Scenario 11 — Filter and search**
-- Given the list is displayed
-- Then it can be filtered by status and date range and searched by driver name or phone
-
-**Scenario 12 — Every decision is audited**
-- Given any approve, reject, or mark-paid action
-- Then it is recorded in the audit log (#1816) with actor, driver, amount, previous and new status, and timestamp (UTC+2)
-
-**Scenario 13 — Empty, loading and error states**
-- Given no requests match the filter, the list is loading, or the request fails
-- Then the corresponding empty, loading, or error state is shown
-
-**Scenario 14 — Export**
-- Given the list is displayed
-- Then the super admin can export it to CSV/Excel
+**Scenario 9 — Payout appears alongside settlements in the driver's ledger**
+- Given the super admin opens a driver's ledger on `balances.html` (#1813)
+- Then payout and settlement entries appear in the same newest-first list, each with its own type, amount, and reference
 
 ### Out of Scope
-- Executing the transfer — payout is performed outside the system in Phase 1
+- A driver requesting, tracking, or cancelling a payout — there is no such action anywhere in the system
+- An approval queue, or pending/approved/rejected states — recording is the only step
+- Executing the transfer — Finance moves the money outside the system before this screen is used
 - Payment-provider or bank integration
-- Partial payment of a withdrawal request
-- Bulk approval of multiple requests
-- Driver appeal of a rejection (Phase 2)
 - Adding or editing a driver's payout destination (captured on `driver-profile.html`, #4003)
+- Bulk recording of multiple payouts
 
 ### Dependencies
-- #3993 — Driver requests a withdrawal of her available balance (must be live — supplies the requests)
 - #3991 — Party balance ledger records every balance movement (must be live — receives the payout entry)
-- #3994 — Super admin configures balance, fee and withdrawal policy
-- #4003 — Driver payout destination is captured and required before payout (supplies the destination-on-file check)
+- #4003 — Driver payout destination is captured and required before a payout can be recorded (supplies the destination-on-file check)
+- #1813 — Super admin reconciles driver balances and records settlements (same screen; the settlement side of this action)
 - #1816 — Super admin views the admin activity audit log
-
-### List / Grid Specification
-
-**Page size:** 20 rows/page (server-side pagination) · **Default sort:** Request date — newest first
-
-| Column | Sortable | Filterable | Filter type |
-|---|---|---|---|
-| Driver | Yes | Yes | Free-text search (partial match) |
-| Amount (EGP) | Yes | No | — |
-| Current balance (EGP) | Yes | No | — |
-| Payout destination on file | No | Yes | Dropdown (Yes / No) |
-| Status | Yes | Yes | Dropdown (enum) |
-| Request date | Yes | Yes | Date range (from / to) |
 
 ---
 

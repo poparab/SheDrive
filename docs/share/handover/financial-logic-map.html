@@ -577,7 +577,7 @@
     </p>
     <div class="meta">
       <span>2026-09-08</span>
-      <span>37 stories</span>
+      <span>35 stories</span>
       <span>branch feat/financial-core</span>
       <span>Cash only · built card-ready</span>
     </div>
@@ -715,7 +715,7 @@
 
     <figure>
       <div class="figbox">
-        <svg viewBox="0 0 720 210" role="img" aria-label="Ledger entries feed a driver balance which is the sum of them; a negative balance means she owes SheDrive and gates her going online until she settles, a positive balance means SheDrive owes her and can be withdrawn.">
+        <svg viewBox="0 0 720 210" role="img" aria-label="Ledger entries feed a driver balance which is the sum of them; a negative balance means she owes SheDrive and gates her going online until she settles, a positive balance means SheDrive owes her and is cleared by a payout Finance sends her.">
           <defs>
             <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
@@ -728,8 +728,7 @@
           <text class="svg-mono" x="26" y="88">+ trip_earnings</text>
           <text class="svg-mono" x="26" y="108">± cancellation entries</text>
           <text class="svg-mono" x="26" y="128">− rider_fee_recovery</text>
-          <text class="svg-mono" x="26" y="148">+ settlement · − withdrawal</text>
-          <text class="svg-mono" x="26" y="168">± adjustment</text>
+          <text class="svg-mono" x="26" y="148">+ settlement · − payout</text>
 
           <line class="svg-line" x1="222" y1="105" x2="252" y2="105" marker-end="url(#ar2)" />
 
@@ -747,8 +746,8 @@
 
           <rect class="svg-box" x="494" y="118" width="216" height="66" rx="3" />
           <text class="svg-strong" x="510" y="140">Positive — we owe her</text>
-          <text class="svg-label" x="510" y="158">Called available. Drawn on by</text>
-          <text class="svg-label" x="510" y="174">a withdrawal request.</text>
+          <text class="svg-label" x="510" y="158">Called available. Cleared by</text>
+          <text class="svg-label" x="510" y="174">a payout from Finance.</text>
         </svg>
       </div>
       <figcaption>
@@ -771,8 +770,7 @@
           <tr><td><code>rider_cancellation_fee_share</code></td><td class="num pos">+</td><td>A rider cancels late — her configured share of that fee</td></tr>
           <tr><td><code>rider_fee_recovery</code></td><td class="num neg">−</td><td>She collected a rider's old fee in cash, on our behalf</td></tr>
           <tr><td><code>settlement</code></td><td class="num pos">+</td><td>An admin records that she handed the cash back</td></tr>
-          <tr><td><code>withdrawal</code></td><td class="num neg">−</td><td>Finance marks a payout paid</td></tr>
-          <tr><td><code>adjustment</code></td><td class="num">±</td><td>An admin posts a correction with a reason</td></tr>
+          <tr><td><code>payout</code></td><td class="num neg">−</td><td>Finance records a transfer it has already sent her</td></tr>
         </tbody>
       </table>
     </div>
@@ -787,7 +785,7 @@
           <tr><td><code>cancellation_fee</code></td><td class="num neg">−</td><td>She cancels after the grace period</td></tr>
           <tr><td><code>fee_collected</code></td><td class="num pos">+</td><td>The fee is recovered — cash surcharge now, card later</td></tr>
           <tr><td><code>fee_waived</code></td><td class="num pos">+</td><td>An admin writes it off with a reason</td></tr>
-          <tr><td><code>adjustment</code></td><td class="num">±</td><td>An admin posts a correction with a reason</td></tr>
+          
         </tbody>
       </table>
     </div>
@@ -1057,19 +1055,17 @@
 
     <ul>
       <li>Every settlement generates a receipt number (<code>S-nnnnn</code>) shown to the admin and visible in the driver's own statement.</li>
-      <li>Settlements land in a <b>day book</b> that totals by channel and by admin for the day — that is the artefact Finance reconciles against the bank.</li>
+      <li>Settlement entries are exportable as CSV from the driver balances screen, so Finance can check them line by line against the bank statement.</li>
       <li>The channel list is configurable, not hard-coded, because the business has not yet decided which of these it will actually run.</li>
     </ul>
 
     <div class="chips">
       <span class="chips-label">Owned by</span>
       <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1813">#1813 <small>record a settlement · reopened</small></a>
-      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4006">#4006 <small>settlement day book</small></a>
       <a class="chip t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3989">#3989 <small>driver settles + history</small></a>
       <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3991">#3991 <small>settlement entry</small></a>
       <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3979">#3979 <small>settle what you owe</small></a>
       <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3982">#3982 <small>admin balances + settle</small></a>
-      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3985">#3985 <small>day book</small></a>
     </div>
   </section>
 
@@ -1080,9 +1076,11 @@
       <h2>Paying a driver out</h2>
     </div>
     <p>
-      The mirror image of a settlement, and today the rarer one — a driver only has a
-      positive balance if fee shares or adjustments outrun her commission. It matters
-      because the day online payment arrives, this becomes the normal case.
+      Exactly the mirror image of a settlement, and it works the same way —
+      <b>after the fact</b>. Finance transfers the money on its own cycle, then records the
+      transfer, and that recording posts the debit. Recording a payout happens on the same
+      screen as recording a settlement, because it is the same act in the opposite
+      direction: money moved, now write it down.
     </p>
 
     <div class="scroller">
@@ -1091,28 +1089,30 @@
           <tr><th>Step</th><th>What happens to the money</th><th>Ledger</th></tr>
         </thead>
         <tbody>
-          <tr><td><b>pending</b> — she requests</td><td>The amount is <b>reserved</b> against her available balance</td><td>Nothing posted</td></tr>
-          <tr><td><b>approved</b></td><td>Finance accepts it. Impossible without a payout destination on file</td><td>Nothing posted</td></tr>
-          <tr><td><b>paid</b></td><td>The money actually leaves</td><td class="neg">− withdrawal</td></tr>
-          <tr><td><b>rejected</b> or cancelled by her</td><td>The reservation is released; a rejection reason is shown to her</td><td>Nothing posted</td></tr>
+          <tr><td><b>Her balance goes positive</b></td><td>SheDrive owes her. Nothing is requested and nothing is reserved</td><td>Nothing posted</td></tr>
+          <tr><td><b>Finance sends the money</b></td><td>Outside the system, on Finance's own cycle, to the destination on her profile</td><td>Nothing posted</td></tr>
+          <tr><td><b>An admin records it</b></td><td>Amount, destination, reference, date. Impossible without a payout destination on file, and refused above her available balance</td><td class="neg">− payout</td></tr>
         </tbody>
       </table>
     </div>
 
-    <ul>
-      <li>Withdrawals are behind a master switch that is <b>off by default</b>.</li>
-      <li>Minimum, maximum and a cooling-off period between requests are all policy, not code.</li>
-      <li>She can cancel her own request while it is pending.</li>
-    </ul>
+    <div class="note note--stop">
+      <p>
+        <b>A driver never requests a payout.</b> There is no request, no approval queue, no
+        reservation against her balance, no minimum or maximum, and no cooling-off period —
+        there is nothing to approve, because the money has already moved before anything is
+        recorded. Her <i>available</i> figure is what SheDrive owes her, not a button. She
+        sees the payout in her statement, with its reference and date, exactly like a
+        settlement.
+      </p>
+    </div>
 
     <div class="chips">
       <span class="chips-label">Owned by</span>
-      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3993">#3993 <small>request a withdrawal</small></a>
+      <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3993">#3993 <small>Finance records a payout</small></a>
       <a class="chip t-api" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4003">#4003 <small>payout destination required</small></a>
-      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4001">#4001 <small>review + process requests</small></a>
-      <a class="chip t-mobile" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3987">#3987 <small>driver requests a withdrawal</small></a>
-      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3978">#3978 <small>request a withdrawal</small></a>
-      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3983">#3983 <small>admin withdrawal queue</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4001">#4001 <small>record a payout</small></a>
+      <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3983">#3983 <small>record a payout</small></a>
     </div>
   </section>
 
@@ -1143,16 +1143,13 @@
           <tr><td><b>Driver outstanding limit</b></td><td class="num">500.00</td><td>Blocks go-online at this amount. <b>0 disables the gate.</b></td></tr>
           <tr><td>Driver warning band</td><td class="num">80%</td><td>Warns her in-app from this fraction of the limit</td></tr>
           <tr><td><b>Rider fee recovery threshold</b></td><td class="num">60.00</td><td>At or above, her whole balance is recovered at once. <b>0 disables it.</b> Never blocks booking.</td></tr>
-          <tr><td>Withdrawals enabled</td><td class="num">off</td><td>Master switch</td></tr>
-          <tr><td>Minimum / maximum withdrawal</td><td class="num">50 / 2000</td><td>Per request; blank maximum means no cap</td></tr>
-          <tr><td>Cooling-off period</td><td class="num">7 days</td><td>Between withdrawal requests</td></tr>
-        </tbody>
+                  </tbody>
       </table>
     </div>
 
     <div class="chips">
       <span class="chips-label">Owned by</span>
-      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3994">#3994 <small>balance, fee + withdrawal policy</small></a>
+      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3994">#3994 <small>balance + fee policy</small></a>
       <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1759">#1759 <small>existing global policy screen</small></a>
       <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1816">#1816 <small>audit log</small></a>
       <a class="chip t-design" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3986">#3986 <small>policy screen design</small></a>
@@ -1188,7 +1185,6 @@
       <span class="chips-label">Owned by</span>
       <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1832">#1832 <small>revenue + commission summary · extended</small></a>
       <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1833">#1833 <small>per-driver earnings + settlement</small></a>
-      <a class="chip t-admin" href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4006">#4006 <small>day book totals</small></a>
     </div>
   </section>
 
@@ -1216,7 +1212,7 @@
           </tr>
           <tr>
             <td class="num">2</td>
-            <td><b>Entries are immutable.</b> A mistake is corrected with a new adjustment. No edit, no delete.</td>
+            <td><b>Entries are immutable.</b> No edit, no delete, and no adjustment — that action was cut on 13 September, so <b>nothing can currently correct a mistake</b>.</td>
             <td>It is the audit trail. An edited ledger is not evidence.</td>
           </tr>
           <tr>
@@ -1246,8 +1242,8 @@
       <h2>Every story, one table</h2>
     </div>
     <p>
-      Thirty-seven work items: twenty-four new dev stories, three reopened, one rescoped,
-      two extended, and thirteen design briefs. Every one has a verified Feature parent.
+      Thirty-five work items: twenty-one new dev stories, three reopened, one rescoped,
+      two extended, and eleven design briefs. Every one has a verified Feature parent.
     </p>
 
     <div class="scroller">
@@ -1262,21 +1258,19 @@
           <tr><td class="num">#4000</td><td>Rider outstanding fee is recovered on her next trip</td><td>API</td><td class="num">04</td></tr>
           <tr><td class="num">#4002</td><td>Rider fees above the recovery threshold are recovered in one payment</td><td>API</td><td class="num">04</td></tr>
           <tr><td class="num">#3996</td><td>Driver go-online blocked over the outstanding limit</td><td>API</td><td class="num">05</td></tr>
-          <tr><td class="num">#3993</td><td>Driver requests a withdrawal of her available balance</td><td>API</td><td class="num">07</td></tr>
+          <tr><td class="num">#3993</td><td>Finance records a payout sent to a driver</td><td>API</td><td class="num">07</td></tr>
           <tr><td class="num">#4003</td><td>Driver payout destination captured and required</td><td>API</td><td class="num">07</td></tr>
           <tr><td class="num">#1781</td><td>Driver retrieves her balance and statement <b>· reopened</b></td><td>API</td><td class="num">02</td></tr>
           <tr><td class="num">#4004</td><td>Rider retrieves her outstanding fees and statement</td><td>API</td><td class="num">02</td></tr>
 
-          <tr><td class="num">#3994</td><td>Configures balance, fee and withdrawal policy</td><td>Admin</td><td class="num">08</td></tr>
+          <tr><td class="num">#3994</td><td>Configures balance and fee policy</td><td>Admin</td><td class="num">08</td></tr>
           <tr><td class="num">#1813</td><td>Reconciles driver balances, records settlements <b>· reopened</b></td><td>Admin</td><td class="num">06</td></tr>
-          <tr><td class="num">#4006</td><td>Views the settlement day book</td><td>Admin</td><td class="num">06, 09</td></tr>
-          <tr><td class="num">#4001</td><td>Reviews and processes driver withdrawal requests</td><td>Admin</td><td class="num">07</td></tr>
+          <tr><td class="num">#4001</td><td>Records a payout sent to a driver</td><td>Admin</td><td class="num">07</td></tr>
           <tr><td class="num">#4005</td><td>Reviews rider outstanding fees and waives them</td><td>Admin</td><td class="num">04</td></tr>
           <tr><td class="num">#1832</td><td>Revenue &amp; commission summary <b>· extended</b></td><td>Admin</td><td class="num">09</td></tr>
           <tr><td class="num">#1833</td><td>Per-driver earnings &amp; settlement report <b>· extended</b></td><td>Admin</td><td class="num">09</td></tr>
 
           <tr><td class="num">#1788</td><td>Driver views her balance and statement <b>· rescoped</b></td><td>Mobile</td><td class="num">02</td></tr>
-          <tr><td class="num">#3987</td><td>Driver requests a withdrawal</td><td>Mobile</td><td class="num">07</td></tr>
           <tr><td class="num">#3989</td><td>Driver settles what she owes, sees settlement history</td><td>Mobile</td><td class="num">06</td></tr>
           <tr><td class="num">#3988</td><td>Driver blocked from going online over the limit</td><td>Mobile</td><td class="num">05</td></tr>
           <tr><td class="num">#3990</td><td>Driver collects a recovered rider fee with the fare</td><td>Mobile</td><td class="num">04</td></tr>
@@ -1289,15 +1283,13 @@
           <tr><td class="num">#3975</td><td>[Rider] Outstanding Fee Notice &amp; Full-Recovery State</td><td>Design</td><td class="num">04</td></tr>
           <tr><td class="num">#3976</td><td>[Rider] Fare Summary with a Recovered Fee</td><td>Design</td><td class="num">04</td></tr>
           <tr><td class="num">#3977</td><td>[Driver] Balance &amp; Statement</td><td>Design</td><td class="num">02</td></tr>
-          <tr><td class="num">#3978</td><td>[Driver] Request a Withdrawal</td><td>Design</td><td class="num">07</td></tr>
           <tr><td class="num">#3979</td><td>[Driver] Settle What You Owe</td><td>Design</td><td class="num">06</td></tr>
           <tr><td class="num">#3980</td><td>[Driver] Go-Online Blocked &amp; Warning Band</td><td>Design</td><td class="num">05</td></tr>
           <tr><td class="num">#3981</td><td>[Driver] Cash Collection with a Recovered Fee</td><td>Design</td><td class="num">04</td></tr>
           <tr><td class="num">#3982</td><td>[Admin] Driver Balances &amp; Record Settlement</td><td>Design</td><td class="num">06</td></tr>
-          <tr><td class="num">#3983</td><td>[Admin] Driver Withdrawal Requests</td><td>Design</td><td class="num">07</td></tr>
+          <tr><td class="num">#3983</td><td>[Admin] Record a Payout</td><td>Design</td><td class="num">07</td></tr>
           <tr><td class="num">#3984</td><td>[Admin] Rider Outstanding Fees</td><td>Design</td><td class="num">04</td></tr>
-          <tr><td class="num">#3985</td><td>[Admin] Settlement Day Book</td><td>Design</td><td class="num">06</td></tr>
-          <tr><td class="num">#3986</td><td>[Admin] Balance, Fee &amp; Withdrawal Policy</td><td>Design</td><td class="num">08</td></tr>
+          <tr><td class="num">#3986</td><td>[Admin] Balance &amp; Fee Policy</td><td>Design</td><td class="num">08</td></tr>
         </tbody>
       </table>
     </div>
