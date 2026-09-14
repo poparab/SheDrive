@@ -2734,6 +2734,7 @@ Two facts are stated on the screen because an admin will otherwise assume the op
 - When the super admin opens it
 - Then she sees who raised it and what was reported, the time, the trip state at trigger, the location with coordinates and address on a map, the rider, the driver, the vehicle, and the trip with a link through to the trip detail
 - And each emergency contact is listed with their relationship and whether the alert was delivered or failed
+- And if the person who raised it stood the alert down as a false alarm, that is shown with the time she did so, while the case still waits for an admin to close it
 
 **Scenario 2 — The trip is shown as unaffected**
 - Given the case detail is displayed

@@ -2443,7 +2443,7 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 
 **Scenario 1 — SOS is reachable for the whole active trip**
 - Given the driver is on an active trip
-- When she is at any stage from pickup through drop-off
+- When she is at any stage from heading to pickup, through waiting at pickup, to drop-off
 - Then the SOS control remains visible and available
 
 **Scenario 2 — SOS cannot be raised outside an active trip**
@@ -2492,7 +2492,9 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 **Scenario 10 — False alarm stands the alert down**
 - Given the emergency screen is open
 - When the driver cancels the alert and confirms it was a false alarm
-- Then location sharing stops and the incident is recorded as a false alarm
+- Then location sharing stops immediately
+- And the incident is recorded as stood down by her as a false alarm
+- And the case stays open for an admin to review and close
 
 **Scenario 11 — The rider is never notified**
 - Given the driver is on an active trip

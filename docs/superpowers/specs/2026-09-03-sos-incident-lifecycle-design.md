@@ -83,14 +83,14 @@ Both screens contain:
 | Trip recap | Rider sees driver name, plate, vehicle, current coordinates. Driver sees rider name, plate, vehicle, current coordinates. |
 | Stop sharing | Revokes the live link immediately. New on both. |
 | Return to trip | Alert stays active. |
-| Cancel — false alarm | Closes the alert, stops sharing, marks the case `false_alarm_by_user`. New on the driver side. |
+| Cancel — false alarm | Stands the alert down: revokes the live link and records on the case that the raiser stood it down as a false alarm, and when. The case stays open — an admin still closes it. New on the driver side. |
 
 Delivery status replaces today's unconditional "they have been notified", which
 reassures her even when the SMS failed.
 
 ### 3.4 The live location link
 
-- Issued once per case, a single-use unguessable URL.
+- Issued once per case, an unguessable URL that every alerted contact can open repeatedly until it expires or is revoked.
 - **Expires at trip end + 60 minutes.** Covers the walk from the car to safety
   without leaking her location indefinitely.
 - **Revocable by her at any time** from the alert screen.
@@ -112,7 +112,7 @@ destination address · route progress at trigger
 **Alerting** — contacts alerted, per-contact delivery status, live-link issued and
 its expiry
 
-Mutable case fields: `status` (`open` | `closed`) · `outcome` · resolution note ·
+Fields that change after creation: per-contact delivery status (as the SMS supplier reports it) · stand-down by the raiser (`stood_down_at`) · `status` (`open` | `closed`) · `outcome` · resolution note ·
 closed by · closed at.
 
 The snapshot is frozen because it is the audit record. If the trip continues and the

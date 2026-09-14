@@ -3177,32 +3177,18 @@ This is a **fourth** rider account state, distinct from the `active` / `suspende
 - Then they are still alerted
 - And the failure is reported against that one contact only
 
-**Scenario 6 — The link is live for the duration of the trip**
-- Given an SOS alert has been sent
-- When a contact opens the live link while the trip is still running
-- Then it reflects the rider's current location
+**Scenario 6 — The link follows the live location link rules**
+- Given alerts have been sent for an SOS
+- When a contact opens the live location link in her alert
+- Then it is the case's single link issued under #3971 and behaves exactly as that story defines: live while the trip runs, stopping 60 minutes after the trip ends, and stopping immediately if she stops sharing or stands the alert down
+- And this story does not issue, expire or revoke the link itself
 
-**Scenario 7 — The link expires 60 minutes after the trip ends**
-- Given the trip the SOS belongs to has ended
-- When 60 minutes have passed
-- Then the link stops working
-
-**Scenario 8 — She can revoke the link herself**
-- Given a live location link is active
-- When the rider revokes it
-- Then it stops working immediately, however much time was left
-
-**Scenario 9 — A revoked or expired link returns nothing**
-- Given a live location link has been revoked or has expired
-- When anyone opens it
-- Then no location and no trip detail is returned
-
-**Scenario 10 — Only her own contacts are notified**
+**Scenario 7 — Only her own contacts are notified**
 - Given a rider triggers SOS
 - When the alerts are sent
 - Then only the emergency contacts stored against her own account are alerted, and no one else
 
-**Scenario 11 — SOS with no contacts stored**
+**Scenario 8 — SOS with no contacts stored**
 - Given a rider with no emergency contacts stored
 - When she triggers SOS during an active trip
 - Then no alert is sent
@@ -3246,32 +3232,18 @@ This is a **fourth** rider account state, distinct from the `active` / `suspende
 - Then they are still alerted
 - And the failure is reported against that one contact only
 
-**Scenario 6 — The link is live for the duration of the trip**
-- Given an SOS alert has been sent
-- When a contact opens the live link while the trip is still running
-- Then it reflects the driver's current location
+**Scenario 6 — The link follows the live location link rules**
+- Given alerts have been sent for an SOS
+- When a contact opens the live location link in her alert
+- Then it is the case's single link issued under #3971 and behaves exactly as that story defines: live while the trip runs, stopping 60 minutes after the trip ends, and stopping immediately if she stops sharing or stands the alert down
+- And this story does not issue, expire or revoke the link itself
 
-**Scenario 7 — The link expires 60 minutes after the trip ends**
-- Given the trip the SOS belongs to has ended
-- When 60 minutes have passed
-- Then the link stops working
-
-**Scenario 8 — She can revoke the link herself**
-- Given a live location link is active
-- When the driver revokes it
-- Then it stops working immediately, however much time was left
-
-**Scenario 9 — A revoked or expired link returns nothing**
-- Given a live location link has been revoked or has expired
-- When anyone opens it
-- Then no location and no trip detail is returned
-
-**Scenario 10 — Only her own contacts are notified**
+**Scenario 7 — Only her own contacts are notified**
 - Given a driver triggers SOS
 - When the alerts are sent
 - Then only the emergency contacts stored against her own account are alerted, and no one else
 
-**Scenario 11 — SOS with no contacts stored**
+**Scenario 8 — SOS with no contacts stored**
 - Given a driver with no emergency contacts stored
 - When she triggers SOS during an active trip
 - Then no alert is sent
@@ -3317,33 +3289,42 @@ An SOS case is a first-class, permanent record — one confirmed tap creates exa
 - When the case is created
 - Then it records the date and time of the trigger in local Egyptian time
 
-**Scenario 6 — The snapshot records the alert outcome**
+**Scenario 6 — The case records the alert outcome and keeps it current**
 - Given an SOS has been confirmed
 - When her emergency contacts have been alerted
 - Then the case records which contacts were alerted and the delivery result for each one
+- And each delivery result is updated as the SMS supplier reports it, moving from sent to delivered or failed
 
 **Scenario 7 — The snapshot cannot change afterwards**
 - Given a case has been created
 - When the trip continues, the car moves, or any other trip detail changes later
-- Then none of the recorded snapshot detail changes
-- And only the case's status, outcome, resolution note, who closed it and when may be set later, and only by an admin action
+- Then none of the snapshot recorded in Scenarios 2 to 5 changes
+- And the only details that may change later are each contact's delivery result (Scenario 6), the stand-down by the person who raised it (Scenario 8), and the case's status, outcome, resolution note, who closed it and when, which only an admin action sets
 
-**Scenario 8 — The trip is unaffected**
+**Scenario 8 — The person who raised it can stand the alert down as a false alarm**
+- Given an open case
+- When the person who raised the SOS cancels the alert as a false alarm from her emergency screen
+- Then the case's live location link is revoked immediately (#3971)
+- And the case records that she stood it down as a false alarm, and when
+- And the case stays open until an admin closes it; standing down never closes a case
+- And a stand-down from anyone other than the person who raised it, or on a case that is already closed, is refused and changes nothing
+
+**Scenario 9 — The trip is unaffected**
 - Given a case has been created
 - When the trip runs on to completion
 - Then it settles and is rated exactly as it would have without an SOS
 
-**Scenario 9 — Nobody is suspended automatically**
+**Scenario 10 — Nobody is suspended automatically**
 - Given a case has been created
 - When no admin has yet actioned it
 - Then no account is suspended as an automatic consequence of the case existing
 
-**Scenario 10 — An admin can retrieve the case**
+**Scenario 11 — An admin can retrieve the case**
 - Given a case exists
 - When a signed-in admin opens it
 - Then the full case, including the whole snapshot, is returned
 
-**Scenario 11 — Requests without a valid session are refused**
+**Scenario 12 — Requests without a valid session are refused**
 - Given a request to create or read a case
 - When it arrives without a valid session
 - Then it is refused and no case detail is returned
@@ -3352,6 +3333,7 @@ An SOS case is a first-class, permanent record — one confirmed tap creates exa
 - Any admin action on the case — suspending someone, or closing it as resolved or a false alarm (see #3946)
 - Live, continuously updating location tracking for the admin — the case holds a snapshot at the trigger, not a live feed
 - Real-time alerting in the portal (sound, popup)
+- Sending contacts an "all clear" message after a stand-down
 - Automatic account suspension on any pattern
 
 ### Dependencies
@@ -3391,7 +3373,7 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 
 **Scenario 4 — She can revoke it early**
 - Given a case has an active live location link
-- When the person who raised the SOS stops sharing from her emergency screen
+- When the person who raised the SOS stops sharing, or stands the alert down as a false alarm, from her emergency screen
 - Then the link stops working immediately, however much of the 60 minutes was left
 
 **Scenario 5 — A revoked or expired link shows nothing**
