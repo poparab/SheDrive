@@ -688,7 +688,7 @@ The rider completes her booking as normal; the block is applied at the moment sh
 - The generic account-suspension screen for non-gender-mismatch suspensions
 
 ### Dependencies
-- #1687 — Rider account is suspended after gender mismatch report (API — must be live)
+- #1687 — Rider account is placed under review after a gender mismatch report (API — must be live)
 - #1588 — Driver verifies rider is female on first trip (raises the report)
 - #1811 — Super admin actions a gender-mismatch report (clears or upholds it)
 - #1629 — Rider creates trip request (the call that is refused)

@@ -894,6 +894,8 @@ The rider profile screen is opened by clicking any row in the rider list (#1661)
 
 Accessible from the rider profile screen (#1662), this action allows the admin to suspend a rider's account. The admin selects a suspension reason from a predefined list; when "Other" is chosen an explanatory note is required. The selected reason (and any note) is recorded. The rider's existing sessions are invalidated and she cannot log in again until reinstated. If the rider has an active trip when the suspension is confirmed, the account is marked **Pending Suspension** and the suspension is applied automatically as soon as that trip ends; otherwise it takes effect immediately.
 
+**Riders under review are excluded.** A rider whose account is **Pending Review** (placed there by a gender-mismatch report, #1687) cannot be suspended from this screen. Her profile offers no Suspend action and links to the open gender-mismatch report instead; the decision to suspend or clear her is taken only against that report (#1811).
+
 ### Field Validation
 
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
@@ -941,12 +943,19 @@ Accessible from the rider profile screen (#1662), this action allows the admin t
 - And as soon as the trip ends, the account is suspended and the rider's sessions are invalidated
 - And the admin sees that the suspension will take effect when the active trip ends
 
+**Scenario 7 — A rider under review cannot be suspended manually**
+- Given the rider's account is in Pending Review after a gender-mismatch report (#1687)
+- When the admin views her in the rider list (#1661) or opens her profile (#1662)
+- Then no "Suspend Account" action is offered
+- And her profile links to the open gender-mismatch report, where she can be suspended or cleared (#1811)
+
 ### Out of Scope
 - Automatic (rule-based) suspension without an admin decision
 - Suspension appeal workflow
 
 ### Dependencies
 - #1739 — Account suspension status is updated by admin (API — must be live)
+- #1811 — Super admin actions a gender-mismatch report (the only way to suspend a rider who is under review)
 
 ---
 
@@ -2329,8 +2338,8 @@ Changes take effect immediately on save and apply to new evaluations only: a dri
 
 ---
 
-## [Admin] #1810 — Super admin reviews the gender-mismatch report queue 🆕
-**Feature:** Feature 17 — Admin Safety & Incident Review | **Sprint:** 2
+## [Admin] #1810 — Super admin reviews the gender-mismatch report queue ✏️
+**Feature:** Feature 17 — Admin Safety & Incident Review | **Sprint:** 4
 
 **Description:** As a super admin, I want a queue of all driver-raised gender-mismatch reports so that I can promptly review potential women-only policy violations and open each one for resolution.
 
@@ -2338,20 +2347,24 @@ Changes take effect immediately on save and apply to new evaluations only: a dri
 
 SheDrive is a women-only service. When a driver reports that the rider who showed up is not female, the trip is expired with reason gender_mismatch_report, a report record is created, and the reported rider's account is automatically set to pending_review on the API side (#1687). This screen is the **queue** of all open reports (oldest first — reported rider, reporting driver, trip id, report time, rider status); the super admin opens a report to review the trip snapshot, the reporting driver's statement, and the rider's current account state, then proceeds to resolve it. Resolving a report (suspend or dismiss) is handled by #1811.
 
+**First-trip verification is mandatory.** On every rider's first trip the driver must **always** verify at pickup that the rider is female before the trip can start (#1588). The step cannot be skipped, dismissed or switched off, and there is no exception for any passenger. A gender-mismatch report can only be raised from that step, so every report relates to a rider's first trip; returning riders are not re-checked.
+
+Oldest-first is deliberate and is the opposite of every other admin list: this is a queue to work through, and the longest-waiting case is the most urgent because a rider is held out of service while it sits.
+
 ### Field Validation
 
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
 |---|---|---|---|---|---|---|---|---|---|
+| Status filter | No | Dropdown (single-select) | Enum: Open / Resolved / All | — | — | Open | — | — | — |
 | Date range — from | No | Date (YYYY-MM-DD) | Valid calendar date | — | — | empty | — | Invalid date format / صيغة التاريخ غير صحيحة | — |
 | Date range — to | No | Date (YYYY-MM-DD) | Valid calendar date; must not be before from-date | — | — | empty | — | Invalid date format / صيغة التاريخ غير صحيحة | End date must be after start date / تاريخ النهاية يجب أن يكون بعد تاريخ البداية |
-| Status filter | No | Dropdown (single-select) | Enum: Open / Resolved / All | — | — | Open | — | — | — |
 
 ### Acceptance Criteria
 
 **Scenario 1 — Queue lists open reports**
 - Given one or more open gender-mismatch reports exist
 - When the super admin opens the queue
-- Then reports are listed oldest first with reported rider, reporting driver, trip id, report time, and rider status
+- Then reports are listed oldest ( still opened ) first with reported rider, reporting driver, trip id, report time, and rider status
 
 **Scenario 2 — Empty state**
 - Given there are no open reports
@@ -2361,30 +2374,54 @@ SheDrive is a women-only service. When a driver reports that the rider who showe
 - Given the super admin clicks a report row
 - Then the detail shows the trip snapshot, the reporting driver's statement, and the rider's current account state
 
-**Scenario 4 — Filter the queue**
+**Scenario 4 — A report with no statement**
+- Given the reporting driver submitted no statement — it is optional on the driver side (#1588)
+- When the super admin opens that report
+- Then the statement block states plainly that no statement was given and that the trip snapshot is the only evidence
+- And it is never left blank, so the admin can tell an absent statement from a failure to load one
+
+**Scenario 5 — A resolved report shows how it was decided**
+- Given a resolved report is opened or listed
+- Then it shows whether it was resolved-suspended or resolved-dismissed, not merely "resolved"
+- And the detail shows the resolving admin, the resolution time and any note (#1811)
+
+**Scenario 6 — Filter the queue**
 - Given the queue has many entries
-- When the super admin filters by date range or status (open / resolved)
+- When the super admin filters by date range or status (open / resolved / all)
 - Then only matching reports are shown
 
-**Scenario 5 — Export**
+**Scenario 7 — Export**
 - Given the queue is displayed
 - Then the super admin can export the current view to CSV/Excel
+- And the export covers every report matching the current filters, not only the visible page
 
-**Scenario 6 — Proceed to action**
+**Scenario 8 — Proceed to action**
 - Given a report is open
 - When the super admin chooses to resolve it
 - Then she is taken to the action step (#1811)
 
+**Scenario 9 — The linked trip is unavailable**
+- Given the trip record behind a report can no longer be retrieved
+- Then the report still opens, with the trip snapshot marked unavailable rather than the screen failing
+
+**Scenario 10 — Report not found**
+- Given a report id that does not exist
+- Then a not-found message is shown with a link back to the queue
+
+**Scenario 11 — Loading and error states**
+- Given the queue is being fetched, then skeleton rows are shown
+- Given the fetch fails, then a failure message with a retry action is shown
+
 ### Out of Scope
 - Resolving a report — suspend or dismiss (see #1811)
-- SOS/emergency incident handling (later phase)
+- SOS/emergency incident handling — a separate queue (#3945 / #3946)
 - Automated gender detection
 - Penalising drivers for false reports (later phase)
 - Contacting the rider
 - Automated resolution
 
 ### Dependencies
-- #1687 — Rider account is suspended after gender mismatch report (API auto pending_review)
+- #1687 — Rider account is placed under review after a gender mismatch report (creates the records; owns pending_review)
 - #1662 — Admin views rider profile
 - #1811 — Super admin actions a gender-mismatch report
 - #1816 — Admin activity audit log
@@ -2405,51 +2442,170 @@ SheDrive is a women-only service. When a driver reports that the rider who showe
 
 ---
 
-## [Admin] #1811 — Super admin actions a gender-mismatch report 🆕
-**Feature:** Feature 17 — Admin Safety & Incident Review | **Sprint:** 2
+## [Admin] #1811 — Super admin actions a gender-mismatch report ✏️
+**Feature:** Feature 17 — Admin Safety & Incident Review | **Sprint:** 4
 
 **Description:** As a super admin, I want to resolve a gender-mismatch report by either suspending the reported rider or dismissing the report so that flagged accounts do not stay in limbo.
 
 ### Background
 
-Opened from a report in the queue (#1810), the super admin resolves it one of two ways: **Suspend** the reported rider (applies the same suspension as #1740 via API #1739) or **Dismiss** the report (the rider returns from pending_review to active). Because the gender-mismatch report is itself the recorded reason and the rider is already under review on this screen, an additional suspension note is **optional** free text. The decision is written to the admin activity audit log (#1816) and the report leaves the open queue.
+Opened from a report in the queue (#1810), the super admin resolves it one of two ways: **Suspend** the reported rider (applies the same suspension as #1740 via API #1739, with the reason "Women-only policy violation (gender mismatch)" from the #1740 reason list and the report id attached as its reference) or **Dismiss** the report (the rider returns from pending_review to active). Because the gender-mismatch report is itself the recorded reason and the rider is already under review on this screen, an additional **resolution note** is **optional** free text on either outcome. The decision is written to the admin activity audit log (#1816) and the report leaves the open queue.
+
+**First-trip verification is mandatory.** On every rider's first trip the driver must **always** verify at pickup that the rider is female before the trip can start (#1588). The step cannot be skipped, dismissed or switched off, and there is no exception for any passenger. A gender-mismatch report can only be raised from that step, so every report relates to a rider's first trip; returning riders are not re-checked.
+
+`pending_review` is the state API #1687 places the rider in when the driver reports. It has exactly two exits and this screen is both of them — nothing else moves an account out of it.
+
+**A dismissal is not a reinstatement.** Reinstatement (#1741) lifts a suspension that was actually applied and records a reason. A dismissal here means the report was not upheld: the rider returns to active with **no suspension record created**, so nothing appears in her history for something she was cleared of.
 
 ### Field Validation
 
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
 |---|---|---|---|---|---|---|---|---|---|
-| Suspension reason | No (optional) | Free text (textarea) | Any character; an optional note — the gender-mismatch report is the recorded reason | — | 500 chars | empty | — | — | Too long — must be ≤ 500 characters / يجب ألا يتجاوز السبب 500 حرف |
+| Resolution note | No (optional) | Free text (textarea) | Any character; optional on both Suspend and Dismiss — the gender-mismatch report is the recorded reason | — | 500 chars | empty | — | — | Too long — must be ≤ 500 characters / يجب ألا تتجاوز الملاحظة 500 حرف |
 
 ### Acceptance Criteria
 
 **Scenario 1 — Suspend the reported rider**
 - Given the super admin is reviewing an open report
 - When she chooses Suspend (optionally adding a free-text note)
-- Then the rider's status changes to suspended, her sessions are invalidated, and the report is marked resolved-suspended
+- Then the rider's status changes from pending_review to suspended, her sessions are invalidated, and the report is marked resolved-suspended
+- And the suspension is recorded with the reason "Women-only policy violation (gender mismatch)" — the same value from the #1740 reason list — with the report id attached as its reference, so her profile shows why she was suspended and which report it came from
 
 **Scenario 2 — Dismiss the report**
 - Given the super admin determines the report is unfounded
-- When she chooses Dismiss
+- When she chooses Dismiss (optionally adding a free-text note)
 - Then the rider returns from pending_review to active and the report is marked resolved-dismissed
+- And no suspension record is created and her sessions are untouched
+- And she can request trips again immediately
 
-**Scenario 3 — Suspension note is optional**
-- Given the super admin chooses Suspend without entering any note
-- Then the suspension proceeds with no required-reason error
+**Scenario 3 — Resolution note is optional**
+- Given the super admin chooses Suspend or Dismiss without entering any note
+- Then the decision proceeds with no required-field error
+- And given a note longer than 500 characters, the error "يجب ألا تتجاوز الملاحظة 500 حرف" is shown and nothing is changed
 
 **Scenario 4 — A resolved report cannot be actioned again**
 - Given a report already resolved
 - Then no further action controls are available
+- And the outcome, the note, who resolved it and when are shown in their place
+
+**Scenario 5 — The decision is recorded on the report**
+- Given a report is resolved either way
+- Then the resolving admin, the resolution timestamp and the note are stored on the report and shown on this screen and in the queue's resolved view (#1810)
+
+**Scenario 6 — The decision reaches the audit log**
+- Given a report is resolved
+- Then an entry is written to the admin activity audit log (#1816) recording the actor, the action type, the report id, and the before/after account status
+- And a suspension raised here appears on the rider profile identically to one raised manually (#1740), so the profile never has to explain two kinds of suspension
+
+**Scenario 7 — A rider under review is only actioned from the report**
+- Given a rider's account is in `pending_review`
+- When the super admin views her in the rider list (#1661) or opens her profile (#1662)
+- Then no Suspend or Reinstate action is offered there
+- And her profile links to the open gender-mismatch report instead, so the decision is always taken against the report on this screen
+
+**Scenario 8 — The report and the account never disagree**
+- Given any part of the resolution fails
+- Then neither the report status nor the rider's account status is changed, and the super admin is told the decision was not recorded
 
 ### Out of Scope
 - Contacting the rider
+- Reopening a resolved report
 - Driver-side penalties for false reports (later phase)
 - Automated resolution
 
 ### Dependencies
 - #1810 — Super admin reviews the gender-mismatch report queue
-- #1687 — Rider account is suspended after gender mismatch report
-- #1740 / #1739 — Account suspension
+- #1687 — Rider account is placed under review after a gender mismatch report (creates the report and owns `pending_review`)
+- #1740 / #1739 — Account suspension (the mechanism reused to uphold a report)
+- #1741 — Rider reinstatement (the separate path for lifting an unrelated suspension)
 - #1816 — Admin activity audit log
+
+---
+
+## [Admin] #4120 — Super admin sees summary cards above the gender-mismatch report queue 🆕
+**Feature:** Feature 17 — Admin Safety & Incident Review | **Sprint:** 4
+
+**Description:** As a super admin, I want a row of summary cards above the gender-mismatch report queue showing total, open and resolved report counts so that I can see the size of the triage backlog at a glance without changing the queue's filters.
+
+### Background
+
+The gender-mismatch report queue (#1810) carries a row of three summary cards above the filter bar and the grid: **Total reports**, **Open** and **Resolved**. Each card shows a caption, a whole-number count and an icon. The cards are platform-wide totals: they do not react to the report-status dropdown or the report-time date range applied to the grid below.
+
+Every count must agree with the grid — the number on a card is exactly the number of rows the grid would show with that card's report status selected and no date range. Open matters most operationally: every open report is a rider held in Pending review and unable to book, so the Open card is the standing size of the triage backlog. The cards are read-only: a card is not a filter shortcut and clicking one does nothing. Counts are read when the screen loads.
+
+**First-trip verification is mandatory.** On every rider's first trip the driver must **always** verify at pickup that the rider is female before the trip can start (#1588). The step cannot be skipped, dismissed or switched off, and there is no exception for any passenger. A report can only be raised from that step (#1687), so every report these cards count relates to a rider's first trip.
+
+### Card Specification
+
+| Card | What it counts | Agrees with |
+|---|---|---|
+| Total reports | Every gender-mismatch report ever raised, open and resolved | Grid with status filter = All and no date range |
+| Open | Reports awaiting a decision — each one is a rider held in Pending review | Grid with status filter = Open and no date range |
+| Resolved | Reports decided either way — rider suspended or report dismissed (#1811) | Grid with status filter = Resolved and no date range |
+
+### Acceptance Criteria
+
+**Scenario 1 — Super admin opens the report queue**
+- Given the super admin navigates to the gender-mismatch report queue
+- When the page loads
+- Then a row of three summary cards is displayed above the filter bar: Total reports, Open, Resolved
+- And each card shows its caption and a whole-number count
+
+**Scenario 2 — Open and Resolved add up to Total**
+- Given all three counts have been retrieved
+- Then the Open count plus the Resolved count equals the Total reports count
+
+**Scenario 3 — A new report is counted**
+- Given a driver has raised a gender-mismatch report on a rider's first trip (#1687)
+- When the super admin next loads the queue
+- Then the Total reports and Open cards each include that report
+
+**Scenario 4 — A resolved report moves from Open to Resolved**
+- Given an open report is resolved by suspending the rider or dismissing the report (#1811)
+- When the super admin next loads the queue
+- Then the Open count is one lower and the Resolved count is one higher
+- And the Total reports count is unchanged
+
+**Scenario 5 — Cards do not react to the grid's filters**
+- Given the summary cards are displayed with their counts
+- When the super admin changes the report-status filter or sets a report-time date range
+- Then only the grid below narrows
+- And the card counts continue to show the platform-wide totals, unchanged
+
+**Scenario 6 — A count is zero**
+- Given no report currently matches one of the cards — for example nothing is awaiting a decision
+- Then that card shows 0
+- And it is not left blank or hidden
+
+**Scenario 7 — One count cannot be retrieved**
+- Given the platform cannot return the count for one card
+- Then that card shows a placeholder instead of a number, never a stale or guessed value
+- And the other cards still show their counts
+- And the grid below still loads normally
+
+**Scenario 8 — Cards are read-only**
+- Given the summary cards are displayed
+- When the super admin clicks a card
+- Then nothing happens — no navigation, and no change to the grid's filters
+
+**Scenario 9 — Cards are independent of the grid's state**
+- Given the grid is still loading, is empty, or has failed to load
+- Then the card row still occupies its place above the filter bar and shows whatever counts it was able to retrieve
+
+### Out of Scope
+- Clicking a card to apply the matching filter to the grid
+- Separate cards for resolved-suspended and resolved-dismissed outcomes
+- Trend indicators, percentage change, sparklines or period comparison on a card
+- Refreshing the counts on a timer — they are read when the screen loads
+- Exporting the card values
+- SOS case counts — a separate queue (#3945)
+
+### Dependencies
+- #1810 — Super admin reviews the gender-mismatch report queue (the grid these cards sit above)
+- #1811 — Super admin actions a gender-mismatch report (moves a report from Open to Resolved)
+- #1687 — Rider account is placed under review after a gender mismatch report (creates the reports)
+- #1588 — Driver verifies rider is female on first trip (the mandatory step every report comes from)
+- #4010 — Admin sees status summary cards above the rider list (the same card pattern)
 
 ---
 

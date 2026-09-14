@@ -1424,9 +1424,11 @@ After the driver taps "I've Arrived" and the trip state advances to arrived_pick
 
 ### Background
 
-When is_first_trip is true, the driver sees the rider's registered full name on the arrived_pickup screen and visually checks that the person approaching the vehicle is female. If satisfied, she taps "Rider Verified — Board". If the approaching person does not appear to be female, she taps "Cancel — Rider Not Female," which opens a confirmation dialog carrying an **optional short statement** describing what happened, and then calls #1687 to cancel the trip and suspend the rider's account for review. The statement is the reporting driver's own account of the incident and is the primary evidence the super admin reads when triaging the report queue (#1810 / #1811); it is optional so a driver is never delayed at the kerbside by a text field. The check is **unconditional** for a first trip: there is no exception for any passenger type. For all returning riders (is_first_trip = false) this step is skipped entirely and the driver proceeds directly to the "Start Trip" button.
+When is_first_trip is true, the driver sees the rider's registered full name on the arrived_pickup screen and visually checks that the person approaching the vehicle is female. If satisfied, she taps "Rider Verified — Board". If the approaching person does not appear to be female, she taps "Cancel — Rider Not Female," which opens a confirmation dialog carrying an **optional short statement** describing what happened, and then calls #1687, which ends the trip as Expired (reason gender_mismatch_report) and places the rider's account under review — she is not suspended; an admin decides that later (#1811). The statement is the reporting driver's own account of the incident and is the primary evidence the super admin reads when triaging the report queue (#1810 / #1811); it is optional so a driver is never delayed at the kerbside by a text field.
 
-> **Scope note (2026-09-09):** the declared child-passenger exception has been removed from Phase 1. It is recorded in `phase-1.5-stories.md` together with #1783 and #1790.
+The check is **mandatory and unconditional** for a first trip: the driver must **always** verify the rider on her first trip, the step cannot be skipped, dismissed or switched off, and the trip cannot start until the rider is verified. There is no exception for any passenger type. For all returning riders (is_first_trip = false) this step is skipped entirely and the driver proceeds directly to the "Start Trip" button.
+
+_Scope note (2026-09-09): the declared child-passenger exception has been removed from Phase 1. It is recorded in docs/backlog/phase-1.5-stories.md together with #1783 and #1790._
 
 ### Field Validation
 
@@ -1455,7 +1457,7 @@ When is_first_trip is true, the driver sees the rider's registered full name on 
 - When the driver taps "Cancel — Rider Not Female"
 - Then a confirmation dialog is shown: "هل أنتِ متأكدة؟ سيتم إلغاء الرحلة وإرسال تقرير أمني." / "Are you sure? This will cancel the trip and submit a safety report."
 - And the dialog offers an optional free-text statement ("What happened?") of up to 500 characters
-- And on confirmation, the platform calls #1687 to cancel the trip and suspend the rider's account for review
+- And on confirmation, the platform calls #1687, which ends the trip as Expired (reason gender_mismatch_report) and places the rider's account under review
 - And the statement, when entered, is submitted with the report and shown to the super admin in the report queue (#1810 / #1811)
 - And the driver is returned to her home/available screen
 - And no fare is charged
@@ -1478,6 +1480,12 @@ When is_first_trip is true, the driver sees the rider's registered full name on 
 - Then the report is submitted with no statement and no required-field error is raised
 - And the admin report detail shows the trip snapshot as the sole evidence
 
+**Scenario 7 — Verification cannot be bypassed on a first trip**
+- Given the trip's is_first_trip flag is true and the driver is on the arrived_pickup screen
+- Then the "Start Trip" button is not available until she taps "Rider Verified — Board"
+- And there is no skip, close or dismiss control on the verification step
+- And if she leaves the screen and returns before verifying, the verification step is shown again
+
 ### Out of Scope
 - Biometric or document scanning
 - Automatic identity verification via camera
@@ -1488,7 +1496,7 @@ When is_first_trip is true, the driver sees the rider's registered full name on 
 ### Dependencies
 - #1635 — Trip detail includes first-trip flag (must be live)
 - #1652 — Driver advances trip state machine (must be live)
-- #1687 — Rider account is suspended after gender mismatch report (must be live)
+- #1687 — Rider account is placed under review after a gender mismatch report (must be live)
 - #1810 / #1811 — Admin gender-mismatch report queue and resolution (consume the statement)
 
 ---

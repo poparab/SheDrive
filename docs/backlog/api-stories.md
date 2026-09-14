@@ -2052,7 +2052,7 @@ This endpoint accepts PATCH requests from authenticated admin sessions. It updat
 
 ### Dependencies
 - #1744 — Session validation (must be live)
-- #1687 — Rider account is suspended after gender mismatch report
+- #1687 — Rider account is placed under review after a gender mismatch report
 
 ---
 
@@ -3019,64 +3019,127 @@ This story is the escalation. When her outstanding balance is **at or above the 
 
 ---
 
-## [API] #1687 — Rider account is suspended after gender mismatch report 🆕
-**Feature:** Feature 21 — Emergency & Safety API | **Sprint:** 2
+## [API] #1687 — Rider account is placed under review after a gender mismatch report ✏️
+**Feature:** Feature 21 — Emergency & Safety API | **Sprint:** 4
 
 **Description:** As a developer, I want the gender mismatch report endpoint to cancel the active trip and flag the rider's account for admin review so that SheDrive's women-only service guarantee is enforced and the incident is investigated before the rider can book another trip.
 
-**Scenario 1 — Gender mismatch report submitted — trip cancelled and rider flagged**
+### Background
+
+This endpoint is called by the driver app when she confirms "Cancel — Rider Not Female" at pickup verification (#1588). It does three things in one transaction: ends the trip with no fare, creates a **gender-mismatch report record**, and moves the reported rider's account to `pending_review`. It never suspends anyone — a human admin decides that later (#1811).
+
+**First-trip verification is mandatory.** On every rider's first trip the driver must **always** verify at pickup that the rider is female before the trip can start (#1588). The step cannot be skipped, dismissed or switched off, and there is no exception for any passenger. A gender-mismatch report can only be raised from that step, so every report relates to a rider's first trip; returning riders are not re-checked.
+
+**Terminology.** The driver-facing button and dialog say "Cancel", but on the platform the trip is **ended as Expired** with reason `gender_mismatch_report`. It is never recorded as a rider or driver cancellation, so no cancellation fee or cancellation count applies to either party. Likewise this endpoint **places the rider under review**; it never suspends her.
+
+There is no per-passenger exception. _(The declared child-passenger carve-out was removed from Phase 1 on 2026-09-09 — #1783 and #1790 are Removed and recorded in docs/backlog/phase-1.5-stories.md.)_
+
+#### The report record
+
+The record this endpoint creates is what the admin queue lists and the admin case detail reads (#1810 / #1811). It holds:
+
+| Field | Notes |
+|---|---|
+| Report id | Stable, human-quotable identifier |
+| Trip id | The trip that was ended |
+| Reported rider | Id, name, phone — captured at report time |
+| Reporting driver | Id, name — taken from the authenticated session, never from the request body |
+| Report time | UTC+2 |
+| Statement | The driver's optional free text, ≤ 500 characters; may be empty |
+| Report status | `open` on creation; `resolved` once an admin acts (#1811) |
+| Resolution | Empty until resolved, then `suspended` or `dismissed` (#1811) |
+| Rider account status at report time | Snapshot, so the queue can show it even after the account moves on |
+
+#### The pending_review account state
+
+This is a **fourth** rider account state, distinct from the `active` / `suspended` / `pending_suspension` set that #1739 owns. It is entered only by this endpoint and left only by an admin decision (#1811): upheld → `suspended`, dismissed → `active`. It blocks new trip requests but is not a suspension — sessions stay valid and the rider is not told she has been suspended, because nothing has been adjudicated yet.
+
+### Acceptance Criteria
+
+**Scenario 1 — Gender mismatch report submitted — trip ended and rider flagged**
 - Given the driver has tapped "Cancel — Rider Not Female" and confirmed the dialog
 - When the driver app calls this endpoint
-- Then the active trip is cancelled immediately
-- And the rider's account is flagged for admin review
+- Then the active trip is ended immediately with expiry reason `gender_mismatch_report`, so it appears under Expired in the admin trip list with that reason (#1670 / #1671)
+- And a report record is created with status `open`
+- And the reported rider's account status becomes `pending_review`
 - And the driver is returned to her home screen in the online/available state
 
-**Scenario 2 — No fare charged on gender mismatch cancellation**
-- Given a trip is cancelled via this endpoint
-- When the platform processes the cancellation
-- Then no fare is calculated or stored for the cancelled trip
-- And the rider's app shows a cancelled state rather than a trip summary
+**Scenario 2 — No fare charged**
+- Given a trip is ended via this endpoint
+- Then no fare is calculated or stored for that trip
+- And no cancellation fee is charged to either party
+- And the rider's app shows the trip as ended with no fare charged, rather than a trip summary
 
-**Scenario 3 — Driver's availability is restored after cancellation**
-- Given the gender mismatch report has been processed
-- When the driver is returned to her home screen
+**Scenario 3 — Driver's availability is restored**
+- Given the report has been processed
 - Then her online status is preserved
 - And she is eligible to receive the next dispatched trip without re-toggling availability
 
-**Scenario 4 — Flagged rider cannot request a new trip until admin clears the flag**
-- Given the rider's account has been flagged via this endpoint
+**Scenario 4 — Flagged rider cannot request a new trip**
+- Given the rider's account is in `pending_review`
 - When she attempts to submit a new trip request via #1629
 - Then the server returns a forbidden error: account is under review
-- And the rider app shows a message indicating the account is suspended pending review (screen owned by #3768)
+- And the response carries the report reference and the date it was raised, so the app can show them (screen owned by #3768)
 
-**Scenario 5 — Verification step is only shown for first-trip riders**
+**Scenario 5 — Existing sessions are not invalidated**
+- Given the rider's account has moved to `pending_review`
+- Then her existing sessions remain valid and she can still open the app and view her history
+- And only new trip requests are refused — this is a review, not a suspension
+
+**Scenario 6 — Only applicable to first trips, where verification is always required**
+- Given is_first_trip = true, the driver app always presents the verification step and a mismatch can only be acted on through this endpoint
 - Given is_first_trip = false for the trip
-- When the driver is in arrived_pickup state
 - Then this endpoint is not applicable and the "Cancel — Rider Not Female" button is not shown
-- And no verification or mismatch report flow exists for returning riders
+- And a report submitted for a returning rider's trip is rejected
 
-**Scenario 6 — Report only valid while trip is in arrived_pickup state**
+**Scenario 7 — Report only valid while the trip is in arrived_pickup**
 - Given the trip is in any state other than arrived_pickup
-- When the driver attempts to call this endpoint
 - Then the server returns a validation error: mismatch report can only be submitted at pickup verification
 
-**Scenario 7 — Unauthenticated request is rejected**
-- Given a request arrives without a valid driver session token
+**Scenario 8 — Only the assigned driver may report**
+- Given a driver who is not the one assigned to that trip calls this endpoint
 - Then the request is rejected
+- And the reporting driver recorded on the report is always taken from the authenticated session
 
-**Scenario 8 — Report carries the reporting driver's optional statement**
-- Given the driver entered a statement in the confirmation dialog (#1588 Scenario 4)
-- When the report is submitted
+**Scenario 9 — One report per trip**
+- Given a report already exists for a trip
+- When the endpoint is called again for the same trip
+- Then no second report is created and the request is rejected
+
+**Scenario 10 — Report carries the driver's optional statement**
+- Given the driver entered a statement in the confirmation dialog (#1588 Scenario 3)
 - Then the statement is stored on the report record, up to 500 characters
-- And it is returned with the report detail served to the admin (#1810 / #1811) as the reporting driver's statement
+- And it is returned with the report detail served to the admin (#1810 / #1811)
 
-**Scenario 9 — Statement is optional, and an over-length one is rejected**
+**Scenario 11 — Statement is optional, and an over-length one is rejected**
 - Given the driver submits the report with no statement
 - Then the report is accepted and stored with an empty statement
+- And the empty statement is served to the admin as empty rather than omitted, so the case can show a recorded absence rather than a blank panel
 - And given a statement longer than 500 characters is submitted
 - Then the server returns a validation error and no report is created
 
-> **Scope note (2026-09-09):** the declared child-passenger exception has been removed from Phase 1, so this endpoint accepts a report for any first trip with no per-passenger carve-out. The removed scenario and its stories (#1783, #1790) are recorded in `phase-1.5-stories.md`.
+**Scenario 12 — Unauthenticated request is rejected**
+- Given a request arrives without a valid driver session token
+- Then the request is rejected
+
+### Out of Scope
+- Resolving the report — suspend or dismiss (#1811)
+- Listing or filtering reports for the admin queue (#1810)
+- Suspending the rider automatically — the platform never suspends anyone on this path
+- Notifying the rider that a report was raised, beyond the refusal she meets at her next booking
+- Any per-passenger exception to the women-only rule (removed from Phase 1)
+- Penalısing drivers for reports later dismissed
+
+### Dependencies
+- #1588 — Driver verifies rider is female on first trip — mandatory on every first trip (calls this endpoint)
+- #1635 — Trip detail includes first-trip flag (gates when the button is shown)
+- #1629 — Rider creates trip request (the call refused in Scenario 4)
+- #3768 — Rider is told her account is under review (consumes the forbidden response)
+- #1810 / #1811 — Admin gender-mismatch report queue and resolution (read and resolve these records)
+- #1739 — Account suspension status is updated by admin (the mechanism #1811 reuses to uphold a report)
+- #1816 — Admin activity audit log
+
+> **Removed 2026-09-09:** #4012 (admin retrieves the gender-mismatch report queue and a single report) and #4013 (admin resolves a gender-mismatch report) are Removed in ADO. The admin-side backend for the queue and the resolution is tracked as [BE] tasks under the Admin stories #1810 and #1811, so the admin contract lives in those stories. #1687 remains the only [API] story in this chain.
 
 ---
 
