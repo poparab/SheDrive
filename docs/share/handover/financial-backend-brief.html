@@ -1,0 +1,916 @@
+<title>SheDrive Backend Refinement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+/>
+
+<style>
+  :root {
+    --ink: #1a1530;
+    --ink-soft: #55506b;
+    --ink-faint: #857f9c;
+    --ground: #faf9fc;
+    --panel: #ffffff;
+    --panel-2: #f4f2f9;
+    --rule: #e5e2ee;
+    --rule-soft: #efedf5;
+    --brand: #6b2bd9;
+    --accent: #d63ae2;
+    --warn: #a56a06;
+    --warn-bg: rgba(165, 106, 6, 0.1);
+    --neg: #c0392f;
+    --pos: #0f7a5a;
+    --api: #6b2bd9;
+    --api-bg: rgba(107, 43, 217, 0.09);
+    --admin: #b0269a;
+    --admin-bg: rgba(214, 58, 226, 0.1);
+    --shadow: 0 1px 2px rgba(26, 21, 48, 0.05), 0 8px 24px -16px rgba(26, 21, 48, 0.3);
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #ede9f7;
+      --ink-soft: #b3adc9;
+      --ink-faint: #8b85a3;
+      --ground: #141122;
+      --panel: #1c1830;
+      --panel-2: #241f3b;
+      --rule: #322c4a;
+      --rule-soft: #262138;
+      --brand: #a98bf5;
+      --accent: #ec7bf3;
+      --warn: #f0b64a;
+      --warn-bg: rgba(240, 182, 74, 0.13);
+      --neg: #ff8b7e;
+      --pos: #4bd6a5;
+      --api: #a98bf5;
+      --api-bg: rgba(169, 139, 245, 0.14);
+      --admin: #ec7bf3;
+      --admin-bg: rgba(236, 123, 243, 0.14);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -16px rgba(0, 0, 0, 0.9);
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #ede9f7;
+    --ink-soft: #b3adc9;
+    --ink-faint: #8b85a3;
+    --ground: #141122;
+    --panel: #1c1830;
+    --panel-2: #241f3b;
+    --rule: #322c4a;
+    --rule-soft: #262138;
+    --brand: #a98bf5;
+    --accent: #ec7bf3;
+    --warn: #f0b64a;
+    --warn-bg: rgba(240, 182, 74, 0.13);
+    --neg: #ff8b7e;
+    --pos: #4bd6a5;
+    --api: #a98bf5;
+    --api-bg: rgba(169, 139, 245, 0.14);
+    --admin: #ec7bf3;
+    --admin-bg: rgba(236, 123, 243, 0.14);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -16px rgba(0, 0, 0, 0.9);
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 44px;
+  }
+
+  h1,
+  h2,
+  h3,
+  .lede,
+  .eyebrow,
+  thead th {
+    font-family: Tajawal, "IBM Plex Sans", system-ui, sans-serif;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+    max-width: 72ch;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brand);
+  }
+
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 30px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .lede {
+    font-size: 1.16rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 64ch;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.76rem;
+    color: var(--ink-faint);
+  }
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 10px;
+  }
+
+  .sec-num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink-faint);
+    flex: none;
+  }
+
+  /* ---------- keystone ---------- */
+
+  .keystone {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-inline-start: 4px solid var(--accent);
+    border-radius: 4px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: var(--shadow);
+  }
+
+  .keystone strong {
+    font-family: Tajawal, sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+  }
+
+  /* ---------- figure ---------- */
+
+  figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .figbox {
+    overflow-x: auto;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 20px 18px;
+  }
+
+  figure svg {
+    display: block;
+    width: 100%;
+    min-width: 700px;
+    height: auto;
+    color: var(--ink);
+  }
+
+  figcaption {
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    max-width: 72ch;
+  }
+
+  .svg-strong {
+    font-family: Tajawal, sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    fill: currentColor;
+  }
+  .svg-label {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 11.5px;
+    fill: currentColor;
+  }
+  .svg-mono {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    fill: currentColor;
+    opacity: 0.75;
+  }
+  .svg-mini {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 10px;
+    fill: currentColor;
+    opacity: 0.66;
+    letter-spacing: 0.08em;
+  }
+  .svg-box {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.2;
+    opacity: 0.5;
+  }
+  .svg-line {
+    stroke: currentColor;
+    stroke-width: 1.2;
+    fill: none;
+    opacity: 0.55;
+  }
+
+  /* ---------- tables ---------- */
+
+  .scroller {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--panel);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.86rem;
+    min-width: 720px;
+  }
+
+  th,
+  td {
+    text-align: start;
+    padding: 9px 13px;
+    border: 1px solid var(--rule-soft);
+    vertical-align: top;
+  }
+
+  thead th {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--ground);
+    border-color: var(--rule);
+    white-space: nowrap;
+  }
+
+  tbody th {
+    background: var(--panel-2);
+    font-family: Tajawal, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    text-align: start;
+  }
+
+  td.id {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  td.id a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted currentColor;
+  }
+
+  td.id a:hover {
+    color: var(--brand);
+  }
+
+  code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.87em;
+    background: var(--rule-soft);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 1px 7px;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+
+  .tag--write {
+    color: var(--neg);
+  }
+  .tag--read {
+    color: var(--pos);
+  }
+  .tag--gate {
+    color: var(--warn);
+    background: var(--warn-bg);
+  }
+
+  a.screen {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.8rem;
+    color: var(--admin);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    white-space: nowrap;
+  }
+
+  /* ---------- notes ---------- */
+
+  .note {
+    border: 1px solid var(--rule);
+    border-inline-start: 3px solid var(--ink-faint);
+    background: var(--panel);
+    border-radius: 3px;
+    padding: 14px 18px;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .note p {
+    max-width: none;
+  }
+
+  .note b {
+    color: var(--ink);
+  }
+
+  .note--q {
+    border-inline-start-color: var(--warn);
+  }
+
+  .note--stop {
+    border-inline-start-color: var(--neg);
+  }
+
+  .q {
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+  }
+
+  .q__n {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--warn);
+    flex: none;
+  }
+
+  ul {
+    margin: 0;
+    padding-inline-start: 20px;
+    max-width: 72ch;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  li::marker {
+    color: var(--ink-faint);
+  }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  @media (max-width: 700px) {
+    .wrap {
+      padding: 28px 16px 72px;
+      gap: 34px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+    }
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">SheDrive · Financial core · Backend refinement</p>
+    <h1>SheDrive Backend Refinement</h1>
+    <p class="lede">
+      The ten API stories and the six admin screens, and how they meet. Everything the
+      mobile apps need, everything an operator does, and the one table both sit on.
+    </p>
+    <div class="meta">
+      <span>16 stories</span>
+      <span>all at New, 14 unestimated</span>
+      <span>Phase 1 · cash</span>
+      <span>mockups live</span>
+    </div>
+  </header>
+
+  <div class="keystone">
+    <p class="eyebrow" style="color: var(--accent)">Start here</p>
+    <strong>Nothing in this system stores a balance.</strong>
+    <p>
+      A balance is always the sum of its ledger entries, computed on read. Every story below
+      either <b>appends an entry</b> or <b>reads the sum</b> — there is no third kind. If a
+      story looks like it wants to update a balance field, that is the story being wrong, not
+      the design.
+    </p>
+  </div>
+
+  <!-- ============ THE PICTURE ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>Six things write, five things read</h2></div>
+    <p>
+      The whole financial core is one table with six writers and five readers. Build the
+      table first; everything else is a consumer of it.
+    </p>
+
+    <figure>
+      <div class="figbox">
+        <svg viewBox="0 0 790 390" role="img" aria-label="Six writers append entries to the party balance ledger: trip completion, cancellation fees, fee recovery, a recorded settlement, a recorded payout, and a waived fee. Five readers compute sums from it: the driver balance and statement, the rider fees and statement, the go-online gate, the admin balance screens, and the two reports. Nothing writes a balance directly.">
+          <defs>
+            <marker id="bk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <text class="svg-mini" x="12" y="26">APPENDS AN ENTRY</text>
+          <text class="svg-mini" x="560" y="26">READS THE SUM</text>
+
+          <rect class="svg-box" x="12" y="40" width="216" height="40" rx="3" />
+          <text class="svg-strong" x="26" y="58">Trip completes</text>
+          <text class="svg-mono" x="26" y="73">#3997 · entry chosen by custody</text>
+
+          <rect class="svg-box" x="12" y="87" width="216" height="40" rx="3" />
+          <text class="svg-strong" x="26" y="105">Someone cancels late</text>
+          <text class="svg-mono" x="26" y="120">#1764 · both parties at once</text>
+
+          <rect class="svg-box" x="12" y="134" width="216" height="40" rx="3" />
+          <text class="svg-strong" x="26" y="152">Fee recovered on a ride</text>
+          <text class="svg-mono" x="26" y="167">#4000 #4002 · both ledgers</text>
+
+          <rect class="svg-box" x="12" y="181" width="216" height="40" rx="3" />
+          <text class="svg-strong" x="26" y="199">Settlement recorded</text>
+          <text class="svg-mono" x="26" y="214">#1813 · admin, cash back in</text>
+
+          <rect class="svg-box" x="12" y="228" width="216" height="40" rx="3" />
+          <text class="svg-strong" x="26" y="246">Payout recorded</text>
+          <text class="svg-mono" x="26" y="261">#4001 #3993 · already sent</text>
+
+          <rect class="svg-box" x="12" y="275" width="216" height="40" rx="3" />
+          <text class="svg-strong" x="26" y="293">Fee waived</text>
+          <text class="svg-mono" x="26" y="308">#4005 · admin, with a reason</text>
+
+          <line class="svg-line" x1="228" y1="60" x2="262" y2="60" />
+          <line class="svg-line" x1="228" y1="107" x2="262" y2="107" />
+          <line class="svg-line" x1="228" y1="154" x2="262" y2="154" />
+          <line class="svg-line" x1="228" y1="201" x2="262" y2="201" />
+          <line class="svg-line" x1="228" y1="248" x2="262" y2="248" />
+          <line class="svg-line" x1="228" y1="295" x2="262" y2="295" />
+          <line class="svg-line" x1="262" y1="60" x2="262" y2="295" />
+          <line class="svg-line" x1="262" y1="178" x2="294" y2="178" marker-end="url(#bk)" />
+
+          <rect x="298" y="96" width="186" height="164" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5" />
+          <text class="svg-strong" x="391" y="132" text-anchor="middle" fill="var(--accent)">Party balance ledger</text>
+          <text class="svg-mono" x="391" y="152" text-anchor="middle" fill="var(--accent)">#3991</text>
+          <text class="svg-label" x="391" y="180" text-anchor="middle">Append-only.</text>
+          <text class="svg-label" x="391" y="198" text-anchor="middle">Immutable. Idempotent.</text>
+          <text class="svg-label" x="391" y="216" text-anchor="middle">Every row names its cause.</text>
+          <text class="svg-label" x="391" y="240" text-anchor="middle">Two parties, same rules.</text>
+
+          <line class="svg-line" x1="484" y1="178" x2="516" y2="178" marker-end="url(#bk)" />
+          <line class="svg-line" x1="516" y1="80" x2="516" y2="276" />
+          <line class="svg-line" x1="516" y1="80" x2="550" y2="80" />
+          <line class="svg-line" x1="516" y1="129" x2="550" y2="129" />
+          <line class="svg-line" x1="516" y1="178" x2="550" y2="178" />
+          <line class="svg-line" x1="516" y1="227" x2="550" y2="227" />
+          <line class="svg-line" x1="516" y1="276" x2="550" y2="276" />
+
+          <rect class="svg-box" x="550" y="60" width="228" height="40" rx="3" />
+          <text class="svg-strong" x="564" y="78">Driver balance + statement</text>
+          <text class="svg-mono" x="564" y="93">#1781 · outstanding and available</text>
+
+          <rect class="svg-box" x="550" y="109" width="228" height="40" rx="3" />
+          <text class="svg-strong" x="564" y="127">Rider fees + statement</text>
+          <text class="svg-mono" x="564" y="142">#4004 · read-only</text>
+
+          <rect class="svg-box" x="550" y="158" width="228" height="40" rx="3" />
+          <text class="svg-strong" x="564" y="176">The go-online gate</text>
+          <text class="svg-mono" x="564" y="191">#3996 · refuses at the limit</text>
+
+          <rect class="svg-box" x="550" y="207" width="228" height="40" rx="3" />
+          <text class="svg-strong" x="564" y="225">Admin balance screens</text>
+          <text class="svg-mono" x="564" y="240">#1813 #4005 · lists + drawers</text>
+
+          <rect class="svg-box" x="550" y="256" width="228" height="40" rx="3" />
+          <text class="svg-strong" x="564" y="274">The two reports</text>
+          <text class="svg-mono" x="564" y="289">#1832 #1833 · both reports</text>
+
+          <line class="svg-line" x1="12" y1="338" x2="778" y2="338" />
+          <text class="svg-label" x="12" y="360">
+            Every figure on the right is a sum of rows in the middle, computed on read. No process on the left ever writes a balance.
+          </text>
+          <text class="svg-label" x="12" y="378">
+            That is what stops the driver app, the admin ledger and the revenue report from ever disagreeing with each other.
+          </text>
+        </svg>
+      </div>
+      <figcaption>
+        Two of the writers are admin actions and one reader is an admin screen — which is why
+        this session needs both halves in the room.
+      </figcaption>
+    </figure>
+
+    <div class="note">
+      <p>
+        <b>The four invariants, in the order they will bite you.</b>
+        <b>(3) Posting is idempotent</b>, keyed <code>{event}:{trip|request}:{party}</code> —
+        a retried trip completion charging twice is the single most likely production bug
+        here. <b>(1) The balance is the sum of the entries</b>, never stored.
+        <b>(2) Entries are immutable</b> — no update, no delete.
+        <b>(4) Every entry names its cause</b>, because support has to answer "why do I owe
+        this?" from the row alone.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ API ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>The API surface — 10 stories</h2></div>
+    <p>
+      Grouped by the Feature each already hangs off in ADO. <span class="tag tag--write">writes</span>
+      appends to the ledger; <span class="tag tag--read">reads</span> computes from it;
+      <span class="tag tag--gate">gate</span> refuses an action based on it.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Story</th><th>What it does</th><th>Kind</th><th>The thing to get right</th></tr>
+        </thead>
+        <tbody>
+          <tr><th colspan="4">Feature 18 — Driver Earnings API</th></tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3991">#3991</a></td>
+            <td><b>The ledger itself.</b> Two parties, one set of rules. Entry types, immutability, idempotent posting, cause on every row.</td>
+            <td><span class="tag tag--write">writes</span></td>
+            <td>Build this first — the other 15 stories are consumers. Get the idempotency key right before anything posts to it.</td>
+          </tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1781">#1781</a></td>
+            <td>Driver balance and statement. Returns <b><code>outstanding</code> and <code>available</code> as two separate numbers</b>, plus the entries behind them.</td>
+            <td><span class="tag tag--read">reads</span></td>
+            <td>Never make a client interpret a sign. One of the two is always zero. Calculates nothing.</td>
+          </tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3993">#3993</a></td>
+            <td>Posts the <code>payout</code> debit when Finance records a transfer it has already sent.</td>
+            <td><span class="tag tag--write">writes</span></td>
+            <td>Idempotent on the payout reference. Refused above <code>available</code>, refused with no destination on file. <b>See question 1.</b></td>
+          </tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4003">#4003</a></td>
+            <td>Captures, updates and returns the driver's payout destination.</td>
+            <td><span class="tag tag--read">reads</span></td>
+            <td>Onboarding does not collect this today. <b>See question 4.</b></td>
+          </tr>
+
+          <tr><th colspan="4">Feature 11 — Trip Completion &amp; Cash Payment</th></tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3997">#3997</a></td>
+            <td>A completed trip posts exactly one entry, chosen by the trip's <code>custody</code> value.</td>
+            <td><span class="tag tag--write">writes</span></td>
+            <td><b>The only place in the platform that branches on custody.</b> Reads the fare, commission and net from settlement (#1636) — recomputes nothing.</td>
+          </tr>
+
+          <tr><th colspan="4">Feature 20 — Trip Cancellation API</th></tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1764">#1764</a></td>
+            <td>Late cancellation both ways: a rider's fee opens on her ledger and credits the driver her share; a driver's fee debits her unless a no-show waives it.</td>
+            <td><span class="tag tag--write">writes</span></td>
+            <td>Policy values are <b>snapshotted at driver acceptance</b> — a mid-trip policy change never alters a trip already running.</td>
+          </tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4000">#4000</a></td>
+            <td>The oldest outstanding rider fee rides as a surcharge on her next completed trip, posting to both ledgers in one event.</td>
+            <td><span class="tag tag--write">writes</span></td>
+            <td><b>No commission is ever taken from a recovered fee</b> — the platform already holds its share. Spec §3 has the worked numbers; they balance exactly.</td>
+          </tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4002">#4002</a></td>
+            <td>At or above the recovery threshold, her whole outstanding balance comes off one ride instead of one fee at a time.</td>
+            <td><span class="tag tag--write">writes</span></td>
+            <td>Threshold of 0 disables the escalation. <b>It never refuses a booking</b> — that was tried and it deadlocks.</td>
+          </tr>
+
+          <tr><th colspan="4">Feature 6 — Driver Home &amp; Availability API</th></tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3996">#3996</a></td>
+            <td>Refuses to put a driver online while <code>outstanding &gt;= limit</code>. Returns the amount and the limit so the app can explain it.</td>
+            <td><span class="tag tag--gate">gate</span></td>
+            <td>A settlement that clears her must release her <b>immediately</b> — no batch, no approval. Limit of 0 turns the gate off. <b>See question 2.</b></td>
+          </tr>
+
+          <tr><th colspan="4">Feature 19 — Payments — Rider API</th></tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4004">#4004</a></td>
+            <td>Rider outstanding fees and statement, each fee naming the trip and date it came from.</td>
+            <td><span class="tag tag--read">reads</span></td>
+            <td>Read-only. She cannot pay from here — there is no way to collect from a rider between rides.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <p>
+        <b>Why there are no API stories for the admin screens.</b> House rule: <code>[API]</code>
+        stories exist for mobile screens only; an admin screen's backend is specified inside
+        its own <code>[Admin]</code> story. So when you estimate #1813 you are estimating the
+        screen <i>and</i> its endpoints together. #3993 is the one exception in this set, and
+        question 1 is about exactly that.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ ADMIN ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>The admin screens — 6 stories</h2></div>
+    <p>
+      Each is one screen plus the backend behind it. Every link opens the working mockup with
+      demo data; the list screens also honour
+      <code>?state=empty</code>, <code>loading</code>, <code>error</code> and <code>long</code>.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Story</th><th>Screen</th><th>What an operator does there</th><th>Effect on the ledger</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1813">#1813</a></td>
+            <td><a class="screen" href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances">balances</a></td>
+            <td>Sees every driver's balance, opens her ledger, <b>records a settlement</b> across four channels with a reference and a generated receipt, exports settlement entries as CSV.</td>
+            <td><span class="tag tag--write">writes</span> a <code>settlement</code> credit. May release her go-online gate as a side effect.</td>
+          </tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4001">#4001</a></td>
+            <td><a class="screen" href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances">balances</a></td>
+            <td><b>Records a payout</b> Finance has already sent — amount, destination, reference, date. Same screen as the settlement, opposite direction.</td>
+            <td><span class="tag tag--write">writes</span> a <code>payout</code> debit, via #3993.</td>
+          </tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4005">#4005</a></td>
+            <td><a class="screen" href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances">rider-balances</a></td>
+            <td>Sees riders who owe a fee, opens the rider ledger, <b>waives a fee with a reason</b>, and escalates persistent abuse to suspension (#1740).</td>
+            <td><span class="tag tag--write">writes</span> a <code>fee_waived</code> credit. Suspension is the only block on a rider, and it is a human decision.</td>
+          </tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3994">#3994</a></td>
+            <td><a class="screen" href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies">pricing-policies</a></td>
+            <td>Sets the commission, both grace periods, both cancellation fees, the driver's share of a rider fee, the outstanding limit and warning band, and the rider recovery threshold.</td>
+            <td>No ledger write. Feeds #3996, #4002, #1764 and #4000. Every change audited with who, when, before and after.</td>
+          </tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1833">#1833</a></td>
+            <td><a class="screen" href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation">reconciliation</a></td>
+            <td>Picks one driver and a period, reads her trips, gross fares, commission, net earnings and outstanding balance, with the per-trip rows that add up to them.</td>
+            <td><span class="tag tag--read">reads</span>. This is the screen support opens with a driver on the phone.</td>
+          </tr>
+          <tr>
+            <td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1832">#1832</a></td>
+            <td><a class="screen" href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reports">reports</a></td>
+            <td>Period revenue: trips, gross fares, commission, cancellation fees, net driver earnings, and a check panel proving gross = commission + net.</td>
+            <td><span class="tag tag--read">reads</span>. <b>See question 5 — the most important figure is missing.</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ WHERE THEY MEET ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>Where an admin action changes an API answer</h2></div>
+    <p>
+      These are the couplings worth naming out loud, because they are where a change on one
+      side silently breaks the other.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>An operator does this…</th><th>…the ledger gets…</th><th>…and this API answer changes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Records a settlement (#1813)</td>
+            <td>a <code>settlement</code> credit</td>
+            <td><b>#3996 stops refusing her</b> on the next go-online attempt, with no further admin action. #1781 shows a smaller <code>outstanding</code>.</td>
+          </tr>
+          <tr>
+            <td>Records a payout (#4001)</td>
+            <td>a <code>payout</code> debit</td>
+            <td>#1781 shows a smaller <code>available</code>, and the entry appears in her statement with its reference.</td>
+          </tr>
+          <tr>
+            <td>Waives a rider fee (#4005)</td>
+            <td>a <code>fee_waived</code> credit</td>
+            <td>#4004 drops the fee, and #4000 no longer recovers it on her next trip.</td>
+          </tr>
+          <tr>
+            <td>Lowers the outstanding limit (#3994)</td>
+            <td>nothing</td>
+            <td>#3996 applies the new limit from each driver's <b>next</b> go-online request. Nobody already online is knocked off.</td>
+          </tr>
+          <tr>
+            <td>Lowers the recovery threshold (#3994)</td>
+            <td>nothing</td>
+            <td>#4002 escalates more riders to full recovery from their <b>next</b> booking. A booking in progress is not interrupted.</td>
+          </tr>
+          <tr>
+            <td>Changes the commission or a fee (#3994)</td>
+            <td>nothing</td>
+            <td>#1764 and #3997 use the values <b>snapshotted at driver acceptance</b>, so trips already running are unaffected.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ QUESTIONS ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>Five things to settle in this session</h2></div>
+
+    <div class="note note--q">
+      <div class="q">
+        <span class="q__n">Q1</span>
+        <p>
+          <b>#3993 and #4001 describe the same action.</b> #3993 is written as
+          <i>"As the admin portal, I want to record a payout…"</i> and #4001 as
+          <i>"As a super admin, I want to record a payout…"</i>. The house rule says an admin
+          screen's backend lives inside its <code>[Admin]</code> story, which would make #3993
+          redundant. Either fold #3993 into #4001, or keep it deliberately as the pure
+          ledger-posting concern that the driver's statement also depends on — but decide,
+          rather than estimating both and building it twice.
+        </p>
+      </div>
+    </div>
+
+    <div class="note note--q">
+      <div class="q">
+        <span class="q__n">Q2</span>
+        <p>
+          <b>#1645 is <code>Removed</code> in ADO, but #3996 extends it.</b> #3996 adds a
+          balance check to the go-online transition that #1645 owned, and #3058's completion
+          flow depends on the same availability write. Right now no story owns that
+          transition. Confirm where availability is actually written before #3996 is
+          estimated — otherwise it is extending something that does not exist.
+        </p>
+      </div>
+    </div>
+
+    <div class="note note--stop">
+      <div class="q">
+        <span class="q__n">Q3</span>
+        <p>
+          <b>There is no way to correct a mis-recorded entry.</b> The ledger is append-only
+          and the post-adjustment action was cut to keep Phase 1 simple. So a settlement
+          recorded against the wrong driver, an amount keyed as 300 instead of 30, or a payout
+          written down twice is <b>permanent</b>, and she sees it in her statement. A rider
+          fee can still be waived; the driver ledger has no equivalent. The cheapest fix is a
+          <b>reverse-this-entry</b> action — one button on an existing entry, a required
+          reason, posting the exact opposite amount and linking the two rows.
+          <b>Raise this before #3991 is built</b>: retrofitting a correction path onto a live
+          financial ledger is materially harder than shipping one.
+        </p>
+      </div>
+    </div>
+
+    <div class="note note--q">
+      <div class="q">
+        <span class="q__n">Q4</span>
+        <p>
+          <b>Payout destinations are not collected at onboarding.</b> #4003 adds the field and
+          makes it required before a payout can be recorded, but nothing asks a driver for a
+          bank account or wallet number today. Either onboarding grows a step, or every payout
+          is blocked on a back-office chase the first time Finance tries to pay anyone.
+        </p>
+      </div>
+    </div>
+
+    <div class="note note--q">
+      <div class="q">
+        <span class="q__n">Q5</span>
+        <p>
+          <b>The exposure figure is specified but not built.</b> #1832's criteria call for
+          commission <i>earned</i> vs <i>settled</i> vs <i>outstanding</i>, and neither the
+          screen nor the mock API produces it. On a cash business that outstanding number —
+          revenue earned but still in drivers' pockets — is the most important line on the
+          report. Confirm it is in scope for #1832 and that the 3 points it carries still
+          reflect that, since it was pointed before this scope was added.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ OUT OF SCOPE ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>Out of scope — so the conversation doesn't wander</h2></div>
+    <p>
+      Payment-provider integration · surge and dynamic pricing · promo codes · referral
+      credits · tips · driver bonuses · VAT and tax reporting · PDF receipts and invoices ·
+      accounting exports beyond CSV · rider or driver dispute of a fee · automated dunning ·
+      driver-initiated payout requests · a settlement day book.
+    </p>
+
+    <div class="note">
+      <p>
+        <b>In scope, and easy to skip by accident:</b> the <code>custody</code> field and its
+        branch in #3997. It ships with one value in use, and that is the point — it is the
+        reason the ledger stays correct without assuming who collected the fare. Do not
+        collapse the branch just because only one side of it is exercised today.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      Status read from Azure DevOps on 16 September 2026. Full behaviour and the worked
+      examples are in <code>docs/superpowers/specs/2026-09-08-financial-core-design.md</code>;
+      the backend packet is <code>docs/share/handover/BACKEND.md</code>.
+    </p>
+    <p>SheDrive · financial core · 10 API stories · 6 admin screens · one ledger.</p>
+  </footer>
+</div>

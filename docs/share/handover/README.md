@@ -16,12 +16,16 @@ online payment later is a configuration change, not a rebuild.
 | **Anyone who needs the truth** | [`../../superpowers/specs/2026-09-08-financial-core-design.md`](../../superpowers/specs/2026-09-08-financial-core-design.md) — the spec every team builds from |
 
 **Visual explainers** (published, shareable):
+- [**SheDrive Backend Refinement**](https://claude.ai/artifact/BvuiKCD7uDrSYtN1HzTqpx)
+  — the 10 API stories and the 6 admin screens for a backend refinement session: what writes
+  to the ledger, what reads it, where an admin action changes an API answer, and the five open
+  questions. Source: [`financial-backend-brief.html`](financial-backend-brief.html)
 - [**SheDrive Finance Story Map**](https://claude.ai/code/artifact/add3ef30-5b1e-465a-9391-ef646507b223)
-  — all 35 work items: scope, team, origin and live ADO status, grouped by what each one
+  — all 34 work items: scope, team, origin and live ADO status, grouped by what each one
   makes possible, plus the delivery waves. Source: [`financial-story-map.html`](financial-story-map.html)
 - [**SheDrive Money Rulebook**](https://claude.ai/code/artifact/5ff1415a-761d-4951-b349-09773fd8203f)
   — every rule in the order money moves, each one tagged with the story number that owns
-  it, plus a table of all 35 stories. Source: [`financial-logic-map.html`](financial-logic-map.html)
+  it, plus a table of all 34 stories. Source: [`financial-logic-map.html`](financial-logic-map.html)
 - [*SheDrive Ledger Logic*](https://claude.ai/code/artifact/271c0275-b74f-4c82-8774-c638bcf7471c)
   — the design in five diagrams, built to present from
 - [*SheDrive Money Chain*](https://claude.ai/code/artifact/47f2f70d-be44-4d25-a6d2-063d39aebf71)
@@ -46,14 +50,14 @@ direction of the debt changes**, and that is decided by one field on the trip ca
 ledgers and their entry types, the four invariants, the policy surface, the settlement
 channels, the screen inventory and the story inventory.
 
-### Backlog — 35 stories
+### Backlog — 34 stories
 | File | Contents |
 |---|---|
 | `docs/backlog/api-stories.md` | 8 new API stories + #1764 and #1781 reopened and rewritten |
 | `docs/backlog/admin-stories.md` | 4 new admin stories + #1813 reopened, #1832 extended |
 | `docs/backlog/mobile-driver-stories.md` | 4 new + #1788 rescoped onto the ledger |
 | `docs/backlog/mobile-rider-stories.md` | 4 new rider stories |
-| `docs/backlog/design-stories-financial.md` | 11 design briefs, one per screen |
+| `docs/backlog/design-stories-financial.md` | 10 design briefs, one per screen (#3983 merged into #3982) |
 | `docs/backlog/financial-core-ado-parents.md` | Verified Feature parent for every story |
 
 ### Working prototype — `shedrive-web/`
