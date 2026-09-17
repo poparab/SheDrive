@@ -103,9 +103,9 @@ line, with its own trip reference.</p>
 
 ---
 
-## [Rider] Outstanding Fee Notice & Full-Recovery State
+## [Rider] Outstanding Fee Notice
 
-**ADO:** #3975 — created 2026-09-08
+**ADO:** #3975 — created 2026-09-08 · retitled 2026-09-17 (was "Outstanding Fee Notice & Full-Recovery State")
 
 **Screen:** `rider/home.html` (extend)
 **Parent:** #1844 — Rider — Home & Booking
@@ -113,50 +113,46 @@ line, with its own trip reference.</p>
 
 ```html
 <p>This is the home screen's money-awareness layer. Most riders never see it. When one
-does carry a fee from a past cancellation, home shows a dismissible banner stating the
-amount and that it will be added to her next ride. If her outstanding fees reach the
-recovery threshold, that banner is replaced by a firmer, non-dismissible one saying her
-<strong>whole</strong> balance will be recovered on this ride — a bigger number, so she
-must see it before she confirms.</p>
+does carry an outstanding balance from a past cancellation, home shows a dismissible
+banner stating the <strong>full</strong> amount and that it will be added to her next
+ride. Whatever she owes — one late cancellation or several — is always shown as this
+single amount; there is no threshold, no escalation and no second, firmer state.</p>
 
 <p><strong>She is never blocked from booking.</strong> An earlier version of this design
-blocked her at the threshold. That deadlocks: a rider pays in cash on the ride, so the
-only way she can ever clear a fee is by taking a ride. Blocking the booking would
-make the debt permanent and lose the customer with nothing recovered. Please do not draw
-a blocked artboard for the rider — the only block on a rider is an admin suspending her
-account, which is an existing flow and a human decision.</p>
+blocked her once her balance passed a threshold. That deadlocks: a rider pays in cash on
+the ride, so the only way she can ever clear a fee is by taking a ride. Blocking the
+booking would make the debt permanent and lose the customer with nothing recovered.
+Please do not draw a blocked artboard for the rider — the only block on a rider is an
+admin suspending her account, which is an existing flow and a human decision.</p>
 
 <h3>Components</h3>
 <ul>
   <li><code>sd-page</code> shell (map, <code>sd-app-header</code> with menu, drawer)</li>
   <li>A new persistent banner primitive (not <code>sd-toast-host</code> — a toast is
-  transient and this must persist until the fee is cleared or the banner is dismissed);
-  anchored above or below the map, using existing token-driven card/alert styling, not a
-  new colour system. Two weights: dismissible and non-dismissible</li>
+  transient and this must persist until dismissed or the fee is cleared); anchored
+  above or below the map, using existing token-driven card/alert styling, not a new
+  colour system. One weight only — dismissible</li>
   <li>The ordinary "Request a ride" <code>sd-button</code>, unchanged and always present</li>
 </ul>
 
 <h3>States</h3>
 <ul>
-  <li><strong>Default:</strong> no outstanding fee — no banner, ordinary home screen</li>
-  <li><strong>Single-fee notice:</strong> below the recovery threshold — dismissible
-  banner, the oldest fee's amount, and the "added to your next ride" line</li>
-  <li><strong>Full recovery:</strong> at or above the recovery threshold — non-dismissible
-  banner stating the full outstanding amount and that this ride clears it completely.
-  Booking stays available</li>
-  <li><strong>Loading:</strong> fee status not yet resolved — home renders without a
-  banner until it is known; it must never flash one weight and then swap to the other</li>
-  <li><strong>Error:</strong> fee status failed to load — home degrades to the ordinary
-  no-banner state rather than showing a possibly wrong amount, with a quiet retry</li>
+  <li><strong>Default:</strong> no outstanding balance — no banner, ordinary home screen</li>
+  <li><strong>Outstanding-balance notice:</strong> dismissible banner stating the full
+  outstanding amount and that it will be added to her next ride. Booking stays available</li>
+  <li><strong>Loading:</strong> balance status not yet resolved — home renders without a
+  banner until it is known</li>
+  <li><strong>Error:</strong> balance status failed to load — home degrades to the
+  ordinary no-banner state rather than showing a possibly wrong amount, with a quiet retry</li>
 </ul>
 
 <h3>Behaviour and tone</h3>
-<p><em>Dismissing the notice hides it for the session only — it does not waive or reduce
-the fee. Make sure the dismiss control cannot be read as "I've paid this." Both weights
-carry the same calm, factual tone: state the amount, say what it clears, link to
-<code>payments.html</code> for the detail, and never punish. The full-recovery banner is
-the most sensitive copy in the rider app — she is being asked for a noticeably larger
-amount than her fare, for something that happened days ago. It has to read as fair.</em></p>
+<p><em>Dismissing the notice hides it for the session only — it does not pay or reduce
+the balance; there is no waive anywhere in the system, only paying it on her next
+completed trip. Make sure the dismiss control cannot be read as "I've paid this." She
+sees the same total again on the fare summary (#3999) before she actually pays, so this
+banner is informational, not a gate. The tone is calm and factual: state the amount, say
+what it clears, link to <code>payments.html</code> for the detail, and never punish.</em></p>
 
 <h3>Preview</h3>
 <p>Mockup: &lt;to be added&gt;</p>
@@ -283,7 +279,7 @@ mechanism, so nothing here can be edited or reversed.</em></p>
 
 ---
 
-> **Removed 2026-09-13:** drivers do not request payouts. Finance transfers the funds and records the transfer afterwards — see #3993 and #4001. There is no driver-initiated request in the system.
+> **Removed 2026-09-13:** drivers do not request payouts. Finance transfers the funds and records the transfer afterwards — see #4001 (which absorbed #3993 on 2026-09-17). There is no driver-initiated request in the system.
 
 ---
 
@@ -433,9 +429,9 @@ recovery feel like the driver charging extra on her own initiative.</em></p>
 
 # Admin (`admin-v2/`) — bilingual EN default / AR RTL, desktop-first at 1280px and 1440px, `ad-*` components
 
-## [Admin] Driver Balances & Record Settlement
+## [Admin] Driver Balances — Record Settlement & Payout
 
-**ADO:** #3982 — created 2026-09-08 · updated 2026-09-13
+**ADO:** #3982 — created 2026-09-08 · updated 2026-09-13 · #3983 Record a Payout merged in 2026-09-14
 
 **Screen:** `admin-v2/balances.html` (finish)
 **Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
@@ -443,11 +439,15 @@ recovery feel like the driver charging extra on her own initiative.</em></p>
 
 ```html
 <p>This is where operations staff see every driver's balance in one place, drill into
-a driver's full ledger, and record a settlement when she hands cash back. Recording a
-settlement here is what unblocks her go-online state if it clears her below the
-outstanding limit — no separate step. Settlement entries export to CSV directly from
-this screen, which is Finance's reconciliation input now that the separate day-book
-screen has been cut.</p>
+a driver's full ledger, and record money moving in either direction — a
+<strong>settlement</strong> when she hands cash back, and a <strong>payout</strong> when
+Finance has transferred money to her. Recording a settlement here is what unblocks her
+go-online state if it clears her below the outstanding limit — no separate step.
+Recording a payout is the mirror of that, in the opposite direction: Finance transfers
+money on its own cycle, outside the system, and this is where the transfer is written
+down afterward. There is no request, no queue, and no approve/reject — recording is the
+only step. Settlement entries export to CSV directly from this screen, which is
+Finance's reconciliation input now that the separate day-book screen has been cut.</p>
 
 <h3>Components</h3>
 <ul>
@@ -463,6 +463,11 @@ screen has been cut.</p>
   <li><code>ad-form-modal</code> "Record settlement" — channel select (configurable
   list), reference field (required except for office cash, where it defaults to the
   generated receipt number), amount, generated receipt number shown on success</li>
+  <li><code>ad-form-modal</code> "Record payout", launched from the driver's ledger —
+  read-only driver summary (name, current available balance), amount (EGP, capped at
+  the available balance), date (defaults to today), reference (the bank/wallet
+  transaction id or receipt); success shows a confirmation toast and the new
+  balance</li>
   <li>CSV export action on the settlement entries — driver, amount, channel,
   reference, receipt number, recording admin, and time — scoped to the active
   filters</li>
@@ -478,61 +483,28 @@ screen has been cut.</p>
   activity yet)</li>
   <li>Record-settlement modal: default, validation errors (missing reference on a
   channel that requires one), success with receipt number and a confirmation toast</li>
+  <li>Record-payout modal: default (a positive available balance), validation errors
+  (amount above the available balance, or the reference/date missing), success with a
+  confirmation toast, the new <code>payout</code> entry in the ledger and the
+  available balance updated immediately</li>
+  <li>Zero or negative available balance: the record-payout action is not offered for
+  this driver</li>
   <li>Zero-balance driver in the list and in the ledger drawer</li>
 </ul>
 
-<h3>Preview</h3>
-<p>Mockup: &lt;to be added&gt;</p>
+<h3>Preview Links</h3>
+<ul>
+  <li>Default / Empty / Loading / Error / Long text / Arabic (RTL):
+  <code>admin-v2/balances.html</code> with <code>?state=empty|loading|error|long</code>
+  or <code>?lang=ar</code></li>
+  <li>Record payout: set the balance filter to "Owed by the platform", open Reem
+  Nabil's ledger, then Record payout</li>
+</ul>
 ```
 
 ---
 
-## [Admin] Record a Payout
-
-**ADO:** #3983 — created 2026-09-08 · retitled 2026-09-13
-
-**Screen:** `admin-v2/balances.html` (finish — modal on the driver balances screen, not a separate list screen)
-**Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
-**AcceptanceCriteria:** *(leave empty — design story format)*
-
-```html
-<p>This is the record-a-payout form on the driver balances screen
-(<code>admin-v2/balances.html</code>) — the mirror of recording a settlement, in the
-opposite direction. Finance transfers money to a driver on its own cycle, outside the
-system; this form is where that transfer is written down afterward. There is no
-request, no queue, and no approve/reject — recording is the only step.</p>
-
-<h3>Components</h3>
-<ul>
-  <li><code>ad-form-modal</code> "Record payout" launched from a driver's row or
-  ledger drawer on <code>balances.html</code></li>
-  <li>Read-only driver summary: name, current available balance</li>
-  <li>Payout destination summary, read from the driver's profile (#4003)</li>
-  <li>Amount field (EGP), capped at the driver's available balance</li>
-  <li>Date field, defaulting to today</li>
-  <li>Reference field (the bank/wallet transaction id or receipt)</li>
-  <li>Submit action; success shows a confirmation toast and the new balance</li>
-</ul>
-
-<h3>States</h3>
-<ul>
-  <li><strong>Default — eligible to record:</strong> driver has a positive available
-  balance and a payout destination on file</li>
-  <li><strong>Blocked — no payout destination on file:</strong> the form is replaced by
-  an inline explanation and a link to the driver's profile to add one; nothing can be
-  submitted from here until it exists</li>
-  <li><strong>Validation error:</strong> amount exceeds the available balance, or the
-  reference/date is missing</li>
-  <li><strong>Zero or negative available balance:</strong> the record-payout action is
-  not offered for this driver</li>
-  <li><strong>Success:</strong> confirmation toast, the ledger drawer shows the new
-  <code>payout</code> entry, and the driver's available balance updates immediately</li>
-  <li><strong>Loading / Error:</strong> standard fetch states with retry on error</li>
-</ul>
-
-<h3>Preview</h3>
-<p>Mockup: &lt;to be added&gt;</p>
-```
+> **Removed 2026-09-14 — [Admin] Record a Payout (#3983):** merged into #3982. Recording a payout is a modal on the same driver balances screen, so it is designed as part of that screen rather than as its own brief. Its components, states and preview links now live in the #3982 brief above.
 
 ---
 
@@ -546,22 +518,25 @@ request, no queue, and no approve/reject — recording is the only step.</p>
 
 ```html
 <p>The rider-side counterpart to the driver balances screen: every rider currently
-carrying an outstanding cancellation fee, her ledger of fee and payment entries, and
-the ability for operations staff to waive a fee with a reason. Most riders never
-appear here — this is exception handling, not a routine list.</p>
+carrying an outstanding cancellation balance, and her ledger of fee and payment
+entries. Most riders never appear here — this is exception handling, not a routine
+list. The screen is <strong>read-only</strong>: there is no waive and no write-off
+anywhere in the system. The only way a rider's balance clears is that she pays it, in
+full, on her next completed trip. The one action available is escalating a
+persistently abusive rider to the existing suspension flow.</p>
 
 <h3>Components</h3>
 <ul>
   <li><code>ad-shell</code> page skeleton</li>
   <li><code>ad-filter-bar</code>: search by name/phone, status filter (outstanding /
-  waived / settled)</li>
+  settled)</li>
   <li><code>ad-data-table</code> columns: rider name, phone, outstanding amount
   (EGP, right-aligned, tabular figures), oldest unpaid fee date,
-  <code>ad-status-pill</code> for status; a rider over the booking limit is visually
-  distinguished</li>
+  <code>ad-status-pill</code> for status</li>
   <li>Ledger view: <code>ad-detail-section</code> plus entries (cancellation fee,
-  fee collected, fee waived) with cause and related trip link</li>
-  <li><code>ad-form-modal</code> "Waive fee" — required reason</li>
+  fee collected) with cause and related trip link</li>
+  <li>Link into the existing rider-suspension flow (#1740), for persistent abuse —
+  the only action this screen offers beyond visibility</li>
 </ul>
 
 <h3>States</h3>
@@ -570,9 +545,7 @@ appear here — this is exception handling, not a routine list.</p>
   <code>?state=error</code>, <code>?state=long</code></li>
   <li>Default populated list; empty state here reads as a genuinely good sign (no
   riders currently owe anything) rather than a neutral "nothing found"</li>
-  <li>Rider over the booking limit, both in the list and in the ledger drawer</li>
-  <li>Waive-fee modal: default, validation error (missing reason), success with
-  confirmation toast</li>
+  <li>Ledger drawer/detail open, populated and empty</li>
 </ul>
 
 <h3>Preview</h3>
@@ -596,29 +569,26 @@ appear here — this is exception handling, not a routine list.</p>
 **AcceptanceCriteria:** *(leave empty — design story format)*
 
 ```html
-<p>This adds the balance and fee policy block to the existing pricing and
+<p>This adds the balance policy block to the existing pricing and
 policies screen — the single place a super admin changes commission, grace periods,
-cancellation fees, the driver outstanding limit and warning band, and the rider fee
-recovery threshold, with no code deploy required. A payout to a driver is recorded,
-never configured here — there is no request, approval, minimum, maximum, or
-cooling-off for it anywhere in the system. Every change here writes an audit-log entry
-with who, when, old value and new value, and values already snapshotted onto a trip at
-driver acceptance are never affected retroactively.</p>
+cancellation fees, and the driver outstanding limit and warning band, with no code
+deploy required. A rider's outstanding balance is always recovered in full on her
+next completed trip — there is nothing to configure on that side. A payout to a
+driver is recorded, never configured here — there is no request, approval, minimum,
+maximum, or cooling-off for it anywhere in the system. Every change here writes an
+audit-log entry with who, when, old value and new value, and values already
+snapshotted onto a trip at driver acceptance are never affected retroactively.</p>
 
 <h3>Components</h3>
 <ul>
   <li><code>ad-shell</code> page skeleton, added as a new section alongside the
   existing pricing-policy form on this screen</li>
   <li>Form fields, grouped logically (trip economics / cancellation fees / driver
-  balance / rider fees): platform commission %, rider grace period,
+  balance): platform commission %, rider grace period,
   driver cancellation fee, driver cancellation grace period, rider no-show wait,
-  driver share of a rider fee, driver outstanding limit, driver warning band %,
-  rider fee recovery threshold</li>
-  <li>Inline helper text on the two threshold fields explicitly stating what a value of
-  0 does: for the driver outstanding limit it disables the go-online gate entirely; for
-  the rider fee recovery threshold it keeps recovery at one fee per ride however much she
-  owes. Make clear that the rider field is <strong>not</strong> a booking block — it only
-  changes how fast a fee is recovered</li>
+  driver share of a rider fee, driver outstanding limit, driver warning band %</li>
+  <li>Inline helper text on the driver outstanding-limit field explicitly stating what
+  a value of 0 does: it disables the go-online gate entirely</li>
   <li>Save action with a confirmation toast and an updated "last changed by / when"
   line per field or per section</li>
   <li>Link to the audit log (<code>audit-log.html</code>) for this screen's history</li>
@@ -631,7 +601,7 @@ driver acceptance are never affected retroactively.</p>
   save on a failed submit</li>
   <li>Validation errors — e.g. negative values, out-of-range percentages</li>
   <li>Saved confirmation — toast plus the refreshed "last changed" metadata</li>
-  <li>Zero-value / gate-disabled state on the outstanding-limit fields, with the
+  <li>Zero-value / gate-disabled state on the driver outstanding-limit field, with the
   helper text visibly explaining what that means</li>
 </ul>
 

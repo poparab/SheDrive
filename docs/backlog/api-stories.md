@@ -2111,7 +2111,7 @@ This endpoint returns aggregated earnings data for the authenticated driver, bro
 
 This is the driver-facing read over the balance ledger (#3991). It returns one signed balance in EGP plus a paginated statement of the entries that produced it — it never calculates anything itself.
 
-**The sign carries the meaning.** A negative balance is money the driver owes the platform (the normal Phase 1 cash case: she keeps the fare, the commission is a debt). A positive balance is money the platform owes her, reduced only by a payout Finance records against it (#3993). The response exposes both readings explicitly — outstanding (what she owes, zero when the balance is positive) and available (what SheDrive owes her, zero when the balance is negative) — so the app never has to interpret a sign.
+**The sign carries the meaning.** A negative balance is money the driver owes the platform (the normal Phase 1 cash case: she keeps the fare, the commission is a debt). A positive balance is money the platform owes her, reduced only by a payout Finance records against it (#4001). The response exposes both readings explicitly — outstanding (what she owes, zero when the balance is positive) and available (what SheDrive owes her, zero when the balance is negative) — so the app never has to interpret a sign.
 
 **Every entry is explained.** Each statement row returns the entry type, the signed amount, the timestamp (UTC+2), a human-readable description, and the id of the source record so the app can deep-link to the trip, settlement, or payout behind it.
 
@@ -2159,7 +2159,7 @@ The response also carries the last settlement (amount and date) and the configur
 - And a settlement statement row is present
 
 **Scenario 8 — Payout appears once Finance records it**
-- Given Finance has recorded a 200 EGP payout to the driver (#3993, #4001)
+- Given Finance has recorded a 200 EGP payout to the driver (#4001)
 - Then a payout row of −200.00 EGP is returned, with its reference and date, and the available amount is reduced by 200.00
 
 **Scenario 9 — Statement is paginated, newest first**
@@ -2193,7 +2193,7 @@ The response also carries the last settlement (amount and date) and the configur
 
 ### Out of Scope
 - Posting entries to the ledger (#3991)
-- Recording a payout (#3993) — a driver never requests or triggers one
+- Recording a payout (#4001) — a driver never requests or triggers one
 - Recording a settlement (#1813)
 - In-app settlement payment by the driver
 - Receipt or statement PDF export
@@ -2217,7 +2217,7 @@ The response also carries the last settlement (amount and date) and the configur
 
 Today a driver's and a rider's financial position exist only as numbers scattered across trip and cancellation records. That is enough to *report* a figure but not to *change* one: nothing can debit a cancellation fee, credit a settlement, recover a rider's fee in cash, or record a payout. This story introduces **two ledgers** — one per driver, one per rider — and the posting rules that every other financial story in this change set writes through.
 
-**One signed balance per party, in EGP.** For the driver, negative means she owes the platform (her *outstanding* balance, cleared by a settlement) and positive means the platform owes her (her *available* balance, reduced by a payout). For the rider, negative means she owes an unpaid fee; a fee opens negative and is closed by an equal credit the moment it is recovered or waived. Either party's balance is the arithmetic sum of her ledger entries. It is never computed from trip records and never written directly. A new party starts at zero.
+**One signed balance per party, in EGP.** For the driver, negative means she owes the platform (her *outstanding* balance, cleared by a settlement) and positive means the platform owes her (her *available* balance, reduced by a payout). For the rider, negative means she owes an unpaid fee; a fee opens negative and is closed only by an equal credit when it is recovered — she pays it, in full, on her next completed trip. Either party's balance is the arithmetic sum of her ledger entries. It is never computed from trip records and never written directly. A new party starts at zero.
 
 **Driver ledger entry types:**
 
@@ -2229,7 +2229,7 @@ Today a driver's and a rider's financial position exist only as numbers scattere
 | `rider_cancellation_fee_share` | credit (+) | A rider cancels late; the driver is awarded her configured share (#1764) |
 | `rider_fee_recovery` | debit (−) | She collected a rider's outstanding fee in cash on the platform's behalf (#4000) — the cash stays in her hand, so the recovered amount is a debt she owes back |
 | `settlement` | credit (+) | Finance records cash received from the driver (#1813) |
-| `payout` | debit (−) | Finance sends the driver a payout on its own cycle and it is recorded against her balance afterward (#3993, #4001) |
+| `payout` | debit (−) | Finance sends the driver a payout on its own cycle and it is recorded against her balance afterward (#4001) |
 
 **Rider ledger entry types:**
 
@@ -2237,13 +2237,14 @@ Today a driver's and a rider's financial position exist only as numbers scattere
 |---|---|---|
 | `cancellation_fee` | debit (−) | She cancels after the grace period (#1764) |
 | `fee_collected` | credit (+) | The fee is recovered — in Phase 1, as a cash surcharge on her next trip (#4000) |
-| `fee_waived` | credit (+) | An admin writes it off with a reason |
 
-**Entries are immutable.** Nothing edits an entry and nothing deletes one — ever. Phase 1 ships with **no correction mechanism at all**: a settlement recorded for the wrong driver, an amount keyed wrong, or a duplicate payout has no fix path in this story. A rider fee can still be written off with `fee_waived` — the driver ledger has no equivalent. This gap is a known open item for the team building on this ledger.
+The rider ledger has exactly these two entry types. There is no `fee_waived` or any other write-off type — nobody clears a rider's fee but the rider herself, by paying it.
+
+**Entries are immutable.** Nothing edits an entry and nothing deletes one — ever. Phase 1 ships with **no correction mechanism at all, on either ledger**: a settlement recorded for the wrong driver, an amount keyed wrong, a duplicate payout, or a cancellation fee charged to a rider in error has no fix path in this story. There is no waive, no write-off, and no way to correct a mistake on either side — the only way a rider's fee clears is that she pays it, in full, on her next completed trip (#4000). This gap is a known open item for the team building on this ledger.
 
 **Posting is idempotent.** Every entry carries an idempotency key shaped `{event_type}:{trip_id|request_id}:{party_id}`. The same event never posts twice against the same party — a retried trip completion, a retried cancellation, or a replayed payout produces one entry, not two.
 
-**Every entry names its cause.** Each entry carries its type, its signed EGP amount, a timestamp (UTC+2), and the id of the source record (a trip, a cancellation, a settlement, or a payout) — and, for a waived fee, the admin user id and a mandatory reason.
+**Every entry names its cause.** Each entry carries its type, its signed EGP amount, a timestamp (UTC+2), and the id of the source record (a trip, a cancellation, a settlement, or a payout).
 
 ### Acceptance Criteria
 
@@ -2278,45 +2279,41 @@ Today a driver's and a rider's financial position exist only as numbers scattere
 - Given a rider cancels after the grace period and the zone's cancellation fee is 20 EGP (#1764)
 - Then a `cancellation_fee` entry of −20.00 EGP is posted against the rider
 
-**Scenario 8 — Waived fee credits the rider's balance**
-- Given an admin waives a rider's outstanding 20 EGP fee with a reason
-- Then a `fee_waived` entry of +20.00 EGP is posted and her balance returns to 0.00
-
-**Scenario 9 — Settlement credits the driver's balance**
+**Scenario 8 — Settlement credits the driver's balance**
 - Given a driver's balance is −300.00 EGP and Finance records a 300 EGP settlement (#1813)
 - Then a `settlement` entry of +300.00 EGP is posted and her balance becomes 0.00
 
-**Scenario 10 — Payout debits the driver's balance when recorded**
-- Given a driver's balance is +500.00 EGP and Finance records a 200 EGP payout (#3993, #4001)
+**Scenario 9 — Payout debits the driver's balance when recorded**
+- Given a driver's balance is +500.00 EGP and Finance records a 200 EGP payout (#4001)
 - Then a `payout` entry of −200.00 EGP is posted and her balance becomes +300.00
 
-**Scenario 11 — Balance is the sum of the ledger**
+**Scenario 10 — Balance is the sum of the ledger**
 - Given a driver with entries of −20.00, −10.00, +15.00 and +300.00
 - When her balance is read
 - Then it is +285.00 EGP and matches the sum of her entries exactly
 
-**Scenario 12 — A mixed-custody driver nets to one balance**
+**Scenario 11 — A mixed-custody driver nets to one balance**
 - Given a driver has one driver-custody trip (`trip_commission` −20.00) and one platform-custody trip (`trip_earnings` +80.00)
 - Then her balance is the sum of both entries, +60.00 EGP, with no special handling for the mix of custody values
 
-**Scenario 13 — Entries are immutable**
+**Scenario 12 — Entries are immutable**
 - Given a posted ledger entry
 - When any request attempts to edit or delete it
 - Then the request is rejected and the entry stands unchanged, with no correction mechanism offered in its place
 
-**Scenario 14 — The same event never posts twice**
+**Scenario 13 — The same event never posts twice**
 - Given a trip completion, cancellation, fee recovery, settlement, or payout is submitted or retried more than once for the same idempotency key
 - Then exactly one ledger entry is posted per party for that key, and the balance is unaffected by the repeat
 
-**Scenario 15 — Concurrent postings are serialised**
+**Scenario 14 — Concurrent postings are serialised**
 - Given two entries are posted for the same party at the same moment
 - Then both are recorded and the resulting balance reflects both, with no lost update
 
-**Scenario 16 — Amounts are stored to two decimals**
+**Scenario 15 — Amounts are stored to two decimals**
 - Given any posted amount
 - Then it is stored to two decimal places in EGP, VAT-inclusive, and the balance never accumulates rounding drift
 
-**Scenario 17 — A suspended driver's ledger is preserved**
+**Scenario 16 — A suspended driver's ledger is preserved**
 - Given a driver is suspended (#1742)
 - Then her balance and ledger are retained unchanged and remain visible to the super admin
 
@@ -2326,8 +2323,9 @@ Today a driver's and a rider's financial position exist only as numbers scattere
 - Deciding whether and when a rider's fee is recovered (#4000)
 - The driver-facing and rider-facing statement endpoints (#1781, #4004)
 - Recording a settlement in the admin portal (#1813)
-- Recording a payout (#3993, #4001) — a driver never requests one; there is no request, review, or approval step
-- A free-form correction/adjustment entry type or a reverse-this-entry action — cut deliberately on 2026-09-13; see the open item above
+- Recording a payout (#4001) — a driver never requests one; there is no request, review, or approval step
+- Waiving, writing off, or otherwise correcting a rider's fee — there is no such action anywhere in the system; the only way it clears is that she pays it (#4000)
+- A free-form correction/adjustment entry type or a reverse-this-entry action, for either ledger — cut deliberately on 2026-09-13; see the open item above
 - Surge and dynamic pricing, promo codes, referral credits, tips, driver bonuses and incentives
 - Payment-provider integration, VAT and tax reporting, receipts and invoices as PDFs
 - Accounting exports beyond CSV
@@ -2337,173 +2335,12 @@ Today a driver's and a rider's financial position exist only as numbers scattere
 ### Dependencies
 - #1636 — Trip settlement (supplies the commission and net earnings figures a trip entry posts)
 - #1759 — Super admin configures global platform policies (commission rate, driver share)
-- #1816 — Super admin views the admin activity audit log (records fee waivers)
 
 ---
 
-## [API] #3993 — Finance records a payout sent to a driver 🆕
-**Feature:** Feature 18 — Driver Earnings API | **Sprint:** Phase 1
+> **Removed 2026-09-17:** #4003 (driver payout destination is captured and required before a payout is recorded) is Removed in ADO. The platform does not hold a payout destination — getting the money to a driver is a manual, off-platform process, and nothing is captured from her or verified. Recording a payout (#4001) is not gated on it.
 
-**Description:** As the admin portal, I want to record a payout that Finance has already sent to a driver against her balance so that the ledger reflects the transfer and her available balance is reduced by exactly what was sent.
-
-### Background
-
-A driver never requests a payout. There is no request, no approval queue, no reservation against her balance, no minimum or maximum amount, and no cooling-off period. Finance transfers the money to her on its own cycle, outside the system, and this endpoint is where that transfer is recorded **after the fact** — the same act as recording a settlement (#1813), in the opposite direction.
-
-**Recording posts, it does not pay.** Calling this endpoint posts a `payout` debit to the driver ledger (#3991) for the amount that was actually sent. The money has already moved; this call only writes it down.
-
-**A payout destination is required.** A payout cannot be recorded for a driver with no payout destination on file (#4003) — Finance cannot write down a transfer to nowhere.
-
-**The amount can never exceed what is owed.** A payout is refused if it is more than the driver's current available balance.
-
-**Posting is idempotent on the payout reference.** Every payout carries a reference (the bank or wallet transaction id, or a receipt number) and a date. Retrying the same reference never posts a second entry.
-
-### Acceptance Criteria
-
-**Scenario 1 — Successful payout recorded**
-- Given an authenticated approved driver with an available balance of 500 EGP and a payout destination on file (#4003)
-- When a payout of 200 EGP is recorded with a reference and a date
-- Then a `payout` entry of −200.00 EGP is posted (#3991) and her available balance becomes 300.00
-- And the payout reference and date are stored and returned
-
-**Scenario 2 — Payout cannot exceed the available balance**
-- Given an available balance of 100 EGP
-- When a payout of 150 EGP is submitted
-- Then it is rejected with a validation error and no entry is posted
-
-**Scenario 3 — Payout is refused without a payout destination on file**
-- Given a driver with no payout destination on file (#4003)
-- When a payout is submitted for her
-- Then it is rejected, naming the missing destination, and no entry is posted
-
-**Scenario 4 — Payout succeeds once a destination is on file**
-- Given the driver adds a payout destination
-- When the payout is retried
-- Then it succeeds and the `payout` entry is posted
-
-**Scenario 5 — Idempotent on the payout reference**
-- Given a payout is recorded with reference "PMT-1042"
-- When the same reference is submitted again
-- Then no second entry is posted and the original entry is returned unchanged
-
-**Scenario 6 — Driver with a negative balance cannot receive a payout**
-- Given the driver owes the platform 300 EGP
-- When a payout is submitted for her
-- Then it is rejected because she has no available balance
-
-**Scenario 7 — Only approved drivers may receive a recorded payout**
-- Given a driver whose account is pending approval, rejected, or suspended
-- When a payout is submitted for her
-- Then it is rejected
-
-**Scenario 8 — Reference and date are required**
-- Given a payout submission missing a reference or a date
-- Then a validation error is returned and nothing is posted
-
-**Scenario 9 — Driver retrieves the payout in her statement**
-- Given a payout of 200 EGP has been recorded
-- When she retrieves her balance (#1781)
-- Then a payout row of −200.00 EGP is returned in her statement with its reference and date
-
-**Scenario 10 — Unauthenticated request is rejected**
-- Given a request without a valid admin session token
-- Then it is rejected
-
-### Out of Scope
-- A driver requesting, tracking, or cancelling a payout — there is no such action anywhere in the system
-- An approval queue, pending/approved/rejected states, or any reservation against her balance
-- A minimum or maximum payout amount, or a cooling-off period between payouts
-- A platform-wide payout enabled/disabled switch
-- Bank transfer, wallet, or payment-provider integration — the transfer itself happens outside the system
-- Reversing a recorded payout — Phase 1 ships with no correction mechanism for a mis-recorded entry (#3991)
-- Tips, bonuses, incentives, and referral credits
-
-### Dependencies
-- #3991 — Party balance ledger records every balance movement (must be live)
-- #4003 — Driver payout destination is captured and required before a payout can be recorded (supplies the destination this endpoint checks)
-- #1781 — Driver retrieves her balance and statement (the payout appears there once recorded)
-- #1619 — Authentication service (must be live)
-
----
-
-## [API] #4003 — Driver payout destination is captured and required before payout 🆕
-**Feature:** Feature 18 — Driver Earnings API | **Sprint:** Phase 1
-
-**Description:** As the driver app, I want to capture, update, and retrieve the driver's payout destination so that a payout can never be recorded without somewhere for Finance to actually send the money.
-
-### Background
-
-A payout (#3993) is money leaving the platform to a real destination — a bank account or a mobile wallet, held under the driver's name. Today the driver profile carries no such destination, so nothing stops Finance recording a payout with nowhere to send it.
-
-This story adds a **payout destination** to the driver profile: the destination type, the account or wallet number, and the holder name. A driver may add, update, or replace her destination at any time; she is never asked for it before Finance needs to pay her, since most drivers in Phase 1 run a negative balance and never receive a payout at all.
-
-**The gate lives at recording, not before.** A driver never requests a payout — there is no request to gate. The check happens when a payout is recorded against her balance (#3993, #4001): without a destination captured, recording is refused and the admin is told why.
-
-**The holder name is not silently assumed.** It is captured as its own field, separate from the driver's account name, because a payout destination is sometimes held jointly or under a slightly different legal name.
-
-**The number is sensitive.** Once captured it is returned to the driver in full so she can verify it, but only ever in part (masked) anywhere else it might appear, unless the admin surface explicitly needs the full value to action a payout.
-
-### Acceptance Criteria
-
-**Scenario 1 — Driver captures a payout destination for the first time**
-- Given an authenticated driver with no payout destination on file
-- When she submits a destination type, number, and holder name
-- Then the destination is saved to her profile and returned to her in full for verification
-
-**Scenario 2 — Driver updates her existing destination**
-- Given a driver already has a payout destination on file
-- When she submits a new one
-- Then the stored destination is replaced, not appended — she has exactly one destination at a time
-
-**Scenario 3 — Required fields are validated**
-- Given a submission missing the destination type, the number, or the holder name
-- Then a validation error is returned identifying the missing field and nothing is saved
-
-**Scenario 4 — Driver retrieves her own destination**
-- Given a driver with a saved destination
-- When she requests her profile
-- Then her destination type, number, and holder name are returned in full
-
-**Scenario 5 — No destination on file returns an empty state, not an error**
-- Given a driver with no destination captured
-- When she requests her profile
-- Then the destination field is null or absent, and no error is raised
-
-**Scenario 6 — A payout cannot be recorded without a destination on file**
-- Given a driver with no payout destination on file
-- When Finance attempts to record a payout for her (#3993, #4001)
-- Then the recording is refused with a reason naming the missing destination
-
-**Scenario 7 — Recording succeeds once a destination is on file**
-- Given the same driver adds a payout destination
-- When the payout is retried
-- Then it succeeds and the `payout` entry is posted
-
-**Scenario 8 — The destination number is masked outside the driver's own view**
-- Given a payout destination is captured
-- Then any surface other than the driver's own retrieval of her profile shows the number masked, except the admin surface that must action the payout, which shows it in full
-
-**Scenario 9 — The destination in force at the moment of recording is used**
-- Given a driver updates her destination
-- When a payout is later recorded for her
-- Then Finance is shown the destination in force at the moment of recording, never a stale cached copy
-
-**Scenario 10 — Unauthenticated request is rejected**
-- Given a request without a valid driver session token
-- Then it is rejected
-
-### Out of Scope
-- Validating the destination number against a real bank or wallet provider — Phase 1 stores it as given, unverified
-- Bank transfer, wallet, or payment-provider integration — payout itself remains operational, outside this system
-- Multiple simultaneous destinations per driver
-- Payout destination for the rider side (not applicable — riders never receive payouts)
-- Driver identity verification beyond onboarding (#1642)
-
-### Dependencies
-- #1800 — Driver retrieves her profile (the destination is served alongside the rest of her profile)
-- #3993 — Finance records a payout sent to a driver (the payout this destination gates at recording)
-- #4001 — Super admin records a payout sent to a driver (enforces the gate at recording)
-- #1619 — Authentication service (must be live)
+> **Removed 2026-09-17:** #3993 (Finance records a payout sent to a driver) is Removed in ADO — folded into #4001. It described the same act from the API side, and the house rule is that an admin screen's backend lives inside its own [Admin] story — [API] stories exist for mobile screens. #4001 (`docs/backlog/admin-stories.md`) now owns the screen and the ledger posting, including the idempotency-on-reference rule and the over-available-balance refusal.
 
 ---
 
@@ -2524,9 +2361,9 @@ This is the rider-facing read over the rider ledger (#3991). It returns her curr
 
 **Each open fee names its cause.** A fee entry returns its amount, the trip it came from, the date it was charged, and a note that it will be added automatically to her next completed trip (#4000) — never an instruction to pay separately, because there is no way to collect from her between rides.
 
-**A recovered or waived fee still appears in history.** Once a fee is recovered (#4000) or waived by an admin, it is closed — no longer counted in the outstanding balance — but the original entry and the entry that closed it both remain visible in her statement, exactly as with the driver's ledger (#3991).
+**A recovered fee still appears in history.** Once a fee is recovered (#4000) it is closed — no longer counted in the outstanding balance — but the original entry and the entry that closed it both remain visible in her statement, exactly as with the driver's ledger (#3991). There is no other way a fee closes: nobody waives or writes one off, on either side.
 
-The response also carries the configured rider fee recovery threshold (#3994) so the app can tell her, before she confirms a ride, whether her oldest fee alone or her whole balance will be added to it (#4002). She is never refused a booking on account of what she owes.
+She is never refused a booking on account of what she owes. Her entire outstanding balance — however many open fees make it up — is always recovered in full, in one payment, on her next completed trip (#4000).
 
 ### Acceptance Criteria
 
@@ -2550,29 +2387,21 @@ The response also carries the configured rider fee recovery threshold (#3994) so
 - Then it no longer appears in the open-fees list and no longer counts toward her outstanding balance
 - But it still appears in her statement, alongside the entry that closed it
 
-**Scenario 5 — Waived fee moves out of the outstanding list**
-- Given an admin waived an open fee with a reason
-- When she retrieves her fees
-- Then it no longer appears in the open-fees list, and her statement shows both the original charge and the waiver
-
-**Scenario 6 — Statement is paginated, newest first**
+**Scenario 5 — Statement is paginated, newest first**
 - Given the rider has more entries than one page
 - Then the statement is returned newest-first with a page size and a continuation marker
 - And requesting the next page returns the next set with no duplicates and no gaps
 
-**Scenario 7 — Balance always equals the ledger**
+**Scenario 6 — Balance always equals the ledger**
 - Given any rider at any time
 - Then the outstanding balance returned equals the sum of her open ledger entries exactly, with no recalculation from trip records
 
-**Scenario 8 — Fee limit is returned for the app's warning**
-- Given a rider fee recovery threshold is configured (#3994)
-- Then the response includes that threshold so the rider app can tell her whether her next ride recovers one fee or all of them (#4002)
-
-**Scenario 9 — Two open fees are both listed, oldest first**
+**Scenario 7 — Two open fees are both listed and sum to the full balance**
 - Given a rider has two open fees from two separate cancellations
-- Then both appear in the open-fees list, ordered oldest first, matching the order they will be recovered (#4000)
+- Then both appear in the open-fees list
+- And they together make up her full outstanding balance, all of which is recovered on her next trip (#4000)
 
-**Scenario 10 — Unauthenticated request is rejected**
+**Scenario 8 — Unauthenticated request is rejected**
 - Given a request without a valid rider session token
 - Then it is rejected
 
@@ -2580,14 +2409,13 @@ The response also carries the configured rider fee recovery threshold (#3994) so
 - Posting entries to the ledger (#3991)
 - Deciding whether a fee applies or its amount (#1764)
 - Recovering a fee (#4000)
-- Waiving a fee (admin-side, #4005)
-- Blocking booking while over the limit (#4002)
+- Waiving, writing off, or otherwise correcting a fee — there is no such action anywhere in the system; the only way it clears is that she pays it (#4000)
+- Blocking booking on account of an outstanding balance — there is no such gate anywhere in the system
 - Paying a fee through this endpoint — it is read-only
 - Receipt or statement PDF export
 
 ### Dependencies
 - #3991 — Party balance ledger records every balance movement (must be live — the only source of these figures)
-- #3994 — Super admin configures balance and fee policy (supplies the fee limit returned here)
 - #1764 — Cancellation fees are charged after the grace period (supplies the fee itself)
 - #4000 — Rider outstanding fee is recovered on her next trip (closes the fee this story reports as recovered)
 - #1619 — Authentication service (must be live)
@@ -2794,10 +2622,10 @@ This endpoint is called when an authenticated driver confirms a trip cancellatio
 - Then her outstanding balance becomes 500 EGP
 - And the go-online balance gate applies from her next attempt (#3996)
 
-**Scenario 10 — A rider fee can push her over the recovery threshold**
-- Given a rider already owes 40 EGP and a 20 EGP cancellation fee is charged, against a 60 EGP recovery threshold
+**Scenario 10 — A second rider fee adds to her existing balance**
+- Given a rider already owes 40 EGP and a 20 EGP cancellation fee is charged
 - Then her outstanding balance becomes 60 EGP
-- And her next completed trip recovers the whole 60 EGP in one payment rather than her oldest fee alone (#4002)
+- And her next completed trip recovers the whole 60 EGP in one payment (#4000)
 - And she is not prevented from booking
 
 **Scenario 11 — Policy changes during an active trip**
@@ -2822,7 +2650,7 @@ This endpoint is called when an authenticated driver confirms a trip cancellatio
 - Rider or driver dispute of a cancellation fee (Phase 2)
 - Deciding cancellation eligibility and trip state transitions (#1715, #1720)
 - The ledger itself and its posting guarantees (#3991)
-- Blocking booking or going online while over a balance limit (#3996, #4002)
+- Blocking booking or going online while over a balance limit — a rider is never blocked at all; a driver is blocked only by the outstanding-balance gate (#3996)
 
 ### Dependencies
 - #3991 — Party balance ledger records every balance movement (must be live — receives every fee movement, on both ledgers)
@@ -2836,17 +2664,17 @@ This endpoint is called when an authenticated driver confirms a trip cancellatio
 ## [API] #4000 — Rider outstanding fee is recovered on her next trip 🆕
 **Feature:** Feature 20 — Trip Cancellation API | **Sprint:** Phase 1
 
-**Description:** As the trip-completion service, I want to add a rider's oldest outstanding fee as a surcharge on her next completed trip and post the recovery to both the rider's and the driver's ledgers so that a fee she has no way to pay between rides is still collected, in cash, without the platform absorbing the loss.
+**Description:** As the trip-completion service, I want to add a rider's entire outstanding balance as a surcharge on her next completed trip and post the recovery to both the rider's and the driver's ledgers so that a balance she has no way to pay between rides is still collected in full, in cash, without the platform absorbing the loss.
 
 ### Background
 
-#1764 opens a rider's outstanding fee — it debits her ledger (#3991) but collects nothing, because there is no way to collect from a rider between rides. This story is the collection: it recovers the fee as a **surcharge on her very next completed trip**, added to the fare and collected by the driver in cash alongside it.
+#1764 opens a rider's outstanding fee — it debits her ledger (#3991) but collects nothing, because there is no way to collect from a rider between rides. This story is the collection: it recovers her balance as a **surcharge on her very next completed trip**, added to the fare and collected by the driver in cash alongside it.
+
+**Her entire balance, every time.** Whatever she owes — whether from one late cancellation or several — is recovered in full on her very next completed trip, in a single surcharge. There is no drip, no oldest-fee-first ordering and no threshold; she always leaves that ride owing nothing.
 
 **The surcharge is shown up front, not folded in.** It appears on the fare estimate before she confirms the ride and again on the trip's fare summary as its own line, distinct from the fare itself — never silently added to the total she is quoted.
 
 **Commission is never taken from a recovered fee.** The platform already holds its share of the fee from #1764's split; charging commission again on the surcharge would double-collect it. The trip's fare, commission and net earnings (#1636, #3997) are computed on the fare alone — the surcharge rides alongside, untouched by commission.
-
-**One fee at a time, oldest first.** If a rider has more than one outstanding fee, only the oldest is recovered on her next trip; the rest wait for the trips after that. A single trip never recovers more than one fee.
 
 **What actually gets posted depends on custody (#3997), not on how the fee arose.** Under `custody = driver` (Phase 1 cash), the surcharge is cash the driver now holds on the platform's behalf, so a `rider_fee_recovery` debit is posted against her — she owes it back exactly as she owes trip commission. Under `custody = platform`, the platform collects the surcharge itself as part of the digital payment, so nothing beyond the normal `trip_earnings` credit is posted to the driver — she was never holding the cash. On both paths the rider's ledger receives the same `fee_collected` credit and the driver ends up entitled to the same amount; only the mechanics of how the driver's ledger reaches that amount differ.
 
@@ -2857,7 +2685,7 @@ This endpoint is called when an authenticated driver confirms a trip cancellatio
 | `driver` (cash) | `fee_collected` +20.00 → balance 0.00 | `trip_commission` −20.00, `rider_fee_recovery` −20.00 | Holds 120.00 cash, owes 25.00 → entitled to 95.00 ✓ |
 | `platform` (online) | `fee_collected` +20.00 → balance 0.00 | `trip_earnings` +80.00 | Holds 0.00, platform owes 95.00 → entitled to 95.00 ✓ |
 
-The driver is entitled to the same 95.00 EGP (80.00 net earnings plus her 15.00 cancellation-fee share) under both paths.
+The driver is entitled to the same 95.00 EGP (80.00 net earnings plus her 15.00 cancellation-fee share) under both paths. The same arithmetic holds however many fees make up the 20.00 — one late cancellation or three, the surcharge is always the rider's whole balance in a single entry.
 
 ### Acceptance Criteria
 
@@ -2883,16 +2711,16 @@ The driver is entitled to the same 95.00 EGP (80.00 net earnings plus her 15.00 
 - Given a trip's fare is 100.00 EGP and a 20.00 EGP fee is recovered alongside it
 - Then commission is calculated on the 100.00 EGP fare only — never on 120.00 — and no separate commission entry is posted against the surcharge
 
-**Scenario 5 — Only the oldest of several outstanding fees is recovered**
-- Given a rider has two outstanding fees, 20.00 EGP dated earlier and 20.00 EGP dated later
+**Scenario 5 — Several outstanding fees are recovered together, in full**
+- Given a rider has two outstanding fees, 20.00 EGP and 15.00 EGP, for a total balance of 35.00 EGP
 - When she completes her next trip
-- Then only the earlier (oldest) fee is recovered as this trip's surcharge
-- And the later fee remains outstanding for a subsequent trip
+- Then a single `fee_collected` entry of +35.00 EGP is posted and her balance becomes 0.00 EGP
+- And she leaves that trip owing nothing — no fee is left outstanding for a later trip
 
-**Scenario 6 — At most one fee is recovered per trip**
-- Given a rider has two outstanding fees
+**Scenario 6 — Exactly one recovery entry is posted per trip**
+- Given a rider has multiple outstanding fees
 - When a single trip completes
-- Then exactly one `fee_collected` entry is posted for that trip, never two
+- Then exactly one `fee_collected` entry is posted for that trip, covering her whole balance, never one entry per fee
 
 **Scenario 7 — The surcharge is included in the fare estimate before she confirms**
 - Given a rider with an outstanding fee requests a fare estimate (#1627)
@@ -2913,12 +2741,12 @@ The driver is entitled to the same 95.00 EGP (80.00 net earnings plus her 15.00 
 
 **Scenario 11 — Recovery runs only on a completed trip**
 - Given a trip that is cancelled rather than completed
-- Then no fee recovery is attempted on it, and the rider's outstanding fee remains open for the trip after
+- Then no fee recovery is attempted on it, and the rider's outstanding balance remains open for the trip after
 
 ### Out of Scope
 - Opening the outstanding fee in the first place — deciding it applies and its amount (#1764)
 - The ledger itself and its entry types (#3991)
-- Escalating to full-balance recovery above the threshold (#4002)
+- Handling a rider who racks up several cancellations before her next ride beyond simply summing what she owes — any special ordering or escalation is deferred to later
 - Choosing which ledger entry a trip's own fare posts — trip_commission vs trip_earnings (#3997)
 - The rider-facing screens that display the outstanding fee and the surcharge (mobile rider stories)
 - Recovering a fee by any means other than a cash surcharge on a ride
@@ -2934,88 +2762,7 @@ The driver is entitled to the same 95.00 EGP (80.00 net earnings plus her 15.00 
 
 ---
 
-## [API] #4002 — Rider fees above the recovery threshold are recovered in a single payment 🆕
-**Feature:** Feature 20 — Trip Cancellation API | **Sprint:** Phase 1
-
-**Description:** As the trip service, I want to recover a rider's entire outstanding fee balance on one trip once it reaches the configured threshold, instead of one fee at a time, so that a growing unrecovered balance is cleared quickly without ever refusing her a ride.
-
-### Background
-
-`#4000` recovers a rider's fees gently — the oldest fee only, one per trip. That is right for a rider carrying a single fee. It is too slow for a rider who has cancelled late several times: her balance can grow faster than the drip clears it.
-
-This story is the escalation. When her outstanding balance is **at or above the rider fee recovery threshold** configured in `#3994` (default 60.00 EGP), the surcharge applied to her next completed trip is her **whole** outstanding balance in a single `fee_collected` entry, not just the oldest fee. Setting the threshold to zero disables the escalation entirely and recovery always stays at one fee per trip.
-
-**There is deliberately no booking block.** An earlier draft of this design refused trip requests above the threshold. That deadlocks: a rider pays in cash on the ride and cannot be charged between rides, so the *only* mechanism that can ever clear her fee is completing a trip. Refusing the booking would make the balance permanent, recover nothing, and lose the rider. Escalating the recovery instead is self-clearing — she books, she pays it all, she is square.
-
-**Persistent abuse is a human decision, not an automatic one.** A rider who repeatedly runs the balance up is suspended through the existing rider-suspension flow (#1740), actioned by an admin from the rider outstanding-fees screen. The trip-request service applies no fee-based guard of its own.
-
-**The driver side is unchanged in shape, only in amount.** Under `custody = driver` the whole recovered amount posts as a single `rider_fee_recovery` debit on the collecting driver, exactly as in `#4000`. Under `custody = platform` no such entry is posted. Commission is never taken from any recovered amount.
-
-**The amount is fixed when the trip completes**, not when it is requested, so a fee incurred mid-trip is not swept into that same trip's recovery.
-
-### Acceptance Criteria
-
-**Scenario 1 — Whole balance is recovered above the threshold**
-- Given the recovery threshold is 60.00 EGP and a rider owes 65.00 EGP across three fees
-- When her next trip completes at a fare of 100.00 EGP with custody driver
-- Then a single `fee_collected` entry of +65.00 EGP is posted to her ledger and her balance becomes 0.00 EGP
-- And the total she is asked to pay is 165.00 EGP
-
-**Scenario 2 — The collecting driver is debited the full recovered amount**
-- Given the same trip
-- Then a `rider_fee_recovery` entry of −65.00 EGP is posted to the driver's ledger (#3991)
-- And her `trip_commission` entry is calculated on the 100.00 EGP fare only
-
-**Scenario 3 — Below the threshold the drip still applies**
-- Given the threshold is 60.00 EGP and a rider owes 40.00 EGP across two fees
-- When her next trip completes
-- Then only her oldest fee is recovered, per #4000
-
-**Scenario 4 — Exactly at the threshold escalates**
-- Given the threshold is 60.00 EGP and a rider owes exactly 60.00 EGP
-- Then the whole balance is recovered, not the oldest fee alone
-
-**Scenario 5 — A threshold of zero disables the escalation**
-- Given the recovery threshold is configured at 0
-- When a rider owes 500.00 EGP
-- Then recovery remains one fee per trip and no escalation ever applies
-
-**Scenario 6 — Booking is never refused on account of fees**
-- Given a rider owes any amount at all
-- When she requests a trip
-- Then the request is evaluated by the existing service-area and operating-hours guards only
-- And her outstanding balance never causes a refusal
-
-**Scenario 7 — Custody platform posts no driver recovery entry**
-- Given the same 65.00 EGP recovery on a trip with custody platform
-- Then the rider is credited +65.00 EGP and no `rider_fee_recovery` entry is posted to the driver
-- And the driver's `trip_earnings` entry is her net on the fare only
-
-**Scenario 8 — A waiver drops her back to the drip**
-- Given an admin waives a fee bringing her below the threshold before her next trip
-- Then her next completed trip recovers only her oldest remaining fee
-
-**Scenario 9 — A fee incurred mid-trip is not swept in**
-- Given a rider is on a trip and a fee from an earlier cancellation is posted while it runs
-- Then the recovery amount applied at completion is the balance as at trip start
-
-**Scenario 10 — Recovery is idempotent**
-- Given the same trip completion is retried
-- Then at most one `fee_collected` entry and one `rider_fee_recovery` entry are posted (#3991)
-
-### Out of Scope
-- Any booking or request refusal based on outstanding fees — suspension (#1740) is the only block on a rider
-- The gentle one-fee-per-trip recovery itself (#4000)
-- Collecting the balance by any means other than the surcharge on her next ride
-- Waiving or adjusting a fee (#4005)
-- The rider-facing copy that warns her (mobile rider backlog)
-
-### Dependencies
-- `#4000` — Rider outstanding fee is recovered on her next trip (this story escalates it)
-- `#3991` — Party balance ledger records every balance movement (must be live)
-- `#3994` — Super admin configures balance and fee policy (supplies the threshold)
-- `#1764` — Cancellation fees are charged after the grace period (creates the fees)
-- `#1740` — Operations admin suspends a rider account (the only block on a rider)
+> **Removed 2026-09-17:** #4002 (rider fees above the recovery threshold are recovered in a single payment) is Removed in ADO. There is no recovery threshold — a rider clears her entire outstanding balance on her next completed trip, always. That is #4000's behaviour above, so this story had nothing left to add.
 
 ---
 

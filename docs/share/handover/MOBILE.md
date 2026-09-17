@@ -1,15 +1,15 @@
 # Handover — Mobile team (Rider & Driver apps)
 
-**Subject:** SheDrive financial core — 8 mobile stories
+**Subject:** SheDrive financial core — 7 mobile stories
 **Date:** 2026-09-08
 
 ---
 
 ## Read these, in this order
 
-1. **`docs/backlog/mobile-driver-stories.md`** — `#3987` … `#3990` plus the rescoped
-   `#1788`.
-2. **`docs/backlog/mobile-rider-stories.md`** — `#3992` … `#3999`.
+1. **`docs/backlog/mobile-driver-stories.md`** — `#3988`, `#3989`, `#3990` plus the
+   rescoped `#1788`.
+2. **`docs/backlog/mobile-rider-stories.md`** — `#3992`, `#3995`, `#3999`.
 3. **`docs/superpowers/specs/2026-09-08-financial-core-design.md`** §3 and §7 — the
    behaviour, with worked numbers.
 4. The **working HTML prototype** in `shedrive-web/` — every screen below is built and
@@ -53,8 +53,10 @@ a direct link to *Settle*. When a settlement clears her, she must be released
 fraction of the limit (default 80%), not a hardcoded number. A limit of 0 means the gate
 is off entirely and neither state ever appears.
 
-**`#3987`** — requesting **reserves** the amount; it does not move money. She can cancel
-her own pending request. A rejection reason must be surfaced to her, not swallowed.
+> **There is no driver-initiated payout request.** An earlier story (`#3987`) had her
+> request a withdrawal; it was removed 2026-09-13. Finance transfers the money on its own
+> cycle and an admin records the transfer afterward (`#4001`) — she never requests
+> anything, there is nothing to reserve and nothing for the app to build here.
 
 **`#3990`** — she collects fare + recovered fee, **itemised**, with a short reason on the
 fee line. She must never have to explain an unexplained number to a passenger. Her own
@@ -62,13 +64,12 @@ commission and net earnings are calculated on the fare only, never on the recove
 
 ---
 
-## Rider app — 4 stories
+## Rider app — 3 stories
 
 | Story | Screen | Prototype |
 |---|---|---|
 | `#3992` | Payment method + outstanding fees | `rider/payments.html` |
 | `#3995` | Fee notice before requesting | `rider/home.html?fees=1` |
-| `#3998` | Full-recovery state above the threshold | `rider/home.html?full` |
 | `#3999` | Recovered fee on the fare summary | `rider/trip-complete.html?fee=20` |
 
 **Cash is the only payment method in Phase 1.** Show "Online payment" as present but
@@ -76,17 +77,19 @@ plainly unavailable — `aria-disabled`, not merely greyed. Do not build a selec
 for it.
 
 **The fee must never be folded silently into the fare.** It is its own line, before she
-confirms (`#3995`/`#3998`) and again on the summary (`#3999`). The total is what she
-actually pays.
+confirms (`#3995`) and again on the summary (`#3999`). The total is what she actually
+pays.
 
-**`#3998` is the most sensitive copy in the rider app.** Above the recovery threshold her
-entire outstanding balance is added to one ride, so the amount is noticeably larger than
-her fare. The banner is **not dismissible** in that state — she has to see it. Tone:
-factual and fair, never punitive.
+**`#3995` is the only fee notice — one dismissible banner, always the full amount.** There
+is no threshold and no separate full-recovery state (the earlier `#3998` was folded into
+`#3995` on 2026-09-17). Whatever she owes, the banner states the full amount and that all
+of it will be added to this ride, and she can dismiss it. Tone: factual and fair, never
+punitive.
 
-> **There is no rider booking block.** An earlier version of the design blocked her over
-> the threshold; it was removed because it deadlocks — a cash rider can only clear a fee by
-> taking a ride. Do not add one. Abuse is handled by an admin suspending the rider (#1740).
+> **There is no rider booking block.** An earlier version of the design blocked her once
+> she owed enough; it was removed because it deadlocks — a cash rider can only clear a fee
+> by taking a ride. Do not add one. Abuse is handled by an admin suspending the rider
+> (#1740).
 
 ---
 

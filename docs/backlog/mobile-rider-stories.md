@@ -402,134 +402,79 @@ Once both pickup and destination are set on the home screen (#1548), the app aut
 
 ### Background
 
-When a rider has an outstanding fee (financial core design §3) and both pickup and destination are set on the home screen (#1548), the fee that will be added to this trip is shown as its own line, separate from the fare estimate (#1552) — for example: fare estimate 100.00 EGP, outstanding fee 20.00 EGP, next-ride total 120.00 EGP. The fee amount is never folded silently into the displayed fare estimate; the fare estimate itself is unchanged from what a rider with no outstanding fee would see.
+When a rider has an outstanding balance (financial core design §3) and both pickup and destination are set on the home screen (#1548), her **entire** outstanding balance is shown as its own line, separate from the fare estimate (#1552) — for example: fare estimate 100.00 EGP, outstanding balance 20.00 EGP, next-ride total 120.00 EGP. The amount is never folded silently into the displayed fare estimate; the fare estimate itself is unchanged from what a rider with no outstanding balance would see.
 
-Only one outstanding fee is applied per trip, oldest first, matching the order shown on the payments screen (#3992). If she owes more than one fee, the remaining fees stay outstanding and are carried into a later trip in turn.
+**Her entire outstanding balance is always recovered on this next completed trip, in one payment.** There is no drip, no oldest-fee-first ordering and no threshold — whatever she owes, however many late cancellations it came from, is the single amount shown here.
 
-This is the moment a rider first sees, concretely, that today's ride is paying for something that happened on an earlier one. The copy names the earlier trip plainly — its date, and that it was a late cancellation — rather than presenting the charge as an unexplained addition to today's fare, so she understands why it is there before she commits to the ride.
+**The notice is dismissible.** She can dismiss it and still book — there is no booking block of any kind, at any balance. It is informational: she sees the same total again on the fare summary (#3999) before she actually pays, so nothing about this notice gates her ride; it only makes sure the amount is never a surprise.
 
-All strings — the fee banner, its amount, and its explanation — flow through `data-i18n` keys with Arabic fallback text in the HTML.
+This is the moment a rider first sees, concretely, that today's ride is paying for something that happened on an earlier one. The copy names the reason plainly — a late cancellation, or more than one — rather than presenting the charge as an unexplained addition to today's fare, so she understands why it is there before she commits to the ride.
+
+All strings — the banner, its amount, its explanation and its dismiss control — flow through `data-i18n` keys with Arabic fallback text in the HTML.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Outstanding fee shown as its own amount before confirming**
-- Given the rider has one outstanding fee of 20.00 EGP and sets pickup and destination
+**Scenario 1 — Outstanding balance shown as its own amount before confirming**
+- Given the rider has an outstanding balance of 20.00 EGP and sets pickup and destination
 - When the fare estimate is displayed
-- Then the outstanding fee is shown as its own line of 20.00 EGP, separate from the fare estimate
+- Then the outstanding balance is shown as its own line of 20.00 EGP, separate from the fare estimate
 - And the combined total she will pay this trip is also shown
 
-**Scenario 2 — Fee is never folded into the fare estimate silently**
-- Given the rider has an outstanding fee
+**Scenario 2 — Balance is never folded into the fare estimate silently**
+- Given the rider has an outstanding balance
 - When she views the fare estimate
-- Then the fare estimate itself is unchanged from what a rider with no outstanding fee would see
-- And the fee appears only as its own separate, clearly labelled line
+- Then the fare estimate itself is unchanged from what a rider with no outstanding balance would see
+- And the balance appears only as its own separate, clearly labelled line
 
-**Scenario 3 — Fee names the trip it came from**
-- Given the rider has an outstanding fee
-- When she views the fee line before requesting
-- Then it states which earlier trip the fee is from and that it was a late cancellation
+**Scenario 3 — Notice names the reason**
+- Given the rider has an outstanding balance
+- When she views the notice before requesting
+- Then it states that the amount is from one or more earlier late cancellations
 
-**Scenario 4 — Oldest fee first, one trip at a time**
-- Given the rider has more than one outstanding fee
-- When she views the fee line before requesting
-- Then only the oldest outstanding fee is shown as being added to this trip
-- And the remaining fees stay outstanding for a later trip
+**Scenario 4 — The whole balance is shown as one amount, not just one fee**
+- Given the rider has more than one outstanding fee totalling 65.00 EGP
+- When she views the notice before requesting
+- Then the full 65.00 EGP is shown as a single amount being added to this trip — never just the oldest fee
 
-**Scenario 5 — No outstanding fee**
+**Scenario 5 — Notice is dismissible**
+- Given the notice is shown
+- When she dismisses it
+- Then it disappears for this session and she can still proceed to request a ride
+
+**Scenario 6 — She is never blocked from booking**
+- Given the rider has an outstanding balance of any size
+- Then the "Request Ride" action is available exactly as it is for any other rider
+
+**Scenario 7 — No outstanding balance**
 - Given the rider owes nothing
 - When she sets pickup and destination
-- Then no fee line is shown and the fare estimate is displayed as it is today
+- Then no notice is shown and the fare estimate is displayed as it is today
 
-**Scenario 6 — Fee line persists through to the request**
-- Given an outstanding fee is shown before she requests
+**Scenario 8 — Amount persists through to the request**
+- Given an outstanding balance is shown before she requests
 - When she taps "Request Ride"
-- Then the same fee amount is carried through with the trip request so it can be recovered when the trip completes (#3999)
+- Then the same amount is carried through with the trip request so it can be recovered in full when the trip completes (#4000)
 
-### Out of Scope
-- Paying the fee directly instead of carrying it into the next trip
-- Splitting one fee's recovery across multiple trips
-- Disputing the fee from this screen (Phase 2)
-
-### Dependencies
-- `#4000` — Rider outstanding fee is recovered on her next trip (API — must be live)
-- #1552 — Rider sees fare estimate before requesting (extended by this story)
-- `#3992` — Rider views her payment method and outstanding fees (fee ordering shown here matches that screen)
-
----
-
-## [Mobile] #3998 — Rider is told when her full outstanding balance will be added to her next ride 🆕
-**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** Phase 1
-
-**Description:** As a rider whose outstanding fees have reached the recovery threshold, I want to be told clearly that my whole balance will be added to this ride rather than one fee at a time so that the larger amount on my fare is never a surprise.
-
-### Background
-
-Below the recovery threshold a rider clears her fees gently — one fee per ride, oldest first (#3995). At or above the threshold that changes: **her entire outstanding balance is recovered on her next ride, in a single payment.** This story is that escalated state.
-
-**There is deliberately no booking block.** An earlier draft of the design blocked a rider from booking once she passed the threshold. That deadlocks — a rider pays in cash on the ride, so the only way she can ever clear a fee is by taking a ride. Blocking her booking would make the debt permanent and lose the customer with no money recovered. Escalating the *recovery* instead is self-clearing: she books, she pays it all, she is square. Persistent abuse is handled by an admin suspending the rider (#1740), which is a human decision, not an automatic trap.
-
-The recovery threshold is a policy value (financial core design §4; default 60.00 EGP) that a super admin configures with no code deploy. A threshold of 0 disables the escalation entirely — recovery then always stays at one fee per ride.
-
-The notice in this state is **not dismissible**, unlike the ordinary #3995 banner. She must see the amount before she confirms. The tone stays factual, never punitive: state the amount, state that it clears her completely, and let her decide.
-
-All strings — the heading, the amount, and the explanation — flow through `data-i18n` keys with Arabic fallback text in the HTML.
-
-### Acceptance Criteria
-
-**Scenario 1 — Full balance is recovered above the threshold**
-- Given the recovery threshold is 60.00 EGP and the rider owes 65.00 EGP across three fees
-- When she opens the home screen
-- Then she is told her full 65.00 EGP will be added to this ride
-- And the notice cannot be dismissed
-
-**Scenario 2 — She can still book normally**
-- Given the rider is above the recovery threshold
-- Then the "Request Ride" action is available exactly as it is for any other rider
-- And she is never blocked from booking on account of what she owes
-
-**Scenario 3 — The fare summary reflects the full amount**
-- Given she owes 65.00 EGP and the fare for the ride is 100.00 EGP
-- When the ride completes
-- Then the fee line reads 65.00 EGP and the total to pay is 165.00 EGP (#3999)
-- And her outstanding balance becomes 0.00 EGP
-
-**Scenario 4 — Below the threshold she gets the gentle drip instead**
-- Given the rider owes 40.00 EGP across two fees and the threshold is 60.00 EGP
-- When she opens the home screen
-- Then she sees the ordinary dismissible notice for her oldest fee only (#3995)
-
-**Scenario 5 — Crossing the threshold changes the state**
-- Given the rider owes 55.00 EGP and cancels late again for a further 20.00 EGP
-- When she next opens the home screen
-- Then she is in the full-recovery state for the whole 75.00 EGP
-
-**Scenario 6 — A threshold of 0 disables the escalation**
-- Given the recovery threshold is configured at 0
-- When the rider owes any amount
-- Then recovery always stays at one fee per ride and this state is never shown
-
-**Scenario 7 — An admin waiver drops her back**
-- Given an admin waives a fee (#4005) bringing her below the threshold
-- When she returns to the home screen
-- Then she sees the ordinary #3995 notice instead
-
-**Scenario 8 — Network error checking her fee status**
-- Given the app cannot reach the platform to check her outstanding-fee status
+**Scenario 9 — Network error checking her balance**
+- Given the app cannot reach the platform to check her outstanding balance
 - When the home screen loads
 - Then it retries silently and shows the ordinary booking state rather than a wrong amount from a stale read
 
 ### Out of Scope
-- Paying a fee directly from this screen
+- Paying the balance directly from this screen instead of it being added to the next trip
 - Any automatic booking block — abuse is handled by rider suspension (#1740)
-- Appealing or disputing a fee (Phase 2)
-- Partial clearing of a single fee
+- Disputing the balance from this screen (Phase 2)
 
 ### Dependencies
-- `#4002` — Rider fees above the recovery threshold are recovered in a single payment (API — must be live)
-- `#3994` — Super admin configures balance and fee policy (sets the threshold)
-- `#3995` — Rider sees an outstanding fee before she requests a ride (the below-threshold state)
-- `#3999` — Rider sees the recovered fee on her fare summary
-- `#1740` — Operations admin suspends a rider account (the only block on a rider)
+- `#4000` — Rider outstanding fee is recovered on her next trip (API — must be live; supplies the full-balance amount)
+- #1552 — Rider sees fare estimate before requesting (extended by this story)
+- `#3992` — Rider views her payment method and outstanding fees (parity with the amount shown there)
+- `#3999` — Rider sees the recovered fee on her fare summary (she sees the same total again there before she pays)
+- `#1740` — Operations admin suspends a rider account (the only block on a rider, for persistent abuse)
+
+---
+
+> **Removed 2026-09-17 — [Mobile] #3998 (rider is told when her full outstanding balance will be added to her next ride):** the recovery threshold is gone, so there is only one notice. A rider always has her full outstanding balance added to her next trip, and #3995 above now states that amount and is dismissible.
 
 ---
 
@@ -1110,7 +1055,9 @@ A "Skip" option is available on both the trip summary screen and the rating scre
 
 ### Background
 
-When a rider's outstanding fee is recovered on a trip (#3995 shows it to her before she confirms; the platform posts the recovery when the trip completes, #4000), the fare summary screen (#1564) gains an explicit "recovered fee" line above the total — for example: fare 100.00 EGP, recovered fee 20.00 EGP, total 120.00 EGP. The total shown is what she actually paid the driver in cash, matching what she was told before she confirmed the ride (#3995). The same recovered-fee line appears later whenever she opens that trip's detail in her trip history (#1568), so the record does not quietly change once she has already paid it.
+When a rider's outstanding balance is recovered on a trip (#3995 shows it to her before she confirms; the platform posts the recovery when the trip completes, #4000), the fare summary screen (#1564) gains an explicit "recovered fee" line above the total — for example: fare 100.00 EGP, recovered fee 20.00 EGP, total 120.00 EGP. The total shown is what she actually paid the driver in cash, matching what she was told before she confirmed the ride (#3995). The same recovered-fee line appears later whenever she opens that trip's detail in her trip history (#1568), so the record does not quietly change once she has already paid it.
+
+When she owed more than one fee before this trip, they are combined and shown as a single recovered-fee line for their total — never itemised fee by fee — because the whole balance is always recovered together, in one payment.
 
 When no fee was recovered on a trip, the fare summary and trip detail look exactly as they do today — no empty or zero recovered-fee row is shown.
 
@@ -1136,18 +1083,18 @@ All strings — the recovered-fee line label and its explanation — flow throug
 - Then the same recovered-fee line and total are shown
 
 **Scenario 4 — Recovered fee amount matches what was shown before the ride**
-- Given the rider saw a 20.00 EGP fee added before she requested the ride (#3995)
+- Given the rider saw a 20.00 EGP balance added before she requested the ride (#3995)
 - When the trip completes
 - Then the recovered-fee line on the summary shows the same 20.00 EGP
 
-**Scenario 5 — Only one fee is recovered per trip**
-- Given the rider had more than one outstanding fee before this trip
+**Scenario 5 — Several outstanding fees are shown as one combined amount**
+- Given the rider had two outstanding fees, 20.00 EGP and 15.00 EGP, before this trip
 - When the trip completes
-- Then only the oldest fee is shown as recovered on this summary
-- And any remaining fees stay outstanding for a later trip
+- Then a single recovered-fee line of 35.00 EGP is shown on this summary
+- And no fee remains outstanding afterward
 
 ### Out of Scope
-- Itemising the recovered fee further (it is shown as a single line, not broken down)
+- Itemising the recovered fee further (it is shown as a single combined line, not broken down by originating trip)
 - Receipts or invoices as PDFs
 - Disputing the recovered fee from this screen (Phase 2)
 

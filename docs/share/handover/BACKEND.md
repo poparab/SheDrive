@@ -9,8 +9,8 @@
 
 1. **`docs/superpowers/specs/2026-09-08-financial-core-design.md`** — the design spec.
    This is the contract. Sections 1, 2, 3, 5 and 6 are yours.
-2. **`docs/backlog/api-stories.md`** — your ten stories, `#3991` … `#4004` plus the two
-   reopened ones (#1764, #1781).
+2. **`docs/backlog/api-stories.md`** — your seven stories: `#3991`, `#3996`, `#3997`,
+   `#4000` and `#4004`, plus the two reopened ones (#1764, #1781).
 3. **`docs/backlog/financial-core-ado-parents.md`** — which Feature each story hangs off,
    all verified.
 
@@ -73,13 +73,14 @@ mid-trip never alters a trip already running.
 > in scope, via `#4000`. That was the cash leak, and closing it is the point of this
 > change set.
 
-### 4. Fee recovery on the next ride (`#4000`, `#4002`)
+### 4. Fee recovery on the next ride (`#4000`)
 Cash riders have no card, so an unpaid fee rides along on the next trip as a surcharge
 the driver collects. Spec §3 has the full worked example with both custody values —
 **implement against those numbers; they balance exactly.**
 
-- Below the recovery threshold: oldest fee first, one per ride.
-- At or above it: the whole outstanding balance, in one payment (`#4002`).
+- She clears her **entire** outstanding balance on her next completed trip, always — no
+  threshold, no drip, and no oldest-fee-first ordering. She always leaves that ride owing
+  nothing.
 - The surcharge posts `fee_collected` on the rider and `rider_fee_recovery` on the driver
   (she collected our money, so she owes it to us).
 - **Commission is never taken from a recovered fee.** We already hold our share.
@@ -93,15 +94,19 @@ Refuse to put a driver online when `outstanding >= limit`. Return the amount owe
 limit so the app can explain it. **Limit of 0 disables the gate.** A settlement that drops
 her below the limit must release her **immediately** — no batch, no approval step.
 
-### 6. Payouts (`#3993`, `#4003`)
+### 6. Payouts (`#4001`)
 **A driver never requests a payout.** Finance transfers the money on its own cycle and
 then records the transfer, which posts a `payout` debit. There is no request, no approval
 queue, no reservation against her balance, no minimum or maximum, and no cooling-off
 period — there is nothing to approve, because the money moved before anything was
 recorded. Recording is idempotent on the payout reference, and an amount above her
-available balance is refused.
-**A payout cannot be recorded without a payout destination on file** (`#4003`) — you
-cannot write down a transfer to nowhere.
+available balance is refused — nothing else gates it.
+**The system holds no payout destination.** No bank or wallet detail is collected from a
+driver, held by the platform, or checked before a payout is recorded — getting the money
+to her is a manual, off-platform process outside the platform. `#3993` [API] Finance
+records a payout was folded into `#4001` [Admin] on 2026-09-17: the house rule is that an
+admin screen's backend lives inside its own `[Admin]` story, so `#4001` now owns both the
+screen and the ledger posting.
 
 ### 7. Reads (`#1781` reopened, `#4004`)
 Driver balance + statement; rider outstanding fees + statement. These calculate nothing —
@@ -109,29 +114,37 @@ they read the ledger.
 
 ---
 
-## Please raise this before you build the ledger
+## Design for a reversal. Do not build one yet.
 
-**There is currently no way to correct a mis-recorded entry.** The ledger is append-only,
-and the product owner has removed the post-adjustment action to keep Phase 1 simple. That
-means nothing can fix a settlement recorded against the wrong driver, an amount keyed as
-300 instead of 30, or a payout written down twice — the entry is permanent and the driver
-sees it in her statement. A rider fee can still be written off (`fee_waived`); the driver
-ledger has no equivalent.
+**Nothing in Phase 1 can correct a mis-recorded entry.** The ledger is append-only, the
+post-adjustment action was cut, and with the waive cut too this is now true of **both**
+ledgers. A settlement recorded against the wrong driver, an amount keyed as 300 instead of
+30, or a cancellation fee charged to the wrong rider is permanent, and she sees it in her
+statement. The product owner has accepted that and will brief the team to account for it
+in the design.
 
-The cheapest fix that does not reintroduce a free-form adjustment form is a
-**reverse-this-entry** action: one button on an existing entry, a required reason, posting
-the exact opposite amount and linking the two rows. Please put this in front of the product
-owner before `#3991` is built — retrofitting a correction path onto a live financial ledger
-is materially harder than shipping one.
+**What that asks of you when you build `#3991`:** leave room for a **reverse-this-entry**
+action later — one button on an existing entry, a required reason, posting the exact
+opposite amount and linking the two rows. In practice that means giving an entry somewhere
+to point at another entry, and making sure the idempotency key cannot block a deliberate
+equal-and-opposite posting. Adding the action later is cheap if the shape allows it, and a
+migration on live financial data if it does not.
 
 ---
 
-## Open issue you need to resolve with us
+## Where the availability write lives — answered
 
-**#1645 — *[API] Driver sets availability status* — is `Removed` in ADO.**
-`#3996` extends the go-online check that story owned, and #3058's completion flow also
-depends on the availability write. There is currently no story owning that transition.
-Please confirm where availability is actually written before starting `#3996`.
+`#3996` does **not** extend a missing story. The availability endpoint and its approval
+gate are owned by **`#1644` — [API] Driver onboarding decision — go-online and offline**,
+which is `Closed` (Sprint 1, 1 point). Its description is explicit: *"the availability
+endpoint to reject any attempt by a non-approved driver to set her status to online"*, and
+its test suite covers pending, rejected, suspended, no-application and approved drivers,
+plus availability being left unchanged after a failed attempt.
+
+`#1645` *[API] Driver sets availability status* was `Removed` because it duplicated
+`#1644`, not because the capability was dropped. So `#3996` adds **one more condition** —
+the outstanding-balance check — to a gate that already exists and already ships. Estimate
+it as an extension, not a new endpoint.
 
 ---
 

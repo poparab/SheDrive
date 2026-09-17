@@ -515,12 +515,12 @@
     <p class="eyebrow">SheDrive · Financial core · Backend refinement</p>
     <h1>SheDrive Backend Refinement</h1>
     <p class="lede">
-      The ten API stories and the six admin screens, and how they meet. Everything the
+      The seven API stories and the six admin screens, and how they meet. Everything the
       mobile apps need, everything an operator does, and the one table both sit on.
     </p>
     <div class="meta">
-      <span>16 stories</span>
-      <span>all at New, 14 unestimated</span>
+      <span>13 stories</span>
+      <span>all at New, 11 unestimated</span>
       <span>Phase 1 · cash</span>
       <span>mockups live</span>
     </div>
@@ -544,15 +544,15 @@
 
   <!-- ============ THE PICTURE ============ -->
   <section>
-    <div class="sec-head"><span class="sec-num">01</span><h2>Six things write, five things read</h2></div>
+    <div class="sec-head"><span class="sec-num">01</span><h2>Five things write, five things read</h2></div>
     <p>
-      The whole financial core is one table with six writers and five readers. Build the
+      The whole financial core is one table with five writers and five readers. Build the
       table first; everything else is a consumer of it.
     </p>
 
     <figure>
       <div class="figbox">
-        <svg viewBox="0 0 790 390" role="img" aria-label="Six writers append entries to the party balance ledger: trip completion, cancellation fees, fee recovery, a recorded settlement, a recorded payout, and a waived fee. Five readers compute sums from it: the driver balance and statement, the rider fees and statement, the go-online gate, the admin balance screens, and the two reports. Nothing writes a balance directly.">
+        <svg viewBox="0 0 790 390" role="img" aria-label="Five writers append entries to the party balance ledger: trip completion, cancellation fees, fee recovery, a recorded settlement and a recorded payout. Five readers compute sums from it: the driver balance and statement, the rider fees and statement, the go-online gate, the admin balance screens, and the two reports. Nothing writes a balance directly.">
           <defs>
             <marker id="bk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
@@ -572,7 +572,7 @@
 
           <rect class="svg-box" x="12" y="134" width="216" height="40" rx="3" />
           <text class="svg-strong" x="26" y="152">Fee recovered on a ride</text>
-          <text class="svg-mono" x="26" y="167" style="fill: var(--api); opacity: 1">#4000 #4002 · both ledgers</text>
+          <text class="svg-mono" x="26" y="167" style="fill: var(--api); opacity: 1">#4000 · both ledgers, all of it</text>
 
           <rect class="svg-box" x="12" y="181" width="216" height="40" rx="3" />
           <text class="svg-strong" x="26" y="199">Settlement recorded</text>
@@ -580,19 +580,14 @@
 
           <rect class="svg-box" x="12" y="228" width="216" height="40" rx="3" />
           <text class="svg-strong" x="26" y="246">Payout recorded</text>
-          <text class="svg-mono" x="26" y="261" opacity="1"><tspan style="fill: var(--admin)">#4001</tspan> <tspan style="fill: var(--api)">#3993</tspan><tspan style="fill: currentColor; opacity: 0.75"> · already sent</tspan></text>
-
-          <rect class="svg-box" x="12" y="275" width="216" height="40" rx="3" />
-          <text class="svg-strong" x="26" y="293">Fee waived</text>
-          <text class="svg-mono" x="26" y="308" style="fill: var(--admin); opacity: 1">#4005 · admin, with a reason</text>
+          <text class="svg-mono" x="26" y="261" style="fill: var(--admin); opacity: 1">#4001 · admin, already sent</text>
 
           <line class="svg-line" x1="228" y1="60" x2="262" y2="60" />
           <line class="svg-line" x1="228" y1="107" x2="262" y2="107" />
           <line class="svg-line" x1="228" y1="154" x2="262" y2="154" />
           <line class="svg-line" x1="228" y1="201" x2="262" y2="201" />
           <line class="svg-line" x1="228" y1="248" x2="262" y2="248" />
-          <line class="svg-line" x1="228" y1="295" x2="262" y2="295" />
-          <line class="svg-line" x1="262" y1="60" x2="262" y2="295" />
+          <line class="svg-line" x1="262" y1="60" x2="262" y2="248" />
           <line class="svg-line" x1="262" y1="178" x2="294" y2="178" marker-end="url(#bk)" />
 
           <rect x="298" y="96" width="186" height="164" rx="3" fill="none" stroke="var(--api)" stroke-width="1.5" />
@@ -646,6 +641,26 @@
       </figcaption>
     </figure>
 
+    <div class="note note--stop">
+      <p>
+        <b>Design for a reversal. Do not build one yet — decided 17 Sep.</b> Nothing in
+        Phase 1 can correct a mis-recorded entry: the ledger is append-only, the
+        post-adjustment action was cut, and with the waive gone that is now true of both
+        ledgers. A settlement recorded against the wrong driver, an amount keyed as 300
+        instead of 30, or a fee charged to the wrong rider is <b>permanent</b>, and she sees
+        it in her statement. The product owner has accepted that for now and asked that the
+        design account for it.
+      </p>
+      <p>
+        What that means concretely when you build <b class="n-api">#3991</b>: leave room for a
+        <b>reverse-this-entry</b> action later — one button on an existing entry, a required
+        reason, posting the exact opposite amount and linking the two rows. In practice, give
+        an entry somewhere to point at another entry, and keep the idempotency key from
+        blocking a deliberate equal-and-opposite posting. Adding that later is cheap if the
+        shape allows it and a migration on live financial data if it does not.
+      </p>
+    </div>
+
     <div class="note">
       <p>
         <b>The four invariants, in the order they will bite you.</b>
@@ -661,7 +676,7 @@
 
   <!-- ============ API ============ -->
   <section>
-    <div class="sec-head"><span class="sec-num">02</span><h2>The API surface — 10 stories</h2></div>
+    <div class="sec-head"><span class="sec-num">02</span><h2>The API surface — 7 stories</h2></div>
     <p>
       Grouped by the Feature each already hangs off in ADO. <span class="tag tag--write">writes</span>
       appends to the ledger; <span class="tag tag--read">reads</span> computes from it;
@@ -687,18 +702,6 @@
             <td><span class="tag tag--read">reads</span></td>
             <td>Never make a client interpret a sign. One of the two is always zero. Calculates nothing.</td>
           </tr>
-          <tr>
-            <td class="id id--api"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3993"><b class="n-api">#3993</b></a></td>
-            <td>Posts the <code>payout</code> debit when Finance records a transfer it has already sent.</td>
-            <td><span class="tag tag--write">writes</span></td>
-            <td>Idempotent on the payout reference. Refused above <code>available</code>, refused with no destination on file. <b>See question 1.</b></td>
-          </tr>
-          <tr>
-            <td class="id id--api"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4003"><b class="n-api">#4003</b></a></td>
-            <td>Captures, updates and returns the driver's payout destination.</td>
-            <td><span class="tag tag--read">reads</span></td>
-            <td>Onboarding does not collect this today. <b>See question 4.</b></td>
-          </tr>
 
           <tr><th colspan="4">Feature 11 — Trip Completion &amp; Cash Payment</th></tr>
           <tr>
@@ -717,15 +720,9 @@
           </tr>
           <tr>
             <td class="id id--api"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4000"><b class="n-api">#4000</b></a></td>
-            <td>The oldest outstanding rider fee rides as a surcharge on her next completed trip, posting to both ledgers in one event.</td>
+            <td>Her <b>entire</b> outstanding balance rides as a surcharge on her next completed trip, posting to both ledgers in one event. One rule, no exception, nothing to configure.</td>
             <td><span class="tag tag--write">writes</span></td>
-            <td><b>No commission is ever taken from a recovered fee</b> — the platform already holds its share. Spec §3 has the worked numbers; they balance exactly.</td>
-          </tr>
-          <tr>
-            <td class="id id--api"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4002"><b class="n-api">#4002</b></a></td>
-            <td>At or above the recovery threshold, her whole outstanding balance comes off one ride instead of one fee at a time.</td>
-            <td><span class="tag tag--write">writes</span></td>
-            <td>Threshold of 0 disables the escalation. <b>It never refuses a booking</b> — that was tried and it deadlocks.</td>
+            <td><b>No commission is ever taken from a recovered fee</b> — the platform already holds its share. She leaves that trip owing nothing, whether she owed one fee or four. <b>It never refuses a booking</b> — that was tried and it deadlocks.</td>
           </tr>
 
           <tr><th colspan="4">Feature 6 — Driver Home &amp; Availability API</th></tr>
@@ -733,7 +730,7 @@
             <td class="id id--api"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3996"><b class="n-api">#3996</b></a></td>
             <td>Refuses to put a driver online while <code>outstanding &gt;= limit</code>. Returns the amount and the limit so the app can explain it.</td>
             <td><span class="tag tag--gate">gate</span></td>
-            <td>A settlement that clears her must release her <b>immediately</b> — no batch, no approval. Limit of 0 turns the gate off. <b>See question 2.</b></td>
+            <td>A settlement that clears her must release her <b>immediately</b> — no batch, no approval. Limit of 0 turns the gate off. <b>This is one more condition on an existing gate</b>, not a new endpoint — see the note below.</td>
           </tr>
 
           <tr><th colspan="4">Feature 19 — Payments — Rider API</th></tr>
@@ -752,8 +749,22 @@
         <b>Why there are no API stories for the admin screens.</b> House rule: <code>[API]</code>
         stories exist for mobile screens only; an admin screen's backend is specified inside
         its own <code>[Admin]</code> story. So when you estimate <b class="n-admin">#1813</b> you are estimating the
-        screen <i>and</i> its endpoints together. <b class="n-api">#3993</b> is the one exception in this set, and
-        question 1 is about exactly that.
+        screen <i>and</i> its endpoints together. <b class="n-api">#3993</b> used to be the one exception — it
+        described the same act as <b class="n-admin">#4001</b> from the API side — and it was folded into
+        <b class="n-admin">#4001</b> on 17 September. There are now no exceptions.
+      </p>
+    </div>
+
+    <div class="note">
+      <p>
+        <b>The go-online gate already exists — answered 17 Sep.</b> <b class="n-api">#3996</b> does not
+        extend a missing story. The availability endpoint and its approval gate are owned by
+        <b class="n-api">#1644</b> <i>[API] Driver onboarding decision — go-online and offline</i>, which is
+        <b>Closed</b> (Sprint 1, 1 point) with a test suite covering pending, rejected,
+        suspended, no-application and approved drivers. <b class="n-api">#1645</b> was removed as a
+        duplicate of <b class="n-api">#1644</b>, not because the capability was dropped. So
+        <b class="n-api">#3996</b> adds <b>one more condition</b> — the outstanding-balance check — to a
+        gate that already ships. Estimate it as an extension, not a new endpoint.
       </p>
     </div>
   </section>
@@ -782,20 +793,20 @@
           <tr>
             <td class="id id--admin"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4001"><b class="n-admin">#4001</b></a></td>
             <td><a class="screen" href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances">balances</a></td>
-            <td><b>Records a payout</b> Finance has already sent — amount, destination, reference, date. Same screen as the settlement, opposite direction.</td>
-            <td><span class="tag tag--write">writes</span> a <code>payout</code> debit, via <b class="n-api">#3993</b>.</td>
+            <td><b>Records a payout</b> Finance has already sent — amount, date, reference. Same screen as the settlement, opposite direction.</td>
+            <td><span class="tag tag--write">writes</span> a <code>payout</code> debit. This story owns the screen <b>and</b> the posting: idempotent on the payout reference, refused above her <code>available</code> balance.</td>
           </tr>
           <tr>
             <td class="id id--admin"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4005"><b class="n-admin">#4005</b></a></td>
             <td><a class="screen" href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances">rider-balances</a></td>
-            <td>Sees riders who owe a fee, opens the rider ledger, <b>waives a fee with a reason</b>, and escalates persistent abuse to suspension (<b class="n-admin">#1740</b>).</td>
-            <td><span class="tag tag--write">writes</span> a <code>fee_waived</code> credit. Suspension is the only block on a rider, and it is a human decision.</td>
+            <td>Sees riders who owe anything and opens the rider ledger. <b>Read-only</b> — no waive, no adjustment. The single action is escalating persistent abuse to suspension (<b class="n-admin">#1740</b>).</td>
+            <td><span class="tag tag--read">reads</span>. Nothing on this screen writes to the ledger. Suspension is the only block on a rider, and it is a human decision.</td>
           </tr>
           <tr>
             <td class="id id--admin"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3994"><b class="n-admin">#3994</b></a></td>
             <td><a class="screen" href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies">pricing-policies</a></td>
-            <td>Sets the commission, both grace periods, both cancellation fees, the driver's share of a rider fee, the outstanding limit and warning band, and the rider recovery threshold.</td>
-            <td>No ledger write. Feeds <b class="n-api">#3996</b>, <b class="n-api">#4002</b>, <b class="n-api">#1764</b> and <b class="n-api">#4000</b>. Every change audited with who, when, before and after.</td>
+            <td>Sets the commission, both grace periods, both cancellation fees, the driver's share of a rider fee, and the driver outstanding limit with its warning band.</td>
+            <td>No ledger write. Feeds <b class="n-api">#3996</b>, <b class="n-api">#1764</b> and <b class="n-api">#3997</b>. Every change audited with who, when, before and after.</td>
           </tr>
           <tr>
             <td class="id id--admin"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1833"><b class="n-admin">#1833</b></a></td>
@@ -807,10 +818,34 @@
             <td class="id id--admin"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1832"><b class="n-admin">#1832</b></a></td>
             <td><a class="screen" href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reports">reports</a></td>
             <td>Period revenue: trips, gross fares, commission, cancellation fees, net driver earnings, and a check panel proving gross = commission + net.</td>
-            <td><span class="tag tag--read">reads</span>. <b>See question 5 — the most important figure is missing.</b></td>
+            <td><span class="tag tag--read">reads</span>. Shows commission <b>earned</b> but not how much has actually reached us. <b>See question 1.</b></td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="note">
+      <p>
+        <b>There is no recovery threshold — settled 17 Sep.</b> A rider clears her
+        <b>entire</b> outstanding balance on her next completed trip, every time. No escalation,
+        no oldest-fee-first ordering, no setting on the policy screen, and one banner in the
+        rider app rather than two. <b class="n-api">#4002</b> is removed because it now
+        describes exactly what <b class="n-api">#4000</b> does. A rider who runs up several
+        cancellations before her next ride is a case we deliberately defer.
+      </p>
+    </div>
+
+    <div class="note">
+      <p>
+        <b>There is no payout destination in the system — settled 17 Sep.</b> Nothing is
+        captured from a driver, nothing is stored, and nothing is verified before a payout is
+        recorded. Getting the money to her is a manual, off-platform process for now, so the
+        admin simply writes down the amount, the date and a reference for what Finance already
+        did. <b class="n-api">#4003</b>, which would have captured and required a destination,
+        is removed. The one check that remains on the amount — refusing more than her
+        <code>available</code> balance — is data integrity, not verification of where the
+        money went.
+      </p>
     </div>
   </section>
 
@@ -839,19 +874,9 @@
             <td><b class="n-api">#1781</b> shows a smaller <code>available</code>, and the entry appears in her statement with its reference.</td>
           </tr>
           <tr>
-            <td>Waives a rider fee (<b class="n-admin">#4005</b>)</td>
-            <td>a <code>fee_waived</code> credit</td>
-            <td><b class="n-api">#4004</b> drops the fee, and <b class="n-api">#4000</b> no longer recovers it on her next trip.</td>
-          </tr>
-          <tr>
             <td>Lowers the outstanding limit (<b class="n-admin">#3994</b>)</td>
             <td>nothing</td>
             <td><b class="n-api">#3996</b> applies the new limit from each driver's <b>next</b> go-online request. Nobody already online is knocked off.</td>
-          </tr>
-          <tr>
-            <td>Lowers the recovery threshold (<b class="n-admin">#3994</b>)</td>
-            <td>nothing</td>
-            <td><b class="n-api">#4002</b> escalates more riders to full recovery from their <b>next</b> booking. A booking in progress is not interrupted.</td>
           </tr>
           <tr>
             <td>Changes the commission or a fee (<b class="n-admin">#3994</b>)</td>
@@ -865,75 +890,72 @@
 
   <!-- ============ QUESTIONS ============ -->
   <section>
-    <div class="sec-head"><span class="sec-num">05</span><h2>Five things to settle in this session</h2></div>
+    <div class="sec-head"><span class="sec-num">05</span><h2>One thing to settle in this session — the estimate</h2></div>
 
     <div class="note note--q">
       <div class="q">
         <span class="q__n">Q1</span>
         <p>
-          <b><b class="n-api">#3993</b> and <b class="n-admin">#4001</b> describe the same action.</b> <b class="n-api">#3993</b> is written as
-          <i>"As the admin portal, I want to record a payout…"</i> and <b class="n-admin">#4001</b> as
-          <i>"As a super admin, I want to record a payout…"</i>. The house rule says an admin
-          screen's backend lives inside its <code>[Admin]</code> story, which would make <b class="n-api">#3993</b>
-          redundant. Either fold <b class="n-api">#3993</b> into <b class="n-admin">#4001</b>, or keep it deliberately as the pure
-          ledger-posting concern that the driver's statement also depends on — but decide,
-          rather than estimating both and building it twice.
+          <b>The revenue report says we have money we have not actually received.</b>
         </p>
-      </div>
-    </div>
-
-    <div class="note note--q">
-      <div class="q">
-        <span class="q__n">Q2</span>
         <p>
-          <b><b class="n-api">#1645</b> is <code>Removed</code> in ADO, but <b class="n-api">#3996</b> extends it.</b> <b class="n-api">#3996</b> adds a
-          balance check to the go-online transition that <b class="n-api">#1645</b> owned, and <b class="n-api">#3058</b>'s completion
-          flow depends on the same availability write. Right now no story owns that
-          transition. Confirm where availability is actually written before <b class="n-api">#3996</b> is
-          estimated — otherwise it is extending something that does not exist.
+          On a cash business, earning commission and <i>holding</i> it are two different
+          events, and they can be weeks apart. A trip completes, we have earned our 20% —
+          but the rider paid the driver, so the driver is holding our money. It only
+          reaches us when she hands cash back and an admin records a settlement.
         </p>
-      </div>
-    </div>
-
-    <div class="note note--stop">
-      <div class="q">
-        <span class="q__n">Q3</span>
         <p>
-          <b>There is no way to correct a mis-recorded entry.</b> The ledger is append-only
-          and the post-adjustment action was cut to keep Phase 1 simple. So a settlement
-          recorded against the wrong driver, an amount keyed as 300 instead of 30, or a payout
-          written down twice is <b>permanent</b>, and she sees it in her statement. A rider
-          fee can still be waived; the driver ledger has no equivalent. The cheapest fix is a
-          <b>reverse-this-entry</b> action — one button on an existing entry, a required
-          reason, posting the exact opposite amount and linking the two rows.
-          <b>Raise this before <b class="n-api">#3991</b> is built</b>: retrofitting a correction path onto a live
-          financial ledger is materially harder than shipping one.
+          Today the report shows one commission number. That number is what we
+          <b>earned</b>, and it reads as though it is what we <b>have</b>. Those are
+          different amounts, and the gap between them is the money still out in the field.
+          Three figures are needed, not one:
         </p>
-      </div>
-    </div>
-
-    <div class="note note--q">
-      <div class="q">
-        <span class="q__n">Q4</span>
+        <div class="scroller" style="margin: 4px 0">
+          <table style="min-width: 0">
+            <thead>
+              <tr><th>Figure</th><th>What it means</th><th class="mid">Example month</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><b>Commission earned</b></td><td>What completed trips generated for us. What today's report already shows.</td><td class="mid">20,000</td></tr>
+              <tr><td><b>Commission settled</b></td><td>How much of it actually reached SheDrive, through recorded settlements.</td><td class="mid">14,000</td></tr>
+              <tr><td><b>Outstanding</b></td><td>Earned minus settled — revenue we are owed that is sitting in drivers' pockets right now.</td><td class="mid"><b>6,000</b></td></tr>
+            </tbody>
+          </table>
+        </div>
         <p>
-          <b>Payout destinations are not collected at onboarding.</b> <b class="n-api">#4003</b> adds the field and
-          makes it required before a payout can be recorded, but nothing asks a driver for a
-          bank account or wallet number today. Either onboarding grows a step, or every payout
-          is blocked on a back-office chase the first time Finance tries to pay anyone.
+          That 6,000 is the number worth having. It is our <b>credit exposure</b> — what we
+          lose if those drivers stop driving — and it is the only figure that says whether
+          collection is keeping up. Revenue can look excellent while outstanding grows every
+          month, and one number cannot show you that. It is also the same money the Driver
+          balances screen shows per driver, totalled: one line instead of four hundred rows.
         </p>
-      </div>
-    </div>
-
-    <div class="note note--q">
-      <div class="q">
-        <span class="q__n">Q5</span>
         <p>
-          <b>The exposure figure is specified but not built.</b> <b class="n-admin">#1832</b>'s criteria call for
-          commission <i>earned</i> vs <i>settled</i> vs <i>outstanding</i>, and neither the
-          screen nor the mock API produces it. On a cash business that outstanding number —
-          revenue earned but still in drivers' pockets — is the most important line on the
-          report. Confirm it is in scope for <b class="n-admin">#1832</b> and that the 3 points it carries still
-          reflect that, since it was pointed before this scope was added.
+          <b>The story now spells all of this out.</b> <b class="n-admin">#1832</b> was rewritten on
+          17 September and carries <b>13 scenarios</b>. The three figures are defined with
+          their scopes, and the traps are written down rather than left to be discovered:
+        </p>
+        <ul>
+          <li><b>They are not an equation.</b> Earned and settled are period figures;
+          outstanding is a live balance covering all time. A settlement this month can clear
+          commission earned months ago, and commission earned on the last day of the period
+          will not be settled yet. The report must not present them as summing, or flag the
+          difference as an error.</li>
+          <li><b>Outstanding ignores both filters.</b> Changing the date range must not move
+          it, and selecting a zone must not either — a driver's ledger balance is not
+          zone-scoped. It is shown as platform-wide or hidden with a note, never shown as if
+          it had been filtered.</li>
+          <li><b>A settlement is not always commission.</b> Her balance can also hold a
+          driver cancellation fee or a rider fee she collected for us, and a settlement
+          clears the balance rather than a named part of it. Where it cannot be attributed
+          to commission, the report states the basis it used instead of guessing quietly.</li>
+          <li><b>Recovered rider fees carry no commission</b> and must not inflate any of
+          the three.</li>
+        </ul>
+        <p>
+          <b>What is still open:</b> only the estimate. <b class="n-admin">#1832</b> carries <b>3 points</b>,
+          assigned before any of this was added to it, and it now sits in <b>Sprint 5</b>.
+          Re-point it in this session. The screen and the mock API still show one commission
+          number, so the three figures need building as well as agreeing.
         </p>
       </div>
     </div>
@@ -965,6 +987,6 @@
       examples are in <code>docs/superpowers/specs/2026-09-08-financial-core-design.md</code>;
       the backend packet is <code>docs/share/handover/BACKEND.md</code>.
     </p>
-    <p>SheDrive · financial core · 10 API stories · 6 admin screens · one ledger.</p>
+    <p>SheDrive · financial core · 7 API stories · 6 admin screens · one ledger.</p>
   </footer>
 </div>

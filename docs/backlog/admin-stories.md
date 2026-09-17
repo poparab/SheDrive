@@ -1,11 +1,11 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-09-09
+> Last updated: 2026-09-14
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
-> **Role model (this phase):** A single admin role — **super admin** — with full
-> privileges on every screen. Finer-grained roles (Operations Supervisor, Customer
-> Support, Finance, Compliance) are a planned future addition.
+> **Role model:** Two admin roles — **Super admin** and **Admin** — with the same access to
+> every screen. The only extra a Super admin has is suspending, unsuspending (#1821) and
+> deleting (#4122) other admin accounts. Finer-grained roles are a planned future addition.
 > **Portal UI:** English only. **Safety/SOS:** the SOS queue + escalation workflow
 > is deferred to a later phase; the women-only gender-mismatch report triage is in scope.
 
@@ -235,35 +235,206 @@ This screen lists all admin user accounts so the super admin ( only ) can see wh
 
 ---
 
-## [Admin] #1821 — Super admin enables and disables admin user accounts 🆕
-**Feature:** Feature 1 — Platform & Integration Foundation | **Sprint:** 1
+## [Admin] #1821 — Super admin suspends and unsuspends admin user accounts ✏️
+**Feature:** Feature 1 — Platform & Integration Foundation | **Sprint:** 4
 
-**Description:** As a super admin, I want to disable and re-enable admin user accounts so that I can revoke or restore portal access without ever locking the portal out.
+**Description:** As a super admin, I want to suspend and unsuspend other admin user accounts so that I can revoke or restore portal access without ever locking the portal out.
 
 ### Background
 
-From the admin accounts list (#1820), the super admin can disable an active account — immediately invalidating its sessions and blocking login — or re-enable a disabled one. Creating accounts is #1807.
+Admin accounts have one of two roles: **Super admin** or **Admin**. Both roles see and use every portal screen in the same way. The only thing a Super admin can do that an Admin cannot is **suspend, unsuspend and delete other admin accounts** — suspend and unsuspend are this story, delete is #4122.
+
+From the admin accounts list (#1820), a Super admin can suspend an Active account — which immediately ends its sessions and blocks its login — or unsuspend a Suspended one. Suspension is reversible; deletion (#4122) is not. The status label is **Suspended** (it replaces the earlier "Disabled" wording). A Super admin cannot suspend her own account.
+
+### Role Permissions
+
+| Action | Super admin | Admin |
+|---|---|---|
+| Use every other portal screen and action | Yes | Yes |
+| View the admin accounts list (#1820) and its summary cards (#4121) | Yes | Yes |
+| Add an admin account (#1807) | Yes | Yes |
+| Suspend or unsuspend another admin account (this story) | Yes | No |
+| Delete another admin account (#4122) | Yes | No |
 
 ### Acceptance Criteria
 
-**Scenario 1 — Super admin disables an admin**
-- Given an active admin account
-- When the super admin disables it
-- Then its status changes to Disabled, its sessions are invalidated, and that admin can no longer log in
+**Scenario 1 — Super admin suspends an admin**
+- Given a Super admin is on the admin accounts list and another admin's account is Active
+- When she chooses Suspend and confirms
+- Then the account's status changes to Suspended
+- And its active sessions are ended and that admin can no longer log in
 
-**Scenario 2 — Super admin re-enables an admin**
-- Given a disabled admin account
-- When the super admin re-enables it
-- Then its status changes to Active and the admin can log in again
+**Scenario 2 — Super admin unsuspends an admin**
+- Given another admin's account is Suspended
+- When the Super admin chooses Unsuspend and confirms
+- Then the account's status changes to Active and that admin can log in again with her existing password
+
+**Scenario 3 — Admin role cannot suspend or unsuspend**
+- Given the logged-in account has the Admin role
+- When she opens the admin accounts list
+- Then no Suspend or Unsuspend action is shown on any row
+- And if a suspend or unsuspend request is sent anyway, it is refused and nothing changes
+
+**Scenario 4 — Super admin cannot suspend her own account**
+- Given a Super admin is viewing her own row in the list
+- Then the Suspend action is not available for that row
+
+**Scenario 5 — A suspended admin tries to log in**
+- Given an admin's account is Suspended
+- When she enters her correct email and password
+- Then login is refused with the message "This account is suspended / هذا الحساب موقوف"
+
+**Scenario 6 — Super admin cancels the confirmation**
+- Given the suspend or unsuspend confirmation dialog is open
+- When the Super admin cancels
+- Then the dialog closes and the account's status is unchanged
+
+**Scenario 7 — The action is recorded**
+- Given a Super admin suspends or unsuspends an account
+- Then an entry is written to the admin activity audit log (#1816) with the actor, the action, the affected account and the before/after status
 
 ### Out of Scope
 - Creating accounts (see #1807)
 - Viewing the accounts list (see #1820)
-- Granular roles and per-feature permissions (future RBAC)
+- Deleting accounts (see #4122)
+- Changing an existing account's role
 - Resetting an admin's password (see #1822)
+- Granular per-feature permissions beyond the two roles
 
 ### Dependencies
 - #1656 — Admin portal shell and login
+- #1820 — Super admin views the admin user accounts list (where the actions live)
+- #1816 — Admin activity audit log
+
+---
+
+## [Admin] #4121 — Admin sees summary cards above the admin user accounts list 🆕
+**Feature:** Feature 1 — Platform & Integration Foundation | **Sprint:** 4
+
+**Description:** As an admin, I want a row of summary cards above the admin user accounts list showing total, active and suspended account counts so that I can see who holds portal access at a glance without filtering the grid.
+
+### Background
+
+The admin accounts list (#1820) carries a row of three summary cards above the filter bar and the grid. Each card shows a caption, a whole-number count and an icon. The cards are visible to both roles, Super admin and Admin.
+
+The cards are totals for all admin accounts: they do not react to the search box or the status filter below. Each count agrees with the grid — the number on a card is exactly the number of rows the grid shows when that card's status is selected in the filter. Deleted accounts (#4122) are never counted. The cards are read-only and the counts are read when the screen loads.
+
+### Card Specification
+
+| Card | What it counts | Agrees with |
+|---|---|---|
+| Total admins | Every admin account that is not deleted, both statuses and both roles | Grid with status filter = All |
+| Active | Accounts that can log in | Grid with status filter = Active |
+| Suspended | Accounts currently suspended (#1821) | Grid with status filter = Suspended |
+
+### Acceptance Criteria
+
+**Scenario 1 — Admin opens the admin accounts list**
+- Given an admin navigates to the Admin users screen
+- When the page loads
+- Then three summary cards are shown above the filter bar: Total admins, Active, Suspended
+- And each card shows its caption and a whole-number count
+
+**Scenario 2 — A card count agrees with the grid**
+- Given the summary cards are displayed
+- When the admin selects the status filter matching a card
+- Then the grid's total number of results equals the number on that card
+
+**Scenario 3 — Cards do not react to the grid's filters**
+- Given the summary cards are displayed
+- When the admin types a search term or changes the status filter
+- Then only the grid narrows and the card counts stay unchanged
+
+**Scenario 4 — Deleted accounts are not counted**
+- Given a Super admin has deleted an admin account (#4122)
+- When the list next loads
+- Then that account is not included in any card
+
+**Scenario 5 — A count is zero or cannot be retrieved**
+- Given no account is Suspended, the Suspended card shows 0 and is not hidden
+- And if one count cannot be retrieved, that card shows a placeholder instead of a number while the other cards and the grid still load
+
+**Scenario 6 — Cards are read-only**
+- Given the summary cards are displayed
+- When the admin clicks a card
+- Then nothing happens — no navigation and no change to the grid's filters
+
+### Out of Scope
+- Clicking a card to filter the grid
+- A count by role (Super admin / Admin)
+- Trends, percentages or period comparison
+- Refreshing the counts on a timer
+
+### Dependencies
+- #1820 — Super admin views the admin user accounts list (the grid these cards sit above)
+- #1821 — Super admin suspends and unsuspends admin user accounts (moves accounts between Active and Suspended)
+- #4122 — Super admin deletes an admin user account (removes accounts from every count)
+
+---
+
+## [Admin] #4122 — Super admin deletes an admin user account 🆕
+**Feature:** Feature 1 — Platform & Integration Foundation | **Sprint:** 4
+
+**Description:** As a super admin, I want to delete another admin user account so that a person who should no longer have portal access is removed from the admin list, while the record and its history are kept.
+
+### Background
+
+Admin accounts have one of two roles: **Super admin** or **Admin**. The only thing a Super admin can do that an Admin cannot is suspend, unsuspend (#1821) and **delete** other admin accounts. The role table is in #1821.
+
+A Super admin can delete an Active or Suspended admin account from the admin accounts list (#1820), after confirming. **Deletion is always a soft delete.** The account record is never removed from the database: it is marked Deleted, with the date and the Super admin who deleted it. A deleted account disappears from the list and the summary cards (#4121), its sessions end, and it can no longer log in or reset its password. Everything that admin did before stays in the audit log (#1816) under her email. There is no hard delete in the portal or the backend.
+
+A Super admin cannot delete her own account.
+
+### Acceptance Criteria
+
+**Scenario 1 — Super admin deletes an admin account**
+- Given a Super admin is on the admin accounts list and another admin's account is Active or Suspended
+- When she chooses Delete and confirms in the dialog
+- Then the account is removed from the list and from the summary card counts
+- And its active sessions are ended and that admin can no longer log in
+
+**Scenario 2 — Deletion is a soft delete only**
+- Given an admin account has been deleted
+- Then its record still exists in the database, marked Deleted, with the deletion date and the Super admin who deleted it
+- And no account data is erased
+- And audit log entries (#1816) made by that admin still show her email
+
+**Scenario 3 — Super admin cancels the confirmation**
+- Given the delete confirmation dialog is open
+- When the Super admin cancels
+- Then the dialog closes and the account is unchanged
+
+**Scenario 4 — Admin role cannot delete**
+- Given the logged-in account has the Admin role
+- When she opens the admin accounts list
+- Then no Delete action is shown on any row
+- And if a delete request is sent anyway, it is refused and nothing changes
+
+**Scenario 5 — Super admin cannot delete her own account**
+- Given a Super admin is viewing her own row in the list
+- Then the Delete action is not available for that row
+
+**Scenario 6 — A deleted admin cannot get back in**
+- Given an admin account has been deleted
+- When that person tries to log in with the old email and password
+- Then login is refused with the standard invalid-credentials message
+- And a forgot-password request (#1822) for that email sends nothing, with the same response as for an unknown email
+
+**Scenario 7 — The action is recorded**
+- Given a Super admin deletes an account
+- Then an entry is written to the admin activity audit log (#1816) with the actor, the action and the affected account
+
+### Out of Scope
+- Hard delete or permanent erasure of an admin record (never done)
+- Restoring a deleted account from the portal
+- Re-using a deleted account's email for a new account
+- Suspending or unsuspending accounts (see #1821)
+
+### Dependencies
+- #1820 — Super admin views the admin user accounts list (where the Delete action lives)
+- #1821 — Super admin suspends and unsuspends admin user accounts (defines the two roles)
+- #1816 — Admin activity audit log
+- #1822 — Admin password reset (must not work for a deleted account)
 
 ---
 
@@ -2235,21 +2406,19 @@ This is the read-only zones overview: a map showing every service zone as a colo
 ## [Admin] #3994 — Super admin configures balance and fee policy 🆕
 **Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** Phase 1
 
-**Description:** As a super admin, I want to configure the driver outstanding-balance limit and warning band and the rider fee recovery threshold so that the platform's cash exposure to both drivers and riders is capped.
+**Description:** As a super admin, I want to configure the driver outstanding-balance limit and warning band so that the platform's cash exposure to drivers is capped.
 
 ### Background
 
-These are the **global** balance and fee settings on `pricing-policies.html`, applied to every driver and every rider, and they sit alongside the existing global policies in #1759. The platform commission percentage, the cancellation grace periods, the driver cancellation fee, the rider no-show wait, and the driver's share of a rider fee are configured on #1759 — not here.
+These are the **global** balance settings on `pricing-policies.html`, applied to every driver, and they sit alongside the existing global policies in #1759. The platform commission percentage, the cancellation grace periods, the driver cancellation fee, the rider no-show wait, and the driver's share of a rider fee are configured on #1759 — not here.
 
 **Driver outstanding-balance limit.** The maximum a driver may owe the platform (a negative ledger balance) before the availability service refuses to put her online (#3996). She is warned in her app from the configured warning band and blocked at the limit itself (#3988). Setting the limit to **0 disables the block entirely**.
 
 **Driver warning band.** The fraction of the outstanding-balance limit at which the driver app starts showing a warning — e.g. at 80% of a 500 EGP limit, the warning appears from 400 EGP owed. It has no visible effect while the limit itself is 0.
 
-**Rider fee recovery threshold.** The point at which fee recovery escalates. Below it, a rider clears her cancellation fees gently — one fee per ride, oldest first. At or above it, her **whole** outstanding balance is recovered on her next ride in a single payment (#4002, #3998). Setting it to **0 disables the escalation entirely**, leaving recovery at one fee per ride however much she owes.
+A rider's outstanding fee is recovered in full on her next completed trip, always — there is nothing to configure on that side (#4000).
 
-**This threshold never blocks a booking.** An earlier draft of the design blocked a rider here, which deadlocks: a rider pays in cash on the ride, so the only way she can clear a fee is by taking a ride. Blocking her would make the debt permanent and recover nothing. Escalating the recovery instead is self-clearing. Persistent abuse is handled by suspending the rider (#1740) — a human decision made from #4005.
-
-Changes take effect immediately on save and apply to new evaluations only: a driver already online is never knocked offline by a balance-limit change, and a rider already mid-booking is never interrupted by a fee-limit change. Every change is recorded in the pricing audit log (#1760).
+Changes take effect immediately on save and apply to new evaluations only: a driver already online is never knocked offline by a balance-limit change. Every change is recorded in the pricing audit log (#1760).
 
 ### Field Validation
 
@@ -2257,11 +2426,8 @@ Changes take effect immediately on save and apply to new evaluations only: a dri
 |---|---|---|---|---|---|---|---|---|---|
 | Driver outstanding-balance limit | Yes | Decimal (EGP) | Zero or positive, up to 2 decimals; 0 disables the go-online block | 0 | 100000 | 500.00 | Enter the outstanding balance limit / أدخل حد الرصيد المستحق | Enter a valid amount / أدخل مبلغًا صحيحًا | Must be between 0 and 100,000 EGP / يجب أن تكون القيمة بين 0 و100,000 جنيه |
 | Driver warning band | Yes | Percentage (%) | Whole number between 1 and 99 | 1 | 99 | 80 | Enter the warning band / أدخل نسبة التحذير | Enter a valid percentage / أدخل نسبة صحيحة | Must be between 1% and 99% / يجب أن تكون بين 1% و99% |
-| Rider fee recovery threshold | Yes | Decimal (EGP) | Zero or positive, up to 2 decimals; 0 disables the escalation and recovery always stays at one fee per ride. Never blocks booking | 0 | 100000 | 60.00 | Enter the rider fee recovery threshold / أدخل حد تحصيل رسوم الراكب | Enter a valid amount / أدخل مبلغًا صحيحًا | Must be between 0 and 100,000 EGP / يجب أن تكون القيمة بين 0 و100,000 جنيه |
 
 ### Acceptance Criteria
-
-**Driver outstanding-balance limit and warning band**
 
 **Scenario 1 — Sets the driver outstanding-balance limit**
 - Given the super admin enters an outstanding-balance limit of 500 EGP and saves
@@ -2286,49 +2452,29 @@ Changes take effect immediately on save and apply to new evaluations only: a dri
 - Given the super admin enters 0 or 100 as the warning band
 - Then a validation error is returned and the change is not saved
 
-**Rider fee recovery threshold**
-
-**Scenario 6 — Sets the rider fee recovery threshold**
-- Given the super admin enters a rider fee recovery threshold of 60 EGP and saves
-- Then a rider who owes 60 EGP or more has her whole outstanding balance recovered on her next ride, in a single payment (#4002, #3998)
-- And a rider who owes less continues to clear one fee per ride, oldest first
-- And no rider is prevented from requesting a ride at any balance
-
-**Scenario 7 — Rider threshold of zero disables the escalation**
-- Given the rider fee recovery threshold is set to 0 and saved
-- Then fee recovery always stays at one fee per ride, however much a rider owes, and no rider is ever blocked from booking
-
-**Scenario 8 — Rider threshold change applies to the next booking attempt**
-- Given the threshold is lowered while a rider is mid-booking
-- Then her booking in progress is not interrupted
-- And the new threshold applies from her next booking attempt
-
-**Cross-cutting**
-
-**Scenario 9 — Negative or non-numeric values are rejected**
+**Scenario 6 — Negative or non-numeric values are rejected**
 - Given the super admin enters a negative limit, a negative amount, a warning band outside 1–99, or a non-whole number of days
 - Then a validation error is returned and nothing is saved
 
-**Scenario 10 — Changes are audited**
+**Scenario 7 — Changes are audited**
 - Given any of these settings is changed
 - Then the change is recorded in the pricing audit log (#1760) with actor, field, before and after values, and timestamp (UTC+2)
 
-**Scenario 11 — Save and error states**
+**Scenario 8 — Save and error states**
 - Given the settings are saved successfully, or the save fails
 - Then a success confirmation or an error state is shown and the form retains the entered values on failure
 
 ### Out of Scope
-- Per-driver, per-zone, or tier-based balance or fee limits — every limit here is a single global value
+- Per-driver, per-zone, or tier-based balance limits — every limit here is a single global value
 - Automatic suspension of a driver or rider who stays over a limit (Phase 2)
 - The driver's share of a rider cancellation fee, the cancellation grace periods, and the platform commission (#1759)
-- Payout minimums, maximums, approval, or scheduling — a payout is recorded after Finance sends it (#3993, #4001), never gated or scheduled here
+- Payout minimums, maximums, approval, or scheduling — a payout is recorded after Finance sends it (#4001), never gated or scheduled here
+- Any rider fee recovery threshold or escalation setting — a rider's outstanding balance is always recovered in full on her next trip, with nothing to configure (#4000)
 - The mechanics of how a rider fee is recovered on her next trip (#4000)
 
 ### Dependencies
 - #3996 — Driver go-online is blocked while her outstanding balance is over the limit (consumes the driver limit)
 - #3988 — Driver is blocked from going online while her balance is over the limit (consumes the warning band)
-- #4002 — Rider fees above the recovery threshold are recovered in a single payment (consumes the threshold)
-- #3998 — Rider is told when her full outstanding balance will be added to her next ride (consumes the threshold, mobile side)
 - #1760 — Super admin views pricing audit log (records changes)
 - #1759 — Super admin configures global platform policies (sibling policy screen; owns commission and cancellation policy)
 
@@ -2525,87 +2671,56 @@ Opened from a report in the queue (#1810), the super admin resolves it one of tw
 ## [Admin] #4120 — Super admin sees summary cards above the gender-mismatch report queue 🆕
 **Feature:** Feature 17 — Admin Safety & Incident Review | **Sprint:** 4
 
-**Description:** As a super admin, I want a row of summary cards above the gender-mismatch report queue showing total, open and resolved report counts so that I can see the size of the triage backlog at a glance without changing the queue's filters.
+**Description:** As a super admin, I want to see how many gender-mismatch reports there are in total, how many are open and how many are resolved so that I know the size of the review workload at a glance.
 
 ### Background
 
-The gender-mismatch report queue (#1810) carries a row of three summary cards above the filter bar and the grid: **Total reports**, **Open** and **Resolved**. Each card shows a caption, a whole-number count and an icon. The cards are platform-wide totals: they do not react to the report-status dropdown or the report-time date range applied to the grid below.
+Three read-only cards sit above the gender-mismatch report queue (#1810): **Total reports**, **Open** and **Resolved**. They show counts for all reports and do not change when the admin filters the grid.
 
-Every count must agree with the grid — the number on a card is exactly the number of rows the grid would show with that card's report status selected and no date range. Open matters most operationally: every open report is a rider held in Pending review and unable to book, so the Open card is the standing size of the triage backlog. The cards are read-only: a card is not a filter shortcut and clicking one does nothing. Counts are read when the screen loads.
+Reports only come from the driver's check on a rider's first trip, which the driver must always do (#1588).
 
-**First-trip verification is mandatory.** On every rider's first trip the driver must **always** verify at pickup that the rider is female before the trip can start (#1588). The step cannot be skipped, dismissed or switched off, and there is no exception for any passenger. A report can only be raised from that step (#1687), so every report these cards count relates to a rider's first trip.
+### Cards
 
-### Card Specification
-
-| Card | What it counts | Agrees with |
-|---|---|---|
-| Total reports | Every gender-mismatch report ever raised, open and resolved | Grid with status filter = All and no date range |
-| Open | Reports awaiting a decision — each one is a rider held in Pending review | Grid with status filter = Open and no date range |
-| Resolved | Reports decided either way — rider suspended or report dismissed (#1811) | Grid with status filter = Resolved and no date range |
+| Card | Counts |
+|---|---|
+| Total reports | All reports |
+| Open | Reports waiting for a decision |
+| Resolved | Reports where the rider was suspended or the report was dismissed (#1811) |
 
 ### Acceptance Criteria
 
-**Scenario 1 — Super admin opens the report queue**
-- Given the super admin navigates to the gender-mismatch report queue
-- When the page loads
-- Then a row of three summary cards is displayed above the filter bar: Total reports, Open, Resolved
-- And each card shows its caption and a whole-number count
+**Scenario 1 — Cards are shown**
+- Given the super admin opens the gender-mismatch report queue
+- Then the Total reports, Open and Resolved cards are shown above the filters, each with a count
+- And Open plus Resolved equals Total reports
 
-**Scenario 2 — Open and Resolved add up to Total**
-- Given all three counts have been retrieved
-- Then the Open count plus the Resolved count equals the Total reports count
+**Scenario 2 — Counts stay the same when filtering**
+- Given the cards are shown
+- When the super admin changes the status filter or the date range
+- Then only the grid changes and the card counts stay the same
 
-**Scenario 3 — A new report is counted**
-- Given a driver has raised a gender-mismatch report on a rider's first trip (#1687)
-- When the super admin next loads the queue
-- Then the Total reports and Open cards each include that report
+**Scenario 3 — Counts update after a change**
+- Given a new report is raised or an open report is resolved
+- When the super admin reloads the queue
+- Then the card counts reflect the change
 
-**Scenario 4 — A resolved report moves from Open to Resolved**
-- Given an open report is resolved by suspending the rider or dismissing the report (#1811)
-- When the super admin next loads the queue
-- Then the Open count is one lower and the Resolved count is one higher
-- And the Total reports count is unchanged
+**Scenario 4 — Zero or unavailable count**
+- Given a card has no matching reports, then it shows 0
+- Given a count cannot be loaded, then that card shows "—" and the other cards and the grid still load
 
-**Scenario 5 — Cards do not react to the grid's filters**
-- Given the summary cards are displayed with their counts
-- When the super admin changes the report-status filter or sets a report-time date range
-- Then only the grid below narrows
-- And the card counts continue to show the platform-wide totals, unchanged
-
-**Scenario 6 — A count is zero**
-- Given no report currently matches one of the cards — for example nothing is awaiting a decision
-- Then that card shows 0
-- And it is not left blank or hidden
-
-**Scenario 7 — One count cannot be retrieved**
-- Given the platform cannot return the count for one card
-- Then that card shows a placeholder instead of a number, never a stale or guessed value
-- And the other cards still show their counts
-- And the grid below still loads normally
-
-**Scenario 8 — Cards are read-only**
-- Given the summary cards are displayed
+**Scenario 5 — Cards are not clickable**
+- Given the cards are shown
 - When the super admin clicks a card
-- Then nothing happens — no navigation, and no change to the grid's filters
-
-**Scenario 9 — Cards are independent of the grid's state**
-- Given the grid is still loading, is empty, or has failed to load
-- Then the card row still occupies its place above the filter bar and shows whatever counts it was able to retrieve
+- Then nothing happens
 
 ### Out of Scope
-- Clicking a card to apply the matching filter to the grid
-- Separate cards for resolved-suspended and resolved-dismissed outcomes
-- Trend indicators, percentage change, sparklines or period comparison on a card
-- Refreshing the counts on a timer — they are read when the screen loads
-- Exporting the card values
-- SOS case counts — a separate queue (#3945)
+- Clicking a card to filter the grid
+- Separate counts for suspended and dismissed
+- Trends, charts or auto-refresh
 
 ### Dependencies
-- #1810 — Super admin reviews the gender-mismatch report queue (the grid these cards sit above)
-- #1811 — Super admin actions a gender-mismatch report (moves a report from Open to Resolved)
-- #1687 — Rider account is placed under review after a gender mismatch report (creates the reports)
-- #1588 — Driver verifies rider is female on first trip (the mandatory step every report comes from)
-- #4010 — Admin sees status summary cards above the rider list (the same card pattern)
+- #1810 — Super admin reviews the gender-mismatch report queue
+- #1811 — Super admin actions a gender-mismatch report
 
 ---
 
@@ -2821,7 +2936,19 @@ Two facts are stated on the screen because an admin will otherwise assume the op
 
 The revenue & commission summary gives the super admin a platform-level financial overview for a selected date range and optional zone. It shows total completed trips, gross fares (EGP), total platform commission (#1759), total cancellation fees collected, and net driver earnings. All figures derive from completed-trip records carrying the commission rate and fare breakdown (#1636). The report is exportable to CSV/Excel.
 
-**Commission earned vs. settled vs. outstanding.** Because a cash trip's commission is a debt on the driver ledger until she settles it (#1813), the report also breaks the commission total into what was **earned** (accrued on completed trips in the period, whatever the custody), what was **settled** (recovered through a driver settlement in the period, #3991), and what remains **outstanding** (still owed, read from the live ledger balance). This is the gap between what the platform is owed and what has actually come back.
+**Commission earned vs. settled vs. outstanding.** On a cash trip the rider pays the driver the whole fare, so the platform's commission becomes a debt on her ledger (#3991) until she hands the cash back and an admin records a settlement (#1813). Earning commission and holding it are therefore different events, often weeks apart, and a single commission total hides the gap. The report shows three figures instead of one:
+
+| Figure | Definition | Scope |
+|---|---|---|
+| Commission earned | Commission accrued on trips completed within the selected period, whatever the trip's custody value. | Period; respects the zone filter |
+| Commission settled | Cash recovered through settlement entries recorded within the selected period (#1813), regardless of when the trips behind it completed. | Period; not zone-filterable |
+| Commission outstanding | The platform's total current exposure: the sum of every driver's outstanding ledger balance as at now. This is revenue earned but still sitting in drivers' pockets. | Point-in-time; not period- or zone-filterable |
+
+**These three do not form an equation, and the report must not imply they do.** Earned and settled are period figures; outstanding is a live balance covering all time. A settlement recorded in the period may clear commission earned months earlier, and commission earned on the last day of the period will not be settled yet. Each figure is labelled with its own scope so nobody reads them as a sum.
+
+**A settlement is not always commission.** A driver's outstanding balance can also include a driver cancellation fee or a rider fee she collected on the platform's behalf, and a settlement clears the balance rather than a named component. Where a settlement cannot be attributed to commission specifically, the report states the basis it used rather than silently guessing.
+
+**Recovered rider fees carry no commission** (#4000) and must not inflate any of the three figures.
 
 ### Field Validation
 
@@ -2840,31 +2967,67 @@ The revenue & commission summary gives the super admin a platform-level financia
 **Scenario 2 — Filter by zone**
 - Given a summary is displayed
 - When the super admin selects a zone
-- Then the totals recompute for that zone
+- Then the trip, fare, commission-earned and net-earnings totals recompute for that zone
 
 **Scenario 3 — Idle/empty period**
 - Given no completed trips fall in the selected period
-- Then all totals display zero with no error
+- Then all period totals display zero with no error
+- And commission outstanding still shows the live platform figure, because it is not a period total
 
 **Scenario 4 — Totals reconcile**
 - Given a non-empty period
-- Then gross fares equal platform commission plus net driver earnings (plus fees per the agreed definition)
+- Then gross fares equal platform commission plus net driver earnings
 
 **Scenario 5 — Export**
 - Given a summary is displayed
 - Then the super admin can export it to CSV/Excel
+- And the export carries all three commission figures with the same labels and scope notes shown on screen
 
-**Scenario 6 — Commission earned vs. settled vs. outstanding**
+**Scenario 6 — The three commission figures are shown**
 - Given a non-empty period
-- Then the summary additionally shows commission earned (accrued on trips completed in the period), commission settled (recovered through driver settlements recorded in the period, #1813), and commission outstanding (the current total the driver ledger shows as still owed)
-- And commission earned equals commission settled plus commission outstanding, subject to timing — a trip completed near the end of the period may not yet be settled
+- Then the summary shows commission earned, commission settled and commission outstanding as three distinct, separately labelled figures
+- And each is labelled with its scope, so a period figure is never mistaken for a live balance
+
+**Scenario 7 — Outstanding ignores the period filter**
+- Given the super admin changes the date range
+- Then commission earned and commission settled recompute
+- And commission outstanding does not change, because it is the platform's current exposure across all time
+
+**Scenario 8 — Outstanding ignores the zone filter**
+- Given the super admin selects a single zone
+- Then commission outstanding is either shown unchanged and marked as platform-wide, or hidden with a note explaining it cannot be filtered by zone
+- And it is never shown as if it had been filtered
+
+**Scenario 9 — A settlement in the period clears older commission**
+- Given a driver settles in the selected period an amount owed from trips completed before it
+- Then commission settled includes that amount
+- And commission earned for the period is unaffected by it
+
+**Scenario 10 — Commission earned near the period end is not yet settled**
+- Given trips complete on the final day of the selected period and no settlement follows within it
+- Then that commission appears in commission earned and not in commission settled
+- And the figures are not flagged as an error or an imbalance
+
+**Scenario 11 — A recovered rider fee does not affect commission**
+- Given a trip in the period recovered an outstanding rider fee (#4000)
+- Then no commission is counted on the recovered fee in any of the three figures
+
+**Scenario 12 — Amounts and formatting**
+- Given any figure is displayed
+- Then it is shown in EGP to 2 decimal places with tabular figures
+
+**Scenario 13 — Loading and error states**
+- Given the report is loading, or the data cannot be retrieved
+- Then a loading state or an error state with a retry is shown, and no partial or stale figure is presented as final
 
 ### Out of Scope
 - Charts and trend lines (Phase 2)
 - Tax reporting
 - Cross-driver leaderboards and performance analytics
 - Payout execution
-- Per-driver earnings & settlement (covered by #1833)
+- Per-driver earnings & settlement, including per-driver outstanding (covered by #1833)
+- Attributing a settlement across commission, cancellation fees and recovered rider fees component by component — the report states the basis it used instead
+- Any correction or reversal of a ledger entry — the ledger is append-only and Phase 1 has no correction mechanism
 
 ### Dependencies
 - #1759 — Super admin configures platform commission
@@ -2873,6 +3036,7 @@ The revenue & commission summary gives the super admin a platform-level financia
 - #1757 — Zone rate card
 - #3991 — Party balance ledger records every balance movement (source of commission outstanding)
 - #1813 — Super admin reconciles driver balances and records settlements (source of commission settled)
+- #4000 — Rider outstanding fee is recovered on her next trip (recovered fees carry no commission)
 
 ---
 
@@ -3077,22 +3241,22 @@ Expanding a row opens the driver's full ledger sub-grid (Date, Type, Amount, Cha
 
 ---
 
-## [Admin] #4005 — Super admin reviews rider outstanding fees and waives them 🆕
+## [Admin] #4005 — Super admin reviews rider outstanding fees 🆕
 **Feature:** Feature 18 — Admin Financial Reporting & Reconciliation | **Sprint:** Phase 1
 
-**Description:** As a super admin, I want to see every rider's outstanding fee balance and waive a fee with a reason so that a rider is never asked to pay a charge she should not have been given.
+**Description:** As a super admin, I want to see every rider's outstanding fee balance and her full ledger so that I understand her position and, if her abuse is persistent, can escalate to suspension.
 
 ### Background
 
-A rider's ledger is zero almost always. It moves when she cancels after the grace period (a `cancellation_fee` debit), when that fee is recovered as a surcharge on her next trip (a `fee_collected` credit, #4000), or when an admin writes it off (a `fee_waived` credit). This screen (`rider-balances.html`) is the admin counterpart to a rider's outstanding-fees view on her own app (#3992): it lists riders with an outstanding balance, opens a full ledger for any one of them, and lets the super admin **waive an outstanding fee** — always with a reason.
+A rider's ledger is zero almost always. It moves when she cancels after the grace period (a `cancellation_fee` debit) or when that fee is recovered in full as a surcharge on her next completed trip (a `fee_collected` credit, #4000). This screen (`rider-balances.html`) is the admin counterpart to a rider's outstanding-fees view on her own app (#3992): it lists riders with an outstanding balance and opens a full ledger for any one of them.
 
-**Waiving posts a ledger entry.** It never edits a balance directly. A `fee_waived` entry is posted against the specific outstanding fee the admin selects, is immutable, appears in the rider's own statement (#4004, #3992), and is written to the audit log (#1816). Once waived, that fee is no longer picked up as an outstanding surcharge on the rider's next trip.
+**The screen is read-only.** There is no waive, no write-off and no correction of any kind on a rider's fee. The only way her fee clears is that she pays it, in full, on her next completed trip (#4000) — nobody writes it off.
 
-**A waiver takes effect immediately.** A rider above the recovery threshold (#3994, #4002, #3998) drops straight back to the gentle one-fee-per-ride recovery the moment a waiver brings her below it, with no further admin action.
+**The one action this screen offers is escalation, not adjustment.** A rider whose abuse is persistent — repeated late cancellations she keeps paying off and repeating — is escalated through the existing rider-suspension flow (#1740), reachable from her ledger. That is a human decision about her account, never a change to what she owes.
 
-**There is no automatic booking block on a rider.** Blocking one would deadlock — a rider pays in cash on the ride, so the only way she can clear a fee is by taking a ride. Persistent abuse is escalated by suspending the rider through the existing flow (#1740), reachable from this screen. That is a deliberate human decision, never automatic.
+**There is no automatic booking block on a rider.** Blocking one would deadlock — she pays in cash on the ride, so the only way she can ever clear a fee is by taking a ride. Suspension via #1740 is the only lever this screen offers beyond visibility.
 
-The list covers riders with an **outstanding** balance by default, with a filter to show riders settled to zero and all riders. There is no free-form correction action on this screen: waiving is the only write, and every posted entry — including a waiver posted by mistake — is permanent, with no correction mechanism in Phase 1 (#3991).
+The list covers riders with an **outstanding** balance by default, with a filter to show riders settled to zero and all riders. Every posted ledger entry is permanent — Phase 1 has no correction mechanism at all (#3991), for a rider's ledger any more than a driver's.
 
 ### Field Validation
 
@@ -3100,80 +3264,56 @@ The list covers riders with an **outstanding** balance by default, with a filter
 |---|---|---|---|---|---|---|---|---|---|
 | Rider search | No | Free text | Arabic and Latin letters, digits, spaces; partial match on name or phone | — | 50 chars | empty | — | — | Search term must be 50 characters or fewer / يجب ألا يزيد نص البحث عن 50 حرفًا |
 | Balance filter | No | Dropdown (single-select) | Enum: Outstanding, Settled (zero), All | — | — | Outstanding | — | — | — |
-| Waive amount | Yes | Decimal (EGP) | Positive number, up to 2 decimals; not more than the selected fee's outstanding amount | 0.01 | selected fee amount | empty | Enter a waive amount / أدخل مبلغ الإعفاء | Enter a valid amount / أدخل مبلغًا صحيحًا | Amount must be greater than 0 and not exceed the outstanding fee / يجب أن يكون المبلغ أكبر من 0 وألا يتجاوز الرسوم المستحقة |
-| Waive reason | Yes | Free text | Any characters | 10 chars | 500 chars | empty | Enter a reason for waiving this fee / أدخل سبب الإعفاء | — | Reason must be between 10 and 500 characters / يجب أن يكون السبب بين 10 و500 حرف |
 
 ### Acceptance Criteria
 
 **Scenario 1 — List riders with outstanding fees**
 - Given riders have fee entries
-- Then they are listed with rider name, outstanding amount, oldest unpaid fee date, and booking-blocked status
+- Then they are listed with rider name, outstanding amount, and oldest unpaid fee date
 - And the default filter shows only riders with an outstanding balance, highest first
 
 **Scenario 2 — Open a rider's ledger**
 - Given the super admin opens a rider's row
-- Then her full transaction ledger is shown newest-first — cancellation fees, fee collections, and waivers — each with date, type, signed amount, and source trip reference
+- Then her full transaction ledger is shown newest-first — cancellation fees and fee collections — each with date, type, signed amount, and source trip reference
 - And the running balance is shown
 
-**Scenario 3 — Waive a fee in full**
-- Given a rider has an outstanding fee of 20.00 EGP from a late cancellation
-- When the super admin waives it with a reason
-- Then a `fee_waived` entry of +20.00 EGP is posted, her outstanding balance reduces accordingly, and the fee is no longer picked up for recovery on her next trip (#4000)
+**Scenario 3 — No action clears a fee from this screen**
+- Given a rider has an outstanding fee
+- Then no waive, write-off, or correction action is offered anywhere on this screen
+- And her balance changes only when she pays it in full on her next completed trip (#4000)
 
-**Scenario 4 — Waive amount validation**
-- Given a waive amount of zero, negative, or greater than the selected fee's outstanding amount
-- Then it is rejected with a validation error and no entry is posted
+**Scenario 4 — Escalate persistent abuse to suspension**
+- Given a rider has a history of repeated late cancellations
+- When the super admin opens the suspend-rider link from her ledger
+- Then she is taken to the existing rider-suspension flow (#1740)
+- And no fee, balance, or ledger entry is changed by this action
 
-**Scenario 5 — Waiving requires a reason**
-- Given a waive with no reason or a reason under 10 characters
-- Then it is rejected with a validation error and nothing is posted
+**Scenario 5 — Riders with no outstanding balance**
+- Given a rider's balance is zero
+- Then she appears only under the "Settled" or "All" filter, never under the default "Outstanding" filter
 
-**Scenario 6 — Waiving a rider with no outstanding balance is refused**
-- Given a rider whose balance is zero
-- Then the waive action is unavailable for her
-
-**Scenario 7 — Waiver drops her below the recovery threshold**
-- Given a rider is above the rider fee recovery threshold (#3994)
-- When a waiver brings her below the limit
-- Then her next booking attempt succeeds with no further admin action
-
-**Scenario 8 — Every waiver is audited**
-- Given a waiver is recorded
-- Then it appears in the audit log (#1816) with actor, rider, amount, before/after balance, and timestamp (UTC+2)
-
-**Scenario 9 — Rider sees it in her own app**
-- Given a fee is waived
-- Then it no longer appears as outstanding on the rider's payments screen (#3992) and her statement reflects the waiver (#4004)
-
-**Scenario 10 — Double submission does not double-post**
-- Given the waive form is submitted twice for the same fee
-- Then exactly one `fee_waived` entry is posted (#3991)
-
-**Scenario 11 — Empty, loading and error states**
+**Scenario 6 — Empty, loading and error states**
 - Given no riders match the filter, the list is loading, or the request fails
 - Then the corresponding empty, loading, or error state is shown
 
-**Scenario 12 — Export**
+**Scenario 7 — Export**
 - Given the rider balances list is displayed
 - Then the super admin can export it to CSV/Excel
 
 ### Out of Scope
-- Waiving a fee that has already been recovered (`fee_collected`) — a collected fare surcharge cannot be waived after the fact
-- A free-form correction/adjustment action — cut deliberately on 2026-09-13; a waiver posted in error stands, with no correction mechanism in Phase 1 (#3991)
-- Automated or bulk waivers
+- Waiving, writing off, or otherwise adjusting a rider's outstanding fee — the only way it clears is that she pays it in full on her next completed trip (#4000)
+- A free-form correction/adjustment action — cut deliberately on 2026-09-13; every posted entry stands, with no correction mechanism in Phase 1 (#3991)
+- Automated or bulk actions on rider balances
 - Rider dispute workflow (Phase 2)
 - Driver balance reconciliation (covered by #1813)
-- Cancellation-policy configuration (#1759) and the rider fee recovery threshold itself (#3994)
+- Cancellation-policy configuration (#1759)
+- Any rider fee recovery threshold or escalation setting — a rider's balance is always recovered in full on her next trip, with nothing to configure (#3994, #4000)
 
 ### Dependencies
 - #3991 — Party balance ledger records every balance movement (must be live)
-- #3994 — Super admin configures balance and fee policy (owns the recovery threshold)
-- #4000 — Rider outstanding fee is recovered on her next trip (fee entries this screen manages originate here)
-- #4002 — Rider fees above the recovery threshold are recovered in a single payment (a waiver here can drop her below it)
-- #3998 — Rider is told when her full outstanding balance will be added to her next ride (mobile side)
-- #1740 — Operations admin suspends a rider account (the only block on a rider; reachable from this screen)
+- #4000 — Rider outstanding fee is recovered on her next trip (fee entries this screen displays originate here; also the only way a fee clears)
+- #1740 — Operations admin suspends a rider account (the only action this screen offers beyond visibility)
 - #1764 — Cancellation fees are charged after the grace period (rider and driver) (fee entries originate here)
-- #1816 — Super admin views the admin activity audit log
 
 ### List / Grid Specification
 
@@ -3184,7 +3324,6 @@ The list covers riders with an **outstanding** balance by default, with a filter
 | Rider | Yes | Yes | Free-text search (partial match) |
 | Outstanding (EGP) | Yes | Yes | Dropdown (enum) |
 | Oldest unpaid fee date | Yes | No | — |
-| Booking-blocked status | No | No | — |
 
 Expanding a row opens the rider's full ledger sub-grid (Date, Type, Amount, Source); the sub-grid is not separately sorted or filtered and paginates at 20 rows.
 
@@ -3201,11 +3340,13 @@ Recording a payout happens in the same place as recording a settlement (`balance
 
 **Recording posts a ledger entry.** It never edits a balance directly. Recording a payout for a driver posts a `payout` debit to her ledger (#3991) for the amount that was actually sent, reducing her available balance by exactly that amount.
 
-**A payout destination is required.** Every driver profile carries an optional payout destination — type, number, and account holder name (#4003). The record-payout form is blocked, with an inline explanation and a link to the driver's profile, until she has one on file.
-
 **The amount can never exceed what is owed.** A payout cannot be recorded for more than the driver's current available balance.
 
-Every payout is captured with the destination used, a reference (the bank or wallet transaction id), and a date, is immutable, appears immediately in the driver's own statement (#1781, #1788), and is written to the audit log (#1816).
+**Posting is idempotent on the payout reference.** Every payout carries a reference (the bank or wallet transaction id, or a receipt number) and a date. Retrying the same reference — whether a genuine retry or a double form submission — never posts a second entry; the original entry is returned unchanged.
+
+**The platform holds no payout destination.** Getting the money to the driver is a manual, off-platform process; nothing is captured from her and nothing is verified here. Recording is not gated on any destination.
+
+Every payout is captured with a reference and a date, is immutable, appears immediately in the driver's own statement (#1781, #1788), and is written to the audit log (#1816).
 
 ### Field Validation
 
@@ -3213,45 +3354,45 @@ Every payout is captured with the destination used, a reference (the bank or wal
 |---|---|---|---|---|---|---|---|---|---|
 | Payout amount | Yes | Decimal (EGP) | Positive number, up to 2 decimals; not more than the driver's available balance | 0.01 | available balance | empty | Enter a payout amount / أدخل مبلغ الصرف | Enter a valid amount / أدخل مبلغًا صحيحًا | Amount must be greater than 0 and not exceed the available balance / يجب أن يكون المبلغ أكبر من 0 وألا يتجاوز الرصيد المتاح |
 | Payout date | Yes | Date (YYYY-MM-DD) | Valid calendar date; not in the future | — | today | today | Enter the payout date / أدخل تاريخ الصرف | Invalid date format / صيغة التاريخ غير صحيحة | Date cannot be in the future / لا يمكن أن يكون التاريخ في المستقبل |
-| Payout destination (read-only) | n/a — display only | Display field | Shown from the driver's profile (#4003); the form is blocked until one exists | — | — | — | — | — | — |
 | Payout reference | Yes | Free text | Letters, digits, hyphens | — | 60 chars | empty | Enter a payout reference / أدخل مرجع الصرف | — | Reference must be 60 characters or fewer / يجب ألا يزيد المرجع عن 60 حرفًا |
 
 ### Acceptance Criteria
 
 **Scenario 1 — Record a payout**
-- Given a driver has an available balance of 500 EGP and a payout destination on file
+- Given a driver has an available balance of 500 EGP
 - When the super admin records a payout of 200 EGP with a reference and date
-- Then a `payout` entry of −200.00 EGP is posted (#3991), her available balance becomes 300.00, and the entry appears in her ledger with the destination, reference, and date
+- Then a `payout` entry of −200.00 EGP is posted (#3991), her available balance becomes 300.00, and the entry appears in her ledger with the reference and date
 
-**Scenario 2 — Recording is blocked without a payout destination**
-- Given a driver with no payout destination on file (#4003)
-- When the super admin opens the record-payout form for her
-- Then the form is blocked with an inline explanation and a link to her driver profile to add one
-
-**Scenario 3 — Amount cannot exceed the available balance**
+**Scenario 2 — Amount cannot exceed the available balance**
 - Given a driver's available balance is 100 EGP
 - When the super admin attempts to record a payout of 150 EGP
 - Then it is rejected with a validation error and no entry is posted
 
-**Scenario 4 — Recording a payout for a driver who does not have one is refused**
+**Scenario 3 — Recording a payout for a driver who does not have one is refused**
 - Given a driver's balance is negative or zero
 - Then the record-payout action is unavailable for her
+
+**Scenario 4 — Only approved drivers may receive a recorded payout**
+- Given a driver whose account is pending approval, rejected, or suspended
+- When a payout is submitted for her
+- Then it is rejected
 
 **Scenario 5 — Reference and date are required**
 - Given a payout submission missing a reference or a date
 - Then a validation error is returned and no entry is posted
 
-**Scenario 6 — Every payout is audited**
-- Given a payout is recorded
-- Then it appears in the audit log (#1816) with actor, driver, amount, destination, reference, and timestamp (UTC+2)
+**Scenario 6 — Idempotent on the payout reference**
+- Given a payout is recorded with reference "PMT-1042"
+- When the same reference is submitted again, whether as a retry or a double form submission
+- Then no second entry is posted (#3991) and the original entry is returned unchanged
 
-**Scenario 7 — Driver sees it in her own app**
+**Scenario 7 — Every payout is audited**
+- Given a payout is recorded
+- Then it appears in the audit log (#1816) with actor, driver, amount, reference, and timestamp (UTC+2)
+
+**Scenario 8 — Driver sees it in her own app**
 - Given a payout is recorded
 - Then it appears in the driver's statement with its reference and date and reduces her available balance (#1781, #1788)
-
-**Scenario 8 — Double submission does not double-post**
-- Given the record-payout form is submitted twice for the same payout
-- Then exactly one `payout` entry is posted (#3991)
 
 **Scenario 9 — Payout appears alongside settlements in the driver's ledger**
 - Given the super admin opens a driver's ledger on `balances.html` (#1813)
@@ -3262,12 +3403,13 @@ Every payout is captured with the destination used, a reference (the bank or wal
 - An approval queue, or pending/approved/rejected states — recording is the only step
 - Executing the transfer — Finance moves the money outside the system before this screen is used
 - Payment-provider or bank integration
-- Adding or editing a driver's payout destination (captured on `driver-profile.html`, #4003)
+- Capturing, storing, or verifying a payout destination of any kind — the platform holds none
 - Bulk recording of multiple payouts
+- Reversing a recorded payout — Phase 1 ships with no correction mechanism for a mis-recorded entry (#3991)
+- Tips, bonuses, incentives, and referral credits
 
 ### Dependencies
 - #3991 — Party balance ledger records every balance movement (must be live — receives the payout entry)
-- #4003 — Driver payout destination is captured and required before a payout can be recorded (supplies the destination-on-file check)
 - #1813 — Super admin reconciles driver balances and records settlements (same screen; the settlement side of this action)
 - #1816 — Super admin views the admin activity audit log
 

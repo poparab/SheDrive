@@ -1,13 +1,13 @@
 # Handover — Design team
 
-**Subject:** SheDrive financial core — 11 screens to draw
+**Subject:** SheDrive financial core — 10 screens to draw
 **Date:** 2026-09-08
 
 ---
 
 ## Read these, in this order
 
-1. **`docs/backlog/design-stories-financial.md`** — your 11 briefs. Each one lists the
+1. **`docs/backlog/design-stories-financial.md`** — your 10 briefs. Each one lists the
    components, every state to draw, and the bilingual requirement.
 2. **`docs/superpowers/specs/2026-09-08-financial-core-design.md`** §3, §5 and §7 — the
    behaviour behind the screens, with worked numbers.
@@ -29,19 +29,18 @@ Every parent Feature is already resolved and verified — see
 
 ---
 
-## The 11 screens
+## The 10 screens
 
 | Screen | Parent | Prototype to draw from |
 |---|---|---|
 | **[Rider] Payment Method & Outstanding Fees** | #1849 | `rider/payments.html` |
-| **[Rider] Outstanding Fee Notice & Full-Recovery State** | #1844 | `rider/home.html?fees=1` and `?full` |
+| **[Rider] Outstanding Fee Notice** | #1844 | `rider/home.html?fees=1` |
 | **[Rider] Fare Summary with a Recovered Fee** | #1846 | `rider/trip-complete.html?fee=20` |
 | **[Driver] Balance & Statement** | #1840 | `driver/balance.html`, `?owed=430`, `?available=200`, `?zero` |
 | **[Driver] Settle What You Owe** | #1840 | `driver/settle.html` |
 | **[Driver] Go-Online Blocked & Warning Band** | #1838 | `driver/home.html?blocked` and `?warn` |
 | **[Driver] Cash Collection with a Recovered Fee** | #1840 | `driver/cash-collection.html?riderfee=20` |
-| **[Admin] Driver Balances & Record Settlement** | #2857 | `admin-v2/balances.html` |
-| **[Admin] Record a Payout** | #2857 | `admin-v2/balances.html` |
+| **[Admin] Driver Balances — Record Settlement & Payout** | #2857 | `admin-v2/balances.html` |
 | **[Admin] Rider Outstanding Fees** | #2857 | `admin-v2/rider-balances.html` |
 | **[Admin] Balance & Fee Policy** | #2857 | `admin-v2/pricing-policies.html` |
 
@@ -74,14 +73,14 @@ it (a direct link to *Settle*). The warning band that precedes it is what stops 
 being a surprise. Tone: credit control, not punishment. She has done nothing wrong; she is
 simply carrying our cash.
 
-### 2. `[Rider] Outstanding Fee Notice & Full-Recovery State`
+### 2. `[Rider] Outstanding Fee Notice`
 The awkward one. A rider is being asked, on today's ride, for a cancellation fee from days
-ago — and above the threshold, for **all** of them at once. The amount on her fare will be
-noticeably higher than the fare she was quoted.
+ago — her **entire** outstanding balance, in one go, every time. The amount on her fare
+may be noticeably higher than the fare she was quoted.
 
-The copy and layout have to make that feel **fair, not punitive**: state the amount plainly
-before she confirms, say what it clears, and never bury it in the fare. Two weights of the
-same banner — dismissible below the threshold, non-dismissible above it.
+The copy and layout have to make that feel **fair, not punitive**: state the full amount
+plainly before she confirms, say what it clears, and never bury it in the fare. It is a
+single dismissible banner — there is no threshold and no separate non-dismissible state.
 
 > Please do **not** draw a "rider blocked from booking" state. An earlier version of the
 > design had one and it was removed: a cash rider can only clear a fee by taking a ride, so
@@ -93,9 +92,8 @@ same banner — dismissible below the threshold, non-dismissible above it.
 ## States you must not skip
 
 Empty, loading and error on every list. Plus, per screen: the warning band, the blocked
-panel, the zero balance, the missing-payout-destination state, and the full-recovery
-banner. They are enumerated per story in the briefs — the prototype demonstrates each one
-via the query strings above.
+panel, the zero balance, and the outstanding-fee banner. They are enumerated per story in
+the briefs — the prototype demonstrates each one via the query strings above.
 
 Loading states must never **flash** the wrong state and then correct themselves — if the
 fee or balance status is not yet known, render the neutral state and resolve quietly.

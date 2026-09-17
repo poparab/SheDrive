@@ -1671,27 +1671,27 @@ Immediately after the driver taps "End Trip" and the trip state advances to trip
 
 ### Background
 
-Extends the cash-collection screen (#1592). When a trip completes in cash and the rider is carrying one outstanding fee from an earlier late cancellation, that fee is recovered as a surcharge on this trip (#4000) and the cash-collection screen itemises it as its own line, separate from the fare, followed by the total she must collect. Nothing about the screen changes when no fee is being recovered — it shows the fare total exactly as #1592 already does.
+Extends the cash-collection screen (#1592). When a trip completes in cash and the rider is carrying an outstanding balance from earlier late cancellations, that whole balance is recovered as a surcharge on this trip (#4000) and the cash-collection screen itemises it as its own line, separate from the fare, followed by the total she must collect. Nothing about the screen changes when no balance is being recovered — it shows the fare total exactly as #1592 already does.
 
-Worked example: a 100.00 EGP fare with a 20.00 EGP outstanding fee recovered shows as "Fare: 100.00 EGP", "Outstanding fee recovered: 20.00 EGP", "Total to collect: 120.00 EGP" — the same 120.00 EGP the rider sees on her own fare summary (#3999), so the two figures always match and neither side has to take the other's word for it.
+Worked example: a 100.00 EGP fare with a 20.00 EGP outstanding balance recovered shows as "Fare: 100.00 EGP", "Outstanding fee recovered: 20.00 EGP", "Total to collect: 120.00 EGP" — the same 120.00 EGP the rider sees on her own fare summary (#3999), so the two figures always match and neither side has to take the other's word for it.
 
-**She is never left holding an unexplained number.** The fee line always carries a short reason — that the rider had an unpaid fee from a previous cancelled trip — so the driver can answer if the passenger asks why the total is higher than the fare shown when she booked.
+**She is never left holding an unexplained number.** The fee line always carries a short reason — that the rider had an unpaid balance from one or more previous cancelled trips — so the driver can answer if the passenger asks why the total is higher than the fare shown when she booked.
 
-**Her own earnings are unaffected by the fee.** Commission is calculated on the 100.00 EGP fare only — never on the recovered fee, since the platform already holds its share of that fee from when it was charged. The extra cash she collects is not "extra income": it nets out against the fee on her balance (#1788), where the full picture — including what she is really entitled to for the trip — is visible. This screen's job is only to tell her what to collect and why, not to explain her balance.
+**Her own earnings are unaffected by the fee.** Commission is calculated on the 100.00 EGP fare only — never on the recovered balance, since the platform already holds its share of that balance from when it was charged. The extra cash she collects is not "extra income": it nets out against the balance on her balance screen (#1788), where the full picture — including what she is really entitled to for the trip — is visible. This screen's job is only to tell her what to collect and why, not to explain her balance.
 
-**Usually only one fee is added to a single trip.** If the rider is carrying more than one outstanding fee, the oldest is recovered first and the rest stay outstanding for a later trip. The exception is a rider whose total has reached the recovery threshold (#3994, default 60.00 EGP) — then her **whole** outstanding balance is recovered on this one trip and the fee line shows that larger figure (#4000, #3998). The driver does nothing differently; the screen simply itemises whatever amount the platform says to collect.
+**The whole balance is always collected on this one trip, in full.** If the rider is carrying more than one outstanding fee, they are combined into a single amount and collected together on her very next completed trip — there is no drip, no oldest-fee-first ordering and nothing left outstanding afterward. The driver does nothing differently; the screen simply itemises whatever amount the platform says to collect.
 
 All strings flow through data-i18n keys with Arabic fallback, and all amounts are in EGP.
 
 ### Acceptance Criteria
 
 **Scenario 1 — Trip completes with a recovered fee, itemised**
-- Given a trip with a 100.00 EGP fare and a rider carrying a 20.00 EGP outstanding fee
+- Given a trip with a 100.00 EGP fare and a rider carrying a 20.00 EGP outstanding balance
 - When the trip ends and the cash-collection screen appears
 - Then it shows "Fare: 100.00 EGP", "Outstanding fee recovered: 20.00 EGP" and "Total to collect: 120.00 EGP"
 
 **Scenario 2 — Trip completes with no outstanding fee**
-- Given a trip with a 100.00 EGP fare and no outstanding fee on the rider
+- Given a trip with a 100.00 EGP fare and no outstanding balance on the rider
 - When the trip ends
 - Then the screen shows only "Total to collect: 100.00 EGP", exactly as #1592 today, with no fee line
 
@@ -1703,23 +1703,17 @@ All strings flow through data-i18n keys with Arabic fallback, and all amounts ar
 - Given the same trip
 - Then the total shown to the driver (120.00 EGP) is identical to the total shown to the rider on her fare summary (#3999)
 
-**Scenario 5 — Only the oldest fee is recovered**
-- Given the rider has two outstanding fees, 20.00 EGP and 15.00 EGP
-- When her next trip completes
-- Then only the older 20.00 EGP fee is itemised and collected on this trip
-- And the 15.00 EGP fee remains outstanding for a later trip
-
-**Scenario 5b — Above the recovery threshold the whole balance is collected**
-- Given the rider's outstanding fees total 65.00 EGP and the recovery threshold is 60.00 EGP
+**Scenario 5 — Several outstanding fees are combined and collected in full**
+- Given the rider has two outstanding fees, 20.00 EGP and 15.00 EGP, for a total balance of 35.00 EGP
 - When her next trip completes with a 100.00 EGP fare
-- Then the fee line reads 65.00 EGP, not just her oldest fee
-- And the total to collect is 165.00 EGP
-- And her outstanding balance is cleared in full
+- Then the fee line reads 35.00 EGP, combining both fees
+- And the total to collect is 135.00 EGP
+- And her outstanding balance is cleared in full — nothing remains for a later trip
 
 **Scenario 6 — Commission and net earnings are unaffected**
-- Given the same 100.00 EGP fare and 20.00 EGP recovered fee, with a 20% commission
+- Given the same 100.00 EGP fare and 20.00 EGP recovered balance, with a 20% commission
 - When the driver views her net earnings for this trip (#1766)
-- Then net earnings are calculated on the 100.00 EGP fare only (80.00 EGP), with no change from the recovered fee
+- Then net earnings are calculated on the 100.00 EGP fare only (80.00 EGP), with no change from the recovered balance
 
 **Scenario 7 — "Done" behaves exactly as before**
 - Given the itemised screen is displayed
@@ -1731,10 +1725,10 @@ All strings flow through data-i18n keys with Arabic fallback, and all amounts ar
 - Then the fare line, fee line, total and reason text are all displayed in the selected language
 
 ### Out of Scope
-- Recovering more than one outstanding fee on a single trip
+- Any ordering or partial recovery across multiple trips — the whole balance always clears on the next trip, in full
 - The rider disputing the recovered fee (Phase 2)
 - Receipt generation for the fee line
-- Waiving or editing the fee from the driver app — that is admin-only (#4005)
+- Waiving or editing the fee from the driver app — the only way it clears is that the rider pays it (#4000)
 - Any change to how commission or net earnings are calculated (#1766 unaffected)
 
 ### Dependencies
@@ -2150,7 +2144,7 @@ The screen is read-only. Settling is an operational process handled by Finance (
 - And her full settlement history with receipt numbers is one tap away on the settlement screen (#3989)
 
 **Scenario 7 — Payout appears in the statement**
-- Given Finance has recorded a payout of 200 EGP to the driver (#3993, #4001)
+- Given Finance has recorded a payout of 200 EGP to the driver (#4001)
 - Then a payout row of −200 EGP appears in her statement with its reference and date
 - And her available balance reduces by 200 EGP accordingly
 
@@ -2186,7 +2180,7 @@ The screen is read-only. Settling is an operational process handled by Finance (
 - Then every label, transaction description, and state message is displayed in the selected language
 
 ### Out of Scope
-- A driver-initiated payout request — there is no such action anywhere in the system; Finance transfers the money and records it (#3993, #4001)
+- A driver-initiated payout request — there is no such action anywhere in the system; Finance transfers the money and records it (#4001)
 - In-app settlement payment by the driver
 - Statement export or PDF receipts
 - Disputing a transaction (Phase 2)
@@ -2200,7 +2194,7 @@ The screen is read-only. Settling is an operational process handled by Finance (
 
 ---
 
-> **Removed 2026-09-13:** drivers do not request payouts. Finance transfers the funds and records the transfer afterwards — see #3993 and #4001. There is no driver-initiated request in the system.
+> **Removed 2026-09-13:** drivers do not request payouts. Finance transfers the funds and records the transfer afterwards — see #4001 (which absorbed #3993 on 2026-09-17). There is no driver-initiated request in the system.
 
 ---
 
@@ -2275,7 +2269,7 @@ All strings flow through data-i18n keys with Arabic fallback, and all amounts ar
 - Choosing or changing which channel a specific settlement used — the channel is fixed when it is recorded
 - Downloadable or PDF settlement receipts
 - Disputing a settlement entry (Phase 2)
-- Editing bank or wallet details for settlement — that is a different concern from her payout destination (out of scope for Phase 1)
+- Editing bank or wallet details for settlement — the channel and reference are fixed at the moment of recording; the platform holds no stored destination on her profile
 
 ### Dependencies
 - #1781 — Driver retrieves her balance and statement (API — must be live; settlement entries are part of the same ledger)

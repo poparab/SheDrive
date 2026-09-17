@@ -547,7 +547,7 @@
     <p class="eyebrow">SheDrive · Financial core · Backlog by track</p>
     <h1>SheDrive Finance Story Map</h1>
     <p class="lede">
-      All 35 work items, split the way the teams are: API, Admin, Driver app, Rider app,
+      All 30 work items, split the way the teams are: API, Admin, Driver app, Rider app,
       Design. What each track is responsible for, story by story, and where every one of
       them actually stands.
     </p>
@@ -555,15 +555,16 @@
 
   <section>
     <div class="stats">
-      <div class="stat"><b>35</b><span>work items in the feature</span></div>
-      <div class="stat"><b>35</b><span>at state <b style="font-size: inherit">New</b> — none started</span></div>
-      <div class="stat stat--flag"><b>33</b><span>carry no story points</span></div>
-      <div class="stat stat--flag"><b>0</b><span>assigned to a sprint</span></div>
+      <div class="stat"><b>30</b><span>work items in the feature</span></div>
+      <div class="stat"><b>3</b><span>started — design briefs in Active; the other 27 still New</span></div>
+      <div class="stat stat--flag"><b>28</b><span>carry no story points</span></div>
+      <div class="stat stat--flag"><b>13</b><span>already in Sprint 5</span></div>
     </div>
     <p>
-      Read straight off Azure DevOps on 10 September 2026. The whole feature is written,
-      parented and ready — and none of it is planned yet. <b>Estimation is the next gate</b>,
-      not more analysis.
+      Read from Azure DevOps on 17 September 2026, after a refinement review that cut four
+      more stories. <b>Thirteen of these thirty are already scheduled into Sprint 5, and
+      eleven of those carry no estimate.</b> That is the thing to fix first — a sprint holding
+      unpointed work is a sprint nobody can commit to.
     </p>
   </section>
 
@@ -573,7 +574,7 @@
 
     <figure>
       <div class="figbox">
-        <svg viewBox="0 0 760 296" role="img" aria-label="Eleven design briefs feed the three interface tracks — rider app, driver app and admin — and blocks nothing. Those three tracks all call the API, which is the only track that writes to the ledger. The ledger is the single source of every balance in the system.">
+        <svg viewBox="0 0 760 296" role="img" aria-label="Ten design briefs feed the three interface tracks — rider app, driver app and admin — and blocks nothing. Those three tracks all call the API, which is the only track that writes to the ledger. The ledger is the single source of every balance in the system.">
           <defs>
             <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
@@ -582,7 +583,7 @@
 
           <rect class="svg-box svg-dash" x="8" y="46" width="136" height="196" rx="3" />
           <text class="svg-strong" x="24" y="72">Design</text>
-          <text class="svg-mono" x="24" y="92">11 briefs</text>
+          <text class="svg-mono" x="24" y="92">10 briefs</text>
           <text class="svg-label" x="24" y="118">Draws every</text>
           <text class="svg-label" x="24" y="134">screen on the</text>
           <text class="svg-label" x="24" y="150">right, and all</text>
@@ -596,7 +597,7 @@
 
           <rect class="svg-box" x="198" y="50" width="158" height="52" rx="3" />
           <text class="svg-strong" x="212" y="72">Rider app</text>
-          <text class="svg-mono" x="212" y="90">4 stories</text>
+          <text class="svg-mono" x="212" y="90">3 stories</text>
 
           <rect class="svg-box" x="198" y="118" width="158" height="52" rx="3" />
           <text class="svg-strong" x="212" y="140">Driver app</text>
@@ -615,7 +616,7 @@
 
           <rect class="svg-box" x="428" y="50" width="150" height="188" rx="3" />
           <text class="svg-strong" x="442" y="76">API</text>
-          <text class="svg-mono" x="442" y="94">10 stories</text>
+          <text class="svg-mono" x="442" y="94">7 stories</text>
           <text class="svg-label" x="442" y="122">The only track</text>
           <text class="svg-label" x="442" y="138">that decides or</text>
           <text class="svg-label" x="442" y="154">records money.</text>
@@ -650,7 +651,7 @@
       <div class="track__head t-api">
         <div class="track__title">
           <h2>API</h2>
-          <span class="track__count t-api">10 stories</span>
+          <span class="track__count t-api">7 stories</span>
           <span class="track__who">AREA PATH · SheDrive</span>
         </div>
         <p class="track__what">
@@ -663,10 +664,10 @@
           above it can repair a ledger that got them wrong.
         </p>
         <div class="track__facts">
-          <span class="fact">All 10 at New</span>
+          <span class="fact">All 7 at New</span>
           <span class="fact fact--flag">0 estimated</span>
           <span class="fact">2 reopened: #1764, #1781</span>
-          <span class="fact">Blocks all 25 others</span>
+          <span class="fact">Blocks all 23 others</span>
         </div>
       </div>
       <div class="scroller">
@@ -679,10 +680,7 @@
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3997">#3997</a></td><td>A completed trip posts exactly one entry, chosen by who is holding the fare. The one and only place in the platform that makes that decision.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1764">#1764</a></td><td>Cancellation fees in both directions. A rider cancelling late opens a fee on her own ledger and credits the driver her configured share; a driver cancelling late is debited, unless she waited out a rider no-show. Values are frozen at her acceptance.</td><td><span class="pill p-reopen">reopened</span></td><td class="st">New</td><td class="mid">—</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4000">#4000</a></td><td>Recovery. Her oldest outstanding fee rides as a surcharge on her next completed trip and posts to both ledgers at once. No commission is ever taken from a recovered fee.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
-            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4002">#4002</a></td><td>Escalation. At or above the recovery threshold her whole outstanding balance comes off one ride instead of one fee at a time. She is never refused a booking at any balance.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3996">#3996</a></td><td>The go-online gate. Refuses to put a driver online at or over the outstanding limit and returns the amount and the limit so the app can explain it. A limit of 0 turns the gate off. A recorded settlement releases her immediately.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
-            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3993">#3993</a></td><td>Finance records a payout it has already sent her, which posts the <code>payout</code> debit. Idempotent on the payout reference, refused above her available balance, refused with no destination on file. <b>She never requests it.</b></td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
-            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4003">#4003</a></td><td>Payout destination on the driver profile, and the rule that a payout cannot be <b>recorded</b> without one — Finance cannot write down a transfer to nowhere.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1781">#1781</a></td><td>Driver balance and statement. Returns what she owes and what she can draw as two separate numbers, so no client ever has to interpret a sign. Calculates nothing — it reads the ledger.</td><td><span class="pill p-reopen">reopened</span></td><td class="st">New</td><td class="mid">—</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4004">#4004</a></td><td>Rider outstanding fees and statement, read-only, each fee naming the trip and date it came from.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
           </tbody>
@@ -704,7 +702,7 @@
           <b>Everywhere a human has to intervene.</b> Admin sets every number the system runs
           on without a code deploy, takes the cash back in and records it, records the payouts
           Finance has already sent,
-          waives a fee when it was unfair, and reads the one figure that says how much of
+          reviews a rider who owes something, and reads the one figure that says how much of
           SheDrive's money is currently sitting in drivers' pockets. It is also where the only
           block on a rider lives — an admin suspending her, deliberately a human decision and
           never automatic.
@@ -722,9 +720,9 @@
             <tr><th>Story</th><th>What happens in it</th><th>Origin</th><th>State</th><th class="mid">Pts</th></tr>
           </thead>
           <tbody>
-            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3994">#3994</a></td><td>The whole policy surface on one screen: commission, both grace periods, both cancellation fees, the driver's share of a rider fee, the outstanding limit and its warning band, and the rider recovery threshold. Every change audited with who, when, old value and new.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
+            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3994">#3994</a></td><td>The whole policy surface on one screen: commission, both grace periods, both cancellation fees, the driver's share of a rider fee, and the driver outstanding limit with its warning band. Every change audited with who, when, old value and new.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1813">#1813</a></td><td>Driver balances list, ledger drawer, and recording a settlement across four channels with a reference number and a generated receipt. Also exports settlement entries as CSV for Finance to reconcile against the bank.</td><td><span class="pill p-reopen">reopened</span></td><td class="st">New</td><td class="mid">—</td></tr>
-            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4001">#4001</a></td><td>Recording a payout Finance has already sent, from the same screen as recording a settlement — the same act in the opposite direction. Blocked without a payout destination on file.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
+            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4001">#4001</a></td><td>Recording a payout Finance has already sent, from the same screen as recording a settlement — the same act in the opposite direction. Owns the ledger posting too: idempotent on the reference, refused above her available balance.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=4005">#4005</a></td><td>Riders who owe something: the rider ledger drawer, waiving a fee with a reason, and the link into suspension for persistent abuse.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1832">#1832</a></td><td>Revenue and commission summary, extended so it separates commission <i>earned</i> from commission <i>settled</i> and shows what is still outstanding — the exposure figure.</td><td><span class="pill p-extend">extended</span></td><td class="st">New</td><td class="mid">3</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=1833">#1833</a></td><td>Per-driver earnings and settlement report, with its dependencies repointed onto the ledger.</td><td><span class="pill p-extend">extended</span></td><td class="st">New</td><td class="mid">8</td></tr>
@@ -780,7 +778,7 @@
       <div class="track__head t-rider">
         <div class="track__title">
           <h2>Rider app</h2>
-          <span class="track__count t-rider">4 stories</span>
+          <span class="track__count t-rider">3 stories</span>
           <span class="track__who">AREA PATH · SheDrive\SheDrive Mobile Team</span>
         </div>
         <p class="track__what">
@@ -794,7 +792,7 @@
           <span class="fact">All 4 at New</span>
           <span class="fact fact--flag">0 estimated</span>
           <span class="fact">All 4 new builds</span>
-          <span class="fact fact--flag">#3998 needs the most careful copy</span>
+          <span class="fact fact--flag">#3995 needs the most careful copy</span>
         </div>
       </div>
       <div class="scroller">
@@ -805,7 +803,6 @@
           <tbody>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3992">#3992</a></td><td>Her payment method and everything she owes: each fee, the trip and date it came from, and the plain line saying it will be added to her next ride. Fee detail behind each row; a zero state when she is clear.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3995">#3995</a></td><td>A notice before she requests, stating the amount that will be added to this ride. Dismissible, and it never hides or blocks the booking.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
-            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3998">#3998</a></td><td>Above the threshold: her whole balance is coming off this one ride, so the number is noticeably larger than her fare. The notice is not dismissible, and the tone has to be factual and fair rather than punitive.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3999">#3999</a></td><td>The recovered fee as its own line above the total on her fare summary, and the same line on historic trips so the record still explains itself later.</td><td><span class="pill p-new">new</span></td><td class="st">New</td><td class="mid">—</td></tr>
           </tbody>
         </table>
@@ -819,7 +816,7 @@
       <div class="track__head t-design">
         <div class="track__title">
           <h2>Design</h2>
-          <span class="track__count t-design">11 briefs</span>
+          <span class="track__count t-design">10 briefs</span>
           <span class="track__who">AREA PATH · SheDrive\Design Team</span>
         </div>
         <p class="track__what">
@@ -830,7 +827,7 @@
           empty, loading and error states, in Arabic and English, RTL and LTR.
         </p>
         <div class="track__facts">
-          <span class="fact">All 11 at New</span>
+          <span class="fact">8 at New · 2 in Active Design</span>
           <span class="fact">Blocked by nothing — can start today</span>
           <span class="fact">Prototype already built for every one</span>
         </div>
@@ -843,7 +840,7 @@
           <tbody>
             <tr><th colspan="5">Rider screens — 3</th></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3974">#3974</a></td><td>Payment Method &amp; Outstanding Fees — how she pays, and the list of what she owes with its zero state.</td><td>#3992</td><td class="st">New</td><td class="mid">—</td></tr>
-            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3975">#3975</a></td><td>Outstanding Fee Notice &amp; Full-Recovery State — the dismissible banner and the non-dismissible one. No blocked artboard: there is no rider block.</td><td>#3995, #3998</td><td class="st">New</td><td class="mid">—</td></tr>
+            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3975">#3975</a></td><td>Outstanding Fee Notice — one dismissible banner stating the full amount owed. No blocked artboard: there is no rider block.</td><td>#3995</td><td class="st">New</td><td class="mid">—</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3976">#3976</a></td><td>Fare Summary with a Recovered Fee — the fee as a distinct line above the total.</td><td>#3999</td><td class="st">New</td><td class="mid">—</td></tr>
 
             <tr><th colspan="5">Driver screens — 4</th></tr>
@@ -852,11 +849,10 @@
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3980">#3980</a></td><td>Go-Online Blocked &amp; Warning Band — the hardest screen in the set. She cannot earn until she settles, and the screen has to say so without humiliating her.</td><td>#3988</td><td class="st">New</td><td class="mid">—</td></tr>
             <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3981">#3981</a></td><td>Cash Collection with a Recovered Fee — the itemised fare + fee total she shows a passenger.</td><td>#3990</td><td class="st">New</td><td class="mid">—</td></tr>
 
-            <tr><th colspan="5">Admin screens — 4</th></tr>
-            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3982">#3982</a></td><td>Driver Balances &amp; Record Settlement — the list, the ledger drawer, the settlement form.</td><td>#1813</td><td class="st">New</td><td class="mid">—</td></tr>
-            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3983">#3983</a></td><td>Record a Payout — the form on the balances screen, and the blocked state when no payout destination is on file.</td><td>#4001</td><td class="st">New</td><td class="mid">—</td></tr>
-            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3984">#3984</a></td><td>Rider Outstanding Fees — the list, the waive flow, the route to suspension.</td><td>#4005</td><td class="st">New</td><td class="mid">—</td></tr>
-            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3986">#3986</a></td><td>Balance &amp; Fee Policy — the form, and what a value of 0 means on each field.</td><td>#3994</td><td class="st">New</td><td class="mid">—</td></tr>
+            <tr><th colspan="5">Admin screens — 3</th></tr>
+            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3982">#3982</a></td><td>Driver Balances — Record Settlement &amp; Payout — the list, the ledger drawer, the settlement and payout forms. Absorbed #3983 on 14 September.</td><td>#1813, #4001</td><td class="st">Active</td><td class="mid">—</td></tr>
+            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3984">#3984</a></td><td>Rider Outstanding Fees — the list and the ledger drawer, read-only, with the route to suspension as its only action.</td><td>#4005</td><td class="st">New</td><td class="mid">—</td></tr>
+            <tr><td class="id"><a href="https://dev.azure.com/AR-corp/SheDrive/_backlogs/backlog/SheDrive%20Team/Epics?workitem=3986">#3986</a></td><td>Balance &amp; Fee Policy — the form, and what a value of 0 means on each field.</td><td>#3994</td><td class="st">Active</td><td class="mid">—</td></tr>
           </tbody>
         </table>
       </div>
@@ -869,7 +865,7 @@
 
     <div class="note">
       <p>
-        <b>1. Estimate 33 items.</b> Only #1832 and #1833 carry points, and both were pointed
+        <b>1. Estimate 28 items — 13 of them are already in Sprint 5.</b> Only #1832 and #1833 carry points, and both were pointed
         before this work extended them — their scope grew and the numbers did not. Three of
         the unestimated items were previously closed or removed (#1764, #1781, #1813) and one
         was rescoped (#1788): treat all four as new work, not as carry-over.
@@ -890,9 +886,6 @@
         <b>3. Two business decisions gate acceptance criteria, not code.</b> Nobody has decided
         how the cash physically comes back — which settlement channels SheDrive will actually
         run, or who staffs them — and #1813's criteria cannot be finalised without it.
-        Separately, driver onboarding does not collect a payout destination today, so #4003
-        adds a field the onboarding flow will also have to ask for.
-      </p>
     </div>
 
     <div class="note">
@@ -901,8 +894,10 @@
         append-only by design, and the post-adjustment action was cut on 13 September to
         keep Phase 1 simple. So a settlement recorded against the wrong driver, an amount
         keyed as 300 instead of 30, or a payout written down twice is permanent — and she
-        sees it in her statement. A rider fee can still be waived; the driver ledger has no
-        equivalent. The cheapest fix that does not bring back a form is a
+        sees it in her statement. With the waive cut on 17 September this is true of <b>both</b>
+        ledgers — a fee charged to the wrong rider cannot be written off either. The product
+        owner has accepted this and asked that the design account for it; the fix, when it
+        comes, is a
         <b>reverse-this-entry</b> action: one button on an existing entry, a required
         reason, posting the exact opposite amount. Decide before #3991 is built —
         retrofitting a correction path onto a live financial ledger is much harder than
@@ -917,6 +912,6 @@
       the <b>SheDrive Money Rulebook</b>; the contract every team builds from is
       <code>docs/superpowers/specs/2026-09-08-financial-core-design.md</code>.
     </p>
-    <p>SheDrive · financial core · 35 items across 5 tracks · none started, none scheduled.</p>
+    <p>SheDrive · financial core · 34 items across 5 tracks · 2 design briefs in progress, none scheduled.</p>
   </footer>
 </div>
