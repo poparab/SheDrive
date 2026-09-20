@@ -468,7 +468,7 @@ All strings — the banner, its amount, its explanation and its dismiss control 
 ### Dependencies
 - `#4000` — Rider outstanding fee is recovered on her next trip (API — must be live; supplies the full-balance amount)
 - #1552 — Rider sees fare estimate before requesting (extended by this story)
-- `#3992` — Rider views her payment method and outstanding fees (parity with the amount shown there)
+- `#3992` — Rider views her payment method (Cash; the balance is not shown there)
 - `#3999` — Rider sees the recovered fee on her fare summary (she sees the same total again there before she pays)
 - `#1740` — Operations admin suspends a rider account (the only block on a rider, for persistent abuse)
 
@@ -1196,63 +1196,167 @@ When a rider taps a row in her trip history list, she is taken to the trip detai
 
 ---
 
-## [Mobile] #1724 — Rider views and edits her profile 🆕
-**Feature:** Feature 2 — Rider Authentication | **Sprint:** 2
+## [Mobile] #1724 — Rider views and manages her profile ♻️
+**Feature:** Feature 1 — Rider Authentication (#1532) | **Sprint:** Backlog (not scheduled)
 
-**Description:** As a rider, I want to view and edit my profile information so that my registered details are accurate and current.
+**Description:** As a rider, I want one profile screen that shows who I am on SheDrive — my photo, my name, how many trips I have taken, how I am rated and how long I have been riding — and lets me keep my photo, my name and my saved places up to date, so that my account reflects me and booking a ride to a place I go to often takes one tap.
 
 ### Background
 
-The rider profile screen is accessible from the app's drawer menu. It displays the rider's registered full name, phone number (display only — cannot be changed in this sprint), and current language preference. The rider can edit her full name by tapping the name field. Changes are saved via #1721. The phone number field is visually styled as read-only.
+The rider profile screen is reached from the app's drawer menu and is the one place she sees her account as a whole. It is served by a single call (#4475), so the screen renders in one pass rather than assembling itself from several requests.
+
+**Three things are editable, the rest are read-only or links.** She can change her full name, set or change her profile photo, and manage her saved places. Her phone number, her trip count, her rating and her joining date are shown and cannot be edited. Her payment method and her emergency contacts appear as rows that open the screens that own them — this screen never edits either.
+
+**Her photo is optional and decorative.** Unlike the driver photo, which exists for gender verification (#1686), a rider photo is never checked against anything and is visible only to her. Until she sets one, the screen shows a placeholder, and she can remove it at any time and go back to that placeholder.
+
+**Saved places are shortcuts.** At most one Home and one Work, plus custom labels, to a total of ten. Addresses are chosen through the same address search the booking screen already uses (#1548), so anything she saves can be picked as a pickup or a destination.
+
+**A new rider sees an honest empty screen.** No photo, no trips, no rating and no saved places is the normal first state — it reads as a profile waiting to be filled in, not as a broken or zeroed-out one. In particular an unrated rider shows a dash, never 0.0, which would read as the worst possible score.
+
+All strings flow through `data-i18n` keys with Arabic fallback text in the HTML, and the screen lays out correctly in both LTR and RTL.
+
+### Screen layout
+
+| Section | Shows | Behaviour |
+|---|---|---|
+| Header | Profile photo with the account-status badge, full name, phone number, Edit Profile | Tapping the photo opens the photo actions; Edit Profile opens the editable fields |
+| Stats row | Trips, Rating, Since | Read-only. Completed trips, her aggregate rating to one decimal, and the year she joined |
+| Account — Payment Method | Cash | Opens the payments screen (#3992). Never shows her outstanding balance here |
+| Account — Emergency Contacts | The number of trusted contacts she has saved | Opens the emergency contacts screen (#1787), which owns them |
+| Saved Places | Home and Work first, then her custom places; a Manage action | Tapping one opens it for editing; Manage opens the full list to add, edit and delete |
+| Log Out | — | The existing logout flow (#1547), unchanged |
 
 ### Field Validation
 
 | Field | Required | Format | Min | Max | Error — empty | Error — invalid |
 |---|---|---|---|---|---|---|
 | Full name | Yes | Letters and spaces only (Arabic or Latin) | 2 chars | 60 chars | الاسم مطلوب / Name is required | الاسم يحتوي على أحرف غير صالحة / Name contains invalid characters |
+| Profile photo | No | JPEG or PNG, from camera or gallery | — | 10 MB | — | اختاري صورة JPEG أو PNG أقل من 10 ميجا / Choose a JPEG or PNG under 10 MB |
+| Saved place label | Yes | `Home`, `Work`, or a custom label | 1 char | 30 chars | سمي هذا المكان / Name this place | — |
+| Saved place address | Yes | Chosen through the existing address search (#1548) | — | — | اختاري عنوانًا / Choose an address | This address is outside our service area |
 
 ### Acceptance Criteria
 
 **Scenario 1 — Rider views her profile**
-- Given an authenticated rider opens the profile screen
-- Then her registered full name is displayed
-- And her phone number is displayed in a read-only field
-- And her current language preference is shown
+- Given an authenticated rider with a photo, 128 completed trips, a 4.9 rating, three emergency contacts and two saved places opens the profile screen
+- Then her photo, full name and phone number are displayed in the header, with her phone number read-only
+- And the stats row shows 128 trips, a 4.9 rating and the year she joined
+- And the account section shows Cash as her payment method and a count of 3 emergency contacts
+- And her saved places are listed with Home and Work first
+- And her current language preference is shown (#1729)
 
-**Scenario 2 — Rider edits and saves her name successfully**
-- Given the rider taps the name field to edit it
-- And she enters a valid new name
-- When she taps “Save”
-- Then the profile is updated via #1721
-- And a success toast is shown: “تم حفظ التغييرات” / “Changes saved”
-- And the profile screen reflects the updated name
+**Scenario 2 — A brand-new rider sees empty states, not zeros**
+- Given a rider who registered today, has taken no trips, has never been rated, has no photo and no saved places
+- When she opens the profile screen
+- Then the photo placeholder is shown in place of a photo
+- And the trips figure reads 0, the rating reads a dash rather than 0.0, and the year she joined is this year
+- And the emergency contacts row reads that she has none, and the saved places section invites her to add one
 
-**Scenario 3 — Name field validation fails**
+**Scenario 3 — Rider edits and saves her name**
+- Given the rider opens Edit Profile and enters a valid new name
+- When she saves
+- Then the change is sent to the platform (#4475), the header shows the new name, and the success toast "تم حفظ التغييرات" / "Changes saved" is shown
+
+**Scenario 4 — Name validation fails**
 - Given the rider clears the name field or enters invalid characters
-- When she taps “Save”
-- Then the inline validation error is shown
-- And the save request is not sent
+- When she saves
+- Then the inline validation error from the table above is shown and no save request is sent
 
-**Scenario 4 — Phone number field is read-only**
-- Given the rider views her profile
+**Scenario 5 — Phone number cannot be changed**
+- Given the rider views or edits her profile
 - When she taps the phone number field
-- Then the field does not enter edit mode
-- And a note indicates: رقم الهاتف لا يمكن تغييره / Phone number cannot be changed
+- Then it does not enter edit mode and the note "رقم الهاتف لا يمكن تغييره" / "Phone number cannot be changed" is shown
 
-**Scenario 5 — Network error during save**
-- Given the rider taps “Save”
-- When the network request fails
-- Then a toast message is shown: “فشل الحفظ. حاول مجدداً” / “Save failed. Please try again.”
-- And the rider remains on the profile screen in edit mode
+**Scenario 6 — Rider adds a profile photo**
+- Given a rider with no profile photo
+- When she taps the placeholder and chooses a photo from her camera or her gallery
+- Then a preview is shown before she confirms
+- And on confirming, the photo is uploaded (#4475) and the header shows it in place of the placeholder
+
+**Scenario 7 — Rider replaces or removes her photo**
+- Given a rider who already has a profile photo
+- When she taps it, the actions offered are to change it or remove it
+- And choosing change and confirming a new image replaces it in the header
+- And choosing remove returns the header to the placeholder, exactly as for a rider who never set one
+
+**Scenario 8 — An unsupported or oversized photo is refused**
+- Given the rider picks a file that is not a JPEG or PNG, or is larger than 10 MB
+- When she confirms it
+- Then the error "اختاري صورة JPEG أو PNG أقل من 10 ميجا" / "Choose a JPEG or PNG under 10 MB" is shown
+- And her existing photo, if any, is unchanged
+
+**Scenario 9 — Rider saves a place**
+- Given the rider opens Manage from the saved places section
+- When she adds a place, labels it Home and picks an address through the address search (#1548)
+- Then it is saved (#4475) and appears in the saved places section
+- And it can then be chosen as a pickup or a destination when she books
+
+**Scenario 10 — One Home and one Work**
+- Given the rider already has a place saved as Home
+- When she saves a different address as Home
+- Then she is told the existing Home will be replaced, and on confirming exactly one Home remains
+- And the same applies to Work, while custom labels may repeat
+
+**Scenario 11 — Rider edits and deletes a saved place**
+- Given the rider taps a saved place
+- When she changes its label or address and saves, the list shows the updated place
+- And when she deletes it, she is asked to confirm first, and afterwards it is gone and her other saved places are untouched
+
+**Scenario 12 — Saved places are capped at ten**
+- Given the rider already has ten saved places
+- When she tries to add another
+- Then she is told she must delete one first, and the add action does not proceed
+
+**Scenario 13 — The account rows open the screens that own them**
+- Given the rider views her profile
+- When she taps the payment method row, the payments screen opens (#3992)
+- And when she taps the emergency contacts row, the emergency contacts screen opens (#1787)
+- And her outstanding balance is not shown anywhere on the profile screen
+
+**Scenario 14 — Account status is reflected on her photo**
+- Given a rider whose account has been placed under review (#1687) or suspended (#1740)
+- When she opens the profile screen
+- Then the badge on her photo reflects that status rather than the active state
+
+**Scenario 15 — Network error loading the profile**
+- Given the profile screen cannot reach the platform
+- When it loads
+- Then a retry option is shown in place of the profile content, and retrying re-issues the request
+
+**Scenario 16 — Network error during a save**
+- Given the rider saves a name, a photo or a saved place
+- When the request fails
+- Then the toast "فشل الحفظ. حاول مجدداً" / "Save failed. Please try again." is shown
+- And she stays on the screen with her entry intact so she can retry
+
+**Scenario 17 — Logging out is unchanged**
+- Given the rider taps Log Out
+- Then the existing logout flow runs exactly as it does today (#1547)
+
+**Scenario 18 — Arabic and English**
+- Given the rider switches language
+- Then every label, stat caption, section heading, action, empty state and error on the screen is displayed in the selected language
+- And the screen lays out correctly in RTL
 
 ### Out of Scope
-- Phone number change
-- Profile photo upload
-- Account deletion
-- Password management (OTP-based auth only)
+- Changing her phone number — it is her sign-in identity
+- Managing the emergency contacts themselves — this screen shows the count and links out (#1787)
+- Choosing or adding a payment method — cash is the only one in Phase 1 (#3992)
+- Showing her outstanding balance on this screen — she is told by the home-screen banner (#3995)
+- The trip history list behind the trip count (#1568)
+- Account deletion (Phase 2)
+- Password management — authentication is OTP-based
+- Any use of the rider photo for verification — it is decorative and is never checked against anything
 
 ### Dependencies
-- #1721 — Rider retrieves and updates her profile (API — must be live)
+- #4475 — Rider profile is served in one call and its editable parts are saved (API — must be live; replaces the removed #1721)
+- #1729 — Rider changes language preference from profile screen (the language row on this screen)
+- #1787 — Rider sets up emergency contacts (the screen the contacts row opens)
+- #3992 — Rider views her payment method (the screen the payment method row opens)
+- #1547 — Rider logs out (the Log Out action)
+- #1548 — Rider address search (the picker used when saving a place)
+- #1853 — [Rider] Profile & Account (design)
+- #4492 — [Rider] Saved Places (design)
 
 ---
 
@@ -1546,20 +1650,20 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 
 ---
 
-## [Mobile] #3992 — Rider views her payment method and outstanding fees 🆕
+## [Mobile] #3992 — Rider views her payment method 🆕
 **Feature:** Feature 22 — Payments & Outstanding Fees (Rider) | **Sprint:** Phase 1
 
-**Description:** As a rider, I want to see my active payment method and any outstanding fees I owe so that I understand how I pay for rides and know exactly what will be added to my next trip.
+**Description:** As a rider, I want to see how I pay for my rides so that I know what to expect at the end of a trip.
 
 ### Background
 
-Riders pay in cash. This story rewrites the payments screen, which today is a coming-soon stub, into a working one. It shows "Cash" as her payment method — the only one — and states plainly that rides are paid to the driver in cash at the end of the trip.
+Riders pay in cash. This story rewrites the payments screen, which today is a coming-soon stub, into a working one. It shows "Cash" as her payment method — the only one — and states plainly that rides are paid to the driver in cash at the end of the trip. That is the whole screen.
 
-Below the payment method, an outstanding-fees section lists every fee she currently owes: the amount, which trip it came from, and the date it was charged. Each fee carries the line "This will be added to your next ride" — it is not charged immediately, because there is no way to collect from her between rides; instead it rides as a surcharge on a future trip, collected by the driver in cash (#3995). Tapping a fee opens its detail: the trip date and addresses, the reason the fee was charged, and the amount. When she owes nothing, a zero state confirms she has no outstanding fees.
+**The outstanding balance is not shown here.** A rider who owes something is told by the banner on her home screen (#3995), and sees it charged as its own line on her fare summary when it is recovered (#3999). There is no dedicated page for the balance in the rider app.
 
-This is the first time a rider is shown a debt she did not immediately pay off. The copy has to carry that weight: it states plainly that the fee is not being charged right now and names exactly when it will be — her next ride — rather than leaving an amount sitting against her name with no explanation of how or when it is settled.
+A per-fee breakdown, a fee-detail view and a statement of past fees and recoveries are all deferred. The ledger behind them already exists (#4005) and the balance itself is already served (#4004), so they return as their own story when they are wanted.
 
-All strings — the payment-method label, the fee list items, the zero state, and the fee-detail screen — flow through `data-i18n` keys with Arabic fallback text in the HTML.
+The payment method is static — it is not fetched, so the screen has no loading or error state. All strings flow through `data-i18n` keys with Arabic fallback text in the HTML.
 
 ### Acceptance Criteria
 
@@ -1567,41 +1671,34 @@ All strings — the payment-method label, the fee list items, the zero state, an
 - Given the rider opens the payments screen
 - Then "Cash" is shown as her payment method
 - And the screen states that she pays the driver in cash at the end of the ride
+- And no choice of another payment method is offered
 
-**Scenario 2 — Outstanding fees are listed with trip, date, and amount**
-- Given the rider has an outstanding fee of 20.00 EGP from a trip she cancelled late on 5 September
-- When she views the outstanding-fees section
-- Then the fee shows its amount, the trip it came from, and the date it was charged
-- And it shows the line "This will be added to your next ride"
-
-**Scenario 3 — Fee detail**
-- Given the rider taps an outstanding fee
-- Then a detail view shows the trip date and addresses, the reason the fee was charged, and the amount
-
-**Scenario 4 — Zero state when nothing is owed**
-- Given the rider has no outstanding fees
+**Scenario 2 — The screen never shows a balance**
+- Given a rider who owes an outstanding balance of 20.00 EGP
 - When she opens the payments screen
-- Then the outstanding-fees section shows a zero state confirming she owes nothing
-- And no fee rows are rendered
+- Then the screen shows her payment method only
+- And no balance amount, no fee rows, no zero state and nothing to tap through to a fee detail are rendered
+- And the screen renders identically for a rider who owes nothing
 
-**Scenario 5 — Multiple outstanding fees are ordered oldest first**
-- Given the rider has more than one outstanding fee
-- When she views the list
-- Then the fees are ordered oldest first, matching the order in which they will be recovered (#3995)
+**Scenario 3 — The coming-soon stub is gone**
+- Given the rider opens the payments screen
+- Then no coming-soon or placeholder content is shown
 
-**Scenario 6 — Network error loading fees**
-- Given the payments screen cannot reach the platform for her outstanding-fee status
-- When the screen loads
-- Then a retry option is shown in place of the outstanding-fees section
-- And her payment method (Cash) still displays normally
+**Scenario 4 — Arabic and English**
+- Given the rider switches language
+- Then the payment-method label and its explanation are displayed in the selected language
 
 ### Out of Scope
-- Paying an outstanding fee directly from this screen
+- Showing the rider's outstanding balance on this screen — she is told by the home-screen banner (#3995) and sees it charged on her fare summary (#3999)
+- Any dedicated page for the outstanding balance in the rider app
+- A per-fee breakdown, a fee-detail view, and a statement of past fees and recoveries — deferred
+- Paying an outstanding balance from the app — the only way it clears is the surcharge on her next completed trip (#4000)
+- Adding or choosing another payment method (Phase 2)
 - Disputing a fee (Phase 2)
 - Receipts or invoices as PDFs
 
 ### Dependencies
-- `#4004` — Rider retrieves her outstanding fees and statement (API — must be live)
+- None — the payment method is static. The outstanding balance this screen no longer shows is served by #4004 to the home-screen banner (#3995).
 
 ---
 

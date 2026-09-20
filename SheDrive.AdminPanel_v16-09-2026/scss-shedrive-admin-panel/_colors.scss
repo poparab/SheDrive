@@ -1,0 +1,152 @@
+//////////////////////
+////*** Global ***////
+//////////////////////
+$whiteColor: #ffffff;
+$blackColor: #000000;
+$infoColor: #3392FF;
+$successColor: #35C500/*#4FB848*/;
+$warningColor: #FF9500;
+$dangerColor: #E50000;
+
+// Primary //
+$primaryColor: #7323D7;
+$primaryColor-25: lighten($primaryColor, 48%);
+$primaryColor-50: lighten($primaryColor, 45%);
+$primaryColor-100: lighten($primaryColor, 43%);
+$primaryColor-200: lighten($primaryColor, 40%);
+$primaryColor-300: lighten($primaryColor, 30%);
+$primaryColor-400: lighten($primaryColor, 10%);
+$primaryColor-500: darken($primaryColor, 3.5%);
+$primaryColor-600: darken($primaryColor, 10%);
+$primaryColor-700: darken($primaryColor, 20%);
+$primaryColor-800: darken($primaryColor, 25%);
+$primaryColor-900: darken($primaryColor, 30%);
+
+//Secondary //
+$secondaryColor: #B2009C;
+$secondaryColor-25: lighten($secondaryColor, 60%);
+$secondaryColor-50: lighten($secondaryColor, 55%);
+$secondaryColor-100: lighten($secondaryColor, 50%);
+$secondaryColor-200: lighten($secondaryColor, 40%);
+$secondaryColor-300: lighten($secondaryColor, 30%);
+$secondaryColor-400: lighten($secondaryColor, 10%);
+$secondaryColor-500: darken($secondaryColor, 3.5%);
+$secondaryColor-600: darken($secondaryColor, 10%);
+$secondaryColor-700: darken($secondaryColor, 16%);
+$secondaryColor-800: darken($secondaryColor, 22%);
+$secondaryColor-900: darken($secondaryColor, 28%);
+
+// Tertiary //
+$tertiaryColor: #00AAFF;
+$tertiaryColor-25: lighten($tertiaryColor, 47.5%);
+$tertiaryColor-50: lighten($tertiaryColor, 45%);
+$tertiaryColor-100: lighten($tertiaryColor, 40%);
+$tertiaryColor-200: lighten($tertiaryColor, 30%);
+$tertiaryColor-300: lighten($tertiaryColor, 20%);
+$tertiaryColor-400: lighten($tertiaryColor, 10%);
+$tertiaryColor-600: darken($tertiaryColor, 10%);
+$tertiaryColor-700: darken($tertiaryColor, 20%);
+$tertiaryColor-800: darken($tertiaryColor, 30%);
+$tertiaryColor-900: darken($tertiaryColor, 40%);
+
+// Neutral Color //
+$neutralColor: #ffffff;
+$neutralColor-25: darken($neutralColor, 2.5%);
+$neutralColor-50: darken($neutralColor, 5%);
+$neutralColor-100: darken($neutralColor, 10%);
+$neutralColor-200: darken($neutralColor, 20%);
+$neutralColor-300: darken($neutralColor, 30%);
+$neutralColor-400: darken($neutralColor, 40%);
+$neutralColor-500: darken($neutralColor, 50%);
+$neutralColor-600: darken($neutralColor, 60%);
+$neutralColor-700: darken($neutralColor, 70%);
+$neutralColor-800: darken($neutralColor, 80%);
+$neutralColor-900: darken($neutralColor, 90%);
+$neutralColor-1000: darken($neutralColor, 100%);
+
+// Success Color //
+$successColor-25: lighten($successColor, 55%);
+$successColor-50: lighten($successColor, 50%);
+$successColor-100: lighten($successColor, 40%);
+$successColor-200: lighten($successColor, 30%);
+$successColor-300: lighten($successColor, 20%);
+$successColor-400: lighten($successColor, 10%);
+$successColor-500: darken($successColor, 1%);
+$successColor-600: darken($successColor, 10%);
+$successColor-700: darken($successColor, 20%);
+$successColor-800: darken($successColor, 26%);
+$successColor-900: darken($successColor, 32%);
+
+// Warning Color //
+$warningColor-25: lighten($warningColor, 46%);
+$warningColor-50: lighten($warningColor, 40%);
+$warningColor-100: lighten($warningColor, 35%);
+$warningColor-200: lighten($warningColor, 30%);
+$warningColor-300: lighten($warningColor, 20%);
+$warningColor-400: lighten($warningColor, 10%);
+$warningColor-500: darken($warningColor, 1.5%);
+$warningColor-600: darken($warningColor, 8%);
+$warningColor-700: darken($warningColor, 15%);
+$warningColor-800: darken($warningColor, 25%);
+$warningColor-900: darken($warningColor, 35%);
+
+// Danger Color //
+$dangerColor-25: lighten($dangerColor, 53%);
+$dangerColor-50: lighten($dangerColor, 49.5%);
+$dangerColor-100: lighten($dangerColor, 45%);
+$dangerColor-200: lighten($dangerColor, 40%);
+$dangerColor-300: lighten($dangerColor, 30%);
+$dangerColor-400: lighten($dangerColor, 10%);
+$dangerColor-500: darken($dangerColor, 3.5%);
+$dangerColor-600: darken($dangerColor, 10%);
+$dangerColor-700: darken($dangerColor, 20%);
+$dangerColor-800: darken($dangerColor, 25%);
+$dangerColor-900: darken($dangerColor, 35%);
+
+
+//////////////////////////////
+////*** Shadow's Color ***////
+//////////////////////////////
+$primaryShadowColor: $primaryColor-600;
+$secondaryShadowColor: $secondaryColor-600;
+$tertiaryShadowColor: $tertiaryColor-600;
+$infoShadowColor: $infoColor;
+$successShadowColor: $successColor-600;
+$warningShadowColor: $warningColor-600;
+$dangerShadowColor: $dangerColor-600;
+
+////////////////////////////////
+////*** Gradient Buttons ***////
+////////////////////////////////
+$primaryGradientButton: linear-gradient(170deg, $secondaryColor, $primaryColor);
+$primaryGradientButtonHover: linear-gradient(170deg, $primaryColor, $secondaryColor);
+
+$secondaryGradientButton: linear-gradient(170deg, $primaryColor-400 10%, $primaryColor-600);
+$secondaryGradientButtonHover: linear-gradient(170deg, $primaryColor-600 10%, $primaryColor-400);
+
+$tertiaryGradientButton: linear-gradient(170deg, $secondaryColor-400, $secondaryColor-500);
+$tertiaryGradientButtonHover: linear-gradient(170deg, $secondaryColor-500, $secondaryColor-400);
+
+
+//////////////////////
+////*** Alerts ***////
+//////////////////////
+$infoAlertColor: $primaryColor-100;
+$infoAlertBorderColor: $primaryColor-200;
+$infoAlertTextColor: $primaryColor-700;
+
+// Success Alert Color //
+$successAlertColor: $successColor-50;
+$successAlertBorderColor: $successColor-200;
+$successAlertTextColor: $successColor-600;
+
+// Warning Alert Color //
+$warningAlertColor: lighten($warningColor, 45%);
+$warningAlertBorderColor: lighten($warningColor, 30%);
+$warningAlertTextColor: darken($warningColor, 12%);
+
+// Danger Alert Color //
+$dangerAlertColor: lighten($dangerColor, 50%);
+$dangerAlertBorderColor: lighten($dangerColor, 30%);
+$dangerAlertTextColor: darken($dangerColor, 10%);
+

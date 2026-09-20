@@ -1,0 +1,532 @@
+//// **- Message Signs **- ////
+//.status-sign {display: flex; justify-content: center; align-items: center; width: $size-64; height: $size-64; margin: $size-24 auto; padding: $size-8; border-radius: $radius-50;
+//	i {font-size: $size-28;}
+//	img {display: table; width: auto; height: 100%; max-height: $size-24; margin: auto; padding: 0;}
+//}
+//.status-sign.success {background: $secondaryColor-100; box-shadow: 0 0 0 $size-10 $secondaryColor-50; color: $secondaryColor;}
+//.status-sign.warning {background: $warningColor-100; box-shadow: 0 0 0 $size-10 $warningColor-25; color: $warningColor;}
+//.status-sign.danger {background: $dangerColor-50; box-shadow: 0 0 0 $size-10 $dangerColor-25; color: $dangerColor;}
+.status-sign {display: flex; justify-content: center; align-items: center; width: $size-64; height: $size-64; background: $whiteColor; margin: $size-24 auto; padding: $size-8; border: $size-2 solid; border-radius: $radius-50;
+	i {font-size: $size-28;}
+	img {display: table; width: auto; height: 100%; max-height: $size-24; margin: auto; padding: 0;}
+}
+.status-sign.info {background: $tertiaryColor-25; border-color: $tertiaryColor; box-shadow: 0 0 0 $size-10 $tertiaryColor-50; color: $tertiaryColor;}
+.status-sign.success {background: $successColor-25; border-color: $successColor; box-shadow: 0 0 0 $size-10 $successColor-50; color: $successColor;}
+.status-sign.warning {background: $warningColor-25; border-color: $warningColor; box-shadow: 0 0 0 $size-10 $warningColor-50; color: $warningColor;}
+.status-sign.danger {background: $dangerColor-25; border-color: $dangerColor; box-shadow: 0 0 0 $size-10 $dangerColor-50; color: $dangerColor;}
+
+
+//// **- Widjets Styles -** ////
+.widjets {display: block;
+	.neutral-widjet, .info-widjet, .warning-widjet, .success-widjet, .danger-widjet {display: block; padding: $size-14 $size-14 $size-24; height: 100%; border: $size-1 solid; border-radius: $radius-16 $size-40 $radius-16 $radius-16; font-size: $font-size-16; font-family: Tajawal-Medium;
+		.widjet-header {display: block; margin-bottom: $size-12;
+//			@media (max-width: 1199px) {margin-bottom: $size-12;}
+			.icon {display: flex; justify-content: center; align-items: center; width: $size-56; height: $size-56; border-radius: $size-16 $size-32 0 $size-16;
+				img {@include white-icon; width: auto; height: 100%; max-height: $size-32;}
+				i {font-size: $font-size-32; color: $whiteColor;}
+			}
+		}
+		.widjet-body {line-height: $size-22; text-align: center;
+			.number {direction: ltr; font-size: $size-40; font-family: Tajawal-Bold; margin-bottom: $size-16;}
+			.text {font-size: $font-size-18;}
+			span {font-family: Tajawal-Regular; font-size: $font-size-12;}
+		}
+		.widjet-footer {display: flex; justify-content: center; align-items: center;
+			.btn {display: inline-block;}
+		}
+	}
+	
+	.info-widjet {background: $tertiaryColor-50; border-color: $tertiaryColor-300; color: $primaryColor-600;
+		.icon {background: $tertiaryColor;}
+	}
+	.warning-widjet {background: $warningAlertColor; border-color: $warningAlertBorderColor; color: $warningAlertTextColor;
+		.icon {background: $warningColor;}
+	}
+	.success-widjet {background: $successAlertColor; border-color: $successAlertBorderColor; color: $successAlertTextColor;
+		.icon {background: $successColor;}
+	}
+	.danger-widjet {background: $dangerAlertColor; border-color: $dangerAlertBorderColor; color: $dangerColor;
+		.icon {background: $dangerColor;}
+	}
+	
+	.neutral-widjet {background: $whiteColor; border-color: $primaryColor-100; color: $primaryColor;}
+	.neutral-widjet.blue {color: $primaryColor-600;	.icon {background: $tertiaryColor;}	.number {color: $tertiaryColor;} }
+	.neutral-widjet.success {color: $primaryColor-600;	.icon {background: $successColor;}	.number {color: $successAlertTextColor;} }
+	.neutral-widjet.warning {color: $primaryColor-600;	.icon {background: $warningColor;}	.number {color: $warningAlertTextColor;} }
+	.neutral-widjet.danger {color: $primaryColor-600;	.icon {background: $dangerColor;}	.number {color: $dangerColor;} }
+}
+
+/* Widjets Theme 02 Styles */
+.widjets-theme-2 {position: relative; display: block;
+	.neutral-widjet, .info-widjet, .warning-widjet, .success-widjet, .danger-widjet {display: flex; column-gap: $size-6; padding: $size-14; height: 100%; border: $size-1 solid; border-radius: $radius-16; font-size: $font-size-13; font-family: Tajawal-Bold;
+		.widjet-header {display: block; margin-bottom: $size-12;}
+		.widjet-body {display: flex; flex-wrap: wrap; gap: $size-10;  justify-content: flex-start; align-items: flex-start; line-height: $size-22;
+			.icon {display: flex; justify-content: center; align-items: center; width: $size-56; height: $size-56; border-radius: $radius-16;
+				img {@include white-icon; width: auto; height: 100%; max-height: $size-32;}
+				i {font-size: $font-size-32; color: $whiteColor;}
+			}
+			.content {position: relative; display: grid; text-align: start;
+				.number {direction: ltr; text-align-last: right; font-size: $font-size-32; font-family: Tajawal-Bold; margin-bottom: $size-8;}
+				span {font-family: Tajawal-Regular; font-size: $font-size-12;}
+			}
+			.widjet-footer {display: flex; justify-content: center; align-items: center;	.btn {display: inline-block;} 	}
+		}
+	}
+	
+	.info-widjet {background: $tertiaryColor-50; border-color: $tertiaryColor-300; color: $primaryColor-600;
+		.icon {background: $tertiaryColor;}
+	}
+	.warning-widjet {background: $warningAlertColor; border-color: $warningAlertBorderColor; color: $warningAlertTextColor;
+		.icon {background: $warningColor;}
+	}
+	.success-widjet {background: $successAlertColor; border-color: $successAlertBorderColor; color: $successAlertTextColor;
+		.icon {background: $successColor;}
+	}
+	.danger-widjet {background: $dangerAlertColor; border-color: $dangerAlertBorderColor; color: $dangerColor;
+		.icon {background: $dangerColor;}
+	}
+	
+	.neutral-widjet {background: $whiteColor; border-color: $primaryColor-100; color: $primaryColor;}
+	.neutral-widjet.primary {color: $primaryColor;		.icon {background: $primaryColor;} 	.number {color: $primaryColor;}  }
+	.neutral-widjet.blue {color: $tertiaryColor;		.icon {background: $tertiaryColor;} 	.number {color: $tertiaryColor;}  }
+	.neutral-widjet.blue-dark {color: $primaryColor;		.icon {background: $primaryColor;} 	.number {color: $primaryColor;}  }
+	.neutral-widjet.success {color: $successAlertTextColor;		.icon {background: $successColor;}		.number {color: $successAlertTextColor;}  }
+	.neutral-widjet.warning {color: $warningAlertTextColor;		.icon {background: $warningColor;}		.number {color: $warningAlertTextColor;}  }
+	.neutral-widjet.danger {color: $dangerColor;	.icon {background: $dangerColor;} 	.number {color: $dangerColor;}  }
+}
+		
+
+//// **- Status Styles -** ////
+.status-created, .status-pending, .status-approved, .status-rejected {display: inline-flex; width: auto; align-items: center; column-gap: $size-5; height: $size-24; padding: $size-2 $size-2 $size-2 $size-12; border: $size-1 solid; border-radius: $radius-16; font: normal normal normal $font-size-11 Tajawal-Bold; line-height: $size-24;
+	.icon {display: inline-flex; justify-content: center; align-items: center; width: $size-18; height: $size-18; padding: $size-3; border-radius: $radius-50;
+		i {color: $whiteColor; font-size: $size-10;}
+		img {@include white-icon; width: auto; height: 100%; max-height: $size-18;}
+	}
+}
+.status-created {background: $primaryColor-50; border-color: $primaryColor-300; color: $primaryColor-600;		.icon {background: $primaryColor} }
+.status-pending {background: $warningAlertColor; border-color: $warningAlertBorderColor; color: $warningAlertTextColor; 	.icon {background: $warningColor} }
+.status-approved {background: $successAlertColor; border-color: $successAlertBorderColor; color: $successAlertTextColor;	.icon {background: $successColor} }
+.status-rejected {background: $dangerAlertColor; border-color: $dangerAlertBorderColor; color: $dangerColor;	.icon {background: $dangerColor;} }
+
+// Status Lamp Styles //
+.status-blue-lamp, .status-active-lamp, .status-warning-lamp, .status-danger-lamp, .status-primary-lamp, .status-disabled-lamp {display: flex; align-items: center; gap: $size-8; width: auto; height: $size-26; padding: 0; font: normal normal normal $font-size-11 Tajawal-Bold; line-height: $size-24;
+	.lamp {display: inline-flex; width: $size-12; height: $size-12; border-radius: $radius-50;}
+}
+.status-blue-lamp {color: $tertiaryColor;	.lamp {background: $tertiaryColor; box-shadow: 0 0 0 $size-3 $tertiaryColor-200;}	}
+.status-active-lamp {color: $successColor;	.lamp {background: $successColor; box-shadow: 0 0 0 $size-3 $successColor-200;}	}
+.status-warning-lamp {color: $warningColor;	.lamp {background: $warningColor; box-shadow: 0 0 0 $size-3 $warningColor-200;} }
+.status-danger-lamp {color: $dangerColor;	.lamp {background: $dangerColor; box-shadow: 0 0 0 $size-3 $dangerColor-200;} }
+.status-primary-lamp {color: $primaryColor;	.lamp {background: $primaryColor; box-shadow: 0 0 0 $size-3 $primaryColor-200;} }
+.status-disabled-lamp {color: $neutralColor-300;	.lamp {background: $neutralColor-200; box-shadow: 0 0 0 $size-3 $neutralColor-100;} }
+
+// Status Solid Styles //
+.status-primary-solid, .status-secondary-solid, .status-blue-solid, .status-active-solid, .status-warning-solid, .status-danger-solid, .status-disabled-solid {display: inline-flex; align-items: center; gap: $size-8; width: auto; height: $size-20; padding: $size-1 $size-10; font: normal normal normal $font-size-11 Tajawal-Bold; color: $whiteColor; line-height: $size-16; border-radius: $radius-16;}
+.status-primary-solid {background: $primaryColor-400;}
+.status-secondary-solid {background: $secondaryColor-300;}
+.status-blue-solid {background: $tertiaryColor;}
+.status-active-solid {background: $successColor;}
+.status-warning-solid {background: $warningColor;}
+.status-danger-solid {background: $dangerColor;}
+.status-disabled-solid {background: $primaryColor-100; color: $primaryColor-400;}
+
+
+//// **- Grid Styles -** ////
+table.custom-grid {white-space: nowrap; margin: 0; font-size: $font-size-14;
+	thead, tbody, tfoot {border-radius: $standard-radius !important;}
+	thead {background: $primaryColor-100 !important;
+		th {background-color: transparent; color: $primaryColor-700; font-family: Tajawal-Regular; padding: $size-8 $size-12;}
+	}
+//	th {color: $primaryColor-700; font-family: Tajawal-Regular; padding: $size-8;
+//		&:nth-of-type(2n+2) {background: color(blueColor-light_5);}
+//	}
+	td {padding: $size-6 $size-12; color: $primaryColor-600;}
+	.grid-options-btn {display: inline-block; font-size: 1.25em; opacity: .7; margin-left: .1em;
+		&:hover {opacity: 1;}
+	}
+	p {font-size: $font-size-14 !important; margin: 0; clear: both;}
+	
+	.approved-icon, .edit-icon, .delete-icon, .view-icon, .pause-icon {font-size: $font-size-15; opacity: .55;
+		&:hover, &:focus {opacity: 1;}
+	}
+    .approved-icon {color: $successColor;}
+	.edit-icon {color: $secondaryColor;}
+	.delete-icon {color: $dangerColor;}
+	.view-icon {color: $tertiaryColor;}
+	.pause-icon {color: $warningColor;}
+
+	
+	> :not(caption) > * > * {background: none; box-shadow: none; border-bottom: $size-1 solid $primaryColor-100;}
+	> tbody > tr:nth-of-type(2n+1) > * {background: $whiteColor;}
+	> tbody > tr:nth-of-type(2n) > * {background: $primaryColor-50;}
+	
+	> tbody > tr:nth-of-type(2n) {background: $primaryColor-25 !important;}
+	
+	tr.highlighted {background: color(tbHighlighted);
+		td {color: color(blueColor-dark) !important; font-size: .92em; font-weight: bold;}
+	}
+	tfoot {background: $primaryColor-100 !important;
+		tr {border: hidden !important;}
+		td {color: color(whiteColor) !important; padding: $size-6 $size-12;}
+		.br-left {border-left: $size-1 solid $primaryColor-100;}
+		
+		label.rows-number-title {margin-bottom: 0;}
+		select.rows-number {min-width: 115% !important; background-size: $font-size-11; background-position: left $size-6 center; padding: $size-6 $size-12 !important; font-size: $font-size-15 !important; border-radius: $standard-radius !important;}
+		
+		.pagination {padding: 0; margin: 0;
+			.active > .page-link {background: $primaryColor-400; color: $whiteColor;}
+			.disabled > .page-link {background: transparent; opacity: .75;}
+			.page-link {width: $size-36; background: $primaryColor-25; padding: 0 $size-4; margin: $size-3; border-color: $primaryColor-200; border-radius: $standard-radius; color: $primaryColor-300; text-align: center;
+				&:hover, &:focus, &:active, &.active {background: $primaryColor; color: $whiteColor; box-shadow: none;}
+				i {font-size: $font-size-12;}
+			}
+			
+		}
+	}
+}
+
+// Grid List Styles //
+table.custom-grid-list {white-space: nowrap; margin: 0; font: normal normal normal $font-size-13 Tajawal-Regular; border-collapse: separate; border-spacing: 0 $size-6;
+	thead, tfoot {background: none !important; background-color: transparent !important;}
+	th, td {background: $whiteColor !important; border-color: $primaryColor-100 !important; border-top: $size-1 solid; color: $primaryColor-600; line-height: $size-16; vertical-align: middle;
+		&:first-child {border-right: $size-1 solid; border-top-right-radius: $standard-radius; border-bottom-right-radius: $standard-radius;}
+		&:last-child {border-left: $size-1 solid; border-top-left-radius: $standard-radius; border-bottom-left-radius: $standard-radius;}
+	}
+	
+	th {font-family: Tajawal-medium; padding: $size-16 $size-12;}
+	td {padding: $size-10 $size-12;}
+	
+	p {font-size: $font-size-13 !important; margin: 0; clear: both;}
+	.text-bold {font-family: Tajawal-Bold, serif; font-weight: normal;}
+    
+    .btn {padding: $size-5 $size-10; font-size: $size-12;}
+	
+	.grid-options-btn {display: inline-block; font-size: 1.25em; opacity: .7; margin-left: .1em;
+		&:hover {opacity: 1;}
+	}
+	.approved-icon, .edit-icon, .delete-icon, .view-icon, .pause-icon {font-size: $font-size-15; opacity: .55;
+		span.link {font-size: $font-size-13;}
+		&:hover, &:focus {opacity: 1;}
+	}
+    .approved-icon {color: $successColor;}
+	.edit-icon {color: $secondaryColor;}
+	.delete-icon {color: $dangerColor;}
+	.view-icon {color: $tertiaryColor;}
+	.pause-icon {color: $warningColor;}
+
+	tr.highlighted td {background: $tertiaryColor-50 !important; color: $tertiaryColor !important;}
+	
+	tfoot {background: none !important;
+		td {background: none !important; border: none !important; padding: $size-8 $size-12;}
+		.br-left {border-left: $size-1 solid $primaryColor-100;}
+		
+		label.rows-number-title {margin-bottom: 0;}
+		select.rows-number {min-width: 115% !important; background-size: $font-size-11; background-position: left $size-6 center; padding: $size-4 $size-12 !important; font-size: $font-size-15 !important; border-radius: $standard-radius !important;}
+		
+		.pagination {padding: 0; margin: 0;
+			.active > .page-link {background: $primaryColor; color: $whiteColor;}
+			.disabled > .page-link {background: transparent; opacity: .75;}
+			.page-link {width: $size-36; background: $whiteColor; padding: $size-6 $size-4; margin: $size-3; border-color: $primaryColor-200; border-radius: $standard-radius; color: $primaryColor-300; text-align: center;
+				&:hover, &:focus, &:active, &.active {background: $primaryColor; color: $whiteColor; box-shadow: none;}
+				i {font-size: $font-size-12;}
+			}
+			
+		}
+	}
+}
+
+
+//// **- MODAL POPUP's STYLES -** ////
+
+// Modal Alerts popup //
+.popup-primary, .popup-info, .popup-success, .popup-warning, .popup-danger {
+	.modal-content {padding: $size-24; color: $primaryColor-700; border: $size-1 solid $primaryColor-600; box-shadow: 0 0 $size-40 $size-0 $primaryColor-800;
+		h1, h2, h3, h4, h5, h6 {font-family: Tajawal-Bold !important;}
+		.modal-header, .modal-body, .modal-footer {padding: 0 !important;}
+		.modal-body, .modal-footer {margin-top: $size-16;}
+		.modal-header, .modal-footer {border: none !important;}
+		.modal-header {padding: $size-16 $size-16 0 $size-16; gap: $size-6;
+			.btn {box-shadow: none !important;} 
+			i {font-size: $size-18;}
+			img {@include imageInlineFlex; max-height: $size-28;}
+		}
+		.status-sign {margin: 0 auto $size-14;}
+		.modal-body {@include flexCenter; flex-direction: column; gap: $size-10;
+			h1, h2, h3, h4, h5, h6, p {margin: 0 !important; white-space: wrap; text-align-last: center; line-height: $size-24;}
+			p {font-size: $font-size-15 !important;}
+		}
+		.modal-footer {@include flexCenter-x; gap: $size-8;
+			.btn {@include flexCenter; flex-wrap: nowrap; flex-grow: 1; gap: $size-6; font-family: Tajawal-Medium; padding-top: $size-12; padding-bottom: $size-12;}
+		}
+	}
+}
+
+.popup-primary .modal-content {
+	h1, h2, h3, h4, h5, h6 {color: $primaryColor-600;}
+	.modal-header { img {@include dark-icon;} }
+}
+.popup-info .modal-content {
+	h1, h2, h3, h4, h5, h6 {color: $tertiaryColor;}
+	.modal-header { img {@include info-icon;} }
+}
+.popup-success .modal-content {
+	h1, h2, h3, h4, h5, h6 {color: $successColor;}
+	.modal-header { img {@include success-icon;} }
+}
+.popup-warning .modal-content {
+	h1, h2, h3, h4, h5, h6 {color: $warningColor;}
+	.modal-header { img {@include warning-icon;} }
+}
+.popup-danger .modal-content {
+	h1, h2, h3, h4, h5, h6 {color: $dangerColor;}
+	.modal-header { img {@include danger-icon;} }
+}
+
+
+// Default Modal //
+.default-modal	{
+	.modal-content {padding: $size-24; color: $primaryColor-600; font-size: $font-size-15;; border: $size-1 solid $primaryColor-600; box-shadow: 0 0 $size-40 $size-0 $primaryColor-800;
+		h1, h2, h3, h4, h5, h6 {font-family: Tajawal-Bold !important;}
+		.modal-header, .modal-body, .modal-footer {padding: 0 !important;}
+		.modal-body, .modal-footer {margin-top: $size-14;}
+		.modal-header, .modal-footer {border: none !important;}
+		.modal-header {padding: $size-16; gap: $size-6;
+			.btn {border: none !important; box-shadow: none !important;} 
+			i {font-size: $size-22 !important;}
+			img {@include imageInlineFlex; @include dark-icon; max-height: $size-28;}
+		}
+		
+		.modal-footer {@include flexCenter-x; gap: $size-18;
+			.btn {@include flexCenter; flex-wrap: nowrap; flex-grow: 1; gap: $size-6; margin: 0; font-family: Tajawal-Medium; padding-top: $size-10; padding-bottom: $size-10;}
+		}
+		
+		label {margin-bottom: $size-3;}
+		label.custom-file-label {margin-bottom: 0; min-height: $size-136 !important;}
+		input, select, textarea {margin-bottom: $size-10; background-color: $primaryColor-25 !important;}
+		select {padding-left: $size-28 !important;}
+	}
+}
+
+
+
+//// **- ALERTS STYLES -** ////
+// Small Alerts //
+.alert {@include flexStart-x; flex-wrap: nowrap; gap: $size-8; padding: $size-8; font-size: $font-size-13; border: $size-1 solid; border-radius: $standard-radius; line-height: $size-20;
+	i {font-size: $size-18;}
+	img {@include imageInlineFlex; @include white-icon; max-height: $size-18;}
+	h1, h2, h3, h4, h5, h6 {font-family: Tajawal-Bold; margin-bottom: 0; text-align: initial;}
+	p {padding: 0; margin: 0;}
+	.details {@include flexStart-y; flex-direction: column; gap: $size-2;}
+}
+.alert.info {background: $infoAlertColor; border-color: $infoAlertBorderColor; color: $infoAlertTextColor;
+	i {color: $infoColor;}
+	h1, h2, h3, h4, h5, h6 {color: $infoAlertTextColor;}
+}
+.alert.success {background: $successAlertColor; border-color: $successAlertBorderColor; color: $successAlertTextColor;
+	i {color: $successColor;}
+	h1, h2, h3, h4, h5, h6 {color: $successAlertTextColor;}
+}
+.alert.warning {background: $warningAlertColor; border-color: $warningAlertBorderColor; color: $warningAlertTextColor;
+	i {color: $warningColor;}
+	h1, h2, h3, h4, h5, h6 {color: $warningAlertTextColor;}
+}
+.alert.danger {background: $dangerAlertColor; border-color: $dangerAlertBorderColor; color: $dangerAlertTextColor;
+	i {color: $dangerColor;}
+	h1, h2, h3, h4, h5, h6 {color: $dangerAlertTextColor;}
+}
+
+// Big Alerts //
+.alert-big {@include flexStart-x; flex-wrap: nowrap; flex-direction: row; gap: $size-12; height: 100%; padding: $size-16; font-size: $font-size-13; border: $size-1 solid; border-radius: $standard-radius; line-height: $size-20;
+	i {font-size: $size-40;}
+	img {@include imageInlineFlex-w; max-width: $size-40;}
+	h1, h2, h3, h4, h5, h6 {font-family: Tajawal-Bold; margin-bottom: 0; text-align: initial;}
+	p {padding: 0; margin: 0;}
+	.details {@include flexStart-y; flex-direction: column; gap: $size-5;}
+}
+.alert-big.info {background: $infoAlertColor; border-color: $infoAlertBorderColor; color: $infoAlertTextColor;
+	i {color: $infoColor;}
+	img {@include dark-icon;}
+}
+.alert-big.success {background: $successAlertColor; border-color: $successAlertBorderColor; color: $successAlertTextColor;
+	i {color: $successColor;}
+	img {@include success-icon;}
+	h1, h2, h3, h4, h5, h6 {color: $successColor;}
+}
+.alert-big.warning {background: $warningAlertColor; border-color: $warningAlertBorderColor; color: $warningAlertTextColor;
+	i {color: $warningColor;}
+	img {@include warning-icon;}
+	h1, h2, h3, h4, h5, h6 {color: $warningColor;}
+}
+.alert-big.danger {background: $dangerAlertColor; border-color: $dangerAlertBorderColor; color: $dangerAlertTextColor;
+	i {color: $dangerColor;}
+	img {@include danger-icon;}
+	h1, h2, h3, h4, h5, h6 {color: $dangerColor;}
+}
+
+
+//// --* Message Container Styles *-- ////
+.message-container {@include flexCenter; flex-direction: column; flex-wrap: nowrap; gap: $size-20; width: 100%;
+	i {font-size: $size-128;}
+	img {@include imageInlineFlex; width: auto; height: 100%; max-height: $size-128;}
+	h1, h2, h3, h4, h5, h6 {padding: 0; margin: 0;}
+	p {text-align: center;}
+	.btn {@include flexCenter; gap: $size-6; padding: $size-12 $size-16; font-size: $font-size-18;}
+}
+.message-container.info { 	i {color: $infoColor;}	img {@include info-icon;}	h1, h2, h3, h4, h5, h6 {color: $infoColor;} 	}
+.message-container.success { 	i {color: $successColor;}	img {@include success-icon;}	h1, h2, h3, h4, h5, h6 {color: $successColor;} 	}
+.message-container.warning { 	i {color: $warningColor;}	img {@include warning-icon;}	h1, h2, h3, h4, h5, h6 {color: $warningColor;} 	}
+.message-container.danger { 	i {color: $dangerColor;}	img {@include danger-icon;}	h1, h2, h3, h4, h5, h6 {color: $dangerColor;} 	}
+
+
+//// --* Filter Result Message Container Styles *-- ////
+.result-message {@include flexCenter; flex-direction: column; flex-wrap: nowrap; gap: $size-3; width: auto; margin-top: $size-96;
+	.icon {@include flexCenter; flex-wrap: nowrap; width: $size-88; height: $size-88; border-radius: $radius-50; margin-bottom: $size-16;
+		i {font-size: $size-42;}
+		img {@include photoResponsive; max-width: $size-42;}
+	}
+	h1, h2, h3, h4, h5, h6 {padding: 0; margin: 0; text-align: center;}
+	p {text-align: center; color: inherit;}
+	.btn {@include flexCenter; gap: $size-6; padding: $size-8 $size-16; margin-top: $size-16;}
+}
+.result-message.primary {
+	.icon {background: $primaryColor-50; box-shadow: $size-1 $size-2 $size-3 rgba($primaryShadowColor, .1);
+		i {color: $primaryColor;}	img {@include primary-icon;}
+	}
+	h1, h2, h3, h4, h5, h6 {color: $primaryColor;}
+}
+.result-message.info {
+	.icon {background: $infoAlertColor; box-shadow: $size-1 $size-2 $size-3 rgba($infoShadowColor, .1);
+		i {color: $infoColor;}	img {@include info-icon;}
+	}
+	h1, h2, h3, h4, h5, h6 {color: $infoColor;}
+}
+.result-message.success {
+	.icon {background: $successAlertColor; box-shadow: $size-1 $size-2 $size-3 rgba($successShadowColor, .1);
+		i {color: $successColor;}	img {@include success-icon;}
+	}
+	h1, h2, h3, h4, h5, h6 {color: $successColor;}
+}
+.result-message.warning {
+	.icon {background: $warningAlertColor; box-shadow: $size-1 $size-2 $size-3 rgba($warningShadowColor, .1);
+		i {color: $warningColor;}	img {@include warning-icon;}
+	}
+	h1, h2, h3, h4, h5, h6 {color: $warningColor;}
+}
+.result-message.danger {
+	.icon {background: $dangerAlertColor; box-shadow: $size-1 $size-2 $size-3 rgba($dangerShadowColor, .1);
+		i {color: $dangerColor;}	img {@include danger-icon;}
+	}
+	h1, h2, h3, h4, h5, h6 {color: $dangerColor;}
+}
+
+
+//// --* Attache File Progress Styles *-- ////
+.attachment-item {@include easeAnimation; display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: $size-72; background: $whiteColor; padding: $size-8; margin-bottom: $size-16; border-radius: $standard-radius; box-shadow: 0 0 $size-2 $primaryColor-500;
+	&:hover {background: $primaryColor-25; box-shadow: 0 0 $size-6 0 $primaryColor-300;}
+		
+	.file-icon {width: auto; color: $primaryColor-600; font-size: $font-size-38; 
+		i {}
+	}
+		
+	.progress-title {display: grid; width: 100%; padding: 0 $size-6;
+		.details {display: flex; justify-content: space-between;  margin-bottom: $size-6;
+			span.title, span.percentage {font-size: $font-size-14;}
+			span.title {width: 100%; max-width: $size-160; padding-left: $size-3; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;}
+			span.percentage {width: auto; text-align: left;}
+		}
+		.progress {height: $size-5;}
+		
+	}
+		
+	.close-button-container {width: auto; text-align: left;
+		.close-button {position: relative; padding: 0; color: $primaryColor-500; font-size: $font-size-18;
+			i {padding: 0 !important; margin: 0 !important;}
+			&:hover {color: $primaryColor-600;}
+		}
+			
+		i.uploaded {position: relative; top: .5em; color: color(blueColor-light); font-size: 1.2em;}
+	}
+}
+
+
+
+//// --* Two Factor Authentication Styles *-- ////
+.authenticator {@include flexCenter; flex-direction: row; gap: $size-22;
+	.steps {@include flexStart-x; gap: $size-10;}
+	span.step {display: inline-flex; justify-content: center; align-items: center; width: $size-32; height: $size-32; background: $primaryColor-25; padding: $size-8; margin-left: $size-6; box-shadow: 0 $size-1 $size-2 0 $primaryColor-200; border-radius: $radius-50; font-size: $font-size-16;}
+	.qr-code {@include flexCenter; width: auto; background: $primaryColor-25; padding: $size-10; margin: $size-12 auto; border: $size-8 solid $whiteColor; border-radius: $radius-16; box-shadow: 0 0 $size-2 $size-1 rgba($primaryColor, .2);
+		img {@include imageInlineFlex; max-height: $size-144;}
+	}
+	.code-field {@include flexCenter-x; flex-wrap: nowrap; gap: $size-5; width: 100%; background: $primaryColor-25; border: $size-1 solid $primaryColor-100; border-radius: $standard-radius; padding: $size-10 $size-16; margin-top: $size-10; color: $primaryColor-600;
+		p {white-space: pre-wrap;}
+	}
+	hr {margin: $size-24 auto;}
+	.data {@include flexCenter; flex-direction: column; gap: $size-16; width: 100%; margin: $size-32 auto $size-24;
+		img.icon {@include imageInlineFlex-w; @include dark-icon; max-width: $size-34;}
+	}
+	
+	input.otp-input {@include flexCenter; width: $size-64; height: $size-64; background-color: $primaryColor-50 !important; border: $size-1 solid $primaryColor-300 !important; border-radius: $standard-btn-radius; font: normal normal normal $font-size-24 Tajawal-Medium, sans-serif !important; color: $primaryColor-600; align-content: center; padding: $size-20; text-align: center;
+		&:focus, &:active {box-shadow: 0 0 $size-12 0 $primaryColor-300 !important;}
+	}
+	
+	@media (max-width: 767px) { .dash {display: none;}	}
+}
+
+
+
+//// --* LighBox Styles *-- ////
+.lightbox-container {@include flexCenter-z; flex-wrap: wrap; flex-direction: row; gap: $size-12;
+	.thumb-item {@include easeAnimation; @include flexCenter; flex-direction: column; gap: $size-8; width: auto; max-width: $size-104; height: 100%;
+		.thumb-img {position: relative; width: 100%; height: $size-64; background: $whiteColor; border: $size-1 solid $primaryColor-200; box-shadow: $size-1 $size-2 $size-4 rgba($primaryShadowColor, .15); border-radius: $standard-radius; padding: $size-4;
+			.photo {position: relative; display: flex; justify-content: flex-end; width: 100%; height: 100%; background-position: center center; background-repeat: no-repeat; background-size: cover; outline: none; border-radius: $standard-radius; color: $whiteColor; font-size: $size-13; padding: $size-6; z-index: 0;
+				&::after {@include before-after; @include easeAnimation; top: 0; right: 0; width: 100%; height: 100%; background: rgba($primaryColor-800, .5); border-radius: $standard-radius; z-index: -1;}
+				
+				&:hover { &::after {background: rgba($primaryColor-800, .4);} }
+			}
+		}
+		.thumb-details {@include flexCenter; width: 100%;
+			h6, p {text-align: center; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+			h6 {margin-bottom: 0; font-size: $font-size-12;}
+			p {font-size: $font-size-11; color: $primaryColor-300; line-height: $size-16;}
+		}
+		
+		&:hover {transform: translateY(-$size-3);}
+	}
+	.thumb-item.profile-photo {width: $size-42; height: $size-42; margin-top: $size-5;
+		.thumb-img {height: 100%; padding: $size-3;
+			.photo {padding: $size-5; font-size: $size-10;}
+		}
+	}
+}
+
+
+///// --* Rating Styles *-- /////
+.rating-container {@include flexStart-y; flex-flow: column; gap: $size-8;
+    .stars, .feedback {@include flexStart-y; flex-direction: row; gap: $size-8;}
+    .stars {font-size: $font-size-24; color: $warningColor;}
+    .feedback {margin-top: $size-5;
+        .item {@include flexCenter; padding: $size-0 $size-12; background: $primaryColor-25; border: $size-1 solid $primaryColor-50; border-radius: $radius-16; font-size: $size-12; color: $primaryColor;}
+    }
+}
+
+
+///// --* Timeline Styles *-- /////
+// Vertical Timeline //
+.timeline-vertical {display: grid; list-style: none; padding: 0; font-size: $font-size-11; 
+    li {position: relative; display: flex; flex-direction: column; align-content: center; padding-right: $size-32; line-height: $size-20; margin-bottom: $size-14;
+        &::before, &::after {@include before-after;}
+        &::before {top: $size-6; right: $size-10; width: $size-12; height: $size-12; background: $primaryColor-200; border-radius: $radius-50;}
+        &::after {top: $size-22; right: $size-15; width: $size-1; height: 90%; border-left: $size-1 solid $primaryColor-200;}
+        
+        lable {font-family: Tajawal-Bold; font-size: $font-size-13; color: $primaryColor-500;}
+        span {color: $primaryColor-400;}
+        
+        &:last-child {margin-bottom: 0;     &::after {display: none;}     }
+        
+        &:last-child.active {    &::before {background: $primaryColor;}     lable {color: $primaryColor}     }
+        &:last-child.success {    &::before {background: $successColor;}     lable {color: $successColor}    }
+        &:last-child.warning {    &::before {background: $warningColor;}     lable {color: $warningColor}     }
+        &:last-child.danger {    &::before {background: $dangerColor;}     lable {color: $dangerColor}     }
+    }
+}
+
+// Horizontal Timeline //

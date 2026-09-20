@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-09-14
+> Last updated: 2026-09-17
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model:** Two admin roles — **Super admin** and **Admin** — with the same access to
@@ -2403,22 +2403,26 @@ This is the read-only zones overview: a map showing every service zone as a colo
 
 ---
 
-## [Admin] #3994 — Super admin configures balance and fee policy 🆕
+## [Admin] #3994 — Admin configures balance and fee policy 🆕
 **Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** Phase 1
 
-**Description:** As a super admin, I want to configure the driver outstanding-balance limit and warning band so that the platform's cash exposure to drivers is capped.
+**Description:** As an admin, I want to configure the driver outstanding-balance limit and warning band so that the platform's cash exposure to drivers is capped.
+
+### Design reference
+
+Delivered design kit: `SheDrive.AdminPanel_v16-09-2026`. The Arabic (RTL) counterpart of each page is the same file name with the `_ar` suffix, e.g. `revenue-summary_ar.html`.
+
+| Screen | Design file | On-screen heading / entry point |
+|---|---|---|
+| Global policies | `pricing-policies.html` | Global Policies → "Driver balance" card |
 
 ### Background
 
-These are the **global** balance settings on `pricing-policies.html`, applied to every driver, and they sit alongside the existing global policies in #1759. The platform commission percentage, the cancellation grace periods, the driver cancellation fee, the rider no-show wait, and the driver's share of a rider fee are configured on #1759 — not here.
+These are the **global** balance settings on `pricing-policies.html`, applied to every driver. The platform commission percentage, the cancellation grace periods, the driver cancellation fee, and the rider no-show wait are configured on #1759 — not here.
 
-**Driver outstanding-balance limit.** The maximum a driver may owe the platform (a negative ledger balance) before the availability service refuses to put her online (#3996). She is warned in her app from the configured warning band and blocked at the limit itself (#3988). Setting the limit to **0 disables the block entirely**.
+**Driver outstanding-balance limit.** The maximum a driver may owe the platform (a negative ledger balance) before the availability service refuses to put her online (#3996). Setting the limit to **0 disables the block entirely**. The **warning band** is the fraction of that limit at which the driver app starts warning her — at 80% of a 500 EGP limit, from 400 EGP owed (#3988) — and has no visible effect while the limit is 0.
 
-**Driver warning band.** The fraction of the outstanding-balance limit at which the driver app starts showing a warning — e.g. at 80% of a 500 EGP limit, the warning appears from 400 EGP owed. It has no visible effect while the limit itself is 0.
-
-A rider's outstanding fee is recovered in full on her next completed trip, always — there is nothing to configure on that side (#4000).
-
-Changes take effect immediately on save and apply to new evaluations only: a driver already online is never knocked offline by a balance-limit change. Every change is recorded in the pricing audit log (#1760).
+Changes take effect immediately on save and apply to new evaluations only: a driver already online is never knocked offline by a balance-limit change. Every change is recorded in the pricing audit log (#1760). A rider's outstanding fee is always recovered in full on her next completed trip, so there is nothing to configure on that side (#4000).
 
 ### Field Validation
 
@@ -2430,7 +2434,7 @@ Changes take effect immediately on save and apply to new evaluations only: a dri
 ### Acceptance Criteria
 
 **Scenario 1 — Sets the driver outstanding-balance limit**
-- Given the super admin enters an outstanding-balance limit of 500 EGP and saves
+- Given the admin enters an outstanding-balance limit of 500 EGP and saves
 - Then a driver who owes 500 EGP or more is refused when she tries to go online (#3996)
 - And a driver who owes less is unaffected
 
@@ -2445,15 +2449,15 @@ Changes take effect immediately on save and apply to new evaluations only: a dri
 - And the new limit applies from each driver's next go-online request
 
 **Scenario 4 — Sets the driver warning band**
-- Given the super admin sets the warning band to 80% against a 500 EGP limit and saves
+- Given the admin sets the warning band to 80% against a 500 EGP limit and saves
 - Then the driver app begins warning her once she owes 400 EGP or more (#3988)
 
 **Scenario 5 — Warning band must be between 1% and 99%**
-- Given the super admin enters 0 or 100 as the warning band
+- Given the admin enters 0 or 100 as the warning band
 - Then a validation error is returned and the change is not saved
 
 **Scenario 6 — Negative or non-numeric values are rejected**
-- Given the super admin enters a negative limit, a negative amount, a warning band outside 1–99, or a non-whole number of days
+- Given the admin enters a negative limit, a negative amount, a warning band outside 1–99, or a non-whole number of days
 - Then a validation error is returned and nothing is saved
 
 **Scenario 7 — Changes are audited**
@@ -2467,7 +2471,7 @@ Changes take effect immediately on save and apply to new evaluations only: a dri
 ### Out of Scope
 - Per-driver, per-zone, or tier-based balance limits — every limit here is a single global value
 - Automatic suspension of a driver or rider who stays over a limit (Phase 2)
-- The driver's share of a rider cancellation fee, the cancellation grace periods, and the platform commission (#1759)
+- The cancellation grace periods and the platform commission (#1759)
 - Payout minimums, maximums, approval, or scheduling — a payout is recorded after Finance sends it (#4001), never gated or scheduled here
 - Any rider fee recovery threshold or escalation setting — a rider's outstanding balance is always recovered in full on her next trip, with nothing to configure (#4000)
 - The mechanics of how a rider fee is recovered on her next trip (#4000)
@@ -2475,8 +2479,8 @@ Changes take effect immediately on save and apply to new evaluations only: a dri
 ### Dependencies
 - #3996 — Driver go-online is blocked while her outstanding balance is over the limit (consumes the driver limit)
 - #3988 — Driver is blocked from going online while her balance is over the limit (consumes the warning band)
-- #1760 — Super admin views pricing audit log (records changes)
-- #1759 — Super admin configures global platform policies (sibling policy screen; owns commission and cancellation policy)
+- #1760 — Admin views pricing audit log (records changes)
+- #1759 — Admin configures global platform policies (sibling policy screen; owns commission and cancellation policy)
 
 ---
 
@@ -2819,18 +2823,25 @@ Resolving a case (suspend and close) is #3946.
 
 ---
 
-## [Admin] #3946 — Super admin actions an SOS request 🆕
+## [Admin] #3946 — Admin actions an SOS request 🆕
 **Feature:** Feature 17 — Admin Safety & Incident Review | **Sprint:** Phase 1
 
-**Description:** As a super admin, I want to suspend either party, both, or neither and then close an SOS case with a recorded reason so that every incident reaches a decision and no case is left open indefinitely.
+**Description:** As an admin, I want to suspend either party, both, or neither and then close an SOS case with a recorded reason so that every incident reaches a decision and no case is left open indefinitely.
+
+### Design reference
+
+Delivered design kit: `SheDrive.AdminPanel_v16-09-2026`. The Arabic (RTL) counterpart of each page is the same file name with the `_ar` suffix, e.g. `revenue-summary_ar.html`.
+
+| Screen | Design file | On-screen heading / entry point |
+|---|---|---|
+| SOS queue | `sos-requests.html` | SOS requests |
+| SOS case detail + resolution | `sos-request-details.html` | SOS Case → Resolution / Suspend & Close / Dismiss |
 
 ### Background
 
 Opened from a case in the queue (#3945). The screen carries the whole snapshot taken at the moment of the tap: who raised it, when, the trip state at trigger, the location, both parties, the vehicle, the trip, and every emergency contact the platform tried to reach with the result the gateway reported.
 
-The admin then closes the case. She may tick **suspend the rider**, **suspend the driver**, both, or neither, and choose how the case closes — one confirmed action does all of it. A suspension always wins the recorded outcome, because "resolved" would understate what was actually done. Suspension goes through the same mechanism as a manual one, so it appears on that person's profile and in the audit log identically however it was raised.
-
-Closing is final. A closed case is never reopened; if operations later needs to suspend the other party, they do it from that person's profile, which already supports it.
+The admin then closes the case, ticking **suspend the rider**, **suspend the driver**, both, or neither — one confirmed action does all of it. A suspension always wins the recorded outcome, and goes through the same mechanism as a manual one, so it appears on that person's profile and in the audit log identically however it was raised. Closing is final: a closed case is never reopened, and a later suspension of the other party is done from that person's profile.
 
 Two facts are stated on the screen because an admin will otherwise assume the opposite: the trip was **not** interrupted, and the case is **silent** — neither occupant was told the other raised it.
 
@@ -2844,67 +2855,83 @@ Two facts are stated on the screen because an admin will otherwise assume the op
 
 ### Acceptance Criteria
 
-**Scenario 1 — The case shows the full snapshot**
-- Given an SOS case exists
-- When the super admin opens it
-- Then she sees who raised it and what was reported, the time, the trip state at trigger, the location with coordinates and address on a map, the rider, the driver, the vehicle, and the trip with a link through to the trip detail
-- And each emergency contact is listed with their relationship and whether the alert was delivered or failed
-- And if the person who raised it stood the alert down as a false alarm, that is shown with the time she did so, while the case still waits for an admin to close it
+**Scenario 1 — The case detail shows the full snapshot**
+- Given an SOS case exists in the queue
+- When the admin opens it from the queue
+- Then the detail shows who raised it and what was reported, the trigger time, the trip state at the moment of the tap, the location as coordinates and an address on a map, the rider, the driver, the vehicle, and the trip reference as a link that opens the trip detail screen
+- And every emergency contact the platform tried to reach is listed with the contact name, the relationship, and a delivered or failed result badge for that contact
+- And the screen shows the notice that the trip was not interrupted and the SOS is recorded alongside it
+- And the screen shows the notice that neither occupant was told the other raised it
 
-**Scenario 2 — The trip is shown as unaffected**
-- Given the case detail is displayed
-- When the super admin reviews it
-- Then it states that the trip was not interrupted and that the SOS is recorded alongside it
-- And it states that neither occupant was told the other had raised it
+**Scenario 2 — A stood-down false alarm still waits for the admin to close it**
+- Given the person who raised the SOS stood it down as a false alarm and no admin has closed the case
+- When the admin opens the case
+- Then the detail shows a stood-down-by-the-reporter marker with the time she stood it down
+- And the case status badge still reads Open and the close action controls are available
 
 **Scenario 3 — Close with no suspension**
-- Given an open case with neither party ticked
-- When the super admin closes it as resolved, or as a false alarm, with a note
-- Then the case is closed with that outcome, no account is changed, and the note is recorded
+- Given an open case with neither suspend tick box ticked
+- When the admin selects the outcome resolved, or false alarm, enters a resolution note and confirms
+- Then the case status badge changes to Closed with that outcome
+- And the resolution note, the admin who closed it and the closing time are shown on the case detail
+- And the rider profile and the driver profile both still show account status Active
 
-**Scenario 4 — Suspend one party**
-- Given an open case
-- When the super admin ticks suspend the rider, or suspend the driver, and confirms
-- Then that account is suspended immediately with the note as its recorded reason
-- And the case outcome is recorded as rider_suspended or driver_suspended, not as resolved
+**Scenario 4 — Suspend one party while closing**
+- Given an open case with both parties active
+- When the admin ticks suspend the rider, enters a resolution note and confirms
+- Then the rider profile shows account status Suspended with the resolution note as the suspension reason
+- And the case outcome reads rider_suspended, not resolved
+- And the driver profile still shows account status Active
 
 **Scenario 5 — Suspend both parties in one action**
-- Given an open case
-- When the super admin ticks both parties and confirms
-- Then both accounts are suspended and the outcome is recorded as both_suspended
+- Given an open case with both parties active
+- When the admin ticks suspend the rider and suspend the driver, enters a resolution note and confirms
+- Then both the rider profile and the driver profile show account status Suspended
+- And the case outcome reads both_suspended
 
-**Scenario 6 — The confirmation states the account effect**
-- Given the super admin has chosen how to close the case
-- When the confirmation is shown
-- Then it states plainly which accounts will be suspended, or that none will be
+**Scenario 6 — The confirmation names the accounts that will be suspended**
+- Given an open case and the admin has ticked suspend the driver only
+- When the admin clicks the close action
+- Then a confirmation dialog is shown naming the driver as the account that will be suspended and stating that the rider account is not affected
+- And when no tick box is ticked the same dialog states that no account will be suspended
+- And the case is only closed after the admin confirms in that dialog
 
 **Scenario 7 — The resolution note is required**
+- Given an open case with the resolution note left empty
+- When the admin clicks the close action
+- Then the case is not closed and the status badge still reads Open
+- And the inline error "Add a resolution note / أضيفي ملاحظة القرار" is shown under the note field
+
+**Scenario 8 — The resolution note is capped at 500 characters**
 - Given an open case
-- When the super admin confirms without entering a note
-- Then the case is not closed and a required-note error is shown
+- When the admin enters a resolution note longer than 500 characters and clicks the close action
+- Then the case is not closed and the status badge still reads Open
+- And the inline error "Too long — must be ≤ 500 characters / يجب ألا يتجاوز 500 حرف" is shown under the note field
 
-**Scenario 8 — An already-suspended party cannot be suspended again**
-- Given the rider or driver is already suspended for another reason
-- When the super admin opens the case
-- Then that tick box is disabled
-- And the case can still be closed
+**Scenario 9 — An already-suspended party cannot be suspended again**
+- Given the rider on the case is already suspended for another reason
+- When the admin opens the case
+- Then the suspend the rider tick box is rendered disabled and cannot be ticked
+- And the admin can still enter a note and close the case, and the case status badge changes to Closed
 
-**Scenario 9 — Closing writes to the audit log**
-- Given an open case
-- When the super admin closes it
-- Then an entry is written to the admin activity audit log recording the actor, the case id, and the outcome
-- And any suspension appears on that person's profile exactly as a manual suspension would
+**Scenario 10 — Closing writes to the admin activity audit log**
+- Given an open case with suspend the driver ticked
+- When the admin enters a note and confirms the close
+- Then a new entry appears in the admin activity audit log naming the acting admin, the SOS case id and the outcome driver_suspended
+- And the driver profile suspension history shows the suspension with the same actor, reason and timestamp as a manually raised suspension
 
-**Scenario 10 — A closed case cannot be actioned again**
-- Given a case has already been closed
-- When the super admin opens it
-- Then no action controls are available and the outcome, closing note, who closed it and when are shown instead
-- And the case cannot be reopened
+**Scenario 11 — A closed case cannot be actioned again**
+- Given a case that has already been closed
+- When the admin opens it
+- Then the suspend tick boxes, the note field and the close action are not rendered
+- And the outcome, the closing note, the admin who closed it and the closing time are shown instead
+- And no reopen control is present on the screen
 
-**Scenario 11 — Case not found**
+**Scenario 12 — Case not found**
 - Given a case id that does not exist
-- When the super admin opens it
-- Then a not-found message is shown with a link back to the queue
+- When the admin opens the case detail URL for that id
+- Then a not-found message is shown in place of the case detail
+- And a link labelled back to the SOS queue is shown that returns to the queue screen
 
 ### Out of Scope
 - Reopening a closed case
@@ -2915,7 +2942,7 @@ Two facts are stated on the screen because an admin will otherwise assume the op
 - Changes to the v1 admin portal
 
 ### Dependencies
-- #3945 — Super admin reviews the SOS request queue
+- #3945 — Admin reviews the SOS request queue
 - #1779 — Emergency & Safety API (the SOS case record)
 - #1740 / #1739 — Rider account suspension
 - #1742 / #1741 — Driver account suspension
@@ -2927,170 +2954,166 @@ Two facts are stated on the screen because an admin will otherwise assume the op
 
 ---
 
-## [Admin] #1832 — Super admin views revenue & commission summary report 🆕
-**Feature:** Feature 18 — Admin Financial Reporting & Reconciliation | **Sprint:** 2
-
-**Description:** As a super admin, I want a platform revenue & commission summary over a selected period and optional zone, so that I can monitor the platform's financial performance.
-
-### Background
-
-The revenue & commission summary gives the super admin a platform-level financial overview for a selected date range and optional zone. It shows total completed trips, gross fares (EGP), total platform commission (#1759), total cancellation fees collected, and net driver earnings. All figures derive from completed-trip records carrying the commission rate and fare breakdown (#1636). The report is exportable to CSV/Excel.
-
-**Commission earned vs. settled vs. outstanding.** On a cash trip the rider pays the driver the whole fare, so the platform's commission becomes a debt on her ledger (#3991) until she hands the cash back and an admin records a settlement (#1813). Earning commission and holding it are therefore different events, often weeks apart, and a single commission total hides the gap. The report shows three figures instead of one:
-
-| Figure | Definition | Scope |
-|---|---|---|
-| Commission earned | Commission accrued on trips completed within the selected period, whatever the trip's custody value. | Period; respects the zone filter |
-| Commission settled | Cash recovered through settlement entries recorded within the selected period (#1813), regardless of when the trips behind it completed. | Period; not zone-filterable |
-| Commission outstanding | The platform's total current exposure: the sum of every driver's outstanding ledger balance as at now. This is revenue earned but still sitting in drivers' pockets. | Point-in-time; not period- or zone-filterable |
-
-**These three do not form an equation, and the report must not imply they do.** Earned and settled are period figures; outstanding is a live balance covering all time. A settlement recorded in the period may clear commission earned months earlier, and commission earned on the last day of the period will not be settled yet. Each figure is labelled with its own scope so nobody reads them as a sum.
-
-**A settlement is not always commission.** A driver's outstanding balance can also include a driver cancellation fee or a rider fee she collected on the platform's behalf, and a settlement clears the balance rather than a named component. Where a settlement cannot be attributed to commission specifically, the report states the basis it used rather than silently guessing.
-
-**Recovered rider fees carry no commission** (#4000) and must not inflate any of the three figures.
-
-### Field Validation
-
-| Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
-|---|---|---|---|---|---|---|---|---|---|
-| Date from | No | Date (YYYY-MM-DD) | Valid calendar date | — | — | empty | — | Invalid date format / صيغة التاريخ غير صحيحة | — |
-| Date to | No | Date (YYYY-MM-DD) | Valid calendar date; must not be before Date from | — | — | empty | — | Invalid date format / صيغة التاريخ غير صحيحة | End date must be after start date / تاريخ النهاية يجب أن يكون بعد تاريخ البداية |
-| Zone filter | No | Dropdown (single-select) | Enum: All zones, or any defined zone name | — | — | All zones | — | — | — |
-
-### Acceptance Criteria
-
-**Scenario 1 — Summary for a date range**
-- Given the super admin selects a date range
-- Then total completed trips, gross fares, platform commission, cancellation fees, and net driver earnings are shown for the period
-
-**Scenario 2 — Filter by zone**
-- Given a summary is displayed
-- When the super admin selects a zone
-- Then the trip, fare, commission-earned and net-earnings totals recompute for that zone
-
-**Scenario 3 — Idle/empty period**
-- Given no completed trips fall in the selected period
-- Then all period totals display zero with no error
-- And commission outstanding still shows the live platform figure, because it is not a period total
-
-**Scenario 4 — Totals reconcile**
-- Given a non-empty period
-- Then gross fares equal platform commission plus net driver earnings
-
-**Scenario 5 — Export**
-- Given a summary is displayed
-- Then the super admin can export it to CSV/Excel
-- And the export carries all three commission figures with the same labels and scope notes shown on screen
-
-**Scenario 6 — The three commission figures are shown**
-- Given a non-empty period
-- Then the summary shows commission earned, commission settled and commission outstanding as three distinct, separately labelled figures
-- And each is labelled with its scope, so a period figure is never mistaken for a live balance
-
-**Scenario 7 — Outstanding ignores the period filter**
-- Given the super admin changes the date range
-- Then commission earned and commission settled recompute
-- And commission outstanding does not change, because it is the platform's current exposure across all time
-
-**Scenario 8 — Outstanding ignores the zone filter**
-- Given the super admin selects a single zone
-- Then commission outstanding is either shown unchanged and marked as platform-wide, or hidden with a note explaining it cannot be filtered by zone
-- And it is never shown as if it had been filtered
-
-**Scenario 9 — A settlement in the period clears older commission**
-- Given a driver settles in the selected period an amount owed from trips completed before it
-- Then commission settled includes that amount
-- And commission earned for the period is unaffected by it
-
-**Scenario 10 — Commission earned near the period end is not yet settled**
-- Given trips complete on the final day of the selected period and no settlement follows within it
-- Then that commission appears in commission earned and not in commission settled
-- And the figures are not flagged as an error or an imbalance
-
-**Scenario 11 — A recovered rider fee does not affect commission**
-- Given a trip in the period recovered an outstanding rider fee (#4000)
-- Then no commission is counted on the recovered fee in any of the three figures
-
-**Scenario 12 — Amounts and formatting**
-- Given any figure is displayed
-- Then it is shown in EGP to 2 decimal places with tabular figures
-
-**Scenario 13 — Loading and error states**
-- Given the report is loading, or the data cannot be retrieved
-- Then a loading state or an error state with a retry is shown, and no partial or stale figure is presented as final
-
-### Out of Scope
-- Charts and trend lines (Phase 2)
-- Tax reporting
-- Cross-driver leaderboards and performance analytics
-- Payout execution
-- Per-driver earnings & settlement, including per-driver outstanding (covered by #1833)
-- Attributing a settlement across commission, cancellation fees and recovered rider fees component by component — the report states the basis it used instead
-- Any correction or reversal of a ledger entry — the ledger is append-only and Phase 1 has no correction mechanism
-
-### Dependencies
-- #1759 — Super admin configures platform commission
-- #1636 — Trip settlement (stores the fare breakdown, commission rate and net earnings these figures derive from)
-- #3058 — Completed-trip fare is served to rider and driver
-- #1757 — Zone rate card
-- #3991 — Party balance ledger records every balance movement (source of commission outstanding)
-- #1813 — Super admin reconciles driver balances and records settlements (source of commission settled)
-- #4000 — Rider outstanding fee is recovered on her next trip (recovered fees carry no commission)
+> **Removed 2026-09-17:** #1832 — Admin views revenue & commission summary report. The platform-wide revenue & commission summary is dropped from Phase 1. Per-driver earnings, commission and settlement are still reported by #1833.
 
 ---
 
-## [Admin] #1833 — Super admin views per-driver earnings & settlement report 🆕
+## [Admin] #1833 — Admin views per-driver earnings & settlement report 🆕
 **Feature:** Feature 18 — Admin Financial Reporting & Reconciliation | **Sprint:** 2
 
-**Description:** As a super admin, I want a per-driver earnings & settlement report over a selected period, so that I can answer driver payment queries and track each driver's settlement.
+**Description:** As an admin, I want a per-driver earnings & settlement report over a selected period, so that I can answer driver payment queries and track each driver's settlement.
+
+### Design reference
+
+Delivered design kit: `SheDrive.AdminPanel_v16-09-2026`. The Arabic (RTL) counterpart of each page is the same file name with the `_ar` suffix, e.g. `revenue-summary_ar.html`.
+
+| Screen | Design file | On-screen heading / entry point |
+|---|---|---|
+| Per-driver earnings & settlement report | `reconciliation.html` | Reconciliation → "Per-driver earnings & settlement" |
+| Drill-through from "Open driver balance" | `driver-balances.html` | Driver Balances |
 
 ### Background
 
-The per-driver earnings & settlement report lets the super admin review a single driver's financials for a chosen date range. It shows the completed-trips count, gross fares, commission deducted, net earnings, the cash-vs-digital split, the current outstanding cash balance (#1813), and per-trip rows (fare, commission, net). All figures derive from completed-trip records carrying the commission rate and fare breakdown (#1636). The report is exportable to CSV/Excel.
+A single driver's financials for a chosen date range: completed-trips count, gross fares, commission deducted, net earnings, the cash-vs-digital split, the current outstanding cash balance (#1813), and per-trip rows (trip date, payment method, fare, commission, net). All figures derive from completed-trip records carrying the commission rate and fare breakdown (#1636). The report is exportable to PDF.
+
+### Summary cards
+
+The report opens with four summary cards above the per-trip breakdown. Every one of them is a period figure driven by the date range, so the row reads as a single consistent answer to "what did this driver earn between these two dates".
+
+The delivered design kit (`SheDrive.AdminPanel_v16-09-2026`) shows a fifth card, *Driver Debt*. **It is out of scope for this story and is removed from the design.** Driver Debt is a live balance as at now — the date range does not move it. Standing it in the same row as four period totals invites the reader to subtract one from the others, which is meaningless. The driver's live balance is already reported twice, correctly: as *Outstanding cash balance* in the Cash vs digital rail on this screen, and as the balance column on Driver balances (#1813).
+
+| # | Card (EN) | Card (AR) | Format | What it shows | What the admin uses it for | Scope |
+|---|---|---|---|---|---|---|
+| 1 | Completed trips | الرحلات المكتملة | Whole number (no currency, no decimals) | Count of trips the selected driver completed inside the selected period. Cancelled, expired and in-progress trips are excluded. | Establishes the size of the period before any money is read — three trips and three hundred trips warrant very different conversations about the same total. | Period; recomputes with the date range |
+| 2 | Gross fares | إجمالي أجور الرحلات | EGP, 2 decimal places | Sum of the fares of those completed trips, taken from the stored fare breakdown (#1636). | The top line the driver herself will quote: what the riders were charged for her work, before the platform takes anything. | Period; recomputes with the date range |
+| 3 | Commission deducted | العمولة المخصومة | EGP, 2 decimal places | Sum of the platform commission on those trips, at the commission rate stored on each trip (#1759). | Answers "how much did SheDrive take, and was it the rate I was promised" — the most common driver payment query. | Period; recomputes with the date range |
+| 4 | Net earnings | صافي الأرباح | EGP, 2 decimal places | Gross fares minus commission deducted for the same set of trips. | The driver's actual earning for the period, and the figure every settlement conversation starts from. | Period; recomputes with the date range |
+
+### Per-trip breakdown
+
+One row per completed trip in the period, newest first, 20 rows per page.
+
+| Column (EN) | Column (AR) | Format | What it shows |
+|---|---|---|---|
+| Trip date | تاريخ الرحلة | Date | When the trip completed. |
+| Payment method | وسيلة الدفع | Status pill — Cash / نقدًا or Digital / إلكتروني | How the rider paid. This is what decides who is holding the money: on a cash trip the driver already has the fare and owes the commission, on a digital trip the platform has the fare and owes her the net. Without it the admin cannot tell whether a row's net earnings are money the driver already has or money still owed to her, and the Cash vs digital rail's totals cannot be traced back to the individual trips that produced them. |
+| Fare (EGP) | الأجرة (جنيه) | EGP, 2 decimal places | The rider's fare for that trip. |
+| Commission (EGP) | العمولة (جنيه) | EGP, 2 decimal places | The platform's commission on that trip, at the rate stored on it. |
+| Net earnings (EGP) | صافي الأرباح (جنيه) | EGP, 2 decimal places | Fare minus commission for that trip. |
 
 ### Field Validation
 
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
 |---|---|---|---|---|---|---|---|---|---|
-| Driver | Yes | Dropdown / search-select | Any approved or suspended driver account | — | — | empty | Select a driver / اختر سائقًا | — | — |
+| Driver | Yes | Searchable dropdown — one control, type-ahead on **name or phone number** | Any approved or suspended driver account; each result row shows the driver's name and her phone number. Typed digits match the stored number in any notation (01012345678, +20 101 234 5678, 1012345678) | — | — | empty | Select a driver / اختر سائقًا | No match for that name or phone / لا يوجد تطابق لهذا الاسم أو الرقم | — |
 | Date from | No | Date (YYYY-MM-DD) | Valid calendar date | — | — | empty | — | Invalid date format / صيغة التاريخ غير صحيحة | — |
 | Date to | No | Date (YYYY-MM-DD) | Valid calendar date; must not be before Date from | — | — | empty | — | Invalid date format / صيغة التاريخ غير صحيحة | End date must be after start date / تاريخ النهاية يجب أن يكون بعد تاريخ البداية |
 
 ### Acceptance Criteria
 
 **Scenario 1 — Report for a driver and date range**
-- Given the super admin selects a driver and a date range
-- Then the totals and per-trip rows are shown for that driver and period
+- Given the admin is on Reconciliation → "Per-driver earnings & settlement"
+- When she selects a driver and a date range and clicks Search
+- Then the four summary cards and the per-trip breakdown are shown for that driver and period
+- And only trips completed by that driver between Date from and Date to inclusive appear in the rows
 
 **Scenario 2 — Driver is required**
-- Given no driver is selected
-- Then the report cannot be generated and a “Select a driver” validation message is shown
+- Given no driver has been selected
+- When the admin clicks Search
+- Then no report is generated
+- And the validation message "Select a driver / اختر سائقًا" is shown on the driver field
 
-**Scenario 3 — Cash vs digital breakdown and outstanding balance**
+**Scenario 3 — The four summary cards show the period figures**
+- Given a driver with completed trips in the selected period
+- When the report is generated
+- Then the cards show, in this order: Completed trips, Gross fares, Commission deducted, Net earnings
+- And no Driver Debt card, or any other point-in-time balance, appears in the card row
+- And Net earnings equals Gross fares minus Commission deducted
+- And Gross fares, Commission deducted and Net earnings equal the column sums of the per-trip rows for the same period
+
+**Scenario 4 — Completed trips is a count, not an amount**
+- Given the cards are displayed
+- When the admin reads the Completed trips card
+- Then the value is a whole number with no decimal separator and no EGP suffix, for example 120
+- And the other three cards show EGP to 2 decimal places
+
+**Scenario 5 — Every card moves with the date range**
+- Given a report is displayed for a driver
+- When the admin changes the date range and clicks Search
+- Then all four cards — Completed trips, Gross fares, Commission deducted and Net earnings — recompute for the new period
+- And no card on the report holds a figure that the date range does not move
+
+**Scenario 6 — The live balance is reported outside the cards**
+- Given a report is displayed for a driver who owes an outstanding balance
+- When the admin reads the Cash vs digital rail
+- Then *Outstanding cash balance* shows the same live figure that the driver balances grid (#1813) shows for that driver
+- And it is labelled as a current balance, not as a total for the period
+- And a driver who owes nothing shows 0.00 EGP there, with no debt warning raised on the report
+
+**Scenario 7 — Cash vs digital breakdown**
+- Given a driver whose period contains both cash-collected and digitally-paid trips
+- When the report is generated
+- Then earnings are split into a cash portion and a digital portion
+- And the two portions add up to the Net earnings card
+
+**Scenario 8 — Driver with no trips in the period**
+- Given the selected driver completed no trips in the selected period
+- When the admin clicks Search
+- Then all four cards show zero and the per-trip breakdown shows its empty state
+- And the Cash vs digital rail still shows her live outstanding balance, because that is not a period figure
+- And no error is shown
+
+**Scenario 9 — Per-trip rows carry the same figures as the cards**
+- Given a report whose period contains more than 10 completed trips
+- When the admin pages through the per-trip breakdown
+- Then each row shows trip date, payment method, fare, commission and net earnings for that trip
+- And the card values stay unchanged across pages, because they are period totals and not page totals
+
+**Scenario 10 — Export**
 - Given a per-driver report is displayed
-- Then earnings are split into cash and digital portions and the current outstanding cash balance (#1813) is shown
+- When the admin exports it
+- Then the exported file carries the same four card values and the same per-trip rows as the screen, including each row's payment method, for the same driver and period
 
-**Scenario 4 — Driver with no trips**
-- Given the driver completed no trips in the period
-- Then an empty-state message is shown
-
-**Scenario 5 — Export**
+**Scenario 11 — Drill-through to the driver balance**
 - Given a per-driver report is displayed
-- Then the super admin can export it to CSV/Excel
+- When the admin clicks "Open driver balance"
+- Then the driver balances screen (#1813) opens on that same driver
+
+**Scenario 12 — Loading and error states**
+- Given the report has been requested
+- When the data is still loading, or the request fails
+- Then a loading state, or an error state with a retry action, is shown in place of the cards
+- And no figure from a previous search is left on screen as if it were the new result
+
+**Scenario 13 — Finding a driver by name or by phone**
+- Given the admin is on the Driver & period panel
+- When she types part of a driver's name into the driver field
+- Then the matching drivers are listed beneath it, each row showing the driver's name and her phone number
+- And when she types digits instead, the same list matches on phone number
+- And a number typed as 01012345678, as +20 101 234 5678 or as 1012345678 all find the same driver
+- And selecting a result puts that driver's name in the field and generates her report
+- And when nothing matches, "No match for that name or phone / لا يوجد تطابق لهذا الاسم أو الرقم" is shown in place of the list
+- And there is exactly one driver control on the panel — no separate free-text search box beside it
+
+**Scenario 14 — Payment method on every row**
+- Given a report whose period contains both cash-collected and digitally-paid trips
+- When the admin reads the per-trip breakdown
+- Then each row carries a Payment method value of Cash / نقدًا or Digital / إلكتروني
+- And the fares of the rows marked Cash sum to the *Collected in cash* figure in the Cash vs digital rail
+- And the fares of the rows marked Digital sum to the *Collected digitally* figure
 
 ### Out of Scope
 - Charts and trend lines (Phase 2)
 - Tax reporting
 - Cross-driver leaderboards and performance analytics
 - Payout execution
-- Platform revenue & commission summary (covered by #1832)
+- Platform-wide revenue & commission summary — dropped from Phase 1 on 2026-09-17 together with story #1832; this report is per-driver only
 
 ### Dependencies
 - #1636 — Trip settlement (stores the fare breakdown, commission rate and net earnings these figures derive from)
 - #3058 — Completed-trip fare is served to rider and driver
 - #1813 — Cash reconciliation
-- #1759 — Super admin configures platform commission
+- #1759 — Admin configures platform commission
 
 ### List / Grid Specification (per-trip rows)
 
@@ -3105,22 +3128,28 @@ The per-driver earnings & settlement report lets the super admin review a single
 
 ---
 
-## [Admin] #1813 — Super admin reconciles driver balances and records settlements ♻️
+## [Admin] #1813 — Admin reviews the driver balances grid ♻️
 **Feature:** Feature 18 — Admin Financial Reporting & Reconciliation | **Sprint:** Phase 1
 
-**Description:** As a super admin, I want to see every driver's balance and record the money they hand back so that outstanding balances are reconciled across every settlement channel and drivers are unblocked once they have settled.
+**Description:** As an admin, I want one list of every driver's balance so that I can see at a glance who owes the platform, who the platform owes, and whose ledger I need to open.
+
+> **Split 2026-09-17:** the old #1813 covered the grid, the ledger and the settlement action in one story. It was split into three: **#1813** (this one) keeps the balances grid, **#4378** takes the driver ledger and the ledger model, **#4379** takes the record-settlement action.
+
+### Design reference
+
+Delivered design kit: `SheDrive.AdminPanel_v16-09-2026`. The Arabic (RTL) counterpart of each page is the same file name with the `_ar` suffix, e.g. `driver-balances_ar.html`.
+
+| Screen | Design file | On-screen heading / entry point |
+|---|---|---|
+| Driver balances (list) | `driver-balances.html` | Driver Balances |
 
 ### Background
 
-On cash trips the driver collects the full fare and therefore owes the platform its commission (#3991). This screen is the operational counterpart: it lists drivers by balance, opens a full ledger for any one of them, and lets the super admin **record a settlement** — the action that credits the driver's balance and is the only way an outstanding amount is ever cleared.
+On cash trips the driver collects the full fare and therefore owes the platform its commission. This screen is the operational entry point: it lists drivers by balance so the admin can find the ones who owe, and opens any one of them into her full ledger (#4378), where a settlement is recorded (#4379).
 
-**Recording a settlement posts a ledger entry.** It never edits a balance directly. The entry is immutable, appears in the driver's own statement (#1781, #1788), and is written to the audit log (#1816). Recording a settlement that clears a driver below the balance limit unblocks her go-online immediately (#3996) with no further admin action.
+**One signed balance per driver, in EGP.** Negative means she owes the platform (cleared by a settlement) and positive means the platform owes her (reduced by a payout). The grid shows that one signed number in a single **Balance** column — there is no separate outstanding column and available column — and it never computes a balance of its own (#4378). The list covers drivers with a **negative** balance by default, with a filter to show those the platform owes and those settled to zero.
 
-**Settlement channels.** The admin records which channel the money came back through — Office cash, Bank deposit, Mobile wallet, or Field agent — drawn from a configurable list, not a hard-coded one. A reference is required for every channel except Office cash, where it is optional and, left blank, defaults to the settlement's own receipt number. Every settlement generates a unique **receipt number** (`S-nnnnn`), shown to the admin immediately and visible in the driver's own statement.
-
-**Partial settlements are normal.** A driver may hand in less than she owes; the balance reduces by what she paid.
-
-The list covers drivers with a **negative** balance (owing the platform) by default, with a filter to show those the platform owes and those settled to zero. **Settlement entries are exportable as CSV** directly from this screen — driver, amount, channel, reference, receipt number, recording admin, and time — giving Finance the same reconciliation input the settlement day book used to provide. There is no separate day-book screen (#4006 was cut 2026-09-13 as a report dressed as a screen; it can return as a real reconciliation once the cash-collection model is decided). Recording a payout Finance has sent (money going out, the mirror of this action) happens on the same screen but is a separate action (#4001) — this story covers the settlement side only.
+**Settlement entries are exportable as PDF** directly from this screen — driver, amount, channel, reference, receipt number, recording admin, and time — giving Finance its reconciliation input. There is no separate day-book screen.
 
 ### Field Validation
 
@@ -3128,7 +3157,222 @@ The list covers drivers with a **negative** balance (owing the platform) by defa
 |---|---|---|---|---|---|---|---|---|---|
 | Driver search | No | Free text | Arabic and Latin letters, digits, spaces; partial match on name or phone | — | 50 chars | empty | — | — | Search term must be 50 characters or fewer / يجب ألا يزيد نص البحث عن 50 حرفًا |
 | Balance filter | No | Dropdown (single-select) | Enum: Owing the platform, Owed by the platform, Settled (zero), All | — | — | Owing the platform | — | — | — |
-| Settlement amount | Yes | Decimal (EGP) | Positive number, up to 2 decimals; not more than the outstanding balance | 0.01 | outstanding balance | empty | Enter a settlement amount / أدخل مبلغ التسوية | Enter a valid amount / أدخل مبلغًا صحيحًا | Amount must be greater than 0 and not exceed the outstanding balance / يجب أن يكون المبلغ أكبر من 0 وألا يتجاوز الرصيد المستحق |
+
+### Acceptance Criteria
+
+**Scenario 1 — List drivers by balance**
+- Given drivers have balances
+- Then they are listed with driver name, balance, last settlement date, and go-online status
+- And the balance is one signed number in EGP shown with its sign — negative when she owes the platform, positive when the platform owes her, and 0.00 when she is settled
+- And the default filter shows only drivers owing the platform, most negative first
+
+**Scenario 2 — Search for a driver**
+- Given the admin types part of a driver's name or phone number
+- Then the list narrows to the matching drivers, within the current filter
+
+**Scenario 3 — Filter by balance direction**
+- Given the admin selects Owed by the platform, Settled (zero), or All
+- Then the list shows only drivers whose signed balance matches, and the default reverts to Owing the platform on a fresh visit
+
+**Scenario 4 — Sort and paginate**
+- Given more than 20 drivers match
+- Then the list paginates at 20 rows per page and can be sorted by driver, balance, or last settlement date
+
+**Scenario 5 — Open a driver's ledger**
+- Given the admin opens a driver's row
+- Then her full ledger is shown (#4378), from which a settlement can be recorded (#4379)
+
+**Scenario 6 — A settlement updates the row**
+- Given a settlement is recorded for a driver (#4379)
+- Then her balance and last settlement date on this grid reflect it, with no separate refresh step
+
+**Scenario 7 — Settlement entries export to PDF**
+- Given the driver balances list is displayed
+- Then the admin can export the settlement entries to PDF, with driver, amount, channel, reference, receipt number, recording admin, and time on every row
+- And the export respects the search and filter currently applied
+
+**Scenario 8 — A suspended driver still appears**
+- Given a driver is suspended (#1742) and has a balance
+- Then she still appears in the list with her balance unchanged
+
+**Scenario 9 — Empty, loading and error states**
+- Given no drivers match the filter, the list is loading, or the request fails
+- Then the corresponding empty, loading, or error state is shown
+
+### Out of Scope
+- The driver ledger view, the ledger entry types, and the posting guarantees (#4378)
+- Recording a settlement and its form (#4379)
+- Recording a payout sent to a driver (#4001)
+- Automated payouts, bank transfers, or payment-provider integration
+- A standalone settlement day book / reconciliation screen — cut deliberately on 2026-09-13; settlement entries export as PDF from this screen instead
+
+### Dependencies
+- #4378 — Admin opens a driver's balance ledger (the row's destination, and the source of every balance shown here)
+- #4379 — Admin records a driver settlement (supplies the last settlement date and the PDF rows)
+- #3996 — Driver go-online is blocked while her outstanding balance is over the limit (supplies the go-online status column)
+- #3994 — Admin configures balance and fee policy (owns the outstanding-balance limit)
+- #1833 — Admin views per-driver earnings & settlement report
+
+### List / Grid Specification
+
+**Page size:** 20 rows/page (server-side pagination) · **Default sort:** Balance — most negative first
+
+| Column | Sortable | Filterable | Filter type |
+|---|---|---|---|
+| Driver | Yes | Yes | Free-text search (partial match) |
+| Balance (EGP, signed) | Yes | Yes | Dropdown (enum) |
+| Last settlement date | Yes | No | — |
+| Go-online status | No | No | — |
+
+Opening a row navigates to the driver's ledger (#4378); the ledger's own grid specification lives there.
+
+---
+
+## [Admin] #4378 — Admin opens a driver's balance ledger 🆕
+**Feature:** Feature 18 — Admin Financial Reporting & Reconciliation | **Sprint:** Phase 1
+
+**Description:** As an admin, I want to open a driver's full transaction ledger so that I can see every entry that produced her balance before deciding what to reconcile.
+
+> **Split 2026-09-17:** carved out of #1813 together with #4379.
+
+### Design reference
+
+Delivered design kit: `SheDrive.AdminPanel_v16-09-2026`.
+
+| Screen | Design file | On-screen heading / entry point |
+|---|---|---|
+| Driver ledger | `driver-balance-details.html` | Ledger — *driver name* |
+
+### Background
+
+The ledger is the record behind the balance. It is opened from the driver balances grid (#1813) and is **read-only** — it shows entries, it never creates or changes them. Recording a settlement (#4379) and recording a payout (#4001) are separate actions on the same screen, each with its own story.
+
+**One signed balance per driver, in EGP.** Negative means she owes the platform (cleared by a settlement) and positive means the platform owes her (reduced by a payout). Her balance is the arithmetic sum of her ledger entries — never stored directly and never computed from trip records. A new driver starts at zero. It is **one number, never a pair** — there is no separate outstanding figure and available figure, here or on the grid (#1813). Its entry types are:
+
+| Entry type | Sign | Posted when | Shown in Source |
+|---|---|---|---|
+| `trip_commission` | debit (−) | A trip completes with `custody = driver` — she holds the fare, so the platform's commission becomes a debt she owes (#3997) | Trip id |
+| `trip_earnings` | credit (+) | A trip completes with `custody = platform` — the platform holds the fare, so her net earnings become a debt it owes (#3997) | Trip id |
+| `driver_cancellation_fee` | debit (−) | She cancels late without a qualifying no-show waiver (#1764) | Trip id (the cancelled trip) |
+| `rider_cancellation_fee_credit` | credit (+) | A rider cancels late; the whole fee is credited to the driver (#1764) | Trip id (the cancelled trip) |
+| `rider_fee_recovery` | debit (−) | She collected a rider's outstanding fee in cash on the platform's behalf (#4000) — the cash stays in her hand, so the recovered amount is a debt she owes back | Trip id (the trip the fee was recovered on) |
+| `settlement` | credit (+) | Finance records cash received from the driver (#4379) | Receipt number (`S-nnnnn`) |
+| `payout` | debit (−) | Finance sends the driver a payout on its own cycle and it is recorded against her balance afterward (#4001) | Payout reference |
+
+**Entries are immutable and posting is idempotent.** Nothing edits an entry and nothing deletes one — Phase 1 ships with no correction mechanism at all, on either ledger. Every entry carries an idempotency key shaped `{event_type}:{trip_id|request_id}:{party_id}`, its type, its signed EGP amount, a timestamp (UTC+2), and the id of the source record.
+
+### Field Validation
+
+This screen is read-only — it has no editable fields. The settlement form and its validation live in #4379.
+
+### Acceptance Criteria
+
+**Scenario 1 — Open a driver's ledger**
+- Given the admin opens a driver's row on the driver balances grid (#1813)
+- Then her full transaction ledger is shown newest-first — trip commission, trip earnings, cancellation fees, fee credits, fee recoveries, settlements, and payouts — each with date, type, signed amount, and source reference
+- And every row names its cause in **Source** — the trip id for a trip, fee or recovery entry, the receipt number for a settlement, the payout reference for a payout
+- And the running balance is shown
+
+**Scenario 2 — New driver starts at zero**
+- Given an approved driver with no ledger entries
+- Then her balance is 0.00 EGP and her ledger is empty
+
+**Scenario 3 — Balance is the sum of the entries**
+- Given a driver with entries of −20.00, −10.00, +15.00 and +300.00
+- When her balance is read
+- Then it is +285.00 EGP and matches the sum of her entries exactly
+
+**Scenario 4 — A mixed-custody driver nets to one balance**
+- Given a driver has one driver-custody trip (`trip_commission` −20.00) and one platform-custody trip (`trip_earnings` +80.00)
+- Then her balance is the sum of both entries, +60.00 EGP, with no special handling for the mix of custody values
+
+**Scenario 5 — Entries are immutable**
+- Given a posted ledger entry
+- When any request attempts to edit or delete it
+- Then the request is rejected and the entry stands unchanged, with no correction offered in its place
+
+**Scenario 6 — The same event never posts twice for the same idempotency key**
+- Given a trip completion, cancellation, fee recovery, settlement, or payout is submitted or retried more than once for the same idempotency key
+- Then exactly one ledger entry is posted per party for that key, and the balance is unaffected by the repeat
+
+**Scenario 7 — Concurrent postings are serialised**
+- Given two entries are posted for the same driver at the same moment
+- Then both are recorded and the resulting balance reflects both, with no lost update
+
+**Scenario 8 — Amounts are stored to two decimals with no rounding drift**
+- Given any posted amount
+- Then it is stored to two decimal places in EGP, and the balance never accumulates rounding drift
+
+**Scenario 9 — A suspended driver's balance and ledger are retained**
+- Given a driver is suspended (#1742)
+- Then her balance and ledger are retained unchanged and remain visible to the admin
+
+**Scenario 10 — The same entries appear in the driver's own app**
+- Given entries exist on a driver's ledger
+- Then her driver-app statement shows the same entries and the same balance (#1781, #1788), with no figure computed differently on either side
+
+**Scenario 11 — Empty, loading and error states**
+- Given the ledger is empty, loading, or the request fails
+- Then the corresponding empty, loading, or error state is shown
+
+### Out of Scope
+- Recording a settlement — the action that posts a `settlement` credit (#4379)
+- Recording a payout sent to a driver (#4001) — the mirror action, on the same screen but a separate story
+- The driver balances list, its search, filters and PDF export (#1813)
+- Editing, deleting, reversing or adjusting an entry — Phase 1 ships with no correction mechanism
+- Driver dispute of a ledger entry (Phase 2)
+
+### Dependencies
+- #1813 — Admin reviews the driver balances grid (must be live — the entry point to this ledger)
+- #3997 — Trip completion posts the custody-driven ledger entry
+- #1764 — Cancellation fees post to both parties' ledgers
+- #4000 — Rider outstanding fee recovered in cash by the driver
+- #4001 — Admin records a payout sent to a driver
+- #1781, #1788 — Driver balance and statement in the driver app
+
+### List / Grid Specification
+
+**Page size:** 20 rows/page (server-side pagination) · **Default sort:** Date — newest first
+
+| Column | Sortable | Filterable | Filter type |
+|---|---|---|---|
+| Date (UTC+2) | No | No | — |
+| Type | No | No | — |
+| Amount (EGP, signed) | No | No | — |
+| Source | No | No | — |
+
+The ledger sub-grid is not separately sorted or filtered.
+
+---
+
+## [Admin] #4379 — Admin records a driver settlement 🆕
+**Feature:** Feature 18 — Admin Financial Reporting & Reconciliation | **Sprint:** Phase 1
+
+**Description:** As an admin, I want to record the money a driver hands back so that her outstanding balance is cleared against the channel it came through and she is unblocked once she has settled.
+
+> **Split 2026-09-17:** carved out of #1813 together with #4378.
+
+### Design reference
+
+Delivered design kit: `SheDrive.AdminPanel_v16-09-2026`.
+
+| Screen | Design file | On-screen heading / entry point |
+|---|---|---|
+| Record settlement | `driver-balance-details.html` | Ledger — *driver name* → "Record settlement" |
+
+### Background
+
+On cash trips the driver collects the full fare and therefore owes the platform its commission. Recording a settlement credits her balance and is the **only** way an outstanding amount is ever cleared. It is triggered from the driver's ledger (#4378), which is opened from the driver balances grid (#1813). Recording a payout Finance has sent — money going out, the mirror of this action — sits on the same screen but is a separate story (#4001).
+
+**Recording a settlement posts a ledger entry.** It never edits a balance directly. The entry is immutable (#4378), appears in the driver's own statement (#1781, #1788), and is written to the audit log (#1816). **Partial settlements are normal** — she may hand in less than she owes, and the balance reduces by what she paid. A settlement that brings her below the balance limit unblocks her go-online immediately (#3996), with no further admin action.
+
+**Settlement channels.** The admin records which channel the money came back through — Office cash, Bank deposit, Mobile wallet, or Field agent — drawn from a configurable list, not a hard-coded one. A reference is required for every channel except Office cash, where it is optional and, left blank, defaults to the settlement's own receipt number. Every settlement generates a unique **receipt number** (`S-nnnnn`), shown to the admin immediately and visible in the driver's own statement.
+
+### Field Validation
+
+| Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
+|---|---|---|---|---|---|---|---|---|---|
+| Settlement amount | Yes | Decimal (EGP) | Positive number, up to 2 decimals; not more than what she owes | 0.01 | what she owes (the magnitude of her negative balance) | empty | Enter a settlement amount / أدخل مبلغ التسوية | Enter a valid amount / أدخل مبلغًا صحيحًا | Amount must be greater than 0 and not exceed what she owes / يجب أن يكون المبلغ أكبر من 0 وألا يتجاوز الرصيد المستحق |
 | Settlement date | Yes | Date (YYYY-MM-DD) | Valid calendar date; not in the future | — | today | today | Enter the settlement date / أدخل تاريخ التسوية | Invalid date format / صيغة التاريخ غير صحيحة | Date cannot be in the future / لا يمكن أن يكون التاريخ في المستقبل |
 | Settlement channel | Yes | Dropdown (single-select, admin-configurable list) | Enum: Office cash, Bank deposit, Mobile wallet, Field agent | — | — | Office cash | Select a settlement channel / اختر قناة التسوية | — | — |
 | Settlement reference | Required for every channel except Office cash | Free text | Letters, digits, hyphens; for Office cash, left empty it defaults to the generated receipt number | — | 60 chars | empty | Enter a settlement reference / أدخل مرجع التسوية | — | Reference must be 60 characters or fewer / يجب ألا يزيد المرجع عن 60 حرفًا |
@@ -3136,127 +3380,114 @@ The list covers drivers with a **negative** balance (owing the platform) by defa
 
 ### Acceptance Criteria
 
-**Scenario 1 — List drivers by balance**
-- Given drivers have balances
-- Then they are listed with driver name, outstanding amount, available amount, last settlement date, and go-online status
-- And the default filter shows only drivers owing the platform, highest first
+**Scenario 1 — Record a full settlement**
+- Given a driver's balance is −300.00 EGP (she owes the platform 300)
+- When the admin records a 300 EGP settlement through Office cash
+- Then a `settlement` entry of +300.00 EGP is posted, a receipt number is generated and shown to the admin, her balance becomes zero, and the last settlement date updates
 
-**Scenario 2 — Open a driver's ledger**
-- Given the super admin opens a driver's row
-- Then her full transaction ledger is shown newest-first — trip commission, cancellation fees, fee shares, settlements, and payouts — each with date, type, signed amount, and source reference
-- And each settlement row shows its channel and receipt number
-- And the running balance is shown
+**Scenario 2 — Record a partial settlement**
+- Given a driver's balance is −300.00 EGP (she owes the platform 300)
+- When the admin records 120 EGP
+- Then her balance becomes −180.00 EGP and the entry appears in her ledger (#4378) with its receipt number
 
-**Scenario 3 — Record a full settlement**
-- Given a driver owes 300 EGP
-- When the super admin records a 300 EGP settlement through Office cash
-- Then a settlement entry of +300.00 EGP is posted (#3991), a receipt number is generated and shown to the admin, her balance becomes zero, and the last settlement date updates
-
-**Scenario 4 — Record a partial settlement**
-- Given a driver owes 300 EGP
-- When the super admin records 120 EGP
-- Then her outstanding balance becomes 180 EGP and the entry appears in her ledger with its receipt number
-
-**Scenario 5 — Settlement unblocks a blocked driver**
+**Scenario 3 — Settlement unblocks a blocked driver**
 - Given a driver is blocked from going online at a 500 EGP limit (#3996)
 - When a settlement brings her below the limit
 - Then her next go-online attempt succeeds with no further admin action
 
-**Scenario 6 — Settlement amount validation**
-- Given a settlement amount of zero, negative, or greater than the outstanding balance
+**Scenario 4 — Settlement amount validation**
+- Given a settlement amount of zero, negative, or greater than what she owes
 - Then it is rejected with a validation error and no entry is posted
 
-**Scenario 7 — Settling a driver who owes nothing is refused**
+**Scenario 5 — Settling a driver who owes nothing is refused**
 - Given a driver whose balance is zero or positive
 - Then the record-settlement action is unavailable for her
 
-**Scenario 8 — Reference is required for non-cash channels**
-- Given the super admin selects Bank deposit, Mobile wallet, or Field agent as the channel
+**Scenario 6 — Reference is required for non-cash channels**
+- Given the admin selects Bank deposit, Mobile wallet, or Field agent as the channel
 - When she leaves the reference empty and tries to save
 - Then a validation error is returned and no entry is posted
 
-**Scenario 9 — Office-cash reference defaults to the receipt number**
-- Given the super admin selects Office cash and leaves the reference empty
+**Scenario 7 — Office-cash reference defaults to the receipt number**
+- Given the admin selects Office cash and leaves the reference empty
 - Then the settlement is recorded with its own generated receipt number standing in as the reference
 
-**Scenario 10 — Every settlement generates a receipt number**
+**Scenario 8 — Every settlement generates a receipt number**
 - Given any settlement is recorded, on any channel
 - Then a unique receipt number in the form `S-nnnnn` is generated, shown to the admin immediately, and visible in the driver's own statement (#1781, #1788)
 
-**Scenario 11 — Every settlement is audited**
+**Scenario 9 — Every settlement is audited**
 - Given a settlement is recorded
 - Then it appears in the audit log (#1816) with actor, driver, amount, channel and receipt number, before/after balance, and timestamp (UTC+2)
 - And it appears on the driver's earnings & settlement report (#1833)
 
-**Scenario 12 — Driver sees it in her own app**
+**Scenario 10 — Driver sees it in her own app**
 - Given a settlement is recorded
 - Then it appears in the driver's statement with its receipt number and updates her balance (#1781, #1788)
 
-**Scenario 13 — Double submission does not double-post**
+**Scenario 11 — Double submission does not double-post**
 - Given the settlement form is submitted twice for the same settlement
-- Then exactly one entry is posted (#3991)
+- Then exactly one entry is posted (#4378)
 
-**Scenario 14 — Empty, loading and error states**
-- Given no drivers match the filter, the list is loading, or the request fails
-- Then the corresponding empty, loading, or error state is shown
-
-**Scenario 15 — Settlement entries export to CSV**
-- Given the driver balances list or a driver's ledger is displayed
-- Then the super admin can export the settlement entries to CSV, with driver, amount, channel, reference, receipt number, recording admin, and time on every row
+**Scenario 12 — A failed save posts nothing**
+- Given the settlement request fails
+- Then an error is shown, no entry is posted, and the driver's balance is unchanged
 
 ### Out of Scope
 - Automated payouts, bank transfers, or payment-provider integration — every channel here records an operational fact after the money has already moved
 - Adding, renaming, or removing settlement channels from the configurable list (managed outside this screen)
-- Driver-facing settlement notifications
-- Driver dispute of a ledger entry (Phase 2)
 - Recording a payout sent to a driver (#4001) — the mirror action, on the same screen but a separate story
-- A standalone settlement day book / reconciliation screen — cut deliberately on 2026-09-13; settlement entries export as CSV from this screen instead
-- A free-form correction/adjustment action — cut deliberately on 2026-09-13; entries here are immutable with no correction mechanism (#3991)
+- The driver ledger view itself and its posting guarantees (#4378)
+- The driver balances list, its search, filters and PDF export (#1813)
+- Driver-facing settlement notifications
+- Editing, reversing or adjusting a recorded settlement — Phase 1 ships with no correction mechanism
+- Driver dispute of a ledger entry (Phase 2)
+- A standalone settlement day book / reconciliation screen — cut deliberately on 2026-09-13; settlement entries export as PDF from the balances screen (#1813) instead
 
 ### Dependencies
-- #3991 — Party balance ledger records every balance movement (must be live — receives every settlement)
-- #3996 — Driver go-online is blocked while her outstanding balance is over the limit (unblocked by settlement here)
-- #3994 — Super admin configures balance and fee policy (owns the outstanding-balance limit)
-- #1759 — Super admin configures global platform policies (platform commission)
-- #1833 — Super admin views per-driver earnings & settlement report
-- #1816 — Super admin views the admin activity audit log
-
-### List / Grid Specification
-
-**Page size:** 20 rows/page (server-side pagination) · **Default sort:** Outstanding — highest first
-
-| Column | Sortable | Filterable | Filter type |
-|---|---|---|---|
-| Driver | Yes | Yes | Free-text search (partial match) |
-| Outstanding (EGP) | Yes | Yes | Dropdown (enum) |
-| Available (EGP) | Yes | No | — |
-| Last settlement date | Yes | No | — |
-| Go-online status | No | No | — |
-
-Expanding a row opens the driver's full ledger sub-grid (Date, Type, Amount, Channel/Receipt, Source); the sub-grid is not separately sorted or filtered and paginates at 20 rows.
+- #4378 — Admin opens a driver's balance ledger (must be live — owns the ledger this action posts into, and the screen the action sits on)
+- #1813 — Admin reviews the driver balances grid (must be live — the entry point)
+- #3996 — Driver go-online is blocked while her outstanding balance is over the limit (unblocked by a settlement here)
+- #3994 — Admin configures balance and fee policy (owns the outstanding-balance limit)
+- #1759 — Admin configures global platform policies (platform commission)
+- #1833 — Admin views per-driver earnings & settlement report
+- #1816 — Admin views the admin activity audit log
+- #1781, #1788 — Driver balance and statement in the driver app
 
 ---
 
-> **Removed 2026-09-13:** cut as a report dressed as a screen. Settlement entries are exportable as CSV from the driver balances screen (#1813), which gives Finance the same reconciliation input. Can return as a real reconciliation — banked amount in, variance out — once the cash-collection model is decided.
+> **Removed 2026-09-13:** cut as a report dressed as a screen. Settlement entries are exportable as PDF from the driver balances screen (#1813), which gives Finance the same reconciliation input. Can return as a real reconciliation — banked amount in, variance out — once the cash-collection model is decided.
 
 ---
 
-## [Admin] #4005 — Super admin reviews rider outstanding fees 🆕
+## [Admin] #4005 — Admin reviews rider outstanding fees 🆕
 **Feature:** Feature 18 — Admin Financial Reporting & Reconciliation | **Sprint:** Phase 1
 
-**Description:** As a super admin, I want to see every rider's outstanding fee balance and her full ledger so that I understand her position and, if her abuse is persistent, can escalate to suspension.
+**Description:** As an admin, I want to see every rider's outstanding fee balance and her full ledger so that I understand her position and, if her abuse is persistent, can escalate to suspension.
+
+### Design reference
+
+Delivered design kit: `SheDrive.AdminPanel_v16-09-2026`. The Arabic (RTL) counterpart of each page is the same file name with the `_ar` suffix, e.g. `revenue-summary_ar.html`.
+
+| Screen | Design file | On-screen heading / entry point |
+|---|---|---|
+| Rider balances (list) | `rider-balances.html` | Rider Balances |
+| Rider ledger | `rider-balance-details.html` | Ledger — *rider name* |
 
 ### Background
 
-A rider's ledger is zero almost always. It moves when she cancels after the grace period (a `cancellation_fee` debit) or when that fee is recovered in full as a surcharge on her next completed trip (a `fee_collected` credit, #4000). This screen (`rider-balances.html`) is the admin counterpart to a rider's outstanding-fees view on her own app (#3992): it lists riders with an outstanding balance and opens a full ledger for any one of them.
+A rider's ledger is zero almost always. It moves when she cancels after the grace period (a `cancellation_fee` debit) or when that fee is recovered in full as a surcharge on her next completed trip (a `fee_collected` credit, #4000). This screen (`rider-balances.html`) is the admin counterpart to the outstanding balance a rider sees in her own app (#3992): it lists riders with an **outstanding** balance by default — with a filter for settled and all — and opens a full ledger for any one of them.
 
-**The screen is read-only.** There is no waive, no write-off and no correction of any kind on a rider's fee. The only way her fee clears is that she pays it, in full, on her next completed trip (#4000) — nobody writes it off.
+**One signed balance per rider, in EGP.** Negative means she owes an unpaid fee; a new rider starts at zero. Her balance is the arithmetic sum of her ledger entries — never stored directly and never computed from trip records. Its two entry types are:
 
-**The one action this screen offers is escalation, not adjustment.** A rider whose abuse is persistent — repeated late cancellations she keeps paying off and repeating — is escalated through the existing rider-suspension flow (#1740), reachable from her ledger. That is a human decision about her account, never a change to what she owes.
+| Entry type | Sign | Posted when |
+|---|---|---|
+| `cancellation_fee` | debit (−) | She cancels after the grace period (#1764) |
+| `fee_collected` | credit (+) | The fee is recovered — in Phase 1, as a cash surcharge on her next trip (#4000) |
 
-**There is no automatic booking block on a rider.** Blocking one would deadlock — she pays in cash on the ride, so the only way she can ever clear a fee is by taking a ride. Suspension via #1740 is the only lever this screen offers beyond visibility.
+**Entries are immutable and posting is idempotent.** Nothing edits an entry and nothing deletes one — Phase 1 ships with no correction mechanism at all, on either ledger. Every entry carries an idempotency key shaped `{event_type}:{trip_id|request_id}:{party_id}`, its type, its signed EGP amount, a timestamp (UTC+2), and the id of the source record.
 
-The list covers riders with an **outstanding** balance by default, with a filter to show riders settled to zero and all riders. Every posted ledger entry is permanent — Phase 1 has no correction mechanism at all (#3991), for a rider's ledger any more than a driver's.
+**The screen is read-only on the money, and the one action it offers is escalation.** There is no waive, write-off or correction of a rider's fee — the only way it clears is that she pays it in full on her next completed trip (#4000). A rider whose abuse is persistent is escalated through the existing rider-suspension flow (#1740), reachable from her ledger; that is a decision about her account, never a change to what she owes. There is no automatic booking block, because blocking one would deadlock — she can only ever clear a fee by taking a ride.
 
 ### Field Validation
 
@@ -3267,50 +3498,82 @@ The list covers riders with an **outstanding** balance by default, with a filter
 
 ### Acceptance Criteria
 
-**Scenario 1 — List riders with outstanding fees**
-- Given riders have fee entries
-- Then they are listed with rider name, outstanding amount, and oldest unpaid fee date
-- And the default filter shows only riders with an outstanding balance, highest first
+**Scenario 1 — Open Rider Balances**
+- Given riders exist with cancellation-fee and fee-collection entries
+- When the admin opens the Rider Balances screen from the admin navigation
+- Then the grid lists only riders whose balance is below zero, sorted by outstanding amount highest first, 20 rows per page
+- And each row shows the rider name, the outstanding amount in EGP, and the date of her oldest unpaid fee
+- And the Balance filter is pre-selected to "Outstanding"
 
-**Scenario 2 — Open a rider's ledger**
-- Given the super admin opens a rider's row
-- Then her full transaction ledger is shown newest-first — cancellation fees and fee collections — each with date, type, signed amount, and source trip reference
-- And the running balance is shown
+**Scenario 2 — Filter to Settled and All**
+- Given a rider whose balance is 0.00 EGP and a rider whose balance is −20.00 EGP
+- When the admin changes the Balance filter to "Settled (zero)"
+- Then the grid shows the 0.00 EGP rider and does not show the −20.00 EGP rider
+- And when the admin changes the filter to "All", the grid shows both riders
+- And when the admin changes the filter back to "Outstanding", only the −20.00 EGP rider is shown
 
-**Scenario 3 — No action clears a fee from this screen**
-- Given a rider has an outstanding fee
-- Then no waive, write-off, or correction action is offered anywhere on this screen
-- And her balance changes only when she pays it in full on her next completed trip (#4000)
+**Scenario 3 — Open a rider's ledger**
+- Given a rider in the grid with at least one cancellation fee and one fee collection
+- When the admin expands that rider's row
+- Then the ledger sub-grid opens showing her entries newest-first, 20 rows per page, with Date, Type, signed Amount in EGP, and the source trip reference on every row
+- And the running balance is displayed on the ledger and equals the sum of the entries shown
 
-**Scenario 4 — Escalate persistent abuse to suspension**
-- Given a rider has a history of repeated late cancellations
-- When the super admin opens the suspend-rider link from her ledger
-- Then she is taken to the existing rider-suspension flow (#1740)
-- And no fee, balance, or ledger entry is changed by this action
+**Scenario 4 — No fee-clearing action is offered**
+- Given a rider with an outstanding balance of −20.00 EGP
+- When the admin opens her ledger and inspects every control on the screen — row actions, toolbar, and detail pane
+- Then no waive, write-off, adjustment, or correction control is present
+- And the only action offered on the ledger is the suspend-rider link
 
-**Scenario 5 — Riders with no outstanding balance**
-- Given a rider's balance is zero
-- Then she appears only under the "Settled" or "All" filter, never under the default "Outstanding" filter
+**Scenario 5 — Escalate persistent abuse to suspension**
+- Given a rider with repeated late cancellations and an outstanding balance of −20.00 EGP
+- When the admin opens the suspend-rider link from her ledger
+- Then the existing rider-suspension screen (#1740) opens for that rider
+- And on returning to her ledger, her balance is still −20.00 EGP and her ledger contains the same entries as before
 
 **Scenario 6 — Empty, loading and error states**
-- Given no riders match the filter, the list is loading, or the request fails
-- Then the corresponding empty, loading, or error state is shown
+- When the admin applies a search term that matches no rider
+- Then the grid is replaced by the empty state with its "no riders match" message and no rows
+- And when the list request is still in flight, the grid shows the loading skeleton instead of rows
+- And when the list request fails, the grid shows the error state with a Retry control, and pressing Retry re-issues the request
 
-**Scenario 7 — Export**
-- Given the rider balances list is displayed
-- Then the super admin can export it to CSV/Excel
+**Scenario 7 — Export the current view to PDF**
+- Given the admin has entered a search term and selected a Balance filter
+- When the admin presses Export to PDF
+- Then a PDF file is produced containing exactly the rows matching the current search and filter, in the current sort order, and no other riders
+
+**Scenario 8 — A new rider starts at zero**
+- Given a rider who has never been charged a cancellation fee
+- When the admin finds her under the "All" filter and opens her ledger
+- Then her balance reads 0.00 EGP and her ledger sub-grid shows the empty state with no entries
+
+**Scenario 9 — Balance is the sum of the entries, to two decimals**
+- Given a rider with posted entries of −20.00 and −15.00 EGP
+- When the admin opens her ledger
+- Then the balance reads −35.00 EGP
+- And every amount on the ledger and in the grid is shown in EGP to exactly two decimal places
+- And after a −0.50 EGP entry is posted, the balance reads −35.50 EGP
+
+**Scenario 10 — Posted entries cannot be edited or deleted**
+- Given a posted ledger entry on a rider's ledger
+- When a request to edit or delete that entry is submitted
+- Then the request is rejected with an error response, and the entry and the balance are unchanged when the ledger is reloaded
+
+**Scenario 11 — A repeated event posts only one entry**
+- Given a rider with a balance of −20.00 EGP
+- When the same cancellation or fee-recovery event is submitted again with the same idempotency key `{event_type}:{trip_id|request_id}:{party_id}`
+- Then her ledger still shows exactly one entry for that key
+- And her balance still reads −20.00 EGP
 
 ### Out of Scope
 - Waiving, writing off, or otherwise adjusting a rider's outstanding fee — the only way it clears is that she pays it in full on her next completed trip (#4000)
-- A free-form correction/adjustment action — cut deliberately on 2026-09-13; every posted entry stands, with no correction mechanism in Phase 1 (#3991)
+- A free-form correction/adjustment action — every posted entry stands, with no correction mechanism in Phase 1
 - Automated or bulk actions on rider balances
 - Rider dispute workflow (Phase 2)
-- Driver balance reconciliation (covered by #1813)
+- Driver balance reconciliation (covered by #1813, #4378, #4379)
 - Cancellation-policy configuration (#1759)
 - Any rider fee recovery threshold or escalation setting — a rider's balance is always recovered in full on her next trip, with nothing to configure (#3994, #4000)
 
 ### Dependencies
-- #3991 — Party balance ledger records every balance movement (must be live)
 - #4000 — Rider outstanding fee is recovered on her next trip (fee entries this screen displays originate here; also the only way a fee clears)
 - #1740 — Operations admin suspends a rider account (the only action this screen offers beyond visibility)
 - #1764 — Cancellation fees are charged after the grace period (rider and driver) (fee entries originate here)
@@ -3329,24 +3592,27 @@ Expanding a row opens the rider's full ledger sub-grid (Date, Type, Amount, Sour
 
 ---
 
-## [Admin] #4001 — Super admin records a payout sent to a driver 🆕
+## [Admin] #4001 — Admin records a payout sent to a driver 🆕
 **Feature:** Feature 18 — Admin Financial Reporting & Reconciliation | **Sprint:** Phase 1
 
-**Description:** As a super admin, I want to record a payout that Finance has already sent to a driver so that her ledger reflects the transfer and her statement shows it with its reference and date.
+**Description:** As an admin, I want to record a payout that Finance has already sent to a driver so that her ledger reflects the transfer and her statement shows it with its reference and date.
+
+### Design reference
+
+Delivered design kit: `SheDrive.AdminPanel_v16-09-2026`. The Arabic (RTL) counterpart of each page is the same file name with the `_ar` suffix, e.g. `revenue-summary_ar.html`.
+
+| Screen | Design file | On-screen heading / entry point |
+|---|---|---|
+| Driver ledger + record payout | `driver-balance-details.html` | Ledger — *driver name* → "Record Payout" |
+| Reached from | `driver-balances.html` | Driver Balances |
 
 ### Background
 
-Recording a payout happens in the same place as recording a settlement (`balances.html`, #1813) — it is the same act in the opposite direction: money moved, now write it down. A driver never requests a payout; there is no request, no approval queue, no pending/approved/rejected states, and no reservation against her balance. Finance transfers the money on its own cycle, outside the system, and a super admin records it here after the fact.
+Recording a payout happens on the driver's ledger (#4378), in the same place as recording a settlement (#4379) — the same act in the opposite direction: money moved, now write it down. A driver never requests a payout: there is no request, no approval queue, no pending/approved/rejected states, and no reservation against her balance. Finance transfers the money on its own cycle, outside the system, and an admin records it here after the fact.
 
-**Recording posts a ledger entry.** It never edits a balance directly. Recording a payout for a driver posts a `payout` debit to her ledger (#3991) for the amount that was actually sent, reducing her available balance by exactly that amount.
+**Recording posts a ledger entry. It never edits a balance directly.** A `payout` debit is posted for the amount actually sent, reducing her available balance by exactly that amount, and it can never exceed her current available balance. **Posting is idempotent on the payout reference** — the bank or wallet transaction id, or a receipt number — so a retry or a double form submission never posts a second entry; the original is returned unchanged.
 
-**The amount can never exceed what is owed.** A payout cannot be recorded for more than the driver's current available balance.
-
-**Posting is idempotent on the payout reference.** Every payout carries a reference (the bank or wallet transaction id, or a receipt number) and a date. Retrying the same reference — whether a genuine retry or a double form submission — never posts a second entry; the original entry is returned unchanged.
-
-**The platform holds no payout destination.** Getting the money to the driver is a manual, off-platform process; nothing is captured from her and nothing is verified here. Recording is not gated on any destination.
-
-Every payout is captured with a reference and a date, is immutable, appears immediately in the driver's own statement (#1781, #1788), and is written to the audit log (#1816).
+**The platform holds no payout destination.** Getting the money to the driver is a manual, off-platform process; nothing is captured from her and nothing is verified here. Every payout is immutable, appears immediately in the driver's own statement (#1781, #1788), and is written to the audit log (#1816).
 
 ### Field Validation
 
@@ -3360,12 +3626,12 @@ Every payout is captured with a reference and a date, is immutable, appears imme
 
 **Scenario 1 — Record a payout**
 - Given a driver has an available balance of 500 EGP
-- When the super admin records a payout of 200 EGP with a reference and date
-- Then a `payout` entry of −200.00 EGP is posted (#3991), her available balance becomes 300.00, and the entry appears in her ledger with the reference and date
+- When the admin records a payout of 200 EGP with a reference and date
+- Then a `payout` entry of −200.00 EGP is posted (#1813), her available balance becomes 300.00, and the entry appears in her ledger with the reference and date
 
 **Scenario 2 — Amount cannot exceed the available balance**
 - Given a driver's available balance is 100 EGP
-- When the super admin attempts to record a payout of 150 EGP
+- When the admin attempts to record a payout of 150 EGP
 - Then it is rejected with a validation error and no entry is posted
 
 **Scenario 3 — Recording a payout for a driver who does not have one is refused**
@@ -3384,7 +3650,7 @@ Every payout is captured with a reference and a date, is immutable, appears imme
 **Scenario 6 — Idempotent on the payout reference**
 - Given a payout is recorded with reference "PMT-1042"
 - When the same reference is submitted again, whether as a retry or a double form submission
-- Then no second entry is posted (#3991) and the original entry is returned unchanged
+- Then no second entry is posted (#1813) and the original entry is returned unchanged
 
 **Scenario 7 — Every payout is audited**
 - Given a payout is recorded
@@ -3395,7 +3661,7 @@ Every payout is captured with a reference and a date, is immutable, appears imme
 - Then it appears in the driver's statement with its reference and date and reduces her available balance (#1781, #1788)
 
 **Scenario 9 — Payout appears alongside settlements in the driver's ledger**
-- Given the super admin opens a driver's ledger on `balances.html` (#1813)
+- Given the admin opens a driver's ledger on `balances.html` (#1813)
 - Then payout and settlement entries appear in the same newest-first list, each with its own type, amount, and reference
 
 ### Out of Scope
@@ -3405,13 +3671,12 @@ Every payout is captured with a reference and a date, is immutable, appears imme
 - Payment-provider or bank integration
 - Capturing, storing, or verifying a payout destination of any kind — the platform holds none
 - Bulk recording of multiple payouts
-- Reversing a recorded payout — Phase 1 ships with no correction mechanism for a mis-recorded entry (#3991)
+- Reversing a recorded payout — Phase 1 ships with no correction mechanism for a mis-recorded entry (#1813)
 - Tips, bonuses, incentives, and referral credits
 
 ### Dependencies
-- #3991 — Party balance ledger records every balance movement (must be live — receives the payout entry)
-- #1813 — Super admin reconciles driver balances and records settlements (same screen; the settlement side of this action)
-- #1816 — Super admin views the admin activity audit log
+- #1813 — Admin reconciles driver balances and records settlements (must be live — owns the driver ledger that receives the payout entry; same screen as the settlement side of this action)
+- #1816 — Admin views the admin activity audit log
 
 ---
 

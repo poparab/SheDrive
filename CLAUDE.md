@@ -100,6 +100,7 @@ Rules:
 | `shedrive.pendingTrip` | sessionStorage | JSON `{pickup, destination}` | Home → Matching handoff |
 | `shedrive.activeTrip` | sessionStorage | JSON `{driver, trip}` | Matching → Active Trip handoff |
 | `shedrive.completedRating` | sessionStorage | string `'1'` | Rating submitted flag |
+| `shedrive.savedPlaces` | localStorage | JSON `[{id, label, name, address}]` | Rider saved places (home/work/custom) |
 | `shedrive.adminSession` | localStorage | JSON `{email, role, loginAt}` | Admin portal session (separate from `shedrive.session`) |
 
 **Rider and driver screens are deliberately open**, the same way the admin portal is.

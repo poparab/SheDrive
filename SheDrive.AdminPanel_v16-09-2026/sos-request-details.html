@@ -1,0 +1,863 @@
+<!doctype html>
+<html dir="ltr"><!-- InstanceBegin template="/Templates/template.dwt" codeOutsideHTMLIsLocked="false" -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SheDrive</title>
+<!-- Bootstrap File -->
+<link rel="stylesheet" type="text/css" href="css/bootstrap/bootstrap.min.css">
+<!-- Font Awesome Style Sheet File -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+<!-- Google Icons Style Sheet File -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&icon_names=home_app_logo" />
+<!-- LightBox Stylsheet File -->
+<link rel="stylesheet" type="text/css" href="css/lightbox/magnific-popup.css">
+<!-- Main Style Sheet File -->
+<link href="css/styles.css" rel="stylesheet" type="text/css">
+<!-- Browzer Tab Icon -->
+<link rel="shortcut icon" href="img/favicon.png" type="image/x-icon">
+</head>
+
+<body>
+
+	<!-- Main Wrapper Container -->
+	<div class="wrapper">
+		<!-- Side Nav -->
+		<nav id="sidebar">
+			<span class="top-triangle"></span>
+			<div id="dismiss">
+				<i class="fa-solid fa-arrow-left"></i>
+			</div>
+			<div class="sidebar-header">
+				<div class="logo"><img src="img/logo.png" alt=""/></div>
+			</div>
+
+			<ul id="main-menu">
+				<span class="category">Operations</span>
+				<li><a href="dashboard.html"><img src="icons/dashboard-2.svg" alt="">Dashboard</a></li>
+          	 	<li class="active"><a href="trips.html"><img src="icons/trips.svg" alt="">Trips</a></li>
+				<li><a href="sos-requests.html"><img src="icons/lifeboat.svg" alt="">SOS requests</a></li>
+				<li><a href="gender-mismatch.html"><img src="icons/shield.svg" alt="">Safety Reports</a></li>
+				
+				<span class="category">People</span>
+				<li><a href="driver-applications.html"><img src="icons/applications.svg" alt="">Driver Applications</a></li>
+				<li><a href="drivers-list.html"><img src="icons/steering-wheel.svg" alt="">Drivers</a></li>
+				<li><a href="riders-list.html"><img src="icons/user-star.svg" alt="">Riders</a></li>
+				
+				<span class="category">Money & Config</span>
+				<li><a href="service-zone.html"><img src="icons/prices.svg" alt="">Pricing & Zones</a></li>
+				<li><a href="pricing-policies.html"><img src="icons/policies.svg" alt="">Global Policies</a></li>
+				<li><a href="revenue-summary.html"><img src="icons/reports.svg" alt="">Reports</a></li>
+				<li><a href="reconciliation.html"><img src="icons/handshake.svg" alt="">Reconciliation</a></li>
+				
+				<span class="category">Adminstration</span>
+				<li><a href="javascript:;"><img src="icons/file-checked.svg" alt="">Audit Log</a></li>
+				<li><a href="admin-accounts.html"><img src="icons/users.svg" alt="">Admin Users</a></li>
+			</ul>
+		</nav><!-- End Side Nav -->
+		
+		<!-- Content Area -->
+		<div id="content">
+			
+			<header>
+				<button type="button" id="sidebarCollapse" class="btn"><i class="fa-solid fa-bars"></i></button>
+				<form class="me-auto d-none d-md-flex">
+					<div class="input-group">
+						<input type="search" class="form-control" id="search" name="search" placeholder="Search Here ...">
+						<button class="btn-input-search" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
+					</div><!-- End Search Input -->
+				</form><!-- End Search Form -->
+				
+				<div class="end-side">
+					<ul class="navbar navbar-expand topbar-menu">
+						<!-- Search Dropdown Item -->
+						<li class="nav-item dropdown d-block d-md-none">
+			  				<a class="nav-link dropdown-toggle" href="Javascript" id="searchDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<i class="fa-solid fa-magnifying-glass"></i>
+							</a>
+				  
+			  				<div class="dropdown-menu slideIn" aria-labelledby="searchDropdown">
+								<form class="left-side-search d-flex">
+									<div class="input-group">
+										<input type="search" class="form-control" id="leftSideSearch" name="search" placeholder="Search Here ...">
+										<button class="btn-input-search" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
+									</div><!-- End Search Input -->
+<!--
+				 					<input type="text" class="form-control" placeholder="Search ...">
+				  					<button type="button" class="btn"><i class="icon-search"></i></button>
+-->
+								</form><!-- End Left Side Search -->
+			  				</div>
+		  	  			</li><!-- End Search Dropdown Item -->
+						
+						<!-- Language Dropdown Item -->
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="javascript:;" id="laguageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<img class="icon" src="icons/language.svg" alt="">
+							</a>
+							<ul class="dropdown-menu slideIn" aria-labelledby="laguageDropdown">
+								<li><a class="dropdown-item" href="dashboard.html"><img class="flag" src="icons/language/united-kingdom.svg" alt=""/>English</a></li>
+								<li><a class="dropdown-item" href="dashboard_ar.html"><img class="flag" src="icons/language/egypt.svg" alt=""/>عربى</a></li>
+			  				</ul>
+						</li><!-- End Language Dropdown Item -->
+						
+						<!-- User Profile Dropdown Item -->
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="javascript:;" id="userProfileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<img class="user-profile" src="img/profile-photo.png">
+								<span class="user-info">
+									<span class="user-name">Abd Allah Marzouk</span>
+									<span class="user-title">Executive Mgr</span>
+								</span>
+							</a>
+							<ul class="dropdown-menu slideIn" aria-labelledby="userProfileDropdown">
+								<li><a class="dropdown-item" href="admin-profile.html"><i class="fa-regular fa-user"></i>Profile</a></li>
+								<li><a class="dropdown-item" href="javascript:;"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a></li>
+			  				</ul>
+						</li><!-- End User Profile Dropdown Item -->
+						
+						<!-- Dropdown Search -->
+						<!--
+			  			<li class="nav-item dropdown d-block d-md-none">
+			  				<a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="icon-search-7"></i></a>
+				  
+			  				<div class="dropdown-menu slideIn" aria-labelledby="searchDropdown">
+								<form class="topbar-search d-flex">
+				 					<input type="text" class="form-control" placeholder="Search ...">
+				  					<button type="button" class="btn"><i class="icon-search"></i></button>
+								</form>
+			  				</div>
+		  	  			</li><!-- End Dropdown Search -->
+
+
+						<!-- Dropdown Langauge -->
+						<!--
+			  			<li class="nav-item dropdown">
+			  				<a class="nav-link dropdown-toggle" href="#" id="laguageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<i class="fa-solid fa-globe"></i>
+								<img src="../icons/language.svg" alt="">
+							</a>
+				  
+			  				<ul class="dropdown-menu slideIn" aria-labelledby="laguageDropdown">
+								<li><a class="dropdown-item" href="#"><i><img src="img/united-kingdom-flage.png" alt=""/></i> English</a></li>
+								<li><a class="dropdown-item" href="#"><i><img src="img/egypt-flage.png" alt=""/></i> عربى</a></li>
+			  				</ul>
+		  	  			</li><!-- End Dropdown Langauge -->
+
+						<!-- Dropdown Notifications -->
+						<!--
+			  			<li class="nav-item dropdown">
+			  				<a class="nav-link dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-regular fa-bell"></i></a>
+				  
+			  				<ul class="dropdown-menu slideIn" aria-labelledby="notificationsDropdown" id="notification">
+				  				<li class="dropdown-menu-header">4 إشعارات</li>
+								<li>
+									<a class="dropdown-item" href="#"> 
+				  						<div class="row g-0 align-items-center">
+											<div class="col-2"><i class="text-primary icon-info-circled"></i></div>
+											<div class="col-10">
+												<h6>تم إضافة مستخدم جديد</h6>
+												<p>يرجى الخروج ثم الدخول مرة أخرى لمعرفة المستخدم الحديد</p>
+												<div class="text-muted small">منذ 2 ساعة</div>
+											</div>
+										</div>
+									</a>
+				  				</li>
+								<li>
+									<a class="dropdown-item" href="#"> 
+				  						<div class="row g-0 align-items-center">
+											<div class="col-2"><i class="text-warning icon-warning"></i></div>
+											<div class="col-10">
+												<h6>تم إضافة مستخدم جديد</h6>
+												<p>يرجى الخروج ثم الدخول مرة أخرى لمعرفة المستخدم الحديد</p>
+												<div class="text-muted small">منذ 2 ساعة</div>
+											</div>
+										</div>
+									</a>
+				  				</li>
+								<li>
+									<a class="dropdown-item" href="#"> 
+				  						<div class="row g-0 align-items-center">
+											<div class="col-2"><i class="text-danger icon-cancel-circle"></i></div>
+											<div class="col-10">
+												<h6>تم إضافة مستخدم جديد</h6>
+												<p>يرجى الخروج ثم الدخول مرة أخرى لمعرفة المستخدم الحديد</p>
+												<div class="text-muted small">منذ 2 ساعة</div>
+											</div>
+										</div>
+									</a>
+				  				</li>
+								<li>
+									<a class="dropdown-item" href="#"> 
+				  						<div class="row g-0 align-items-center">
+											<div class="col-2"><i class="text-success icon-ok-circled"></i></div>
+											<div class="col-10">
+												<h6>تم إضافة مستخدم جديد</h6>
+												<p>يرجى الخروج ثم الدخول مرة أخرى لمعرفة المستخدم الحديد</p>
+												<div class="text-muted small">منذ 2 ساعة</div>
+											</div>
+										</div>
+									</a>
+				  				</li>
+				  				<li class="dropdown-menu-footer"><a href="#" class="text-muted">إظهار الكل</a></li>
+			  				</ul>
+		  	  			</li><!-- End Dropdown Notifications -->
+
+						<!-- Dropdown User Profile -->
+						<!--
+			  			<li class="nav-item dropdown user-control">
+			  				<a class="nav-link dropdown-toggle" href="javascript:;" id="userProfileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<i class="user-pic"><img src="img/user-pic.jpg" alt=""/></i>
+								<span class="d-none d-md-inline">
+									<span class="userName-text">عبد ااالله مرزوق</span><small>مدير</small>
+								</span>
+				  			</a>
+				  
+			 	 			<ul class="dropdown-menu slideIn" aria-labelledby="userProfileDropdown">
+								<li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear"></i>الإعدادات</a></li>
+								<li><a class="dropdown-item" href="#"><i class="fa-solid fa-arrow-right-from-bracket"></i>تسجيل الخروج</a></li>
+			  				</ul>
+		  	  			</li><!-- End Dropdown User Profile -->
+		  			</ul>
+				</div><!-- End Side Container -->
+				
+			</header><!-- End Header -->
+			
+			<!-- InstanceBeginEditable name="content" -->
+	
+	<section class="sm-padding">
+		<div class="container-fluid">
+			<!-- Section Title -->
+			<div class="section-title row gy-3">
+				<div class="title col-auto">
+					<h3 class="underline-title">SOS Case</h3>
+				</div><!-- End Title -->
+				<div class="end-side col-auto">
+					<a class="btn btn-back btn-back-outline" href="sos-requests.html"><i class="fa-solid fa-arrow-left"></i></a>
+				</div><!-- End END  Side -->
+			</div><!-- End Section Title -->
+            
+            <div class="col">
+                <div class="alert warning mt-2">
+				    <i class="fa-solid fa-triangle-exclamation"></i>
+				    <p>Neither occupant was told the other had raised this.</p>
+			    </div><!-- End Alert -->
+            </div><!-- End Col -->
+			
+			<div class="row g-3">
+				<div class="col-lg-6 col-xl-4">
+					<div class="standard-card-theme2 white-bg">
+						<!-- Card Header -->
+						<div class="card-header">
+							<div class="card-title">
+								<h5>Case</h5>
+								<spam></spam>
+							</div><!-- End Card Title -->
+							<div class="icon"><img src="icons/warning-sign.svg" alt=""></div><!-- End Card Icon -->
+						</div><!-- End Card Header -->
+						
+						<!-- Card Body -->
+						<div class="card-body pb-0">
+							<div class="list-multi-column no-border p-0">
+								<div class="row gx-4">
+									<div class="col">
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Case ID</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">sos-7200</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Case status</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">
+                                                <div class="status-pending"><div class="icon"><i class="fa-solid fa-gear"></i></div>Open</div>
+                                            </div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Raised date/time</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">14 Sep 2026, 13:07</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Raised by</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">Driver — Amira Kamal</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Trip state at trigger</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">En route to pickup</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+                                        <div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Live link expired</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">14 Sep 2026, 14:37</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+									</div><!-- End Col -->
+								</div><!-- End Row -->
+							</div><!-- End List -->
+						</div><!-- End Card Body -->
+						
+					</div><!-- End Standard Card -->
+				</div><!-- End Col -->
+				
+				<div class="col-lg-6 col-xl-4">
+					<div class="standard-card-theme2 white-bg">
+						<!-- Card Header -->
+						<div class="card-header">
+							<div class="card-title">
+								<h5>Trip</h5>
+								<spam></spam>
+							</div><!-- End Card Title -->
+							<div class="icon"><img src="icons/car-location.svg" alt=""></div><!-- End Card Icon -->
+						</div><!-- End Card Header -->
+						
+						<!-- Card Body -->
+						<div class="card-body">
+							<div class="list-multi-column no-border p-0">
+								<div class="row gx-4">
+									<div class="col">
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Trip ID</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">
+                                                <a href="trip-expired.html">TRP-24004<i class="fa-solid fa-angle-right"></i></a>
+                                            </div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+                                        <div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Status</div><!-- End List Item -->
+											<div class="status-rejected"><div class="icon"><i class="fa-solid fa-xmark"></i></div>Expired</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Created</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">13 Aug 2026, 10:56</div><!-- End List Item -->
+										</div><!-- End Row -->
+                                        
+
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Pickup</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">82 El-Batal Ahmed Abdelaziz St, Dokki</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Destination</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">57 El-Merghany St, Sheikh Zayed</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Zone</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">Cairo Central</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+									</div><!-- End Col -->
+								</div><!-- End Row -->
+							</div><!-- End List -->
+						</div><!-- End Card Body -->
+						
+					</div><!-- End Standard Card -->
+				</div><!-- End Col -->
+				
+				<div class="col-lg-6 col-xl-4">
+					<div class="standard-card-theme2 white-bg">
+						<!-- Card Header -->
+						<div class="card-header">
+							<div class="card-title">
+								<h5>Rider</h5>
+								<spam></spam>
+							</div><!-- End Card Title -->
+							<div class="icon"><img src="icons/user-star.svg" alt=""></div><!-- End Card Icon -->
+						</div><!-- End Card Header -->
+						
+						<!-- Card Body -->
+						<div class="card-body pb-0">
+							<div class="list-multi-column no-border p-0">
+								<div class="row gx-4">
+									<div class="col">
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Rider name</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">
+                                                <a href="rider-profile.html">Farida Shawky<i class="fa-solid fa-angle-right"></i></a>
+                                            </div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Account status</div><!-- End List Item -->
+											<div class="status-approved"><div class="icon"><i class="fa-solid fa-check"></i></div>Active</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Phone</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">+20 153 843 7460</div><!-- End List Item -->
+										</div><!-- End Row -->
+                                        
+                                        <div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Home area</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">Heliopolis</div><!-- End List Item -->
+										</div><!-- End Row -->
+				                        					
+									</div><!-- End Col -->
+								</div><!-- End Row -->
+							</div><!-- End List -->
+						</div><!-- End Card Body -->
+						
+					</div><!-- End Standard Card -->
+				</div><!-- End Col -->
+                
+                <div class="col-lg-6 col-xl-4">
+					<div class="standard-card-theme2 white-bg">
+						<!-- Card Header -->
+						<div class="card-header">
+							<div class="card-title">
+								<h5>Driver</h5>
+								<spam></spam>
+							</div><!-- End Card Title -->
+							<div class="icon"><img src="icons/steering-wheel.svg" alt=""></div><!-- End Card Icon -->
+						</div><!-- End Card Header -->
+						
+						<!-- Card Body -->
+						<div class="card-body pb-0">
+							<div class="list-multi-column no-border p-0">
+								<div class="row gx-4">
+									<div class="col">
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Driver name</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">
+                                                <a href="driver-profile.html">Amira Kamal<i class="fa-solid fa-angle-right"></i></a>
+                                            </div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Account status</div><!-- End List Item -->
+											<div class="status-approved"><div class="icon"><i class="fa-solid fa-check"></i></div>Approved</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Phone</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">+20 101 452 8776</div><!-- End List Item -->
+										</div><!-- End Row -->
+                                        
+                                        <div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Vehicle</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">Nissan Sentra</div><!-- End List Item -->
+										</div><!-- End Row -->
+                                        
+                                         <div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Plate num</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">ر س ص 413</div><!-- End List Item -->
+										</div><!-- End Row -->
+																				
+									</div><!-- End Col -->
+								</div><!-- End Row -->
+							</div><!-- End List -->
+						</div><!-- End Card Body -->
+						
+					</div><!-- End Standard Card -->
+				</div><!-- End Col -->
+				
+                <div class="col-lg-6 col-xl-4">
+					<div class="standard-card-theme2 white-bg">
+						<!-- Card Header -->
+						<div class="card-header">
+							<div class="card-title">
+								<h5>Location at trigger</h5>
+								<spam></spam>
+							</div><!-- End Card Title -->
+							<div class="icon"><img src="icons/location.svg" alt=""></div><!-- End Card Icon -->
+						</div><!-- End Card Header -->
+						
+						<!-- Card Body -->
+						<div class="card-body pb-0">
+							
+                            <iframe class="routing-map" src="https://www.google.com/maps/embed?pb=!1m28!1m12!1m3!1d110512.09564670286!2d31.011508241890485!3d30.05111355876215!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m13!3e0!4m5!1s0x14585a29f1b324d9%3A0xc5c5525706430b8d!2sEl%20Sheikh%20Zayed%20City%2C%20Giza%20Governorate!3m2!1d30.0381736!2d30.979352799999997!4m5!1s0x145840e059d98225%3A0x91cb6f582e8b215c!2sZamalek%2C%20Cairo%20Governorate!3m2!1d30.0609422!2d31.219708999999998!5e0!3m2!1sen!2seg!4v1786888945242!5m2!1sen!2seg" width="100%" height="450" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                            
+                            <div class="list-multi-column no-border p-0">
+								<div class="row gx-4">
+									<div class="col">
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Address</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">82 El-Batal Ahmed Abdelaziz St, Dokki</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Coordinates</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">30.04440, 31.23570</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+									</div><!-- End Col -->
+								</div><!-- End Row -->
+							</div><!-- End List -->
+                            
+						</div><!-- End Card Body -->
+						
+					</div><!-- End Standard Card -->
+				</div><!-- End Col -->
+				
+				<div class="col-lg-6 col-xl-4">
+					<div class="standard-card-theme2 white-bg">
+						<!-- Card Header -->
+						<div class="card-header">
+							<div class="card-title">
+								<h5>Contacts alerted</h5>
+								<span>2 contacts</span>
+							</div><!-- End Card Title -->
+							<div class="icon"><img src="icons/shield-warning.svg" alt=""></div><!-- End Card Icon -->
+						</div><!-- End Card Header -->
+						
+						<!-- Card Body -->
+						<div class="card-body pb-0">
+                            
+							<div class="standard-card success-alert-bg success-alert-br">
+                                <div class="card-header mb-0">
+                                    <div class="card-title">
+                                        <img class="icon" src="icons/user-active.svg">
+                                        <h5>Mona Adel</h5>&bull;
+                                        <span class="tertiary-color">Sister</span>
+                                    </div><!-- End Card Title -->
+                                </div><!-- End Card Header -->
+                                
+                                <div class="card-body m-0">
+                                    <div class="list-multi-column no-border p-0">
+								        <div class="row gx-4">
+									        <div class="col">
+										
+										        <div class="row gx-0 list-row">
+											        <div class="list-item col text-bold">Phone</div><!-- End List Item -->
+											        <div class="list-item col-auto justify-content-md-end">+20 102 000 0000</div><!-- End List Item -->
+										        </div><!-- End Row -->
+										        
+										        <div class="row gx-0 list-row">
+											        <div class="list-item col text-bold">Status</div><!-- End List Item -->
+											        <div class="list-item col-auto justify-content-md-end">
+                                                        <div class="status-approved"><div class="icon"><i class="fa-solid fa-check"></i></div>Delivered</div>
+                                                    </div><!-- End List Item -->
+										        </div><!-- End Row -->
+										
+									        </div><!-- End Col -->
+								        </div><!-- End Row -->
+							        </div><!-- End List -->
+                                </div><!-- End Card Body -->
+                            </div><!-- End Card -->
+                            
+                            <div class="standard-card danger-alert-bg danger-alert-br">
+                                <div class="card-header mb-0">
+                                    <div class="card-title">
+                                        <img class="icon" src="icons/user-slash.svg">
+                                        <h5>Ramadan Abo Gabeer</h5>&bull;
+                                        <span class="tertiary-color">Spouse</span>
+                                    </div><!-- End Card Title -->
+                                </div><!-- End Card Header -->
+                                
+                                <div class="card-body m-0">
+                                    <div class="list-multi-column no-border p-0">
+								        <div class="row gx-4">
+									        <div class="col">
+										
+										        <div class="row gx-0 list-row">
+											        <div class="list-item col text-bold">Phone</div><!-- End List Item -->
+											        <div class="list-item col-auto justify-content-md-end">+20 100 205 5566</div><!-- End List Item -->
+										        </div><!-- End Row -->
+										        
+										        <div class="row gx-0 list-row">
+											        <div class="list-item col text-bold">Status</div><!-- End List Item -->
+											        <div class="list-item col-auto justify-content-md-end">
+                                                        <div class="status-rejected"><div class="icon"><i class="fa-solid fa-xmark"></i></div>Failed</div>
+                                                    </div><!-- End List Item -->
+										        </div><!-- End Row -->
+										
+									        </div><!-- End Col -->
+								        </div><!-- End Row -->
+							        </div><!-- End List -->
+                                </div><!-- End Card Body -->
+                            </div><!-- End Card -->
+                            
+						</div><!-- End Card Body -->
+						
+					</div><!-- End Standard Card -->
+				</div><!-- End Col -->
+			</div><!-- End Row -->
+            
+            <div class="row mt-4">
+                <div class="col">
+                    <div class="standard-card white-bg">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <h3>Resolution</h3>
+                            </div><!-- End Card Title -->
+                        </div><!-- End Card Header -->
+                        
+                        <div class="card-body">
+                            <p class="small lh-sm mt-3 mb-3">Tick either party, both, or neither, then choose how the case closes. A suspension is recorded as the outcome and takes effect immediately. Closing is final — a closed case is never reopened.</p>
+                            <form action="" class="row d-flex gap-2">
+                                <div class="col-auto">
+                                    <div class="form-check d-flex gap-2 align-items-center">
+      						            <input class="form-check-input" type="checkbox" id="suspendRider">
+      						            <label class="form-check-label" for="suspendRider">Suspend the rider</label>
+						            </div><!-- End Form Check -->
+                                    
+                                    <div class="form-check d-flex gap-2 align-items-center">
+      						            <input class="form-check-input" type="checkbox" id="suspendDriver">
+      						            <label class="form-check-label" for="suspendDriver">Suspend the Driver</label>
+						            </div><!-- End Form Check -->
+                                </div><!-- End Col -->
+                            </form><!-- End Form -->
+                        </div><!-- End Card Body -->
+                        
+                        <div class="card-footer mt-3 pb-0">
+                            <hr>
+                            <div class="row">
+                                <div class="col d-flex gap-3 mb-3">
+                                    <button class="btn btn-danger d-flex" type="button" data-bs-toggle="modal" data-bs-target="#suspendReasonModal"><i class="fa-solid fa-pause"></i>Suspend & close the case</button>
+							        <button class="btn btn-success d-flex" type="button" data-bs-toggle="modal" data-bs-target="#falseAlramReasonModal">
+								    <i class="fa-solid fa-xmark"></i>false alarm</button>
+						        </div><!-- End Col -->
+                            </div><!-- End Row -->
+                        </div><!-- End Card Footer -->
+                        
+                    </div><!-- End Standard Card -->
+                </div><!-- End Col -->
+            </div><!-- End Row -->
+			
+		</div><!-- End Container -->
+	</section><!-- End Section -->
+			
+            
+            <!-- //// **- MODALS -** //// -->
+            
+			<!-- Suspend Reason Popup Modal -->
+			<div class="modal fade default-modal" id="suspendReasonModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="suspendReasonModal" aria-hidden="true">
+            	<div class="modal-dialog modal-dialog-centered">
+                	<div class="modal-content">
+                    	
+						<!-- Modal Header -->
+						<div class="modal-header">
+							<img class="icon" src="icons/stop-women.svg" alt="">
+							<h3>Suspend & Close this case</h3>
+                        	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div><!-- End Modal Header -->
+						
+						<!-- Modal Body -->
+                        <div class="modal-body">
+                            <p class="small lh-sm">Confirm what is recorded against this case. Any suspension applies immediately and appears on that person’s profile and in the audit log.</p>
+                            <div class="alert info mt-3">
+				                <i class="fa-solid fa-circle-info"></i>
+				                <p>Both the rider and the driver will be suspended.</p>
+			                </div><!-- End Alert -->
+							<form class="row" action="">
+								<div class="col-12">
+            						<label for="amount">Resolution note <span class="danger-color">*</span></label>
+									<textarea class="form-control" rows="2" id="suspentionResolutionNote" placeholder="Explain resolution note."></textarea>
+                                    <p class="small lh-sm">Explain what was found and why this outcome was chosen.</p>
+          						</div>
+								
+							</form><!-- End Form -->
+						</div><!-- End Modal Body -->
+                        
+						<!-- Modal Footer -->
+						<div class="modal-footer mt-4">
+							<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#requestSuccessModal"><i class="fa-solid fa-pause"></i>Suspend & close case</button>
+                            <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i>Cancel</button>
+                        </div><!-- End Modal Footer -->
+												
+                    </div>
+                </div>
+            </div>
+			<!-- End Suspend Reason Popup Modal -->
+            
+            <!-- Close Case Reason Popup Modal -->
+			<div class="modal fade default-modal" id="falseAlramReasonModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="falseAlramReasonModal" aria-hidden="true">
+            	<div class="modal-dialog modal-dialog-centered">
+                	<div class="modal-content">
+                    	
+						<!-- Modal Header -->
+						<div class="modal-header">
+							<img class="icon" src="icons/checked-women.svg" alt="">
+							<h3>Dismiss this report?</h3>
+                        	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div><!-- End Modal Header -->
+						
+						<!-- Modal Body -->
+                        <div class="modal-body">
+                            <p class="small lh-sm">Confirm what is recorded against this case. Any suspension applies immediately and appears on that person’s profile and in the audit log.</p>
+                             <div class="alert info mt-3">
+				                <i class="fa-solid fa-circle-info"></i>
+				                <p>No account will be suspended.</p>
+			                </div><!-- End Alert -->
+							<form class="row" action="">
+								<div class="col-12">
+            						<label for="amount">Resolution note <span class="danger-color">*</span></label>
+									<textarea class="form-control" rows="2" id="resolutionNote" placeholder="Explain resolution note."></textarea>
+                                    <p class="small lh-sm">Explain what was found and why this outcome was chosen.</p>
+          						</div>
+								
+							</form><!-- End Form -->
+                            
+                            
+						</div><!-- End Modal Body -->
+                        
+						<!-- Modal Footer -->
+						<div class="modal-footer mt-4">
+							<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#requestSuccessModal"><i class="fa-solid fa-xmark"></i>Close case</button>
+                            <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i>Cancel</button>
+                        </div><!-- End Modal Footer -->
+												
+                    </div>
+                </div>
+            </div>
+			<!-- End Close Case Reason Popup Modal -->
+													
+			<!-- Request Success Popup Modal -->
+			<div class="modal fade popup-success" id="requestSuccessModal" tabindex="-1" aria-labelledby="requestSuccessModal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                    	
+						<!-- Modal Header -->
+						<div class="modal-header">
+                        	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div><!-- End Modal Header -->
+						
+						<!-- Modal Body -->
+                        <div class="modal-body">
+							<div class="status-sign success"><i class="fa-solid fa-check"></i></div>
+							<h4>The request completed successfully</h4>
+							<p>The case has been closed successfully.</p>
+						</div><!-- End Modal Body -->
+                                           	 	
+						<!-- Modal Footer -->
+						<div class="modal-footer">
+<!--						<button type="button" class="btn btn-success"><i class="fa-solid fa-pause"></i>وقف</button>-->
+                            <button type="button" class="btn btn-success" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i>Close</button>
+                        </div><!-- End Modal Footer -->
+						
+                    </div>
+                </div>
+            </div>
+			<!-- End Request Success Popup Modal -->
+						
+			
+			
+<!-- InstanceEndEditable --> 
+			
+		</div>
+		<!-- End Content Area -->
+	</div><!-- End Wrapper -->
+	
+	<div class="overlay"></div>
+	
+ <!-- /// Scripts ///--> 
+ <script src="js/jquery-4.0.0.min.js"></script>
+ <script src="js/bootstrap/bootstrap.bundle.min.js"></script> 
+ <!-- Sticky Header Script  
+ <script type="text/JavaScript">
+        window.addEventListener("scroll" ,function() {
+    		let header = document.querySelector("header.internal");
+    		header.classList.toggle("internal-sticky", window.scrollY > 50);
+		});
+ </script>-->
+	
+<!-- Side Menu Script -->
+<script type="text/javascript">
+$(document).ready(function () {
+	$('#dismiss, .overlay').on('click', function () {
+		$('#sidebar').addClass('active');
+		$('.overlay').removeClass('active');
+	});
+
+	$('#sidebarCollapse').on('click', function () {
+		$('#sidebar, #content').toggleClass('active');
+		$('.overlay').addClass('active');
+		$('.collapse.in').toggleClass('in');
+		$('a[aria-expanded=true]').attr('aria-expanded', 'false');
+	});
+});
+</script>
+	
+<!-- Show & Hide Password Script -->
+<script>
+	// Frist Eye Script //
+	document.addEventListener('DOMContentLoaded', function () {
+    	const toggleButton = document.querySelector('#show_hide_password button');
+		const passwordInput = document.querySelector('#passwordInput');
+    	const toggleIcon = document.querySelector('#showHidePassword');
+
+    	toggleButton.addEventListener('click', function (event) {
+        	event.preventDefault();
+			
+        	// Toggle the type attribute
+        	const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        	passwordInput.setAttribute('type', type);
+			
+        	// Toggle the eye icon class
+        	if (type === 'text') {
+            	toggleIcon.classList.remove('fa-eye');
+            	toggleIcon.classList.add('fa-eye-slash');
+        	} else {
+            	toggleIcon.classList.remove('fa-eye-slash');
+            	toggleIcon.classList.add('fa-eye');
+        	}
+    	});
+	});
+	
+	// Second Eye Script //
+	document.addEventListener('DOMContentLoaded', function () {
+    	const toggleButton = document.querySelector('#show_hide_password-2 button');
+		const passwordInput = document.querySelector('#passwordInput-2');
+    	const toggleIcon = document.querySelector('#showHidePassword-2');
+
+    	toggleButton.addEventListener('click', function (event) {
+        	event.preventDefault();
+			
+        	// Toggle the type attribute
+        	const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        	passwordInput.setAttribute('type', type);
+			
+        	// Toggle the eye icon class
+        	if (type === 'text') {
+            	toggleIcon.classList.remove('fa-eye');
+            	toggleIcon.classList.add('fa-eye-slash');
+        	} else {
+            	toggleIcon.classList.remove('fa-eye-slash');
+            	toggleIcon.classList.add('fa-eye');
+        	}
+    	});
+	});
+	
+	// Third Eye Script //
+	document.addEventListener('DOMContentLoaded', function () {
+    	const toggleButton = document.querySelector('#show_hide_password-3 button');
+		const passwordInput = document.querySelector('#passwordInput-3');
+    	const toggleIcon = document.querySelector('#showHidePassword-3');
+
+    	toggleButton.addEventListener('click', function (event) {
+        	event.preventDefault();
+			
+        	// Toggle the type attribute
+        	const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        	passwordInput.setAttribute('type', type);
+			
+        	// Toggle the eye icon class
+        	if (type === 'text') {
+            	toggleIcon.classList.remove('fa-eye');
+            	toggleIcon.classList.add('fa-eye-slash');
+        	} else {
+            	toggleIcon.classList.remove('fa-eye-slash');
+            	toggleIcon.classList.add('fa-eye');
+        	}
+    	});
+	});
+</script>	
+
+<!-- LightBox Script -->
+<script src="js/lightbox/jquery.magnific-popup.min.js"></script>
+
+
+<!-- /// End Scripts /// -->
+</body>
+<!-- End Body -->
+
+<!-- InstanceEnd --></html>

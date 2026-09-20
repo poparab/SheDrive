@@ -431,7 +431,7 @@ recovery feel like the driver charging extra on her own initiative.</em></p>
 
 ## [Admin] Driver Balances — Record Settlement & Payout
 
-**ADO:** #3982 — created 2026-09-08 · updated 2026-09-13 · #3983 Record a Payout merged in 2026-09-14
+**ADO:** #3982 — created 2026-09-08 · updated 2026-09-13 · #3983 Record a Payout merged in 2026-09-14 · updated 2026-09-17 (receipt image, no office-cash channel, overpayment allowed)
 
 **Screen:** `admin-v2/balances.html` (finish)
 **Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
@@ -449,6 +449,10 @@ down afterward. There is no request, no queue, and no approve/reject — recordi
 only step. Settlement entries export to CSV directly from this screen, which is
 Finance's reconciliation input now that the separate day-book screen has been cut.</p>
 
+<p><strong>Updated 2026-09-17 — three changes, detailed in the rules below:</strong> the
+office-cash channel is removed, a driver may settle more than she owes, and both modals
+accept a photo of the receipt or transfer confirmation.</p>
+
 <h3>Components</h3>
 <ul>
   <li><code>ad-shell</code> page skeleton</li>
@@ -459,18 +463,40 @@ Finance's reconciliation input now that the separate day-book screen has been cu
   date; row opens the driver's ledger</li>
   <li>Ledger view: <code>ad-detail-section</code> for the driver summary plus an
   <code>ad-data-table</code> or <code>ad-timeline</code> of ledger entries (type,
-  date, signed amount, cause, related trip/settlement/payout link)</li>
+  date, signed amount, cause, related trip/settlement/payout link, and the attached
+  receipt image where one was uploaded)</li>
   <li><code>ad-form-modal</code> "Record settlement" — channel select (configurable
-  list), reference field (required except for office cash, where it defaults to the
-  generated receipt number), amount, generated receipt number shown on success</li>
+  list), reference field, amount, <strong>image upload</strong>, generated receipt
+  number shown on success</li>
   <li><code>ad-form-modal</code> "Record payout", launched from the driver's ledger —
   read-only driver summary (name, current available balance), amount (EGP, capped at
   the available balance), date (defaults to today), reference (the bank/wallet
-  transaction id or receipt); success shows a confirmation toast and the new
-  balance</li>
+  transaction id or receipt), <strong>image upload</strong>; success shows a
+  confirmation toast and the new balance</li>
   <li>CSV export action on the settlement entries — driver, amount, channel,
   reference, receipt number, recording admin, and time — scoped to the active
   filters</li>
+</ul>
+
+<h3>Rules</h3>
+<ul>
+  <li><strong>Receipt image (new).</strong> Both the record-settlement and the
+  record-payout modal accept one image as proof — a photo of the signed receipt, the
+  bank slip, or the wallet transfer confirmation. It is optional: recording is never
+  blocked by a missing image, because the money has already moved and the record must
+  not be delayed. Accepted formats JPG and PNG, up to 5&nbsp;MB, one image per record.
+  Once uploaded it is permanent, like the entry itself; it can be viewed full-size from
+  the ledger entry but never replaced or removed.</li>
+  <li><strong>No office-cash channel (changed).</strong> "Cash at office" is removed
+  from the settlement channel list. SheDrive has no cash office, so it was never a real
+  channel. The reference field is therefore required on every remaining channel — there
+  is no longer a channel where it defaults to the generated receipt number.</li>
+  <li><strong>A driver may pay more than she owes (changed).</strong> The settlement
+  amount is no longer capped at her outstanding balance. If she hands back more than she
+  owes, the surplus is not rejected — it simply carries forward as an available balance,
+  which Finance later pays out like any other available balance. The confirmation states
+  the resulting balance in plain language so the admin sees the crossover: she owed X,
+  she paid Y, SheDrive now owes her Y − X.</li>
 </ul>
 
 <h3>States</h3>
@@ -481,8 +507,16 @@ Finance's reconciliation input now that the separate day-book screen has been cu
   in the status column</li>
   <li>Ledger drawer/detail open, populated and empty (a driver with no ledger
   activity yet)</li>
-  <li>Record-settlement modal: default, validation errors (missing reference on a
-  channel that requires one), success with receipt number and a confirmation toast</li>
+  <li>Record-settlement modal: default, validation errors (missing reference, missing
+  channel, missing or invalid amount), success with receipt number and a confirmation
+  toast</li>
+  <li>Record-settlement overpayment: the entered amount is larger than what she owes —
+  accepted, with the confirmation naming the surplus that becomes her available balance,
+  and her row in the list flipping from outstanding to available immediately</li>
+  <li>Image upload: nothing attached (the default), an image selected and previewed
+  before confirming, upload in progress, rejected file (wrong format or over 5&nbsp;MB)
+  with a clear message, and the attached image viewed full-size from the ledger entry
+  afterwards</li>
   <li>Record-payout modal: default (a positive available balance), validation errors
   (amount above the available balance, or the reference/date missing), success with a
   confirmation toast, the new <code>payout</code> entry in the ledger and the
@@ -504,7 +538,115 @@ Finance's reconciliation input now that the separate day-book screen has been cu
 
 ---
 
+## [Admin] Driver Balances — One Balance Column, Drop the Note Column
+
+**ADO:** #4381 — created 2026-09-17 · updated 2026-09-17 (freed column carries the #3982 proof thumbnail)
+
+**Screens:** `driver-balances.html`, `driver-balance-details.html` (revision to the delivered kit)
+**Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
+**AcceptanceCriteria:** *(leave empty — design story format)*
+
+```html
+<p>Two small corrections to the delivered Driver Balances design (<code>driver-balances.html</code>
+and <code>driver-balance-details.html</code>, EN and AR). Everything else on both screens stays
+exactly as delivered — this is a column change only, not a redesign.</p>
+
+<h3>1. Combine "Outstanding" and "Available" into one balance column</h3>
+<p>On the driver balances grid, the two columns <strong>Outstanding (EGP)</strong> and
+<strong>Available (EGP)</strong> are replaced by a single <strong>Balance (EGP)</strong> column.
+A driver only ever has one balance; showing it as two columns means one of them is always empty
+and forces the reader to compare two cells to answer one question.</p>
+<ul>
+  <li>One signed figure per row: negative means she owes the platform, positive means the
+  platform owes her</li>
+  <li>Right-aligned, 2 decimals, tabular figures</li>
+  <li>The direction must be readable without relying on colour alone — pair colour with the
+  leading sign and/or a short label</li>
+  <li>Zero reads as neutral — neither owed nor available</li>
+  <li>The existing balance-status filter and the go-online column are unchanged</li>
+</ul>
+
+<h3>2. Remove the "Note" column from the ledger grid</h3>
+<p>On the driver balance details screen, drop the last column, <strong>Note</strong>. The entry
+type already names the cause of every row, so the note column added a mostly-empty column with
+no new information.</p>
+<p>The freed column is not left blank: it carries the <strong>Proof</strong> thumbnail added in
+#3982 — the receipt photo or transfer slip attached when the settlement or payout was recorded,
+opening full-size on click. The ledger grid therefore becomes: <strong>Date · Type · Amount (EGP)
+· Source · Proof</strong>. An entry with nothing attached shows an em dash.</p>
+
+<h3>Scope</h3>
+<ul>
+  <li>Applies to both language versions of both screens (EN and AR/RTL)</li>
+  <li>No new states, modals or actions — existing empty, loading, error and long-text states
+  keep working with the revised columns</li>
+</ul>
+
+<h3>Preview</h3>
+<p>Current live screen: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html</p>
+<p>Revised mockup: &lt;to be added&gt;</p>
+```
+
+---
+
 > **Removed 2026-09-14 — [Admin] Record a Payout (#3983):** merged into #3982. Recording a payout is a modal on the same driver balances screen, so it is designed as part of that screen rather than as its own brief. Its components, states and preview links now live in the #3982 brief above.
+
+---
+
+## [Admin] Per-driver Earnings — Drop the Driver Debt Card, Searchable Driver Picker, Payment Method Column
+
+**ADO:** #4387 — created 2026-09-17
+
+**Screens:** `reconciliation.html`, `reconciliation_ar.html` (revision to the delivered kit `SheDrive.AdminPanel_v16-09-2026`)
+**Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
+**Dev counterpart:** #1833 — [Admin] Admin views per-driver earnings & settlement report
+**AcceptanceCriteria:** *(leave empty — design story format)*
+
+Three corrections, gathered into one story:
+
+| # | Change | Why |
+|---|---|---|
+| 1 | Drop the **Driver Debt** card — four cards, not five | The other four are period figures that move with the date range; Driver Debt is a live balance that does not. Standing them in one row invites a meaningless subtraction. Her live balance is already reported as *Outstanding cash balance* in the Cash vs digital rail and as the balance column on Driver Balances (#1813). |
+| 2 | One **searchable driver picker**, matched on name *or* phone | The kit ships two controls for one job — a free-text "Search by driver name …" box beside a name-only "Select Driver …" dropdown. An admin answering a payment query has the driver's number in front of her, not her spelling. Applies **everywhere a person is picked**, including the *Reassign to another driver* dialog on Trip detail. |
+| 3 | Add a **Payment method** column to the per-trip grid | It decides who is holding the money: on a cash trip the driver has the fare and owes the commission, on a digital trip the platform has the fare and owes her the net. Without it a row's net earnings cannot be read as "money she has" or "money she is owed", and the Cash vs digital rail cannot be traced back to individual trips. |
+
+```html
+<p>Three corrections to the delivered Per-driver earnings &amp; settlement design
+(<code>reconciliation.html</code> and <code>reconciliation_ar.html</code>). Everything else on
+the screen stays exactly as delivered — this is a filter, card-row and grid-column change, not
+a redesign.</p>
+
+<h3>1. Remove the "Driver Debt" card — four cards, not five</h3>
+<p>The card row drops <strong>Driver Debt / مديونية السائقة</strong> and keeps four cards:
+<strong>Completed trips · Gross fares · Commission deducted · Net earnings</strong>.</p>
+<p>The four survivors are all <em>period</em> figures … (full copy in ADO #4387, including the
+bordered table giving each card's format, what it shows and what the admin uses it for)</p>
+
+<h3>2. One searchable driver picker — name <em>or</em> phone</h3>
+<ul>
+  <li>Typing letters matches the <strong>name</strong>; typing digits matches the
+  <strong>phone number</strong></li>
+  <li>Every result row shows <strong>name and phone together</strong></li>
+  <li>01012345678, +20&nbsp;101&nbsp;234&nbsp;5678 and 1012345678 all find the same driver</li>
+  <li>No match → "No match for that name or phone / لا يوجد تطابق لهذا الاسم أو الرقم"</li>
+  <li>Keyboard: ↑ / ↓ move, Enter picks, Esc closes; the phone keeps LTR inside the RTL layout</li>
+</ul>
+
+<h3>3. Add a Payment method column to the per-trip breakdown</h3>
+<p>The grid becomes <strong>Trip date · Payment method · Fare (EGP) · Commission (EGP) ·
+Net earnings (EGP)</strong>, with Payment method as a Cash / نقدًا or Digital / إلكتروني
+status pill in second position. The CSV export carries the same column.</p>
+
+<h3>Preview</h3>
+<p>Live screen (all three implemented):
+https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html</p>
+<p>Arabic (RTL):
+https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html?lang=ar</p>
+<p>Searchable picker in a dialog:
+https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/trip-detail.html?id=TRP-24001
+→ "Reassign to another driver"</p>
+<p>Revised mockup: &lt;to be added&gt;</p>
+```
 
 ---
 
@@ -586,7 +728,7 @@ snapshotted onto a trip at driver acceptance are never affected retroactively.</
   <li>Form fields, grouped logically (trip economics / cancellation fees / driver
   balance): platform commission %, rider grace period,
   driver cancellation fee, driver cancellation grace period, rider no-show wait,
-  driver share of a rider fee, driver outstanding limit, driver warning band %</li>
+  driver outstanding limit, driver warning band %</li>
   <li>Inline helper text on the driver outstanding-limit field explicitly stating what
   a value of 0 does: it disables the go-online gate entirely</li>
   <li>Save action with a confirmation toast and an updated "last changed by / when"

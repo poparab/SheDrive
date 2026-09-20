@@ -58,7 +58,7 @@ One signed balance per driver, in EGP.
 | `trip_commission` | − | A trip completes with `custody = driver` |
 | `trip_earnings` | + | A trip completes with `custody = platform` |
 | `driver_cancellation_fee` | − | She cancels late without a qualifying no-show waiver |
-| `rider_cancellation_fee_share` | + | A rider cancels late; her configured share |
+| `rider_cancellation_fee_credit` | + | A rider cancels late; the **whole** fee is credited to the driver |
 | `rider_fee_recovery` | − | She collected a rider's outstanding fee in cash on the platform's behalf |
 | `settlement` | + | An admin records that she handed cash back |
 | `payout` | − | Finance records a transfer it has already sent her |
@@ -91,28 +91,35 @@ One signed balance per rider, in EGP. Zero for almost every rider, almost always
 Phase 1 riders have no card. The fee is recovered as a **surcharge on her next trip**,
 collected by the driver in cash and passed through the driver ledger.
 
-Worked example — fee 20.00, driver share 75%, next trip fare 100.00, commission 20.00:
+**The whole fee goes to the driver.** A rider's cancellation fee is compensation for the
+driver's wasted time and fuel — the platform takes none of it and there is no split to
+configure. (A *driver's* own late-cancellation fee is different: that one is charged to
+her and is the platform's.)
+
+Worked example — fee 20.00, next trip fare 100.00, commission 20.00:
 
 | Step | Rider ledger | Driver ledger | Driver holds |
 |---|---|---|---|
-| Rider cancels late | −20.00 `cancellation_fee` | +15.00 `rider_cancellation_fee_share` | — |
+| Rider cancels late | −20.00 `cancellation_fee` | +20.00 `rider_cancellation_fee_credit` | — |
 | Next trip completes, custody `driver` | +20.00 `fee_collected` | −20.00 `trip_commission`<br>−20.00 `rider_fee_recovery` | 120.00 cash |
-| **Position** | **0.00** | **−25.00** | She is entitled to 95.00 (80 net + 15 share) and holds 120.00 → she owes 25.00 ✓ |
+| **Position** | **0.00** | **−20.00** | She is entitled to 100.00 (80 net + the 20 fee) and holds 120.00 → she owes 20.00 ✓ |
 
-Same fee, once online payment exists (custody `platform`):
+Same fee under `custody = platform`:
 
 | Step | Rider ledger | Driver ledger | Driver holds |
 |---|---|---|---|
-| Rider cancels late | −20.00 `cancellation_fee` | +15.00 `rider_cancellation_fee_share` | — |
+| Rider cancels late | −20.00 `cancellation_fee` | +20.00 `rider_cancellation_fee_credit` | — |
 | Next trip completes, custody `platform` | +20.00 `fee_collected` | +80.00 `trip_earnings` | 0.00 |
-| **Position** | **0.00** | **+95.00** | Entitled to 95.00, platform owes her 95.00 ✓ |
+| **Position** | **0.00** | **+100.00** | Entitled to 100.00, platform owes her 100.00 ✓ |
 
-**The driver is entitled to 95.00 on both paths.** No screen, story or report differs.
+**The driver is entitled to 100.00 on both paths, and what she owes is exactly the
+commission.** The rider paid 120.00; the driver keeps 100.00, the platform keeps its
+20.00 commission and nothing else. No screen, story or report differs between the paths.
 
 Rules:
 - The surcharge is shown to the rider **before** she confirms the ride, and again on
   the fare summary as its own line — never folded silently into the fare.
-- Commission is never taken from a recovered fee; the platform already holds its share.
+- Commission is never taken from a recovered fee — the whole fee is the driver's.
 - **The surcharge is her entire outstanding balance, every time.** Whatever she owes is
   added to her next completed trip in one payment — there is no drip, no oldest-fee-first
   ordering and no threshold. She always leaves that ride owing nothing.
@@ -138,7 +145,6 @@ All of this lives on `pricing-policies.html` (extends #1759 and adds §9's `#399
 | Driver cancellation fee | 20.00 EGP | Charged to a driver who cancels late |
 | Driver cancellation grace period | 2 min | From her acceptance |
 | Rider no-show wait | 5 min | Waives the driver fee if she waited this long |
-| Driver share of a rider fee | 75% | Rest is the platform's |
 | **Driver outstanding limit** | **500.00 EGP** | Blocks go-online at this amount. **0 disables the gate.** |
 | Driver warning band | 80% | Warns her in-app from this fraction of the limit |
 
@@ -262,13 +268,12 @@ Every story must be parented to a Feature — never create one without a parent.
 
 | Ref | Title | Parent |
 |---|---|---|
-| `#3991` | [API] Party balance ledger records every balance movement | #1776 |
 | `#3996` | [API] Driver go-online is blocked while her outstanding balance is over the limit | #1607 |
 | `#3997` | [API] Trip completion posts to the ledger according to fare custody | #1604 |
 | `#4000` | [API] Rider outstanding fee is recovered on her next trip | #1602 |
 | **#1764** | [API] Cancellation fees are charged after the grace period (rider and driver) | #1602 — **reopen** |
 | **#1781** | [API] Driver retrieves her balance and statement | #1776 — **reopen** |
-| `#4004` | [API] Rider retrieves her outstanding fees and statement | #1775 |
+| `#4004` | [API] Rider retrieves her outstanding balance | #1775 |
 
 ### 9.2 Admin — `docs/backlog/admin-stories.md`
 
@@ -276,8 +281,8 @@ Every story must be parented to a Feature — never create one without a parent.
 |---|---|---|
 | `#3994` | [Admin] Super admin configures balance and fee policy | #1755 |
 | `#4001` | [Admin] Super admin records a payout sent to a driver — screen **and** ledger posting | #1803 |
-| `#4005` | [Admin] Super admin reviews rider outstanding fees | #1803 |
-| **#1813** | [Admin] Super admin reconciles driver balances and records settlements | #1803 — **reopen** |
+| `#4005` | [Admin] Super admin reviews rider outstanding fees — owns the **rider ledger** | #1803 |
+| **#1813** | [Admin] Super admin reconciles driver balances and records settlements — owns the **driver ledger** and the posting rules | #1803 — **reopen** |
 | **#1832 / #1833** | Dependency repoint only — **confirm story points before touching** | #1803 |
 
 ### 9.3 Mobile driver — `docs/backlog/mobile-driver-stories.md`
@@ -293,7 +298,7 @@ Every story must be parented to a Feature — never create one without a parent.
 
 | Ref | Title | Parent |
 |---|---|---|
-| `#3992` | [Mobile] Rider views her payment method and outstanding fees | #1768 |
+| `#3992` | [Mobile] Rider views her payment method | #1768 |
 | `#3995` | [Mobile] Rider sees an outstanding fee before she requests a ride | #1533 |
 | `#3998` | [Mobile] Rider is told when her full outstanding balance will be added to her next ride | #1533 |
 | `#3999` | [Mobile] Rider sees the recovered fee on her fare summary | #1536 |
@@ -326,6 +331,26 @@ and invoices as PDFs · accounting exports beyond CSV · rider or driver dispute
 **Cut deliberately, on 2026-09-13, to keep Phase 1 simple:** the settlement day book
 (`settlements.html`), driver-initiated payout requests, and the **post-adjustment** action
 on both balance screens.
+
+**Changed on 2026-09-17:** a rider's cancellation fee now goes **entirely to the driver**.
+There is no split with the platform and no share percentage to configure — the setting is
+removed from the policy screen and the driver-ledger entry type is renamed
+`rider_cancellation_fee_share` → `rider_cancellation_fee_credit`, because nothing is
+shared any more. A *driver's* own late-cancellation fee is unaffected: it is still charged
+to her and is still the platform's.
+
+**Folded on 2026-09-17:** `#3991` [API] Party balance ledger, into `#1813` (driver ledger)
+and `#4005` (rider ledger). The ledger is still exactly the design in §2 — only the story
+packaging changed. `#3991` failed INVEST: **none of its sixteen scenarios could be tested
+without another story**, and nine of them were duplicates of acceptance criteria already
+written in `#3997`, `#1764`, `#4000`, `#1813` and `#4001`. Each ledger now ships with the
+screen that proves it, and the mechanics — entry shape, balance-is-the-sum, immutability,
+idempotency, concurrency, two-decimal precision — live with the party whose ledger they
+govern. Every other story references those two rather than restating them.
+
+> The two `custody = platform` scenarios are **unit-test scope, not acceptance criteria**.
+> No Phase 1 flow produces that value, so no tester can reach them through the product;
+> writing them as acceptance criteria only guarantees a blocked test.
 
 **Folded on 2026-09-17:** `#3993` [API] Finance records a payout, into `#4001`. The two
 described the same act from opposite sides, and the house rule is that an admin screen's
@@ -360,7 +385,7 @@ system does is write down that it happened.
 > **The product owner has accepted this for now** and will brief the team to account for
 > it in the design. Nothing is built in Phase 1.
 >
-> What accounting for it means when #3991 is built: leave room for a
+> What accounting for it means when the ledger is built (#1813): leave room for a
 > **reverse-this-entry action** later — one button on an existing entry, a required reason,
 > posting the exact opposite amount and linking the two rows. Concretely, give an entry
 > somewhere to point at another entry, and make sure the idempotency key cannot block a

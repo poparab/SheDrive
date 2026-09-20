@@ -19,14 +19,14 @@ created new, three previously-`Removed` stories were reopened and rewritten (#17
 
 | ADO id | Story | Parent Feature | Area path |
 |---|---|---|---|
-| `#3991` | [API] Party balance ledger records every balance movement | **#1776** Earnings — Driver API | `SheDrive` |
+| `#3991` | ~~[API] Party balance ledger records every balance movement~~ — **Removed 2026-09-17**, folded into #1813 (driver ledger) and #4005 (rider ledger), see below | **#1776** Earnings — Driver API | `SheDrive` |
 | `#3993` | ~~[API] Finance records a payout sent to a driver~~ — **Removed 2026-09-17**, folded into #4001, see below | **#1776** Earnings — Driver API | `SheDrive` |
 | `#3996` | [API] Driver go-online blocked over the outstanding limit | **#1607** Driver Availability & Location API | `SheDrive` |
 | `#3997` | [API] Trip completion posts to the ledger by fare custody | **#1604** Trip Completion & Rating API | `SheDrive` |
 | `#4000` | [API] Rider outstanding fee is recovered on her next trip *(rewritten 2026-09-17: recovers her entire balance, always — no drip, no threshold)* | **#1602** Trip Request & Matching API | `SheDrive` |
 | `#4002` | ~~[API] Rider fees above the recovery threshold are recovered in a single payment~~ — **Removed 2026-09-17**, see below | **#1602** Trip Request & Matching API | `SheDrive` |
 | `#4003` | ~~[API] Driver payout destination captured and required~~ — **Removed 2026-09-17**, see below | **#1776** Earnings — Driver API | `SheDrive` |
-| `#4004` | [API] Rider retrieves her outstanding fees and statement | **#1775** Payments — Rider API | `SheDrive` |
+| `#4004` | [API] Rider retrieves her outstanding balance | **#1775** Payments — Rider API | `SheDrive` |
 | **#1764** | [API] Cancellation fees after the grace period — **reopen** | **#1602** (its existing parent) | `SheDrive` |
 | **#1781** | [API] Driver retrieves her balance and statement — **reopen** | **#1776** (its existing parent) | `SheDrive` |
 | `#3994` | [Admin] Configures balance and fee policy *(retitled 2026-09-13, was "Configures balance, fee and withdrawal policy"; rider fee recovery threshold removed 2026-09-17)* | **#1755** Admin — Pricing & Rate Management | `SheDrive` |
@@ -39,7 +39,7 @@ created new, three previously-`Removed` stories were reopened and rewritten (#17
 | `#3989` | [Mobile] Driver settles what she owes, sees settlement history | **#1769** Earnings — Driver | `SheDrive\SheDrive Mobile Team` |
 | `#3990` | [Mobile] Driver collects a recovered rider fee with the fare | **#1543** Trip Completion — Driver | `SheDrive\SheDrive Mobile Team` |
 | **#1788** | [Mobile] Driver views her balance and statement — **rescope** | **#1769** (its existing parent) | `SheDrive\SheDrive Mobile Team` |
-| `#3992` | [Mobile] Rider views payment method and outstanding fees | **#1768** Payments — Rider | `SheDrive\SheDrive Mobile Team` |
+| `#3992` | [Mobile] Rider views her payment method | **#1768** Payments — Rider | `SheDrive\SheDrive Mobile Team` |
 | `#3995` | [Mobile] Rider sees an outstanding fee before requesting *(rewritten 2026-09-17: the single notice, dismissible, stating the full amount — absorbed #3998)* | **#1533** Rider Home, Address Search & Fare Estimate | `SheDrive\SheDrive Mobile Team` |
 | `#3998` | ~~[Mobile] Rider is told when her full outstanding balance will be added~~ — **Removed 2026-09-17**, folded into #3995, see below | **#1533** | `SheDrive\SheDrive Mobile Team` |
 | `#3999` | [Mobile] Rider sees the recovered fee on her fare summary | **#1536** Trip Completion & Rating | `SheDrive\SheDrive Mobile Team` |
@@ -100,7 +100,7 @@ cooling-off anywhere in the system.
 
 ## Removed 2026-09-13 — settlement day book cut
 
-Cut as a report dressed as a screen. Settlement entries are exportable as CSV directly
+Cut as a report dressed as a screen. Settlement entries are exportable as PDF directly
 from the driver balances screen (#1813), which gives Finance the same reconciliation
 input the day book used to provide. Can return as a real reconciliation — banked
 amount in, variance out — once the cash-collection model is decided.
@@ -184,6 +184,35 @@ rule at cancellation time, not an admin write-off, and it stays exactly as it wa
 No work item was removed for this cut — it is a scope reduction inside stories that
 still exist, not a separate story of its own.
 
+## Removed 2026-09-17 — #3991 folded into #1813 and #4005
+
+`#3991` failed INVEST: **none of its sixteen scenarios could be tested without another
+story** — every one needed either something that wrote to the ledger or something
+that read it, and #3991 had neither. **Nine of the sixteen were duplicates** of
+acceptance criteria already written in the stories that own those events: cash-trip
+commission and the platform-custody credit in #3997, driver/rider cancellation fees
+in #1764, fee recovery moving both ledgers in #4000, the settlement scenario already
+in #1813, and the payout scenario already in #4001.
+
+The ledger design itself — §2 of the financial core spec — did not change, only the
+story packaging. `#1813` now owns the **driver ledger**: its Background carries the
+one-signed-balance rule, the 7-row driver entry-type table, immutability, idempotency
+and the cause rule, and its scenario sequence gained the mechanics scenarios (new
+driver at zero, balance-is-the-sum, mixed-custody netting, immutability, idempotency,
+concurrency, two-decimal precision, suspended-driver retention) renumbered 16–23 with
+no gaps. `#4005` now owns the **rider ledger** the same way, with its 2-row entry-type
+table and the explicit statement that there is no `fee_waived` or any other write-off
+— scenarios renumbered 8–12. Every other story that referenced #3991 (`#3996`, `#3997`,
+`#1764`, `#4000`, `#1781`, `#4004`, `#4001`, `#1788`, and the design briefs) was
+repointed to #1813 or #4005, whichever ledger the sentence was about.
+
+`#3991` is `Removed` in ADO with a comment recording why and where its content went.
+It is not deleted — the removal is a state change with history.
+
+| Id | Was | Status |
+|---|---|---|
+| `#3991` | [API] Party balance ledger records every balance movement | **Removed** — driver ledger → #1813, rider ledger → #4005 |
+
 ## Removed 2026-09-17 — #3993 folded into #4001
 
 The product owner resolved the open question about #3993 and #4001 describing the
@@ -191,7 +220,8 @@ same act from two sides: the house rule is that an `[API]` story exists only for
 mobile screen, and an admin screen's backend lives inside its own `[Admin]` story.
 #4001 absorbed #3993's scenarios — the idempotency-on-reference rule and the
 refusal when the amount exceeds the available balance both survive, renumbered with
-no gaps — and now points its Dependencies straight at #3991.
+no gaps — and now points its Dependencies straight at #1813, the driver ledger
+(repointed 2026-09-17 when #3991 itself was folded into #1813 and #4005).
 
 | Id | Was | Status |
 |---|---|---|
@@ -200,14 +230,14 @@ no gaps — and now points its Dependencies straight at #3991.
 ## Story count after the cuts
 
 39 work items minus `#3987`, `#3978`, `#4006`, `#3985`, `#3983`, `#4003`, `#4002`,
-`#3998`, `#3993` = **30 remaining**, of which **10 are design briefs**.
+`#3998`, `#3993`, `#3991` = **29 remaining**, of which **10 are design briefs**.
 
 This count is internal to this file's own tally of the 39 items in the two tables
 above (dev backlog, design backlog) plus the two pointed-story repoints. The task
 briefs that drove the 2026-09-17 changes instead tracked a base of 35 items (the
 story-inventory count in the design spec §9, which does not include #1764, #1781,
 #1813 or the pointed-story repoints as new items since they already existed) and
-so reported running tallies of 34, 32 and 31. Both countings are internally
+so reported running tallies of 34, 32, 31 and 30. Both countings are internally
 consistent; they simply start from different baselines.
 
 ## Where the availability write lives — resolved 2026-09-17
@@ -217,3 +247,35 @@ onboarding decision — go-online and offline*, `Closed` in Sprint 1 at 1 point.
 was `Removed` as a duplicate of #1644, not because the capability was dropped. `#3996`
 therefore adds one more condition — the outstanding-balance check — to a gate that already
 exists, and #3058's completion flow has its availability write too.
+
+## Split 2026-09-17 — #1813 split into three
+
+`#1813` had grown to cover three separable things on two screens: the driver
+balances grid, the per-driver ledger (which absorbed the whole ledger model when
+#3991 was folded in, above), and the record-settlement action with its seven-field
+form. Twenty-three scenarios in one story, testable only as a whole. It was split
+along the screen boundary the design kit already draws:
+
+| Id | Story | Screen | Parent |
+|---|---|---|---|
+| `#1813` | [Admin] Admin reviews the driver balances grid — **rescoped** | `driver-balances.html` | **#1803** |
+| `#4378` | [Admin] Admin opens a driver's balance ledger — **new** | `driver-balance-details.html` (ledger) | **#1803** |
+| `#4379` | [Admin] Admin records a driver settlement — **new** | `driver-balance-details.html` ("Record sattlement") | **#1803** |
+
+**Where each piece went.** #1813 keeps the list, its search and balance filter,
+sorting, pagination, states, and the settlement PDF export Finance reconciles
+against (old scenarios 1, 14, 15, plus the search/filter/sort/navigation criteria
+that were only implied before). #4378 takes the ledger view and the whole ledger
+model — the one-signed-balance rule, the 7-row entry-type table, immutability,
+idempotency, the cause rule, and the mechanics scenarios (old 2, 16–23). #4379
+takes the settlement action, its five form fields and their validation, and old
+scenarios 3–13.
+
+Nothing was dropped in the split; the settlement scenario set gained one criterion
+(a failed save posts nothing) and the grid gained explicit search, filter, sort and
+row-navigation scenarios.
+
+**Still pointing at #1813.** Other stories (#4001, #3996, #3997, #1764, #4000,
+#1781, #1788, #1833, #1816 and the design briefs) reference #1813 for ledger or
+settlement semantics that now live in #4378 and #4379. Those cross-references are
+unchanged in both ADO and this repo and need a repoint pass of their own.

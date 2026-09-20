@@ -1,0 +1,182 @@
+@mixin flexCenter {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+}
+
+@mixin flexCenter-x {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+}
+
+@mixin flexStart-x {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+@mixin flexEnd-x {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+@mixin flexStart-y {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: flex-start;
+}
+
+@mixin flexEnd-y {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: flex-end;
+}
+
+@mixin flexCenter-z {
+	display: flex;
+	justify-content: space-between;
+}
+
+@mixin photoBgCover {
+	background-repeat: no-repeat !important;
+	background-position: top !important;
+	background-size: cover !important;
+}
+
+@mixin photoResponsive {
+	width: 100%;
+	object-fit: cover;
+}
+
+@mixin imageInlineFlex {
+	width: auto;
+	height: 100%;
+}
+
+@mixin imageInlineFlex-w {
+	width: 100%;
+	height: auto;
+}
+
+@mixin textOverflow {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+@mixin position-absolute ($top: null, $left: null, $right: null, $bottom: null) {
+	position: absolute;
+	top: $top;
+	left: $left;
+	right: $right;
+	bottom: $bottom;
+  }
+
+
+@mixin before-after {
+	content: '';
+	position: absolute;
+}
+
+//@mixin standard-card-radius {
+//	border-radius: $size-8;
+//}
+
+@mixin custom-card-radius {
+	border-radius: $size-16 $size-80 $size-16 $size-16;
+}
+
+@mixin custom-btn-radius {
+	border-radius: $size-16 $size-40 $size-16 $size-16;
+}
+
+@mixin custom-card {
+	min-height: 100%;
+	border: $size-1 solid $primaryColor-100;
+	border-radius: $size-16 $size-80 $size-16 $size-16;
+	padding: $size-32;
+	background: $whiteColor;
+	@media (max-width:567px) {padding: $size-24;}
+}
+
+@mixin standard-card {
+	height: 100%;
+	border: $size-1 solid $primaryColor-100;
+	border-radius: $standard-radius;
+	padding: $size-16;
+	@media (max-width:567px) {padding: $size-12;}
+}
+
+@mixin dark-icon {
+	filter: drop-shadow(0 10000px 0 $primaryColor-600) !important;
+	transform: translateY(-10000px) !important;
+//	margin: auto;
+}
+
+@mixin white-icon {
+	filter: drop-shadow(0 10000px 0 $whiteColor) !important;
+	transform: translateY(-10000px) !important;
+//	margin: auto;
+}
+
+@mixin primary-icon {
+	filter: drop-shadow(0 10000px 0 $primaryColor) !important;
+	transform: translateY(-10000px) !important;
+}
+
+@mixin info-icon {
+	filter: drop-shadow(0 10000px 0 $infoColor) !important;
+	transform: translateY(-10000px) !important;
+}
+
+@mixin success-icon {
+	filter: drop-shadow(0 10000px 0 $successColor) !important;
+	transform: translateY(-10000px) !important;
+}
+
+@mixin warning-icon {
+	filter: drop-shadow(0 10000px 0 $warningColor) !important;
+	transform: translateY(-10000px) !important;
+}
+
+@mixin danger-icon {
+	filter: drop-shadow(0 10000px 0 $dangerColor) !important;
+	transform: translateY(-10000px) !important;
+}
+
+@mixin secondary-icon {
+	filter: drop-shadow(0 10000px 0 $secondaryColor);
+	transform: translateY(-10000px);
+//	margin: auto;
+}
+
+@mixin disable-icon {
+	filter: drop-shadow(0 10000px 0 $primaryColor-200);
+	transform: translateY(-10000px);
+//	margin: auto;
+}
+
+
+@mixin easeAnimation {
+	transition: all ease .27s;
+	-moz-transition: all ease .27s;
+	-webkit-transition: all ease .27s;
+	-o-transition: all ease .27s;
+	-ms-transition: all ease .27s;
+}
+
+@mixin easeAnimation-5s {
+	transition: all ease .5s;
+	-moz-transition: all ease .5s;
+	-webkit-transition: all ease .5s;
+	-o-transition: all ease .5s;
+	-ms-transition: all ease .5s;
+}

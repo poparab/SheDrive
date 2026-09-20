@@ -1,0 +1,898 @@
+<!doctype html>
+<html dir="ltr"><!-- InstanceBegin template="/Templates/template.dwt" codeOutsideHTMLIsLocked="false" -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SheDrive</title>
+<!-- Bootstrap File -->
+<link rel="stylesheet" type="text/css" href="css/bootstrap/bootstrap.min.css">
+<!-- Font Awesome Style Sheet File -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+<!-- Google Icons Style Sheet File -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&icon_names=home_app_logo" />
+<!-- LightBox Stylsheet File -->
+<link rel="stylesheet" type="text/css" href="css/lightbox/magnific-popup.css">
+<!-- Main Style Sheet File -->
+<link href="css/styles.css" rel="stylesheet" type="text/css">
+<!-- Browzer Tab Icon -->
+<link rel="shortcut icon" href="img/favicon.png" type="image/x-icon">
+</head>
+
+<body>
+
+	<!-- Main Wrapper Container -->
+	<div class="wrapper">
+		<!-- Side Nav -->
+		<nav id="sidebar">
+			<span class="top-triangle"></span>
+			<div id="dismiss">
+				<i class="fa-solid fa-arrow-left"></i>
+			</div>
+			<div class="sidebar-header">
+				<div class="logo"><img src="img/logo.png" alt=""/></div>
+			</div>
+
+			<ul id="main-menu">
+				<span class="category">Operations</span>
+				<li><a href="dashboard.html"><img src="icons/dashboard-2.svg" alt="">Dashboard</a></li>
+          	 	<li class="active"><a href="trips.html"><img src="icons/trips.svg" alt="">Trips</a></li>
+				<li><a href="sos-requests.html"><img src="icons/lifeboat.svg" alt="">SOS requests</a></li>
+				<li><a href="gender-mismatch.html"><img src="icons/shield.svg" alt="">Safety Reports</a></li>
+				
+				<span class="category">People</span>
+				<li><a href="driver-applications.html"><img src="icons/applications.svg" alt="">Driver Applications</a></li>
+				<li><a href="drivers-list.html"><img src="icons/steering-wheel.svg" alt="">Drivers</a></li>
+				<li><a href="riders-list.html"><img src="icons/user-star.svg" alt="">Riders</a></li>
+				
+				<span class="category">Money & Config</span>
+				<li><a href="service-zone.html"><img src="icons/prices.svg" alt="">Pricing & Zones</a></li>
+				<li><a href="pricing-policies.html"><img src="icons/policies.svg" alt="">Global Policies</a></li>
+				<li><a href="revenue-summary.html"><img src="icons/reports.svg" alt="">Reports</a></li>
+				<li><a href="reconciliation.html"><img src="icons/handshake.svg" alt="">Reconciliation</a></li>
+				
+				<span class="category">Adminstration</span>
+				<li><a href="javascript:;"><img src="icons/file-checked.svg" alt="">Audit Log</a></li>
+				<li><a href="admin-accounts.html"><img src="icons/users.svg" alt="">Admin Users</a></li>
+			</ul>
+		</nav><!-- End Side Nav -->
+		
+		<!-- Content Area -->
+		<div id="content">
+			
+			<header>
+				<button type="button" id="sidebarCollapse" class="btn"><i class="fa-solid fa-bars"></i></button>
+				<form class="me-auto d-none d-md-flex">
+					<div class="input-group">
+						<input type="search" class="form-control" id="search" name="search" placeholder="Search Here ...">
+						<button class="btn-input-search" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
+					</div><!-- End Search Input -->
+				</form><!-- End Search Form -->
+				
+				<div class="end-side">
+					<ul class="navbar navbar-expand topbar-menu">
+						<!-- Search Dropdown Item -->
+						<li class="nav-item dropdown d-block d-md-none">
+			  				<a class="nav-link dropdown-toggle" href="Javascript" id="searchDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<i class="fa-solid fa-magnifying-glass"></i>
+							</a>
+				  
+			  				<div class="dropdown-menu slideIn" aria-labelledby="searchDropdown">
+								<form class="left-side-search d-flex">
+									<div class="input-group">
+										<input type="search" class="form-control" id="leftSideSearch" name="search" placeholder="Search Here ...">
+										<button class="btn-input-search" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
+									</div><!-- End Search Input -->
+<!--
+				 					<input type="text" class="form-control" placeholder="Search ...">
+				  					<button type="button" class="btn"><i class="icon-search"></i></button>
+-->
+								</form><!-- End Left Side Search -->
+			  				</div>
+		  	  			</li><!-- End Search Dropdown Item -->
+						
+						<!-- Language Dropdown Item -->
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="javascript:;" id="laguageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<img class="icon" src="icons/language.svg" alt="">
+							</a>
+							<ul class="dropdown-menu slideIn" aria-labelledby="laguageDropdown">
+								<li><a class="dropdown-item" href="dashboard.html"><img class="flag" src="icons/language/united-kingdom.svg" alt=""/>English</a></li>
+								<li><a class="dropdown-item" href="dashboard_ar.html"><img class="flag" src="icons/language/egypt.svg" alt=""/>عربى</a></li>
+			  				</ul>
+						</li><!-- End Language Dropdown Item -->
+						
+						<!-- User Profile Dropdown Item -->
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="javascript:;" id="userProfileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<img class="user-profile" src="img/profile-photo.png">
+								<span class="user-info">
+									<span class="user-name">Abd Allah Marzouk</span>
+									<span class="user-title">Executive Mgr</span>
+								</span>
+							</a>
+							<ul class="dropdown-menu slideIn" aria-labelledby="userProfileDropdown">
+								<li><a class="dropdown-item" href="admin-profile.html"><i class="fa-regular fa-user"></i>Profile</a></li>
+								<li><a class="dropdown-item" href="javascript:;"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a></li>
+			  				</ul>
+						</li><!-- End User Profile Dropdown Item -->
+						
+						<!-- Dropdown Search -->
+						<!--
+			  			<li class="nav-item dropdown d-block d-md-none">
+			  				<a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="icon-search-7"></i></a>
+				  
+			  				<div class="dropdown-menu slideIn" aria-labelledby="searchDropdown">
+								<form class="topbar-search d-flex">
+				 					<input type="text" class="form-control" placeholder="Search ...">
+				  					<button type="button" class="btn"><i class="icon-search"></i></button>
+								</form>
+			  				</div>
+		  	  			</li><!-- End Dropdown Search -->
+
+
+						<!-- Dropdown Langauge -->
+						<!--
+			  			<li class="nav-item dropdown">
+			  				<a class="nav-link dropdown-toggle" href="#" id="laguageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<i class="fa-solid fa-globe"></i>
+								<img src="../icons/language.svg" alt="">
+							</a>
+				  
+			  				<ul class="dropdown-menu slideIn" aria-labelledby="laguageDropdown">
+								<li><a class="dropdown-item" href="#"><i><img src="img/united-kingdom-flage.png" alt=""/></i> English</a></li>
+								<li><a class="dropdown-item" href="#"><i><img src="img/egypt-flage.png" alt=""/></i> عربى</a></li>
+			  				</ul>
+		  	  			</li><!-- End Dropdown Langauge -->
+
+						<!-- Dropdown Notifications -->
+						<!--
+			  			<li class="nav-item dropdown">
+			  				<a class="nav-link dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-regular fa-bell"></i></a>
+				  
+			  				<ul class="dropdown-menu slideIn" aria-labelledby="notificationsDropdown" id="notification">
+				  				<li class="dropdown-menu-header">4 إشعارات</li>
+								<li>
+									<a class="dropdown-item" href="#"> 
+				  						<div class="row g-0 align-items-center">
+											<div class="col-2"><i class="text-primary icon-info-circled"></i></div>
+											<div class="col-10">
+												<h6>تم إضافة مستخدم جديد</h6>
+												<p>يرجى الخروج ثم الدخول مرة أخرى لمعرفة المستخدم الحديد</p>
+												<div class="text-muted small">منذ 2 ساعة</div>
+											</div>
+										</div>
+									</a>
+				  				</li>
+								<li>
+									<a class="dropdown-item" href="#"> 
+				  						<div class="row g-0 align-items-center">
+											<div class="col-2"><i class="text-warning icon-warning"></i></div>
+											<div class="col-10">
+												<h6>تم إضافة مستخدم جديد</h6>
+												<p>يرجى الخروج ثم الدخول مرة أخرى لمعرفة المستخدم الحديد</p>
+												<div class="text-muted small">منذ 2 ساعة</div>
+											</div>
+										</div>
+									</a>
+				  				</li>
+								<li>
+									<a class="dropdown-item" href="#"> 
+				  						<div class="row g-0 align-items-center">
+											<div class="col-2"><i class="text-danger icon-cancel-circle"></i></div>
+											<div class="col-10">
+												<h6>تم إضافة مستخدم جديد</h6>
+												<p>يرجى الخروج ثم الدخول مرة أخرى لمعرفة المستخدم الحديد</p>
+												<div class="text-muted small">منذ 2 ساعة</div>
+											</div>
+										</div>
+									</a>
+				  				</li>
+								<li>
+									<a class="dropdown-item" href="#"> 
+				  						<div class="row g-0 align-items-center">
+											<div class="col-2"><i class="text-success icon-ok-circled"></i></div>
+											<div class="col-10">
+												<h6>تم إضافة مستخدم جديد</h6>
+												<p>يرجى الخروج ثم الدخول مرة أخرى لمعرفة المستخدم الحديد</p>
+												<div class="text-muted small">منذ 2 ساعة</div>
+											</div>
+										</div>
+									</a>
+				  				</li>
+				  				<li class="dropdown-menu-footer"><a href="#" class="text-muted">إظهار الكل</a></li>
+			  				</ul>
+		  	  			</li><!-- End Dropdown Notifications -->
+
+						<!-- Dropdown User Profile -->
+						<!--
+			  			<li class="nav-item dropdown user-control">
+			  				<a class="nav-link dropdown-toggle" href="javascript:;" id="userProfileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<i class="user-pic"><img src="img/user-pic.jpg" alt=""/></i>
+								<span class="d-none d-md-inline">
+									<span class="userName-text">عبد ااالله مرزوق</span><small>مدير</small>
+								</span>
+				  			</a>
+				  
+			 	 			<ul class="dropdown-menu slideIn" aria-labelledby="userProfileDropdown">
+								<li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear"></i>الإعدادات</a></li>
+								<li><a class="dropdown-item" href="#"><i class="fa-solid fa-arrow-right-from-bracket"></i>تسجيل الخروج</a></li>
+			  				</ul>
+		  	  			</li><!-- End Dropdown User Profile -->
+		  			</ul>
+				</div><!-- End Side Container -->
+				
+			</header><!-- End Header -->
+			
+			<!-- InstanceBeginEditable name="content" -->
+	
+	<section class="sm-padding">
+		<div class="container-fluid">
+			<!-- Section Title -->
+			<div class="section-title row gy-3">
+				<div class="title col-auto">
+					<h3 class="underline-title">Driver application</h3>
+				</div><!-- End Title -->
+				<div class="end-side col-auto">
+					<a class="btn btn-back btn-back-outline" href="driver-applications.html"><i class="fa-solid fa-arrow-left"></i></a>
+				</div><!-- End END  Side -->
+			</div><!-- End Section Title -->
+			
+			<div class="row g-3">
+				<div class="col-lg-6 col-xl-4">
+					<div class="standard-card-theme2 white-bg">
+						<!-- Card Header -->
+						<div class="card-header">
+							<div class="card-title">
+								<h5>Personal details</h5>
+								<spam></spam>
+							</div><!-- End Card Title -->
+							<div class="icon"><img src="icons/user-2.svg" alt=""></div><!-- End Card Icon -->
+						</div><!-- End Card Header -->
+						
+						<!-- Card Body -->
+						<div class="card-body pb-0">
+							<div class="list-multi-column no-border p-0">
+								<div class="row gx-4">
+									<div class="col">
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Full name</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">Menna Abdelrahman Metwally</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Phone number</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">+20 158 747 7061</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Date of birth</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">20 Aug 1981</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">National ID</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">•••• •••• •••• 6590</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Profile Photo</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">
+												<a href="img/driver-selfie.jpg" class="photo-trigger" title="Driver Profile Photo">
+													<div class="lightbox-container">
+													<div class="thumb-item profile-photo">
+														<div class="thumb-img">
+															<div class="photo" style="background-image: url('img/driver-selfie.jpg')"><i class="fa-solid fa-expand"></i></div>
+														</div><!-- End Thumb Img -->
+													</div><!-- End Thumbnail Container -->
+													</div>
+												</a><!-- End Photo Item -->
+											</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+									</div><!-- End Col -->
+								</div><!-- End Row -->
+							</div><!-- End List -->
+						</div><!-- End Card Body -->
+						
+					</div><!-- End Standard Card -->
+				</div><!-- End Col -->
+				
+				<div class="col-lg-6 col-xl-4">
+					<div class="standard-card-theme2 white-bg">
+						<!-- Card Header -->
+						<div class="card-header">
+							<div class="card-title">
+								<h5>Vehicle Details</h5>
+								<spam></spam>
+							</div><!-- End Card Title -->
+							<div class="icon"><img src="icons/vehicle.svg" alt=""></div><!-- End Card Icon -->
+						</div><!-- End Card Header -->
+						
+						<!-- Card Body -->
+						<div class="card-body">
+							<div class="list-multi-column no-border p-0">
+								<div class="row gx-4">
+									<div class="col">
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Mark</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">Hyundai</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Model</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">Elantra</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Year</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">2018</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Plate number</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">ر س ص 459</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Color</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">Beige</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Type</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">Sedan</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+									</div><!-- End Col -->
+								</div><!-- End Row -->
+							</div><!-- End List -->
+						</div><!-- End Card Body -->
+						
+					</div><!-- End Standard Card -->
+				</div><!-- End Col -->
+				
+				<div class="col-lg-6 col-xl-4">
+					<div class="standard-card-theme2 white-bg">
+						<!-- Card Header -->
+						<div class="card-header">
+							<div class="card-title">
+								<h5>License & registration</h5>
+								<spam></spam>
+							</div><!-- End Card Title -->
+							<div class="icon"><img src="icons/driving-license.svg" alt=""></div><!-- End Card Icon -->
+						</div><!-- End Card Header -->
+						
+						<!-- Card Body -->
+						<div class="card-body pb-0">
+							<div class="list-multi-column no-border p-0">
+								<div class="row gx-4">
+									<div class="col">
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Driving licence number</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">DL-8421244</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Licence expiry</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">4 Dec 2027</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Registration expiry</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">4 May 2028</div><!-- End List Item -->
+										</div><!-- End Row -->
+																				
+									</div><!-- End Col -->
+								</div><!-- End Row -->
+							</div><!-- End List -->
+						</div><!-- End Card Body -->
+						
+					</div><!-- End Standard Card -->
+				</div><!-- End Col -->
+				
+				<div class="col-lg-6 col-xl-4">
+					<div class="standard-card-theme2 white-bg">
+						<!-- Card Header -->
+						<div class="card-header">
+							<div class="card-title">
+								<h5>Submission & Status</h5>
+								<spam></spam>
+							</div><!-- End Card Title -->
+							<div class="icon"><img src="icons/submission.svg" alt=""></div><!-- End Card Icon -->
+						</div><!-- End Card Header -->
+						
+						<!-- Card Body -->
+						<div class="card-body pb-0">
+							<div class="list-multi-column no-border p-0">
+								<div class="row gx-4">
+									<div class="col">
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Status</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">
+												<div class="status-pending"><div class="icon"><i class="fa-solid fa-gear"></i></div>Pending</div>
+											</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Submitted</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">13 Mar 2026, 09:14</div><!-- End List Item -->
+										</div><!-- End Row -->
+										
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Waiting</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">151 days ago</div><!-- End List Item -->
+										</div><!-- End Row -->
+																				
+										<div class="row gx-0 list-row">
+											<div class="list-item col text-bold">Home area</div><!-- End List Item -->
+											<div class="list-item col-auto justify-content-md-end">Heliopolis</div><!-- End List Item -->
+										</div><!-- End Row -->
+																				
+									</div><!-- End Col -->
+								</div><!-- End Row -->
+							</div><!-- End List -->
+						</div><!-- End Card Body -->
+						
+					</div><!-- End Standard Card -->
+				</div><!-- End Col -->
+				
+				<div class="col-lg-6 col-xl-4">
+					<div class="standard-card-theme2 white-bg">
+						<!-- Card Header -->
+						<div class="card-header">
+							<div class="card-title">
+								<h5>Uploaded documents</h5>
+								<spam></spam>
+							</div><!-- End Card Title -->
+							<div class="icon"><img src="icons/upload-file.svg" alt=""></div><!-- End Card Icon -->
+						</div><!-- End Card Header -->
+						
+						<!-- Card Body -->
+						<div class="card-body pb-0">
+							<div class="lightbox-container">
+								<a href="img/id-card-front.jpg" class="photo-trigger" title="National ID">
+									<div class="thumb-item">
+										<div class="thumb-img">
+											<div class="photo" style="background-image: url('img/id-card-front.jpg')"><i class="fa-solid fa-expand"></i></div>
+										</div><!-- End Thumb Img -->
+										<div class="thumb-details">
+											<h6>National ID</h6>
+											<p>Uploaded 9 Jul 2026</p>
+										</div><!-- End Thumb Details -->
+									</div><!-- End Thumbnail Container -->
+								</a><!-- End Photo Item -->
+								
+								<a href="img/driving-license.jpg" class="photo-trigger" title="Driving License">
+									<div class="thumb-item">
+										<div class="thumb-img">
+											<div class="photo" style="background-image: url('img/driving-license.jpg')"><i class="fa-solid fa-expand"></i></div>
+										</div><!-- End Thumb Img -->
+										<div class="thumb-details">
+											<h6>Driving License</h6>
+											<p>Uploaded 20 Jul 2026</p>
+										</div><!-- End Thumb Details -->
+									</div><!-- End Thumbnail Container -->
+								</a><!-- End Photo Item -->
+								
+								<a href="img/vehicle-registration.jpg" class="photo-trigger" title="Vehicle registration">
+									<div class="thumb-item">
+										<div class="thumb-img">
+											<div class="photo" style="background-image: url('img/vehicle-registration.jpg')"><i class="fa-solid fa-expand"></i></div>
+										</div><!-- End Thumb Img -->
+										<div class="thumb-details">
+											<h6>Vehicle registration</h6>
+											<p>Uploaded 29 Jul 2026</p>
+										</div><!-- End Thumb Details -->
+									</div><!-- End Thumbnail Container -->
+								</a><!-- End Photo Item -->
+								
+								<a href="img/criminal-record.jpg" class="photo-trigger" title="Criminal Record">
+									<div class="thumb-item">
+										<div class="thumb-img">
+											<div class="photo" style="background-image: url('img/criminal-record.jpg')"><i class="fa-solid fa-expand"></i></div>
+										</div><!-- End Thumb Img -->
+										<div class="thumb-details">
+											<h6>Criminal Record certificate</h6>
+											<p>Uploaded 25 Jul 2026</p>
+										</div><!-- End Thumb Details -->
+									</div><!-- End Thumbnail Container -->
+								</a><!-- End Photo Item -->
+
+								
+							</div><!-- End FacyBox Container -->
+
+<!--
+							<div class="project-gallery">
+								<a href="img/id-card-front.jpg">Photo 1</a>
+								<a href="img/driving-license.jpg">Photo 2</a>
+								<a href="img/vehicle-registration.jpg">Photo 3</a>
+							</div>
+-->
+						</div><!-- End Card Body -->
+						
+					</div><!-- End Standard Card -->
+				</div><!-- End Col -->
+				
+				<div class="col-lg-6 col-xl-4">
+					<div class="standard-card-theme2 white-bg">
+						<!-- Card Header -->
+						<div class="card-header">
+							<div class="card-title">
+								<h5>Vehicle Photos</h5>
+								<spam></spam>
+							</div><!-- End Card Title -->
+							<div class="icon"><img src="icons/image.svg" alt=""></div><!-- End Card Icon -->
+						</div><!-- End Card Header -->
+						
+						<!-- Card Body -->
+						<div class="card-body pb-0">
+							<div class="lightbox-container">
+								<a href="img/vehicle-leftside-photo.jpg" class="photo-trigger" title="Vehicle Left Side">
+									<div class="thumb-item">
+										<div class="thumb-img">
+											<div class="photo" style="background-image: url('img/vehicle-leftside-photo.jpg')"><i class="fa-solid fa-expand"></i></div>
+										</div><!-- End Thumb Img -->
+										<div class="thumb-details">
+											<h6>Vehicle Left Side</h6>
+											<p>Uploaded 9 Jul 2026</p>
+										</div><!-- End Thumb Details -->
+									</div><!-- End Thumbnail Container -->
+								</a><!-- End Photo Item -->
+								
+								<a href="img/vehicle-front-photo.jpg" class="photo-trigger" title="Vehicle Front Photo">
+									<div class="thumb-item">
+										<div class="thumb-img">
+											<div class="photo" style="background-image: url('img/vehicle-front-photo.jpg')"><i class="fa-solid fa-expand"></i></div>
+										</div><!-- End Thumb Img -->
+										<div class="thumb-details">
+											<h6>Vehicle Front Photo</h6>
+											<p>Uploaded 20 Jul 2026</p>
+										</div><!-- End Thumb Details -->
+									</div><!-- End Thumbnail Container -->
+								</a><!-- End Photo Item -->
+								
+								<a href="img/vehicle-rear-photo.jpg" class="photo-trigger" title="Vehicle Rear Photo">
+									<div class="thumb-item">
+										<div class="thumb-img">
+											<div class="photo" style="background-image: url('img/vehicle-rear-photo.jpg')"><i class="fa-solid fa-expand"></i></div>
+										</div><!-- End Thumb Img -->
+										<div class="thumb-details">
+											<h6>Vehicle Rear Photo</h6>
+											<p>Uploaded 29 Jul 2026</p>
+										</div><!-- End Thumb Details -->
+									</div><!-- End Thumbnail Container -->
+								</a><!-- End Photo Item -->
+								
+								<a href="img/vehicle-inside-photo.jpg" class="photo-trigger" title="Vehicle Inside Photo">
+									<div class="thumb-item">
+										<div class="thumb-img">
+											<div class="photo" style="background-image: url('img/vehicle-inside-photo.jpg')"><i class="fa-solid fa-expand"></i></div>
+										</div><!-- End Thumb Img -->
+										<div class="thumb-details">
+											<h6>Vehicle Inside Photo</h6>
+											<p>Uploaded 25 Jul 2026</p>
+										</div><!-- End Thumb Details -->
+									</div><!-- End Thumbnail Container -->
+								</a><!-- End Photo Item -->
+								
+								<a href="img/vehicle-engine-photo.jpg" class="photo-trigger" title="Vehicle Engine Photo">
+									<div class="thumb-item">
+										<div class="thumb-img">
+											<div class="photo" style="background-image: url('img/vehicle-engine-photo.jpg')"><i class="fa-solid fa-expand"></i></div>
+										</div><!-- End Thumb Img -->
+										<div class="thumb-details">
+											<h6>Vehicle Engine Photo</h6>
+											<p>Uploaded 25 Jul 2026</p>
+										</div><!-- End Thumb Details -->
+									</div><!-- End Thumbnail Container -->
+								</a><!-- End Photo Item -->
+
+								
+							</div><!-- End FacyBox Container -->
+						</div><!-- End Card Body -->
+						
+					</div><!-- End Standard Card -->
+				</div><!-- End Col -->
+			</div><!-- End Row -->
+			
+		</div><!-- End Container -->
+	</section><!-- End Section -->
+			
+		
+			<section class="sm-padding">
+				<div class="container-fluid">
+					<form action="flex-row">
+						<div class="col d-flex gap-3 mb-3">
+							<button class="btn btn-success d-flex" type="button" data-bs-toggle="modal" data-bs-target="#driverApplicationApprovalWarningModal">
+								<i class="fa-solid fa-check"></i>Approve Application</button>
+							<button class="btn btn-danger d-flex" type="button" data-bs-toggle="modal" data-bs-target="#driverApplicationRejectionReasonModal"><i class="fa-solid fa-xmark"></i>Reject Application</button>
+						</div>
+						
+					</form>
+				</div>
+			</section>
+			
+			
+			<!-- //// **- MODALS -** //// -->
+			<!-- Driver Application Rejection Reason Popup Modal -->
+			<div class="modal fade default-modal" id="driverApplicationRejectionReasonModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="driverApplicationRejectionReasonModal" aria-hidden="true">
+            	<div class="modal-dialog modal-dialog-centered">
+                	<div class="modal-content">
+                    	
+						<!-- Modal Header -->
+						<div class="modal-header">
+							<img class="icon" src="icons/rejected-file.svg" alt="">
+							<h3>Reject This Application</h3>
+                        	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div><!-- End Modal Header -->
+						
+						<!-- Modal Body -->
+                        <div class="modal-body">
+							<form class="row" action="">
+								<div class="col-12">
+            						<label for="payMethod">Rejection reason <span class="text-danger">*</span></label>
+            						<select class="form-select" id="RejectionReason" placeholder="Select Reasone...">
+        								<option value="Driving licence expired">Driving licence expired</option>
+										<option value="National ID document illegible">National ID document illegible</option>
+										<option value="Vehicle older than the platform minimum">Vehicle older than the platform minimum</option>
+        								<option value="Vehicle registration does not match the applicant">Vehicle registration does not match the applicant</option>
+        								<option value="Applicant did not meet the minimum age requirement">Applicant did not meet the minimum age requirement</option>
+      								</select>
+          						</div>
+								<div class="col-12">
+            						<label for="amount">Note to the driver</label>
+									<textarea class="form-control" rows="2" id="notes-refrance" placeholder="Type a note to the driver."></textarea>
+          						</div>
+								
+							</form><!-- End Form -->
+						</div><!-- End Modal Body -->
+                        
+						<!-- Modal Footer -->
+						<div class="modal-footer">
+							<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#driverApplicationRejectionSuccessModal"><i class="fa-solid fa-xmark"></i>Reject Application</button>
+                            <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal"><i class="fa-solid fa-arrow-left"></i>Back to Review</button>
+                        </div><!-- End Modal Footer -->
+												
+                    </div>
+                </div>
+            </div>
+			<!-- End Driver Application Rejection Reason Popup Modal -->
+													
+			<!-- Driver Application Rejection Success Popup Modal -->
+			<div class="modal fade popup-success" id="driverApplicationRejectionSuccessModal" tabindex="-1" aria-labelledby="driverApplicationRejectionSuccessModal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                    	
+						<!-- Modal Header -->
+						<div class="modal-header">
+                        	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div><!-- End Modal Header -->
+						
+						<!-- Modal Body -->
+                        <div class="modal-body">
+							<div class="status-sign success"><i class="fa-solid fa-check"></i></div>
+							<h4>Application Rejected successfully</h4>
+<!--							<p>لإعادة التفعيل مرة أخرى يرجى التواصل مع مدير النظام.</p>-->
+						</div><!-- End Modal Body -->
+                                           	 	
+						<!-- Modal Footer -->
+						<div class="modal-footer">
+<!--						<button type="button" class="btn btn-success"><i class="fa-solid fa-pause"></i>وقف</button>-->
+                            <button type="button" class="btn btn-success" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i>Close</button>
+                        </div><!-- End Modal Footer -->
+						
+                    </div>
+                </div>
+            </div>
+			<!-- End Driver Application Rejection Success Popup Modal -->
+			
+			<!-- Driver Application Approval Warning Popup Modal -->
+			<div class="modal fade popup-warning" id="driverApplicationApprovalWarningModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="driverApplicationApprovalWarningModal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                    	
+						<!-- Modal Header -->
+						<div class="modal-header">
+                        	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div><!-- End Modal Header -->
+						
+						<!-- Modal Body -->
+                        <div class="modal-body">
+							<div class="status-sign warning"><i class="fa-solid fa-warning"></i></div>
+							<h4>Approve this application?</h4>
+							<p>The driver will be notified and can go online immediately. This action will be recorded in the audit log.</p>
+						</div><!-- End Modal Body -->
+                                           	 	
+						<!-- Modal Footer -->
+						<div class="modal-footer">
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#driverApplicationApprovalSuccessModal"><i class="fa-solid fa-check"></i>Confirm Approval</button>
+                            <button type="button" class="btn btn-warning-outline" data-bs-dismiss="modal"><i class="fa-solid fa-arrow-left"></i>Back to review</button>
+							
+                        </div><!-- End Modal Footer -->
+						
+                    </div>
+                </div>
+            </div>
+			<!-- End Driver Application Approval Warning Popup Modal -->
+			
+			<!-- Driver Application Approval Success Popup Modal -->
+			<div class="modal fade popup-success" id="driverApplicationApprovalSuccessModal" tabindex="-1" aria-labelledby="driverApplicationApprovalSuccessModal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                    	
+						<!-- Modal Header -->
+						<div class="modal-header">
+                        	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div><!-- End Modal Header -->
+						
+						<!-- Modal Body -->
+                        <div class="modal-body">
+							<div class="status-sign success"><i class="fa-solid fa-check"></i></div>
+							<h4>Application approved successfully</h4>
+							<p>The driver can now receive ride requests. ⭐</p>
+						</div><!-- End Modal Body -->
+                                           	 	
+						<!-- Modal Footer -->
+						<div class="modal-footer">
+<!--						<button type="button" class="btn btn-success"><i class="fa-solid fa-pause"></i>وقف</button>-->
+                            <button type="button" class="btn btn-success" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i>Close</button>
+                        </div><!-- End Modal Footer -->
+						
+                    </div>
+                </div>
+            </div>
+			<!-- End Driver Application Approval Success Popup Modal -->
+			
+			<!-- Driver Application Reject Success Popup Modal -->
+			<div class="modal fade popup-success" id="driverApplicationRejectionSuccessModal" tabindex="-1" aria-labelledby="driverApplicationRejectionSuccessModal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                    	
+						<!-- Modal Header -->
+						<div class="modal-header">
+                        	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div><!-- End Modal Header -->
+						
+						<!-- Modal Body -->
+                        <div class="modal-body">
+							<div class="status-sign success"><i class="fa-solid fa-check"></i></div>
+							<h4>Driver Application rejection confirmed successfully</h4>
+<!--							<p>لإعادة التفعيل مرة أخرى يرجى التواصل مع مدير النظام.</p>-->
+						</div><!-- End Modal Body -->
+                                           	 	
+						<!-- Modal Footer -->
+						<div class="modal-footer">
+<!--						<button type="button" class="btn btn-success"><i class="fa-solid fa-pause"></i>وقف</button>-->
+                            <button type="button" class="btn btn-success" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i>Close</button>
+                        </div><!-- End Modal Footer -->
+						
+                    </div>
+                </div>
+            </div>
+			<!-- End Driver Application Reject Success Popup Modal -->
+			
+			
+<!-- InstanceEndEditable --> 
+			
+		</div>
+		<!-- End Content Area -->
+	</div><!-- End Wrapper -->
+	
+	<div class="overlay"></div>
+	
+ <!-- /// Scripts ///--> 
+ <script src="js/jquery-4.0.0.min.js"></script>
+ <script src="js/bootstrap/bootstrap.bundle.min.js"></script> 
+ <!-- Sticky Header Script  
+ <script type="text/JavaScript">
+        window.addEventListener("scroll" ,function() {
+    		let header = document.querySelector("header.internal");
+    		header.classList.toggle("internal-sticky", window.scrollY > 50);
+		});
+ </script>-->
+	
+<!-- Side Menu Script -->
+<script type="text/javascript">
+$(document).ready(function () {
+	$('#dismiss, .overlay').on('click', function () {
+		$('#sidebar').addClass('active');
+		$('.overlay').removeClass('active');
+	});
+
+	$('#sidebarCollapse').on('click', function () {
+		$('#sidebar, #content').toggleClass('active');
+		$('.overlay').addClass('active');
+		$('.collapse.in').toggleClass('in');
+		$('a[aria-expanded=true]').attr('aria-expanded', 'false');
+	});
+});
+</script>
+	
+<!-- Show & Hide Password Script -->
+<script>
+	// Frist Eye Script //
+	document.addEventListener('DOMContentLoaded', function () {
+    	const toggleButton = document.querySelector('#show_hide_password button');
+		const passwordInput = document.querySelector('#passwordInput');
+    	const toggleIcon = document.querySelector('#showHidePassword');
+
+    	toggleButton.addEventListener('click', function (event) {
+        	event.preventDefault();
+			
+        	// Toggle the type attribute
+        	const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        	passwordInput.setAttribute('type', type);
+			
+        	// Toggle the eye icon class
+        	if (type === 'text') {
+            	toggleIcon.classList.remove('fa-eye');
+            	toggleIcon.classList.add('fa-eye-slash');
+        	} else {
+            	toggleIcon.classList.remove('fa-eye-slash');
+            	toggleIcon.classList.add('fa-eye');
+        	}
+    	});
+	});
+	
+	// Second Eye Script //
+	document.addEventListener('DOMContentLoaded', function () {
+    	const toggleButton = document.querySelector('#show_hide_password-2 button');
+		const passwordInput = document.querySelector('#passwordInput-2');
+    	const toggleIcon = document.querySelector('#showHidePassword-2');
+
+    	toggleButton.addEventListener('click', function (event) {
+        	event.preventDefault();
+			
+        	// Toggle the type attribute
+        	const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        	passwordInput.setAttribute('type', type);
+			
+        	// Toggle the eye icon class
+        	if (type === 'text') {
+            	toggleIcon.classList.remove('fa-eye');
+            	toggleIcon.classList.add('fa-eye-slash');
+        	} else {
+            	toggleIcon.classList.remove('fa-eye-slash');
+            	toggleIcon.classList.add('fa-eye');
+        	}
+    	});
+	});
+	
+	// Third Eye Script //
+	document.addEventListener('DOMContentLoaded', function () {
+    	const toggleButton = document.querySelector('#show_hide_password-3 button');
+		const passwordInput = document.querySelector('#passwordInput-3');
+    	const toggleIcon = document.querySelector('#showHidePassword-3');
+
+    	toggleButton.addEventListener('click', function (event) {
+        	event.preventDefault();
+			
+        	// Toggle the type attribute
+        	const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        	passwordInput.setAttribute('type', type);
+			
+        	// Toggle the eye icon class
+        	if (type === 'text') {
+            	toggleIcon.classList.remove('fa-eye');
+            	toggleIcon.classList.add('fa-eye-slash');
+        	} else {
+            	toggleIcon.classList.remove('fa-eye-slash');
+            	toggleIcon.classList.add('fa-eye');
+        	}
+    	});
+	});
+</script>	
+
+<!-- LightBox Script -->
+<script src="js/lightbox/jquery.magnific-popup.min.js"></script>
+
+
+<!-- /// End Scripts /// -->
+</body>
+<!-- End Body -->
+
+<!-- InstanceEnd --></html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>شي درايف</title>
+	<!-- Bootstrap File -->
+	<link rel="stylesheet" type="text/css" href="css/bootstrap/bootstrap.rtl.min.css" >
+	<!-- Font Awesome Style Sheet File -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">	
+	<!-- Main Style Sheet File -->
+	<link href="css/styles-ar.css" rel="stylesheet" type="text/css">
+	<!-- Browzer Tab Icon -->
+	<link rel="shortcut icon" href="img/favicon.png" type="image/x-icon">
+</head>
+
+<body>
+	
+	<div class="container-fluid container-md-width">
+		<div class="row">
+			<div class="col-xl-6 col-xxl-5 login-start-side">
+				<img class="login-logo" src="img/logo.png" alt="">
+				<h2>رمز الاسترداد</h2>
+				<p>إستخدم رمز الاسترداد الذي حفظته مسبقًا لتسجيل الدخول عند تعذر استخدام تطبيق المصادقة.</p>
+				
+				<form action="">
+					
+					<input class="form-control recovery-code mt-4" id="InputRecoveryCode" type="text" name="recoveryCode" placeholder="مثال: SD-RECOVERY-01">
+					<div class="buttons-container mt-3">
+						<button type="button" class="btn btn-primary-gradient btn-submit" onClick="location.href='dashboard_ar.html'"><i class="fa-regular fa-paper-plane"></i>تأكيد وإرسال</button>
+					</div>	
+		
+				</form><!-- End Form -->
+				
+				<div class="row justify-content-between mt-4">
+					<a class="col-auto primary-link" href="2fa_ar.html">استخدم تطبيق المصادقة بدلاً من ذلك.</a>
+					<a class="col-auto primary-link" href="login_ar.html">العودة لتسجيل الدخول</a>
+				</div><!-- End Col -->
+				
+			</div><!-- End Col -->
+			
+			<div class="d-none d-xl-block col-xl-6 col-xxl-7 login-end-side">
+				<img src="img/login-slogan.png" alt="">
+			</div><!-- End Col -->
+
+		</div><!-- End Row -->
+	</div><!-- End Container -->
+	
+	
+	<!-- //// --* ALL SCRIPTS *-- \\\\ -->
+	
+	<!-- Show & Hide Eye Password Icon / Script -->
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+    		const toggleButton = document.querySelector('#show_hide_password button');
+			const passwordInput = document.querySelector('#passwordInput');
+    		const toggleIcon = document.querySelector('#showHidePassword');
+
+    		toggleButton.addEventListener('click', function (event) {
+        		event.preventDefault();
+
+        		// Toggle the type attribute
+        		const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        		passwordInput.setAttribute('type', type);
+
+        		// Toggle the eye icon class
+        		if (type === 'text') {
+            		toggleIcon.classList.remove('fa-eye');
+            		toggleIcon.classList.add('fa-eye-slash');
+        		} else {
+            		toggleIcon.classList.remove('fa-eye-slash');
+            		toggleIcon.classList.add('fa-eye');
+        		}
+    		});
+		});
+	</script>
+	
+	<!-- OTP Jumb To Next Input / Script -->
+	<script>
+		const inputs = document.querySelectorAll('.otp-input');
+
+		inputs.forEach((input, index) => {
+  			input.addEventListener('input', () => {
+    			// If there is a value and a next input exists, jump to it
+    			if (input.value && index < inputs.length - 1) {
+      			inputs[index + 1].focus();
+    			}
+  			});
+
+  			// Optional: Handle backspace to go back
+  			input.addEventListener('keydown', (e) => {
+    			if (e.key === 'Backspace' && !input.value && index > 0) {
+      				inputs[index - 1].focus();
+    			}
+  			});
+		});
+	
+	</script>
+	
+</body>
+</html>

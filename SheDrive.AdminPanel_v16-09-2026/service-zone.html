@@ -1,0 +1,887 @@
+<!doctype html>
+<html dir="ltr"><!-- InstanceBegin template="/Templates/template.dwt" codeOutsideHTMLIsLocked="false" -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SheDrive</title>
+<!-- Bootstrap File -->
+<link rel="stylesheet" type="text/css" href="css/bootstrap/bootstrap.min.css">
+<!-- Font Awesome Style Sheet File -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+<!-- Google Icons Style Sheet File -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&icon_names=home_app_logo" />
+<!-- LightBox Stylsheet File -->
+<link rel="stylesheet" type="text/css" href="css/lightbox/magnific-popup.css">
+<!-- Main Style Sheet File -->
+<link href="css/styles.css" rel="stylesheet" type="text/css">
+<!-- Browzer Tab Icon -->
+<link rel="shortcut icon" href="img/favicon.png" type="image/x-icon">
+</head>
+
+<body>
+
+	<!-- Main Wrapper Container -->
+	<div class="wrapper">
+		<!-- Side Nav -->
+		<nav id="sidebar">
+			<span class="top-triangle"></span>
+			<div id="dismiss">
+				<i class="fa-solid fa-arrow-left"></i>
+			</div>
+			<div class="sidebar-header">
+				<div class="logo"><img src="img/logo.png" alt=""/></div>
+			</div>
+
+			<ul id="main-menu">
+				<span class="category">Operations</span>
+				<li><a href="dashboard.html"><img src="icons/dashboard-2.svg" alt="">Dashboard</a></li>
+          	 	<li class="active"><a href="trips.html"><img src="icons/trips.svg" alt="">Trips</a></li>
+				<li><a href="sos-requests.html"><img src="icons/lifeboat.svg" alt="">SOS requests</a></li>
+				<li><a href="gender-mismatch.html"><img src="icons/shield.svg" alt="">Safety Reports</a></li>
+				
+				<span class="category">People</span>
+				<li><a href="driver-applications.html"><img src="icons/applications.svg" alt="">Driver Applications</a></li>
+				<li><a href="drivers-list.html"><img src="icons/steering-wheel.svg" alt="">Drivers</a></li>
+				<li><a href="riders-list.html"><img src="icons/user-star.svg" alt="">Riders</a></li>
+				
+				<span class="category">Money & Config</span>
+				<li><a href="service-zone.html"><img src="icons/prices.svg" alt="">Pricing & Zones</a></li>
+				<li><a href="pricing-policies.html"><img src="icons/policies.svg" alt="">Global Policies</a></li>
+				<li><a href="revenue-summary.html"><img src="icons/reports.svg" alt="">Reports</a></li>
+				<li><a href="reconciliation.html"><img src="icons/handshake.svg" alt="">Reconciliation</a></li>
+				
+				<span class="category">Adminstration</span>
+				<li><a href="javascript:;"><img src="icons/file-checked.svg" alt="">Audit Log</a></li>
+				<li><a href="admin-accounts.html"><img src="icons/users.svg" alt="">Admin Users</a></li>
+			</ul>
+		</nav><!-- End Side Nav -->
+		
+		<!-- Content Area -->
+		<div id="content">
+			
+			<header>
+				<button type="button" id="sidebarCollapse" class="btn"><i class="fa-solid fa-bars"></i></button>
+				<form class="me-auto d-none d-md-flex">
+					<div class="input-group">
+						<input type="search" class="form-control" id="search" name="search" placeholder="Search Here ...">
+						<button class="btn-input-search" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
+					</div><!-- End Search Input -->
+				</form><!-- End Search Form -->
+				
+				<div class="end-side">
+					<ul class="navbar navbar-expand topbar-menu">
+						<!-- Search Dropdown Item -->
+						<li class="nav-item dropdown d-block d-md-none">
+			  				<a class="nav-link dropdown-toggle" href="Javascript" id="searchDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<i class="fa-solid fa-magnifying-glass"></i>
+							</a>
+				  
+			  				<div class="dropdown-menu slideIn" aria-labelledby="searchDropdown">
+								<form class="left-side-search d-flex">
+									<div class="input-group">
+										<input type="search" class="form-control" id="leftSideSearch" name="search" placeholder="Search Here ...">
+										<button class="btn-input-search" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
+									</div><!-- End Search Input -->
+<!--
+				 					<input type="text" class="form-control" placeholder="Search ...">
+				  					<button type="button" class="btn"><i class="icon-search"></i></button>
+-->
+								</form><!-- End Left Side Search -->
+			  				</div>
+		  	  			</li><!-- End Search Dropdown Item -->
+						
+						<!-- Language Dropdown Item -->
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="javascript:;" id="laguageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<img class="icon" src="icons/language.svg" alt="">
+							</a>
+							<ul class="dropdown-menu slideIn" aria-labelledby="laguageDropdown">
+								<li><a class="dropdown-item" href="dashboard.html"><img class="flag" src="icons/language/united-kingdom.svg" alt=""/>English</a></li>
+								<li><a class="dropdown-item" href="dashboard_ar.html"><img class="flag" src="icons/language/egypt.svg" alt=""/>عربى</a></li>
+			  				</ul>
+						</li><!-- End Language Dropdown Item -->
+						
+						<!-- User Profile Dropdown Item -->
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="javascript:;" id="userProfileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<img class="user-profile" src="img/profile-photo.png">
+								<span class="user-info">
+									<span class="user-name">Abd Allah Marzouk</span>
+									<span class="user-title">Executive Mgr</span>
+								</span>
+							</a>
+							<ul class="dropdown-menu slideIn" aria-labelledby="userProfileDropdown">
+								<li><a class="dropdown-item" href="admin-profile.html"><i class="fa-regular fa-user"></i>Profile</a></li>
+								<li><a class="dropdown-item" href="javascript:;"><i class="fa-solid fa-arrow-right-from-bracket"></i>Logout</a></li>
+			  				</ul>
+						</li><!-- End User Profile Dropdown Item -->
+						
+						<!-- Dropdown Search -->
+						<!--
+			  			<li class="nav-item dropdown d-block d-md-none">
+			  				<a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="icon-search-7"></i></a>
+				  
+			  				<div class="dropdown-menu slideIn" aria-labelledby="searchDropdown">
+								<form class="topbar-search d-flex">
+				 					<input type="text" class="form-control" placeholder="Search ...">
+				  					<button type="button" class="btn"><i class="icon-search"></i></button>
+								</form>
+			  				</div>
+		  	  			</li><!-- End Dropdown Search -->
+
+
+						<!-- Dropdown Langauge -->
+						<!--
+			  			<li class="nav-item dropdown">
+			  				<a class="nav-link dropdown-toggle" href="#" id="laguageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<i class="fa-solid fa-globe"></i>
+								<img src="../icons/language.svg" alt="">
+							</a>
+				  
+			  				<ul class="dropdown-menu slideIn" aria-labelledby="laguageDropdown">
+								<li><a class="dropdown-item" href="#"><i><img src="img/united-kingdom-flage.png" alt=""/></i> English</a></li>
+								<li><a class="dropdown-item" href="#"><i><img src="img/egypt-flage.png" alt=""/></i> عربى</a></li>
+			  				</ul>
+		  	  			</li><!-- End Dropdown Langauge -->
+
+						<!-- Dropdown Notifications -->
+						<!--
+			  			<li class="nav-item dropdown">
+			  				<a class="nav-link dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-regular fa-bell"></i></a>
+				  
+			  				<ul class="dropdown-menu slideIn" aria-labelledby="notificationsDropdown" id="notification">
+				  				<li class="dropdown-menu-header">4 إشعارات</li>
+								<li>
+									<a class="dropdown-item" href="#"> 
+				  						<div class="row g-0 align-items-center">
+											<div class="col-2"><i class="text-primary icon-info-circled"></i></div>
+											<div class="col-10">
+												<h6>تم إضافة مستخدم جديد</h6>
+												<p>يرجى الخروج ثم الدخول مرة أخرى لمعرفة المستخدم الحديد</p>
+												<div class="text-muted small">منذ 2 ساعة</div>
+											</div>
+										</div>
+									</a>
+				  				</li>
+								<li>
+									<a class="dropdown-item" href="#"> 
+				  						<div class="row g-0 align-items-center">
+											<div class="col-2"><i class="text-warning icon-warning"></i></div>
+											<div class="col-10">
+												<h6>تم إضافة مستخدم جديد</h6>
+												<p>يرجى الخروج ثم الدخول مرة أخرى لمعرفة المستخدم الحديد</p>
+												<div class="text-muted small">منذ 2 ساعة</div>
+											</div>
+										</div>
+									</a>
+				  				</li>
+								<li>
+									<a class="dropdown-item" href="#"> 
+				  						<div class="row g-0 align-items-center">
+											<div class="col-2"><i class="text-danger icon-cancel-circle"></i></div>
+											<div class="col-10">
+												<h6>تم إضافة مستخدم جديد</h6>
+												<p>يرجى الخروج ثم الدخول مرة أخرى لمعرفة المستخدم الحديد</p>
+												<div class="text-muted small">منذ 2 ساعة</div>
+											</div>
+										</div>
+									</a>
+				  				</li>
+								<li>
+									<a class="dropdown-item" href="#"> 
+				  						<div class="row g-0 align-items-center">
+											<div class="col-2"><i class="text-success icon-ok-circled"></i></div>
+											<div class="col-10">
+												<h6>تم إضافة مستخدم جديد</h6>
+												<p>يرجى الخروج ثم الدخول مرة أخرى لمعرفة المستخدم الحديد</p>
+												<div class="text-muted small">منذ 2 ساعة</div>
+											</div>
+										</div>
+									</a>
+				  				</li>
+				  				<li class="dropdown-menu-footer"><a href="#" class="text-muted">إظهار الكل</a></li>
+			  				</ul>
+		  	  			</li><!-- End Dropdown Notifications -->
+
+						<!-- Dropdown User Profile -->
+						<!--
+			  			<li class="nav-item dropdown user-control">
+			  				<a class="nav-link dropdown-toggle" href="javascript:;" id="userProfileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<i class="user-pic"><img src="img/user-pic.jpg" alt=""/></i>
+								<span class="d-none d-md-inline">
+									<span class="userName-text">عبد ااالله مرزوق</span><small>مدير</small>
+								</span>
+				  			</a>
+				  
+			 	 			<ul class="dropdown-menu slideIn" aria-labelledby="userProfileDropdown">
+								<li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear"></i>الإعدادات</a></li>
+								<li><a class="dropdown-item" href="#"><i class="fa-solid fa-arrow-right-from-bracket"></i>تسجيل الخروج</a></li>
+			  				</ul>
+		  	  			</li><!-- End Dropdown User Profile -->
+		  			</ul>
+				</div><!-- End Side Container -->
+				
+			</header><!-- End Header -->
+			
+			<!-- InstanceBeginEditable name="content" -->
+		
+	<section class="sm-padding">
+		<div class="container-fluid">
+			<div class="section-title row gy-3">
+				<div class="title col-auto">
+					<h3 class="underline-title">Service zones & rate cards</h3>
+				</div><!-- End Title -->
+				<div class="end-side col-auto">
+					<button class="btn btn-success d-flex gap-2 align-items-center"><img src="icons/add-location.svg">Create Zone</button>
+				</div><!-- End END  Side -->
+			</div><!-- End Section Title -->
+			
+		</div><!-- End Filter Container -->
+        
+        <!-- Container -->
+        <div class="container-fluid">
+            <div class="row mt-2 mb-3">
+				<div class="col">
+					<div class="standard-card white-bg">
+                        <!-- Card Body -->
+						<div class="card-body pb-0">
+							
+                            <iframe class="routing-map" src="https://www.google.com/maps/embed?pb=!1m28!1m12!1m3!1d110512.09564670286!2d31.011508241890485!3d30.05111355876215!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m13!3e0!4m5!1s0x14585a29f1b324d9%3A0xc5c5525706430b8d!2sEl%20Sheikh%20Zayed%20City%2C%20Giza%20Governorate!3m2!1d30.0381736!2d30.979352799999997!4m5!1s0x145840e059d98225%3A0x91cb6f582e8b215c!2sZamalek%2C%20Cairo%20Governorate!3m2!1d30.0609422!2d31.219708999999998!5e0!3m2!1sen!2seg!4v1786888945242!5m2!1sen!2seg" width="100%" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                            
+						</div><!-- End Card Body -->
+                    </div><!-- End Standard Card -->
+				</div><!-- End Col -->
+			</div><!-- End Row -->
+        </div><!-- End Container -->
+				
+		<div class="container-fluid">
+			
+			<form action="">
+				<!-- Filter Container -->
+				<div class="filter-container white-bg">
+				
+					<i class="fa-solid fa-sliders"></i>
+					
+					<input type="text" class="form-control" id="adminSearch" name="adminSearch" placeholder="Search by name, email ...">
+					
+					<select class="form-select" id="status" name="status" aria-label="status">
+						<option selected disabled>All Statuses</option>
+						<option>Active</option>
+						<option>Disabled</option>
+					</select>
+                    
+                    <!-- Date Inputs Container -->
+					<div class="date-inputs-container">
+						<input type="date" class="form-control" id="startDate" name="startDate">
+						<span>to</span>
+						<input type="date" class="form-control" id="endDate" name="endDate">
+					</div><!-- End Date Inputs Container -->
+				
+					<!-- End Side -->
+					<div class="end-side ms-auto">
+						<button type="button" class="btn btn-tertiary ms-auto"><i class="fa-solid fa-refresh"></i>Reset</button>
+						<button type="button" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i>Search</button>
+                        <button type="button" class="btn btn-primary-gradient"><i class="fa-solid fa-file-csv"></i>Export CSV</button>
+					</div><!-- End End Side -->
+				</div>
+				<!-- End Filter Container -->
+			</form><!-- End Form -->
+			
+			<div class="row mt-2">
+				<div class="col">
+					
+					<!-- Table Main Div -->
+					<div class="table-responsive">
+						<table class="table custom-grid-list">
+							<thead>
+								<tr>
+									<th>Zone Name</th>
+									<th>Rate card</th>
+									<th>Created by</th>
+									<th>Created at (UTC+2)</th>
+									<th>Status</th>
+									<th>Action</th>
+								</tr>
+							</thead><!-- End Table Head -->
+							<tbody>
+								<tr>
+									<td>
+                                        <p class="text-bold">Helwan South</p>
+                                        <p class="warning-color">⚠ No rate card — trips will be blocked</p>
+                                    </td>
+									<td>
+                                        <div class="d-inline-flex gap-3">
+                                            <p>Base <span class="text-bold">26.00 EGP</span></p>
+                                            <p>Per km <span class="text-bold">7.00 EGP</span></p>
+                                            <p>Per min <span class="text-bold">1.20 EGP</span></p>
+                                            <p>Min <span class="text-bold">48.00 EGP</span></p>
+                                            <p>Cancel <span class="text-bold">20.00 EGP</span></p>
+                                        </div>
+                                    </td>
+									<td>compliance@shedrive.app</td>
+									<td>14 Aug 2026, 11:51 am</td>
+									<td><div class="status-active-lamp"><div class="lamp"></div>Active</div></td>
+									<td>
+                                        <button type="button" class="btn grid-options-btn edit-icon" title="Rate Card" data-bs-toggle="modal" data-bs-target="#zoneRatePopupModal"><i class="fa-solid fa-calculator"></i></button>
+										<button type="button" class="btn grid-options-btn view-icon" title="Rename" data-bs-toggle="modal" data-bs-target="#zoneRenamePopupModal"><i class="fa-regular fa-pen-to-square"></i></button>
+										<button type="button" class="btn grid-options-btn pause-icon" title="Redraw"><i class="fa-solid fa-bezier-curve"></i></button>
+										<button type="button" class="btn grid-options-btn delete-icon" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteZoneWarningModal"><i class="fa-solid fa-trash-can"></i></button>
+									</td>
+								</tr>
+                                
+                                <tr>
+									<td>Giza & Haram</td>
+									<td>
+                                        <div class="d-inline-flex gap-3">
+                                            <p>Base <span class="text-bold">26.00 EGP</span></p>
+                                            <p>Per km <span class="text-bold">7.00 EGP</span></p>
+                                            <p>Per min <span class="text-bold">1.20 EGP</span></p>
+                                            <p>Min <span class="text-bold">48.00 EGP</span></p>
+                                            <p>Cancel <span class="text-bold">20.00 EGP</span></p>
+                                        </div>
+                                    </td>
+									<td>compliance@shedrive.app</td>
+									<td>14 Aug 2026, 11:51 am</td>
+									<td><div class="status-active-lamp"><div class="lamp"></div>Active</div></td>
+									<td>
+                                        <button type="button" class="btn grid-options-btn edit-icon" title="Rate Card" data-bs-toggle="modal" data-bs-target="#zoneRatePopupModal"><i class="fa-solid fa-calculator"></i></button>
+										<button type="button" class="btn grid-options-btn view-icon" title="Rename" data-bs-toggle="modal" data-bs-target="#zoneRenamePopupModal"><i class="fa-regular fa-pen-to-square"></i></button>
+										<button type="button" class="btn grid-options-btn pause-icon" title="Redraw"><i class="fa-solid fa-bezier-curve"></i></button>
+										<button type="button" class="btn grid-options-btn delete-icon" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteZoneWarningModal"><i class="fa-solid fa-trash-can"></i></button>
+									</td>
+								</tr>
+								
+                                <tr>
+									<td>New Cairo</td>
+									<td>
+                                        <div class="d-inline-flex gap-3">
+                                            <p>Base <span class="text-bold">30.00 EGP</span></p>
+                                            <p>Per km <span class="text-bold">8.00 EGP</span></p>
+                                            <p>Per min <span class="text-bold">1.50 EGP</span></p>
+                                            <p>Min <span class="text-bold">55.00 EGP</span></p>
+                                            <p>Cancel <span class="text-bold">25.00 EGP</span></p>
+                                        </div>
+                                    </td>
+									<td>operations@shedrive.app</td>
+									<td>15 Aug 2026, 09:24 am</td>
+									<td><div class="status-active-lamp"><div class="lamp"></div>Active</div></td>
+									<td>
+                                        <button type="button" class="btn grid-options-btn edit-icon" title="Rate Card" data-bs-toggle="modal" data-bs-target="#zoneRatePopupModal"><i class="fa-solid fa-calculator"></i></button>
+										<button type="button" class="btn grid-options-btn view-icon" title="Rename" data-bs-toggle="modal" data-bs-target="#zoneRenamePopupModal"><i class="fa-regular fa-pen-to-square"></i></button>
+										<button type="button" class="btn grid-options-btn pause-icon" title="Redraw"><i class="fa-solid fa-bezier-curve"></i></button>
+										<button type="button" class="btn grid-options-btn delete-icon" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteZoneWarningModal"><i class="fa-solid fa-trash-can"></i></button>
+									</td>
+								</tr>
+								
+                                <tr>
+									<td>Maadi</td>
+									<td>
+                                        <div class="d-inline-flex gap-3">
+                                            <p>Base <span class="text-bold">24.00 EGP</span></p>
+                                            <p>Per km <span class="text-bold">6.50 EGP</span></p>
+                                            <p>Per min <span class="text-bold">1.10 EGP</span></p>
+                                            <p>Min <span class="text-bold">45.00 EGP</span></p>
+                                            <p>Cancel <span class="text-bold">18.00 EGP</span></p>
+                                        </div>
+                                    </td>
+									<td>support@shedrive.app</td>
+									<td>16 Aug 2026, 10:15 am</td>
+									<td><div class="status-active-lamp"><div class="lamp"></div>Active</div></td>
+									<td>
+                                        <button type="button" class="btn grid-options-btn edit-icon" title="Rate Card" data-bs-toggle="modal" data-bs-target="#zoneRatePopupModal"><i class="fa-solid fa-calculator"></i></button>
+										<button type="button" class="btn grid-options-btn view-icon" title="Rename" data-bs-toggle="modal" data-bs-target="#zoneRenamePopupModal"><i class="fa-regular fa-pen-to-square"></i></button>
+										<button type="button" class="btn grid-options-btn pause-icon" title="Redraw"><i class="fa-solid fa-bezier-curve"></i></button>
+										<button type="button" class="btn grid-options-btn delete-icon" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteZoneWarningModal"><i class="fa-solid fa-trash-can"></i></button>
+									</td>
+								</tr>
+								
+                                <tr>
+									<td>Heliopolis</td>
+									<td>
+                                        <div class="d-inline-flex gap-3">
+                                            <p>Base <span class="text-bold">28.00 EGP</span></p>
+                                            <p>Per km <span class="text-bold">7.50 EGP</span></p>
+                                            <p>Per min <span class="text-bold">1.30 EGP</span></p>
+                                            <p>Min <span class="text-bold">52.00 EGP</span></p>
+                                            <p>Cancel <span class="text-bold">22.00 EGP</span></p>
+                                        </div>
+                                    </td>
+									<td>admin@shedrive.app</td>
+									<td>17 Aug 2026, 01:42 pm</td>
+									<td><div class="status-active-lamp"><div class="lamp"></div>Active</div></td>
+									<td>
+                                        <button type="button" class="btn grid-options-btn edit-icon" title="Rate Card" data-bs-toggle="modal" data-bs-target="#zoneRatePopupModal"><i class="fa-solid fa-calculator"></i></button>
+										<button type="button" class="btn grid-options-btn view-icon" title="Rename" data-bs-toggle="modal" data-bs-target="#zoneRenamePopupModal"><i class="fa-regular fa-pen-to-square"></i></button>
+										<button type="button" class="btn grid-options-btn pause-icon" title="Redraw"><i class="fa-solid fa-bezier-curve"></i></button>
+										<button type="button" class="btn grid-options-btn delete-icon" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteZoneWarningModal"><i class="fa-solid fa-trash-can"></i></button>
+									</td>
+								</tr>
+								
+                                <tr>
+									<td>Nasr City</td>
+									<td>
+                                        <div class="d-inline-flex gap-3">
+                                            <p>Base <span class="text-bold">27.00 EGP</span></p>
+                                            <p>Per km <span class="text-bold">7.25 EGP</span></p>
+                                            <p>Per min <span class="text-bold">1.25 EGP</span></p>
+                                            <p>Min <span class="text-bold">50.00 EGP</span></p>
+                                            <p>Cancel <span class="text-bold">20.00 EGP</span></p>
+                                        </div>
+                                    </td>
+									<td>compliance@shedrive.app</td>
+									<td>18 Aug 2026, 11:08 am</td>
+									<td><div class="status-active-lamp"><div class="lamp"></div>Active</div></td>
+									<td>
+                                        <button type="button" class="btn grid-options-btn edit-icon" title="Rate Card" data-bs-toggle="modal" data-bs-target="#zoneRatePopupModal"><i class="fa-solid fa-calculator"></i></button>
+										<button type="button" class="btn grid-options-btn view-icon" title="Rename" data-bs-toggle="modal" data-bs-target="#zoneRenamePopupModal"><i class="fa-regular fa-pen-to-square"></i></button>
+										<button type="button" class="btn grid-options-btn pause-icon" title="Redraw"><i class="fa-solid fa-bezier-curve"></i></button>
+										<button type="button" class="btn grid-options-btn delete-icon" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteZoneWarningModal"><i class="fa-solid fa-trash-can"></i></button>
+									</td>
+								</tr>
+								
+                                <tr>
+									<td>Zamalek</td>
+									<td>
+                                        <div class="d-inline-flex gap-3">
+                                            <p>Base <span class="text-bold">25.00 EGP</span></p>
+                                            <p>Per km <span class="text-bold">6.75 EGP</span></p>
+                                            <p>Per min <span class="text-bold">1.15 EGP</span></p>
+                                            <p>Min <span class="text-bold">47.00 EGP</span></p>
+                                            <p>Cancel <span class="text-bold">20.00 EGP</span></p>
+                                        </div>
+                                    </td>
+									<td>operations@shedrive.app</td>
+									<td>19 Aug 2026, 02:36 pm</td>
+									<td><div class="status-active-lamp"><div class="lamp"></div>Active</div></td>
+									<td>
+                                        <button type="button" class="btn grid-options-btn edit-icon" title="Rate Card" data-bs-toggle="modal" data-bs-target="#zoneRatePopupModal"><i class="fa-solid fa-calculator"></i></button>
+										<button type="button" class="btn grid-options-btn view-icon" title="Rename" data-bs-toggle="modal" data-bs-target="#zoneRenamePopupModal"><i class="fa-regular fa-pen-to-square"></i></button>
+										<button type="button" class="btn grid-options-btn pause-icon" title="Redraw"><i class="fa-solid fa-bezier-curve"></i></button>
+										<button type="button" class="btn grid-options-btn delete-icon" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteZoneWarningModal"><i class="fa-solid fa-trash-can"></i></button>
+									</td>
+								</tr>
+								
+                                <tr>
+									<td>Mohandessin</td>
+									<td>
+                                        <div class="d-inline-flex gap-3">
+                                            <p>Base <span class="text-bold">26.50 EGP</span></p>
+                                            <p>Per km <span class="text-bold">7.10 EGP</span></p>
+                                            <p>Per min <span class="text-bold">1.20 EGP</span></p>
+                                            <p>Min <span class="text-bold">49.00 EGP</span></p>
+                                            <p>Cancel <span class="text-bold">19.00 EGP</span></p>
+                                        </div>
+                                    </td>
+									<td>support@shedrive.app</td>
+									<td>20 Aug 2026, 09:18 am</td>
+									<td><div class="status-active-lamp"><div class="lamp"></div>Active</div></td>
+									<td>
+                                        <button type="button" class="btn grid-options-btn edit-icon" title="Rate Card" data-bs-toggle="modal" data-bs-target="#zoneRatePopupModal"><i class="fa-solid fa-calculator"></i></button>
+										<button type="button" class="btn grid-options-btn view-icon" title="Rename" data-bs-toggle="modal" data-bs-target="#zoneRenamePopupModal"><i class="fa-regular fa-pen-to-square"></i></button>
+										<button type="button" class="btn grid-options-btn pause-icon" title="Redraw"><i class="fa-solid fa-bezier-curve"></i></button>
+										<button type="button" class="btn grid-options-btn delete-icon" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteZoneWarningModal"><i class="fa-solid fa-trash-can"></i></button>
+									</td>
+								</tr>
+								
+                                <tr>
+									<td>6th of October</td>
+									<td>
+                                        <div class="d-inline-flex gap-3">
+                                            <p>Base <span class="text-bold">29.00 EGP</span></p>
+                                            <p>Per km <span class="text-bold">7.80 EGP</span></p>
+                                            <p>Per min <span class="text-bold">1.35 EGP</span></p>
+                                            <p>Min <span class="text-bold">54.00 EGP</span></p>
+                                            <p>Cancel <span class="text-bold">23.00 EGP</span></p>
+                                        </div>
+                                    </td>
+									<td>admin@shedrive.app</td>
+									<td>21 Aug 2026, 12:25 pm</td>
+									<td><div class="status-active-lamp"><div class="lamp"></div>Active</div></td>
+									<td>
+                                        <button type="button" class="btn grid-options-btn edit-icon" title="Rate Card" data-bs-toggle="modal" data-bs-target="#zoneRatePopupModal"><i class="fa-solid fa-calculator"></i></button>
+										<button type="button" class="btn grid-options-btn view-icon" title="Rename" data-bs-toggle="modal" data-bs-target="#zoneRenamePopupModal"><i class="fa-regular fa-pen-to-square"></i></button>
+										<button type="button" class="btn grid-options-btn pause-icon" title="Redraw"><i class="fa-solid fa-bezier-curve"></i></button>
+										<button type="button" class="btn grid-options-btn delete-icon" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteZoneWarningModal"><i class="fa-solid fa-trash-can"></i></button>
+									</td>
+								</tr>
+								
+                                <tr>
+									<td>Rehab</td>
+									<td>
+                                        <div class="d-inline-flex gap-3">
+                                            <p>Base <span class="text-bold">31.00 EGP</span></p>
+                                            <p>Per km <span class="text-bold">8.20 EGP</span></p>
+                                            <p>Per min <span class="text-bold">1.45 EGP</span></p>
+                                            <p>Min <span class="text-bold">57.00 EGP</span></p>
+                                            <p>Cancel <span class="text-bold">25.00 EGP</span></p>
+                                        </div>
+                                    </td>
+									<td>compliance@shedrive.app</td>
+									<td>22 Aug 2026, 03:14 pm</td>
+									<td><div class="status-active-lamp"><div class="lamp"></div>Active</div></td>
+									<td>
+                                        <button type="button" class="btn grid-options-btn edit-icon" title="Rate Card" data-bs-toggle="modal" data-bs-target="#zoneRatePopupModal"><i class="fa-solid fa-calculator"></i></button>
+										<button type="button" class="btn grid-options-btn view-icon" title="Rename" data-bs-toggle="modal" data-bs-target="#zoneRenamePopupModal"><i class="fa-regular fa-pen-to-square"></i></button>
+										<button type="button" class="btn grid-options-btn pause-icon" title="Redraw"><i class="fa-solid fa-bezier-curve"></i></button>
+										<button type="button" class="btn grid-options-btn delete-icon" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteZoneWarningModal"><i class="fa-solid fa-trash-can"></i></button>
+									</td>
+								</tr>
+								
+                                <tr>
+									<td>Garden City</td>
+									<td>
+                                        <div class="d-inline-flex gap-3">
+                                            <p>Base <span class="text-bold">23.00 EGP</span></p>
+                                            <p>Per km <span class="text-bold">6.25 EGP</span></p>
+                                            <p>Per min <span class="text-bold">1.05 EGP</span></p>
+                                            <p>Min <span class="text-bold">43.00 EGP</span></p>
+                                            <p>Cancel <span class="text-bold">17.00 EGP</span></p>
+                                        </div>
+                                    </td>
+									<td>support@shedrive.app</td>
+									<td>23 Aug 2026, 10:47 am</td>
+									<td><div class="status-active-lamp"><div class="lamp"></div>Active</div></td>
+									<td>
+                                        <button type="button" class="btn grid-options-btn edit-icon" title="Rate Card" data-bs-toggle="modal" data-bs-target="#zoneRatePopupModal"><i class="fa-solid fa-calculator"></i></button>
+										<button type="button" class="btn grid-options-btn view-icon" title="Rename" data-bs-toggle="modal" data-bs-target="#zoneRenamePopupModal"><i class="fa-regular fa-pen-to-square"></i></button>
+										<button type="button" class="btn grid-options-btn pause-icon" title="Redraw"><i class="fa-solid fa-bezier-curve"></i></button>
+										<button type="button" class="btn grid-options-btn delete-icon" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteZoneWarningModal"><i class="fa-solid fa-trash-can"></i></button>
+									</td>
+								</tr>
+								
+                                <tr>
+									<td>Downtown Cairo</td>
+									<td>
+                                        <div class="d-inline-flex gap-3">
+                                            <p>Base <span class="text-bold">27.50 EGP</span></p>
+                                            <p>Per km <span class="text-bold">7.40 EGP</span></p>
+                                            <p>Per min <span class="text-bold">1.25 EGP</span></p>
+                                            <p>Min <span class="text-bold">51.00 EGP</span></p>
+                                            <p>Cancel <span class="text-bold">21.00 EGP</span></p>
+                                        </div>
+                                    </td>
+									<td>operations@shedrive.app</td>
+									<td>24 Aug 2026, 01:19 pm</td>
+									<td><div class="status-active-lamp"><div class="lamp"></div>Active</div></td>
+									<td>
+                                        <button type="button" class="btn grid-options-btn edit-icon" title="Rate Card" data-bs-toggle="modal" data-bs-target="#zoneRatePopupModal"><i class="fa-solid fa-calculator"></i></button>
+										<button type="button" class="btn grid-options-btn view-icon" title="Rename" data-bs-toggle="modal" data-bs-target="#zoneRenamePopupModal"><i class="fa-regular fa-pen-to-square"></i></button>
+										<button type="button" class="btn grid-options-btn pause-icon" title="Redraw"><i class="fa-solid fa-bezier-curve"></i></button>
+										<button type="button" class="btn grid-options-btn delete-icon" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteZoneWarningModal"><i class="fa-solid fa-trash-can"></i></button>
+									</td>
+								</tr>
+							</tbody><!-- End Table Body -->
+									
+							<tfoot>
+								<tr>
+									<td colspan="2">
+										<div class="row br-left">
+											<div class="col-auto align-content-center">
+												<label for="rowsCount" class="col-form-label rows-number-title">Number of Rows</label>
+											</div>
+											<div class="col-auto">
+												<select id="selectVisableRows" class="form-select rows-number">
+													<option>6</option>
+													<option>8</option>
+													<option selected>10</option>
+													<option>16</option>
+													<option>20</option>
+												</select>
+											</div>
+										</div>
+									</td>
+									<td colspan="4">
+										<!-- Pagination -->	
+										<ul class="pagination">
+                                        	<li class="page-item disabled">
+												<a class="page-link" href="" tabindex="-1" aria-disabled="true"><i class="fa-solid fa-chevron-right"></i></a>
+											</li>
+                                            <li class="page-item active" aria-current="page"> <a class="page-link" href="javascript:;">1</a> </li>
+                                            <li class="page-item"> <a class="page-link" href="javascript:;">2</a> </li>
+                                            <li class="page-item"> <a class="page-link" href="javascript:;">3</a> </li>
+                                            <li class="page-item"> <a class="page-link" href="javascript:;">4</a> </li>
+                                            <li class="page-item disabled"> <a class="page-link" href="javascript:;">....</a> </li>
+                                            <li class="page-item"> <a class="page-link" href="javascript:;"><i class="fa-solid fa-chevron-left"></i></a> </li>
+                                        </ul>
+										<!-- End Pagination -->
+									</td>
+								</tr>
+							</tfoot><!-- End Table Footer -->
+						</table><!-- End Table -->
+					</div>
+					<!-- End Table Main Div -->	
+					
+				</div><!-- End Col -->
+			</div><!-- End Row -->
+		
+		</div><!-- End Container -->
+	</section><!-- End Section -->
+			
+			
+			
+	<!-- //// --* ALL MODALS *-- //// -->
+            
+    <!-- Zone Rate Popup Modal -->
+    <div class="modal fade default-modal" id="zoneRatePopupModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="zoneRatePopupModal" aria-hidden="true">
+            	<div class="modal-dialog modal-dialog-centered">
+                	<div class="modal-content">
+                    	
+						<!-- Modal Header -->
+						<div class="modal-header">
+							<img class="icon" src="icons/calculate-dollar.svg" alt="">
+							<h3>Set The Rate</h3>
+                        	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div><!-- End Modal Header -->
+						
+						<!-- Modal Body -->
+                        <div class="modal-body">
+							<form class="row" action="">
+								<div class="col-12">
+            						<label for="payMethod">Base fare (EGP) <span class="text-danger">*</span></label>
+            						<input type="number" class="form-control" placeholder="0">
+          						</div>
+								
+								<div class="col-12">
+            						<label for="payMethod">Per-km rate (EGP) <span class="text-danger">*</span></label>
+            						<input type="number" class="form-control" placeholder="0">
+          						</div>
+								
+								<div class="col-12">
+            						<label for="payMethod">Per-min rate (EGP) <span class="text-danger">*</span></label>
+            						<input type="number" class="form-control" placeholder="0">
+          						</div>
+								
+								<div class="col-12">
+            						<label for="payMethod">Minimum fare (EGP) <span class="text-danger">*</span></label>
+            						<input type="number" class="form-control" placeholder="0">
+          						</div>
+                                
+                                <div class="col-12">
+            						<label for="payMethod">Cancellation fee (EGP)</label>
+            						<input type="number" class="form-control" placeholder="0">
+          						</div>
+								
+							</form><!-- End Form -->
+						</div><!-- End Modal Body -->
+                        
+						<!-- Modal Footer -->
+						<div class="modal-footer">
+							<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#successPopupModal"><i class="fa-solid fa-floppy-disk"></i>Save & Activate Zone</button>
+                            <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i>Cancel</button>
+                        </div><!-- End Modal Footer -->
+												
+                    </div>
+                </div>
+            </div>
+    <!-- End Zone Rate Popup Modal -->
+            
+    <!-- Zone Rename Popup Modal -->
+    <div class="modal fade default-modal" id="zoneRenamePopupModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="zoneRenamePopupModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content"> 
+                        
+                <!-- Modal Header -->
+                <div class="modal-header"> <img class="icon" src="icons/edit.svg" alt="">
+                    <h3>Rename Zone</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <!-- End Modal Header --> 
+                
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <form class="row" action="">
+                        <div class="col-12">
+                            <label for="payMethod">Zone name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" value="Cairo Central">
+                        </div>
+                    </form>
+                    <!-- End Form --> 
+                </div>
+                <!-- End Modal Body --> 
+                        
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#successPopupModal"><i class="fa-solid fa-floppy-disk"></i>Save</button>
+                    <button type="button" class="btn btn-primary-outline" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i>Cancel</button>
+                </div>
+                <!-- End Modal Footer --> 
+                
+            </div>
+        </div>
+    </div>
+    <!-- End Zone Rename Popup Modal -->
+            
+    <!-- Delete Zone Warning Popup Modal -->
+	<div class="modal fade popup-warning" id="deleteZoneWarningModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="deleteZoneWarningModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+    		<div class="modal-content">
+            	
+				<!-- Modal Header -->
+				<div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div><!-- End Modal Header -->
+						
+				<!-- Modal Body -->
+                <div class="modal-body">
+					<div class="status-sign warning"><i class="fa-solid fa-warning"></i></div>
+					<h4>Are you sure you want to delete this Zone?</h4>
+					<p>Please review the Zone details carefully first, then click the Delete button.</p>
+				</div><!-- End Modal Body -->
+                                           	 	
+				<!-- Modal Footer -->
+				<div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#successPopupModal"><i class="fa-solid fa-xmark"></i>Confirm & Delete</button>
+                    <button type="button" class="btn btn-warning-outline" data-bs-dismiss="modal"><i class="fa-solid fa-arrow-left"></i>Back to review</button>		
+                </div><!-- End Modal Footer -->
+						
+            </div>
+        </div>
+    </div>
+	<!-- End Delete Zone Warning Popup Modal -->
+    
+    <!-- Success Popup Modal -->
+	<div class="modal fade popup-success" id="successPopupModal" tabindex="-1" aria-labelledby="successPopupModal" aria-hidden="true">
+    	<div class="modal-dialog modal-dialog-centered">
+        	<div class="modal-content">
+				
+				<!-- Modal Header -->
+				<div class="modal-header">
+                	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div><!-- End Modal Header -->
+				
+				<!-- Modal Body -->
+                <div class="modal-body">
+					<div class="status-sign success"><i class="fa-solid fa-check"></i></div>
+					<h4>Request completed successfully</h4>
+				</div><!-- End Modal Body -->
+                
+				<!-- Modal Footer -->
+				<div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i>Close</button>
+                </div><!-- End Modal Footer -->
+						
+            </div>
+        </div>
+    </div>
+	<!-- End Success Popup Modal -->
+            
+<!-- InstanceEndEditable --> 
+			
+		</div>
+		<!-- End Content Area -->
+	</div><!-- End Wrapper -->
+	
+	<div class="overlay"></div>
+	
+ <!-- /// Scripts ///--> 
+ <script src="js/jquery-4.0.0.min.js"></script>
+ <script src="js/bootstrap/bootstrap.bundle.min.js"></script> 
+ <!-- Sticky Header Script  
+ <script type="text/JavaScript">
+        window.addEventListener("scroll" ,function() {
+    		let header = document.querySelector("header.internal");
+    		header.classList.toggle("internal-sticky", window.scrollY > 50);
+		});
+ </script>-->
+	
+<!-- Side Menu Script -->
+<script type="text/javascript">
+$(document).ready(function () {
+	$('#dismiss, .overlay').on('click', function () {
+		$('#sidebar').addClass('active');
+		$('.overlay').removeClass('active');
+	});
+
+	$('#sidebarCollapse').on('click', function () {
+		$('#sidebar, #content').toggleClass('active');
+		$('.overlay').addClass('active');
+		$('.collapse.in').toggleClass('in');
+		$('a[aria-expanded=true]').attr('aria-expanded', 'false');
+	});
+});
+</script>
+	
+<!-- Show & Hide Password Script -->
+<script>
+	// Frist Eye Script //
+	document.addEventListener('DOMContentLoaded', function () {
+    	const toggleButton = document.querySelector('#show_hide_password button');
+		const passwordInput = document.querySelector('#passwordInput');
+    	const toggleIcon = document.querySelector('#showHidePassword');
+
+    	toggleButton.addEventListener('click', function (event) {
+        	event.preventDefault();
+			
+        	// Toggle the type attribute
+        	const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        	passwordInput.setAttribute('type', type);
+			
+        	// Toggle the eye icon class
+        	if (type === 'text') {
+            	toggleIcon.classList.remove('fa-eye');
+            	toggleIcon.classList.add('fa-eye-slash');
+        	} else {
+            	toggleIcon.classList.remove('fa-eye-slash');
+            	toggleIcon.classList.add('fa-eye');
+        	}
+    	});
+	});
+	
+	// Second Eye Script //
+	document.addEventListener('DOMContentLoaded', function () {
+    	const toggleButton = document.querySelector('#show_hide_password-2 button');
+		const passwordInput = document.querySelector('#passwordInput-2');
+    	const toggleIcon = document.querySelector('#showHidePassword-2');
+
+    	toggleButton.addEventListener('click', function (event) {
+        	event.preventDefault();
+			
+        	// Toggle the type attribute
+        	const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        	passwordInput.setAttribute('type', type);
+			
+        	// Toggle the eye icon class
+        	if (type === 'text') {
+            	toggleIcon.classList.remove('fa-eye');
+            	toggleIcon.classList.add('fa-eye-slash');
+        	} else {
+            	toggleIcon.classList.remove('fa-eye-slash');
+            	toggleIcon.classList.add('fa-eye');
+        	}
+    	});
+	});
+	
+	// Third Eye Script //
+	document.addEventListener('DOMContentLoaded', function () {
+    	const toggleButton = document.querySelector('#show_hide_password-3 button');
+		const passwordInput = document.querySelector('#passwordInput-3');
+    	const toggleIcon = document.querySelector('#showHidePassword-3');
+
+    	toggleButton.addEventListener('click', function (event) {
+        	event.preventDefault();
+			
+        	// Toggle the type attribute
+        	const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        	passwordInput.setAttribute('type', type);
+			
+        	// Toggle the eye icon class
+        	if (type === 'text') {
+            	toggleIcon.classList.remove('fa-eye');
+            	toggleIcon.classList.add('fa-eye-slash');
+        	} else {
+            	toggleIcon.classList.remove('fa-eye-slash');
+            	toggleIcon.classList.add('fa-eye');
+        	}
+    	});
+	});
+</script>	
+
+<!-- LightBox Script -->
+<script src="js/lightbox/jquery.magnific-popup.min.js"></script>
+
+
+<!-- /// End Scripts /// -->
+</body>
+<!-- End Body -->
+
+<!-- InstanceEnd --></html>

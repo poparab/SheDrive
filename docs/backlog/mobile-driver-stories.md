@@ -1677,7 +1677,7 @@ Worked example: a 100.00 EGP fare with a 20.00 EGP outstanding balance recovered
 
 **She is never left holding an unexplained number.** The fee line always carries a short reason — that the rider had an unpaid balance from one or more previous cancelled trips — so the driver can answer if the passenger asks why the total is higher than the fare shown when she booked.
 
-**Her own earnings are unaffected by the fee.** Commission is calculated on the 100.00 EGP fare only — never on the recovered balance, since the platform already holds its share of that balance from when it was charged. The extra cash she collects is not "extra income": it nets out against the balance on her balance screen (#1788), where the full picture — including what she is really entitled to for the trip — is visible. This screen's job is only to tell her what to collect and why, not to explain her balance.
+**Her own earnings are unaffected by the fee.** Commission is calculated on the 100.00 EGP fare only — never on the recovered balance, since the whole fee already belongs to the driver and none of it is the platform's to take a cut from. The extra cash she collects is not "extra income": it nets out against the balance on her balance screen (#1788), where the full picture — including what she is really entitled to for the trip — is visible. This screen's job is only to tell her what to collect and why, not to explain her balance.
 
 **The whole balance is always collected on this one trip, in full.** If the rider is carrying more than one outstanding fee, they are combined into a single amount and collected together on her very next completed trip — there is no drip, no oldest-fee-first ordering and nothing left outstanding afterward. The driver does nothing differently; the screen simply itemises whatever amount the platform says to collect.
 
@@ -2096,15 +2096,15 @@ The earnings dashboard is accessible from the driver home screen menu or profile
 
 ### Background
 
-A balance screen reachable from the earnings screen and the profile menu shows the driver's position in EGP, retrieved via #1781. It replaces the earlier read-only "cash owed" view: the balance is now a signed figure over a real ledger (#3991), so the screen must present both directions and the movements that produced them.
+A balance screen reachable from the earnings screen and the profile menu shows the driver's position in EGP, retrieved via #1781. It replaces the earlier read-only "cash owed" view: the balance is now a signed figure over a real ledger (#1813), so the screen must present both directions and the movements that produced them.
 
 **The headline states the direction in words, not a sign.** When the driver owes the platform, the screen reads "مستحق عليكِ" / "You owe" with the amount and a short explanation that on cash trips she keeps the fare and the platform's commission is settled later. When the platform owes her, it reads "رصيدك المتاح" / "Your available balance" — explained as what SheDrive owes her, not a button she can act on. A driver never requests a payout: Finance transfers it on its own cycle, and it appears here, in her statement, once sent. A driver never sees a minus sign in front of her own money.
 
-**Below the headline is the statement** — a newest-first list of transactions, each with its date, a localised description, and the signed amount coloured as a credit or a debit. Credits and debits are visually distinct and each row states its type in plain language: commission on a trip, a cancellation fee charged, a cancellation fee share earned, a settlement received, or a payout sent by Finance. Tapping a trip-linked row opens that trip's detail (#1594).
+**Below the headline is the statement** — a newest-first list of transactions, each with its date, a localised description, and the signed amount coloured as a credit or a debit. Credits and debits are visually distinct and each row states its type in plain language: commission on a trip, a cancellation fee charged, a cancellation fee credit earned, a settlement received, or a payout sent by Finance. Tapping a trip-linked row opens that trip's detail (#1594).
 
 **A warning band appears as she approaches the limit.** When her outstanding amount reaches the configured warning threshold (default 80% of the balance limit, both set via #3994, returned by #1781), a warning band explains that she will not be able to go online once she reaches the limit. At or above the limit the band becomes a blocking notice consistent with #3988, with a link to settle (#3989).
 
-The screen is read-only. Settling is an operational process handled by Finance (#1813), and so is a payout — she cannot request one; it is recorded once Finance has already sent it and appears here automatically. Every entry on this screen is permanent — Phase 1 has no correction mechanism (#3991), so a mis-recorded entry stands as posted. The commission percentage is never shown, only EGP amounts. All strings flow through data-i18n keys with Arabic fallback.
+The screen is read-only. Settling is an operational process handled by Finance (#1813), and so is a payout — she cannot request one; it is recorded once Finance has already sent it and appears here automatically. Every entry on this screen is permanent — Phase 1 has no correction mechanism (#1813), so a mis-recorded entry stands as posted. The commission percentage is never shown, only EGP amounts. All strings flow through data-i18n keys with Arabic fallback.
 
 ### Acceptance Criteria
 
@@ -2122,7 +2122,7 @@ The screen is read-only. Settling is an operational process handled by Finance (
 - And a short explanation states this is what SheDrive owes her, with no action shown to request it
 
 **Scenario 3 — Statement lists every movement type**
-- Given the driver has trip commission, a cancellation fee charged, a cancellation fee share, a settlement, and a payout in her history
+- Given the driver has trip commission, a cancellation fee charged, a cancellation fee credit, a settlement, and a payout in her history
 - When the statement loads
 - Then each appears as its own row with date, localised description, and signed amount
 - And credits and debits are visually distinguishable
@@ -2188,7 +2188,7 @@ The screen is read-only. Settling is an operational process handled by Finance (
 
 ### Dependencies
 - #1781 — Driver retrieves her balance and statement (API — must be live)
-- #3991 — Driver balance ledger records every balance movement (must be live)
+- #1813 — Super admin reconciles driver balances and records settlements (must be live — owns the driver ledger)
 - #3989 — Driver settles what she owes and sees her settlement history (full receipt history lives there)
 - #1594 — Driver views past trip detail (opened from a trip-linked row)
 

@@ -1,0 +1,364 @@
+@import 'fonts';
+@import 'colors';
+@import 'mixins';
+@import 'variables';
+@import 'components-ar';
+@import 'reset-ar';
+
+.text-justify-center {text-align: justify; text-align-last: center;}
+.text-bold {font-weight: bold;}
+
+.direction-ltr {direction: ltr;}
+.direction-rtl {direction: rtl;}
+
+//// --* SIDEBAR *-- ////
+.wrapper {display: flex; width: 100%;}
+
+#sidebar {@include easeAnimation; position: fixed; top: 0; right: 0; width: 300px; height: 100vh; padding: $size-16; color: $primaryColor; border-left: $size-1 solid $primaryColor-100; overflow-y: auto; overflow-x: hidden; z-index: 999;}
+#sidebar.active {margin-right: -300px;}
+
+#content {@include easeAnimation; position: absolute; top: 0; left: 0; background: $primaryColor-25; width: calc(100% - 300px); min-height: 100vh; padding: 0 $size-10;}
+#content.active {width: 100%;}
+#dismiss {@include easeAnimation; display: none; position: absolute; top: $size-10; left: $size-16; width: $size-32; height: $size-32; background: $primaryColor-100; color: $primaryColor; text-align: center; border-radius: $standard-radius; cursor: pointer;
+	&:hover, &:focus {background: $primaryColor-200; color: $primaryColor-600;}
+}
+
+@media (max-width: 768px) {
+    #sidebar {margin-left: -300px; background: $whiteColor;}
+    #sidebar.active {margin-left: 0;}
+    #content {width: 100%;}
+	
+	.overlay {@include easeAnimation; display: none; position: fixed; width: 100vw; height: 100vh; background: rgba($primaryColor-900, 0.7); backdrop-filter: blur($size-3); z-index: 998;}
+	.overlay.active {display: block;}
+	
+	#dismiss {display: block;}
+}
+
+//// --* MAIN NAVIGATION STYLES *-- ////
+.sidebar-header {display: flex; justify-content: center; align-items: center; padding: $size-24; margin-bottom: $size-20;	.logo img {height: 100%; max-height: $size-64;}	}
+#main-menu {display: grid; gap: $size-3; margin-bottom: $size-15; 
+	li a {display: flex; gap: $size-12; justify-content: flex-start; align-items: center; padding: $size-10 $size-16; border-radius: $radius-24; color: $primaryColor; font: normal normal normal $font-size-15 Tajawal-Medium, serif;
+		i {font-size: $size-32; padding: 0; margin: 0;}
+		img {@include dark-icon; width: 100%; max-width: $size-20; height: auto; max-height: $size-32;}
+		&:hover, &:focus, &:active {background: $primaryColor; color: $whiteColor;
+			i {color: $whiteColor;}
+			img {@include white-icon;}
+		}
+	}
+	.active a {background: $primaryColor; color: $whiteColor;
+			i {color: $whiteColor;}
+			img {@include white-icon;}
+	}
+	.disabled a {opacity: .4 !important; pointer-events: none; cursor: not-allowed; user-select: none !important; -ms-user-select: none; -webkit-user-select: none;}
+	
+	.category {padding: $size-12 $size-16 $size-3 $size-16; font: normal normal normal $font-size-16 Tajawal-Medium, serif; color: $primaryColor-300; text-transform: uppercase;
+		&:first-child {padding-top: 0;}
+	}
+}
+
+//// --* HEADER STYLES *--////
+//header {@include flexCenter-x; gap: $size-8; padding: $size-8;}
+header {@include flexCenter-x; gap: $size-8; padding: $size-3 $size-18; margin: 0 -.625rem $size-10 -.625rem; position: sticky; top: 0; background: $whiteColor; border-bottom: $size-1 solid $primaryColor-100; box-shadow: 0 $size-3 $size-8 $primaryColor-50; z-index: 1;}
+
+#sidebarCollapse {padding: 0; margin: 0; font-size: $size-24; color: $primaryColor-400; 	&:hover {color: $primaryColor-600;}	 }
+
+// Left Side Search // 
+.left-side-search {
+	input {border-radius: $standard-radius !important;}
+}
+
+.topbar-menu {padding: 0;
+	.nav-link {@include flexStart-x; gap: $size-6; color: $primaryColor-600; font-size: $font-size-14; padding: $size-8;
+		i {font-size: $size-18;}
+		img.icon {@include dark-icon;}
+		img.user-profile {@include imageInlineFlex; max-height: $size-48; border: $size-2 solid $whiteColor; border-radius: $radius-50; box-shadow: 0 0 $size-2 0 $primaryColor;}
+		.user-info {display: grid; gap: $size-6; font-size: $font-size-12; line-height: $size-14;}
+		.user-name, .user-title {@include textOverflow; max-width: $size-96;}
+		.user-name {font-family: Tajawal-Bold;}
+		.user-title {font-size: $font-size-11; color: $primaryColor-700;}
+	}
+	.dropdown-menu {background: $primaryColor-50; padding: $size-5; font-size: $font-size-12; color: $primaryColor; border: $size-1 solid $primaryColor-100; right: inherit; left: 0;}
+	.dropdown-toggle::after {display: none;}
+	.dropdown-item {@include flexStart-x; gap: $size-5; background: $whiteColor; color: $primaryColor-600; padding: $size-3 $size-10; border: $size-1 solid $primaryColor-200; border-radius: $standard-radius; margin-bottom: $size-2; white-space: normal;
+		i {font-size: $size-14;}
+		img {@include imageInlineFlex; max-height: $size-16;}
+		&:hover, &:focus {background: $primaryColor-25;}
+//	  	i {margin-right: $size-5;} img {max-height: $size-16;}
+	}
+}
+
+
+
+//// --* Filter Container Styles *-- ////
+.filter-container {@include flexStart-x; flex-direction: row; gap: $size-14; align-items: center; width: 100%; padding: $size-16; border: $size-1 solid $primaryColor-100; border-radius: $standard-radius;
+	i.fa-solid {color: $primaryColor-300;}
+	input, select {min-width: $size-160; width: auto !important;}
+	.date-inputs-container {@include flexCenter; width: auto; gap: $size-8; color: $primaryColor-400;}
+	.end-side {@include flexEnd-x; gap: $size-10;}
+	* > .btn {@include flexCenter; flex-wrap: nowrap; gap: $size-4;}
+	
+	@media (max-width: 767px) {flex-direction: initial; justify-content: flex-start;
+		input, select, .btn, .date-inputs-container {width: 100% !important;}
+		.date-inputs-container {gap: 0; margin-bottom: $size-12;}
+		.end-side {width: 100%;}
+	}
+}
+
+
+//// --* CARDS STYLES *-- ////
+// Custom Card Styles //
+.custom-card {@include custom-card; @include easeAnimation;
+	.card-header, .card-body, .card-footer {padding: 0; background: transparent; border: none;}
+	.card-header {display: flex; width: 100%; column-gap: $size-6; align-items: center; justify-content: space-between; padding-bottom: $size-8; margin-bottom: $size-18; border-bottom: $size-1 solid $primaryColor-100;
+		.card-title {display: flex; align-items: flex-end; column-gap: $size-12;
+			.icon-container {display: flex; justify-content: center; align-items: center; width: $size-80; height: $size-80; background: $primaryColor-100; padding: $size-12; border-radius: $size-56 $size-64 0 $size-56;
+				.icon {@include dark-icon; height: $size-40; width: auto;}
+			}
+			h3 {font-family: Tajawal-Bold;}
+		}
+		
+	}
+	.no-border {margin-bottom: $size-8; border-bottom: none;}
+	.card-body {font-size: $font-size-18;
+		p.mb {margin-bottom: $size-24;}
+		p.text-center {text-align: justify !important; text-align-last: center;}
+		ul {margin-bottom: $size-24; font-size: $font-size-15;
+			.icon-container, p {display: inline-flex;}
+			.icon-container {width: $size-32; height: $size-32; background: $primaryColor-100; border-radius: $radius-50; margin: 0 0 $size-10 $size-12;
+				.icon {@include dark-icon; height: $size-18; width: auto; margin: auto;}
+			}
+		}
+		
+	}
+	.card-footer {
+		.btn {@include custom-btn-radius;}
+		.icon {font-size: $font-size-12;}
+	}
+	
+	.card-footer-bt {margin-top: $size-24; padding-top: $size-24; border-top: $size-1 solid $primaryColor-100;
+		.btn {padding: $size-14 $size-18; font-family: Tajawal-Medium; font-size: $size-16;
+			img {@include dark-icon; width: auto; height: $size-16; margin-left: $size-3; margin-right: $size-3;}
+			i.next, i.prev {font-size: $size-12;}
+			@media (max-width: 567px) {padding: $size-6; border-radius: $standard-radius;}
+			&:hover, &:focus, &:active { img {@include white-icon;} }
+		}
+	}
+}
+.custom-card.hover-active {
+	&:hover {background: $primaryColor; color: $primaryColor-25; transform: scale(1.05);
+		h3 {color: $whiteColor;}
+	}
+}
+
+// Stadard Card Styles //
+.standard-card {@include standard-card; margin-bottom: $size-20;
+	.card-header, .card-body, .card-footer {padding: 0; border: none;}
+	.card-header-underline {border-bottom: $size-1 solid $primaryColor-100; padding-bottom: $size-6;}
+	.card-header, .card-header-underline {display: flex; column-gap: $size-6; align-items: center; justify-content: space-between; margin-bottom: $size-10;
+		.card-title {display: flex; column-gap: $size-6;
+			h1, h2, h3, h4, h5, h6 {margin: 0;}
+			//		i.icon, img.icon, h1, h2, h3, h4, h5, h6 {display: inline-flex; margin-left: $size-5;}
+			img.icon, img.icon-small {@include dark-icon; width: auto; height: 100%; background: none;}
+			img.icon {max-height: $size-24;}  img.icon-small {max-height: $size-20;}
+		}
+		.btn-close, .btn-edit {padding: 0; align-content: center; color: $primaryColor-300 !important;
+			img.icon {@include dark-icon; @include easeAnimation; width: auto; height: $size-16; margin: 0; opacity: .6;}
+			&:hover, &:focus, &:active {color: $primaryColor-600 !important;
+				img.icon {opacity: 1;}
+			}
+		}
+
+	}
+	.card-body {padding: 0; margin-bottom: $size-14; font-size: $font-size-16;}
+	.list-multi-column {@include standard-card; display: grid; font-size: $font-size-14; line-height: $size-30; color: $primaryColor-600;
+		.list-row {padding-bottom: $size-4 !important; border-bottom: $size-1 solid $primaryColor-100;
+			&:last-child {border-bottom: none;}
+//			&:nth-last-child(2n) {border-bottom: none;}
+		}
+		.list-row-rounded {border-radius: $standard-radius; padding: $size-4 !important; margin-bottom: $size-2; border: $size-1 solid $primaryColor-100;
+			&:last-child {margin-bottom: 0;}
+		}
+		.list-row.no-border, .list-row-rounded.no-border {border: none;}
+        
+		.list-item {display: flex; align-items: center; text-align: initial;}
+	}
+	.list-multi-column.no-border {border: none;}
+	
+	.card-footer {width: 100%;
+		.btn {border-radius: $standard-radius;
+			img {display: inline-flex; width: auto; height: 100%; max-height: $size-24; margin-left: $size-6;}
+		}
+		.btn-save, .btn-delete {padding-right: $size-12; padding-left: $size-12;}
+		.btn-download-file {display: flex; align-items: center; justify-content: center; column-gap: $size-6; background: $primaryColor; font-size: $font-size-14; color: $whiteColor; white-space: nowrap;
+			i {font-size: $size-12;}
+			img {@include white-icon; width: auto; height: 100%; max-height: $size-24; padding: 0; margin: 0;}
+			&:hover, &:active {background: $tertiaryColor;}
+			@media (max-width: 767px) {width: 100%;}
+		}
+	}
+}
+
+// Standard Card Theme Two Styles //
+.standard-card-theme2 {@include standard-card; margin-bottom: $size-20; border-radius: $standard-radius;
+	// Card Header //
+	.card-header, .card-body, .card-footer {padding: 0; border: none;}
+	.card-body, .card-footer {margin-top: $size-16;}
+	.card-header.underline {border-bottom: $size-1 solid $primaryColor-100; padding-bottom: $size-12;}
+	.card-header, .card-header.underline {display: flex; flex-wrap: nowrap; gap: $size-6; align-items: center; justify-content: space-between;
+		.card-title {display: flex; flex-wrap: wrap; gap: $size-6; align-items: baseline;
+			h1, h2, h3, h4, h5, h6 {margin: 0; font-family: Tajawal-Bold !important;}
+			span {font: normal normal normal $font-size-12 Tajawal-Regular; color: $primaryColor-300;}
+		}
+		.icon {display: flex; justify-content: center; align-items: center; width: 100%; max-width: $size-38; height: $size-38; background: rgba($primaryColor, .5); border-radius: $standard-radius;
+			i {color: $whiteColor; font-size: $size-24;}
+			img {@include white-icon; width: auto; height: $size-24; padding: 0; margin: 0;}
+		}
+	}
+	
+	// Card Body //
+	.card-body {font-size: $font-size-15;}
+	.list-multi-column {@include standard-card; display: grid; font-size: $font-size-13; line-height: $size-32; color: $primaryColor-600;
+		.list-row {padding-bottom: $size-4 !important; border-bottom: $size-1 solid $primaryColor-100; align-items: center;
+			&:last-child {border-bottom: none;}
+		}
+		.list-row-rounded {border-radius: $standard-radius; padding: $size-4 !important; margin-bottom: $size-2; border: $size-1 solid $primaryColor-100; align-items: center;
+			&:last-child {margin-bottom: 0;}
+		}
+		.list-row.no-border, .list-row-rounded.no-border {border: none;}
+        
+		.list-item, .list-item-grid {display: flex; align-content: center; text-align: justify;
+            .link {text-decoration: underline;    i {font-size: $font-size-10;}    }
+        }
+        
+        .list-item-grid {flex-direction: column; gap: $size-4; line-height: $size-16;     span {font-size: $font-size-12; color: $primaryColor-300;}     }
+	}
+	.list-multi-column.no-border {border: none;}
+	
+	// Card Footer //
+	.card-footer {@include flexCenter-x; margin-bottom: $size-8;
+		.btn-download-file {display: flex; align-items: center; justify-content: center; column-gap: $size-6; background: $primaryColor; font-size: $font-size-14; color: $whiteColor; white-space: nowrap;
+			i {font-size: $size-12;}
+			img {@include white-icon; width: auto; height: 100%; max-height: $size-24; padding: 0; margin: 0;}
+			&:hover, &:active {background: $tertiaryColor;}
+			@media (max-width: 767px) {width: 100%;}
+		}
+	}
+}
+
+
+//// --* LOGING STYLES *-- ////
+.login-end-side {background: radial-gradient($secondaryColor 5%, $primaryColor-800); min-height: 100vh; align-content: center;
+	img {display: table; width: 100%; max-width: 600px; height: auto; margin: auto;
+		@media (max-width: 991px) {padding: 0 $size-32;}
+	}
+}
+.login-start-side {align-content: center; justify-content: center; padding: $size-40; font-size: $font-size-18/*calc(1rem + .1vw)*/;
+	.login-logo {display: block; width: auto; height: auto; max-height: $size-90; margin: 0 auto $size-40 auto;}
+	.selector-container {width: 100%; padding: $size-16; margin-bottom: $size-16; background: $primaryColor-50; border-radius: $standard-btn-radius; font-size: $font-size-18 !important;
+		.btn {@include easeAnimation-5s; padding: $size-20; font-size: $font-size-18; font-weight: bold; color: $primaryColor-200; border: none; border-radius: $standard-btn-radius;
+			.icon {@include disable-icon; width: auto; height: 100%; max-height: $font-size-30; margin-left: $size-8;}
+		}
+		.btn-check:checked + .btn, .btn.active, .btn.show, .btn:first-child:active, :not(.btn-check) + .btn:active {background: $primaryColor; color: $whiteColor;
+			.icon {@include white-icon;}
+		}
+	}
+	
+	.input-group {align-content: center; margin-top: $size-24;}
+	input.form-control, select.country-key {border: $size-1 solid $primaryColor-200; border-radius: $standard-btn-radius !important; font-size: $font-size-16; color: $primaryColor-600; align-content: center;
+		&::placeholder {color: $primaryColor-200;}
+		&:focus {box-shadow: 0 0 $size-12 0 $primaryColor-200;}
+	}
+	input.form-control {direction: rtl; background: $primaryColor-25; padding: $size-16 $size-56 $size-16 $size-16 !important; font-size: $font-size-16 !important;
+		&::placeholder {color: $primaryColor-200;}
+		&:focus {box-shadow: 0 0 $size-12 0 $primaryColor-200;}
+	}
+	input.password {padding: $size-16 $size-56 $size-16 $size-42 !important;
+		&:focus {background: $primaryColor-25 !important;}
+	}
+	input.recovery-code {padding: $size-16 !important;}
+	.input-icon {@include imageInlineFlex; @include dark-icon; position: absolute; right: $size-16; top: $size-20; height: 100%; max-height: $font-size-22; z-index: 99;}
+	
+	.show-hide-icon {position: absolute; left: $size-12; top: $size-16; background: transparent; border: none; color: $primaryColor-600; z-index: 100;}
+	
+	input.form-check-input {border: $size-1 solid $primaryColor-200;}
+	
+	label {font-size: $font-size-16;}
+	
+	select.country-key {direction: ltr; padding: $size-16 $size-12 $size-16 $size-34 !important;
+		option {font-size: $font-size-14;
+			img {width: auto; height: $font-size-16;}
+		}
+	}
+	
+	input.custom-file-input {width: 100%; margin: 0; min-height: $size-144; padding: $size-16; opacity: 0; z-index: 2;}
+	label.custom-file-label {position: absolute; top: 0; width: 100%; min-height: 100%; padding: $size-16; background: $primaryColor-25; text-align: center; font-size: $font-size-14; color: $primaryColor-600; border: $size-2 dashed $primaryColor-200; border-radius: $standard-btn-radius !important; line-height: $size-22; cursor: pointer !important;
+		span {display: block; font-size: $font-size-12;}
+		img {@include dark-icon; display: table; margin: $size-12 auto; width: 100%; max-width: $size-40; height: auto;}
+	}
+	
+	.btn-submit {width: 100%; padding: $size-16; margin: $size-32 auto 0; font-size: $font-size-16; gap: $size-5; justify-content: center; align-items: center;
+		i {font-size: $size-16;}
+		img {@include imageInlineFlex; max-height: $size-16;}
+	}
+	
+	.line {width: 100%; border-top: $size-1 solid $primaryColor-100; opacity: 1;}
+	
+	.btn-login-with {width: 100%; height: 100%; padding: $size-12 $size-16; font-size: $font-size-20; color: $primaryColor-600; box-shadow: 0 0 0 $size-1 $primaryColor-300;
+		&:hover, &:focus, &:active {background: $primaryColor-600 !important; color: $whiteColor;}
+		i, img.icon {display: inline-flex; margin-right: $size-6; font-size: $font-size-28;}
+		img.icon {width: auto; height: $font-size-24;}
+	}
+	
+	.resend-counter	{display: flex; gap: $size-4; font-size: $font-size-14; color: $primaryColor-400; 	span {font-family: Tajawal-Bold;} 	}
+	
+	.password-requirements {display: flex; flex-direction: column; gap: $size-6; width: 100%; list-style: inside; line-height: $size-16; margin-top: $size-18; font-size: $font-size-14; color: $primaryColor-600;}
+}
+
+// Pie Chart Counter //
+@property --p {syntax: '<integer>'; initial-value: 0; inherits: true;}
+.pie {--p: 36/* Target percentage */; display: grid; width: $size-32; aspect-ratio: 1; border-radius: 50%; background: conic-gradient($tertiaryColor calc(var(--p) * 1%), $tertiaryColor-200 0); color: $primaryColor; place-content: center; transition: --p 2s ease-in-out;}
+.pie::after {counter-reset: percent var(--p); content: counter(percent) "%"; font-size: $font-size-12; font-weight: bold;}
+
+
+
+/////////////////////////////////////////
+////**** Internal Pages Styles ****\\\\\\
+/////////////////////////////////////////
+
+/// Section Title Styles ///
+.section-title {display: flex; column-gap: $size-6; justify-content: space-between; align-items: baseline; margin-bottom: $size-24;
+	.title, .end-side {display: flex; gap: $size-8; align-items: baseline;}
+	.title {
+		h1, h2, h3, h4, h5, h6 {margin: 0; font-family: Tajawal-Bold;}
+		img.icon, img.icon-small {@include dark-icon; width: auto; height: 100%;}
+		img.icon {max-height: $size-24;}  img.icon-small {max-height: $size-20;}
+	}
+	.end-side {justify-content: flex-end;}
+//	.btn-back {padding: 0; align-content: center; color: $primaryColor-300 !important;
+//		img.icon {@include dark-icon; @include easeAnimation; width: auto; height: $size-16; margin: 0; opacity: .6;}
+//		&:hover, &:focus, &:active {color: $primaryColor-600 !important;
+//			img.icon {opacity: 1;}
+//		}
+//	}
+}
+
+
+/// Processing Average Time Styles ///
+.processing-time {@include flexCenter; flex-direction: column; gap: $size-12;
+	h1, h2, h3, h4, h5, h6 {font-family: Tajawal-Bold; margin-bottom: 0;}
+	.stopwatch {@include flexCenter; width: $size-120; height: $size-120; background: $primaryColor-50; padding: $size-8; margin: $size-32 auto 0; border-radius: $radius-50;
+	img {@include imageInlineFlex; max-height: $size-88;}
+	}
+	.time-duration {@include flexCenter; flex-direction: row; gap: $size-16; width: 100%;
+		.minimum, .normal, .maxmum {@include flexCenter; flex: content; flex-direction: column; gap: $size-6; width: 33.33333333%; height: 100%; min-height: $size-72; padding: $size-12; border-radius: $standard-radius; font-size: $font-size-12; line-height: $size-6;}
+		.minimum {background: $infoAlertColor; color: $tertiaryColor; 	h5 {color: $tertiaryColor;} }
+		.normal {background: $successAlertColor; color: $secondaryColor; 	h5 {color: $successColor;} }
+		.maxmum {background: $warningAlertColor; color: $warningColor; 	h5 {color: $warningColor;} }
+	}
+}
+
+
+
+/// Routing Map Styles ///
+.routing-map {width: 100%; height: 100%; min-height: 250px; background: $whiteColor; border: $size-1 solid $primaryColor-100; border-radius: $standard-radius; box-shadow: 0 $size-2 $size-5 rgba($primaryShadowColor, .08); padding: $size-5;}
+

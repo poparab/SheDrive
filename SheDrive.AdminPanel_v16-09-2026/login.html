@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ar" dir="ltr">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>SheDrive</title>
+	<!-- Bootstrap File -->
+	<link rel="stylesheet" type="text/css" href="css/bootstrap/bootstrap.min.css" >
+	<!-- Font Awesome Style Sheet File -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">	
+	<!-- Main Style Sheet File -->
+	<link href="css/styles.css" rel="stylesheet" type="text/css">
+	<!-- Browzer Tab Icon -->
+	<link rel="shortcut icon" href="img/favicon.png" type="image/x-icon">
+</head>
+
+<body>
+	
+	<div class="container-fluid container-md-width">
+		<div class="row">
+			<div class="col-xl-6 col-xxl-5 login-start-side">
+				<img class="login-logo" src="img/logo.png" alt="">
+				<h2>Sign in</h2>
+				<p class="mb-4">Operations Staff Only. Two-Factor Authentication Required.</p>
+				<form action="">	
+					
+					<div class="input-group">
+						<input type="email" class="form-control" id="InputEmail1" aria-describedby="emailHelp" placeholder="Email">
+						<img class="input-icon" src="icons/mail.svg">
+					</div><!-- End Input-Group -->
+
+					<div class="input-group" id="show_hide_password">
+						<input class="form-control password" type="password" id="passwordInput" placeholder="Password">
+						<img class="input-icon" src="icons/lock2.svg">
+						<button class="show-hide-icon" type="button" aria-label="Toggle password visibility">
+							<i class="fa-regular fa-eye" id="showHidePassword"></i>
+						</button>
+					</div>
+
+					<div class="col mt-4">
+						<div class="form-check float-start">
+      						<input class="form-check-input" type="checkbox" id="gridCheck">
+      						<label class="form-check-label" for="gridCheck">Remember Me</label>
+						</div>
+						
+						<a class="primary-link float-end" href="password-forgot.html">Forgot Password?</a>
+					</div><!-- End Col -->
+					
+					<button type="button" class="btn btn-primary-gradient btn-submit" onClick="location.href='2fa.html'">Login</button>
+					
+				</form><!-- End Form -->
+				
+				<div class="row align-content-center mt-4">
+					<div class="col"><hr class="line"/></div><!-- End Col -->
+					<div class="col-auto">Or</div><!-- End Col -->
+					<div class="col"><hr class="line"></div><!-- End Col -->
+				</div><!-- End Row -->
+				
+				<div class="row row-cols-md-2 gx-4 mt-4">
+					<div class="col">
+						<a class="btn btn-primary-outline btn-login-with" href="javascript:;">Apple <i class="fa-brands fa-apple"></i></a>
+					</div>
+					<div class="col">
+						<a class="btn btn-primary-outline btn-login-with" href="javascript:;">google <img class="icon" src="icons/google.svg"></a>
+					</div>
+				</div><!-- End Row -->
+				
+				<!--
+				<div class="row row-cols-1 mt-4 mb-2">
+					<div class="col text-center">
+						ليس لديك حساب؟ <a class="tertiary-link" href="registration-agency.html">إنشاء حساب جديد</a>
+					</div><!- End Col ->
+				</div><!-- End Row -->
+				
+			</div><!-- End Col -->
+			
+			<div class="d-none d-xl-block col-xl-6 col-xxl-7 login-end-side">
+				<img src="img/login-slogan.png" alt="">
+			</div><!-- End Col -->
+
+		</div><!-- End Row -->
+	</div><!-- End Container -->
+	
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+    		const toggleButton = document.querySelector('#show_hide_password button');
+			const passwordInput = document.querySelector('#passwordInput');
+    		const toggleIcon = document.querySelector('#showHidePassword');
+
+    		toggleButton.addEventListener('click', function (event) {
+        		event.preventDefault();
+
+        		// Toggle the type attribute
+        		const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        		passwordInput.setAttribute('type', type);
+
+        		// Toggle the eye icon class
+        		if (type === 'text') {
+            		toggleIcon.classList.remove('fa-eye');
+            		toggleIcon.classList.add('fa-eye-slash');
+        		} else {
+            		toggleIcon.classList.remove('fa-eye-slash');
+            		toggleIcon.classList.add('fa-eye');
+        		}
+    		});
+		});
+	</script>
+</body>
+</html>
