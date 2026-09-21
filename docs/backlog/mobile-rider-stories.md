@@ -1199,13 +1199,13 @@ When a rider taps a row in her trip history list, she is taken to the trip detai
 ## [Mobile] #1724 — Rider views and manages her profile ♻️
 **Feature:** Feature 1 — Rider Authentication (#1532) | **Sprint:** Backlog (not scheduled)
 
-**Description:** As a rider, I want one profile screen that shows who I am on SheDrive — my photo, my name, how many trips I have taken, how I am rated and how long I have been riding — and lets me keep my photo, my name and my saved places up to date, so that my account reflects me and booking a ride to a place I go to often takes one tap.
+**Description:** As a rider, I want one profile screen that shows who I am on SheDrive — my photo, my name, how many trips I have taken, how I am rated and how long I have been riding — and lets me keep my photo and my saved places up to date, so that my account reflects me and booking a ride to a place I go to often takes one tap.
 
 ### Background
 
-The rider profile screen is reached from the app's drawer menu and is the one place she sees her account as a whole. It is served by a single call (#4475), so the screen renders in one pass rather than assembling itself from several requests.
+The rider profile screen is reached from the app's drawer menu and is the one place she sees her account as a whole. Her header, her stats and her saved places come from a single call (#4475). The emergency contacts count comes from the contacts' own endpoint (#1787), and her language preference is stored on the device, so neither goes through the profile call.
 
-**Three things are editable, the rest are read-only or links.** She can change her full name, set or change her profile photo, and manage her saved places. Her phone number, her trip count, her rating and her joining date are shown and cannot be edited. Her payment method and her emergency contacts appear as rows that open the screens that own them — this screen never edits either.
+**Two things are editable, the rest are read-only or links.** She can set or change her profile photo, and manage her saved places. Her name, her phone number, her trip count, her rating and her joining date are shown and cannot be edited. Her payment method and her emergency contacts appear as rows that open the screens that own them — this screen never edits either.
 
 **Her photo is optional and decorative.** Unlike the driver photo, which exists for gender verification (#1686), a rider photo is never checked against anything and is visible only to her. Until she sets one, the screen shows a placeholder, and she can remove it at any time and go back to that placeholder.
 
@@ -1219,10 +1219,10 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 
 | Section | Shows | Behaviour |
 |---|---|---|
-| Header | Profile photo with the account-status badge, full name, phone number, Edit Profile | Tapping the photo opens the photo actions; Edit Profile opens the editable fields |
+| Header | Profile photo with the account-status badge, full name, phone number, Edit Profile | Tapping the photo or Edit Profile opens the photo actions — her name and phone are not editable |
 | Stats row | Trips, Rating, Since | Read-only. Completed trips, her aggregate rating to one decimal, and the year she joined |
 | Account — Payment Method | Cash | Opens the payments screen (#3992). Never shows her outstanding balance here |
-| Account — Emergency Contacts | The number of trusted contacts she has saved | Opens the emergency contacts screen (#1787), which owns them |
+| Account — Emergency Contacts | The number of trusted contacts she has saved, read from the contacts endpoint (#1787) | Opens the emergency contacts screen (#1787), which owns them |
 | Saved Places | Home and Work first, then her custom places; a Manage action | Tapping one opens it for editing; Manage opens the full list to add, edit and delete |
 | Log Out | — | The existing logout flow (#1547), unchanged |
 
@@ -1230,7 +1230,6 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 
 | Field | Required | Format | Min | Max | Error — empty | Error — invalid |
 |---|---|---|---|---|---|---|
-| Full name | Yes | Letters and spaces only (Arabic or Latin) | 2 chars | 60 chars | الاسم مطلوب / Name is required | الاسم يحتوي على أحرف غير صالحة / Name contains invalid characters |
 | Profile photo | No | JPEG or PNG, from camera or gallery | — | 10 MB | — | اختاري صورة JPEG أو PNG أقل من 10 ميجا / Choose a JPEG or PNG under 10 MB |
 | Saved place label | Yes | `Home`, `Work`, or a custom label | 1 char | 30 chars | سمي هذا المكان / Name this place | — |
 | Saved place address | Yes | Chosen through the existing address search (#1548) | — | — | اختاري عنوانًا / Choose an address | This address is outside our service area |
@@ -1243,7 +1242,7 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 - And the stats row shows 128 trips, a 4.9 rating and the year she joined
 - And the account section shows Cash as her payment method and a count of 3 emergency contacts
 - And her saved places are listed with Home and Work first
-- And her current language preference is shown (#1729)
+- And her current language preference, stored on this device, is shown (#1729)
 
 **Scenario 2 — A brand-new rider sees empty states, not zeros**
 - Given a rider who registered today, has taken no trips, has never been rated, has no photo and no saved places
@@ -1252,93 +1251,86 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 - And the trips figure reads 0, the rating reads a dash rather than 0.0, and the year she joined is this year
 - And the emergency contacts row reads that she has none, and the saved places section invites her to add one
 
-**Scenario 3 — Rider edits and saves her name**
-- Given the rider opens Edit Profile and enters a valid new name
-- When she saves
-- Then the change is sent to the platform (#4475), the header shows the new name, and the success toast "تم حفظ التغييرات" / "Changes saved" is shown
+**Scenario 3 — Name and phone number cannot be changed**
+- Given the rider views her profile
+- When she taps her name or her phone number
+- Then neither enters edit mode
+- And tapping the phone number shows the note "رقم الهاتف لا يمكن تغييره" / "Phone number cannot be changed"
 
-**Scenario 4 — Name validation fails**
-- Given the rider clears the name field or enters invalid characters
-- When she saves
-- Then the inline validation error from the table above is shown and no save request is sent
-
-**Scenario 5 — Phone number cannot be changed**
-- Given the rider views or edits her profile
-- When she taps the phone number field
-- Then it does not enter edit mode and the note "رقم الهاتف لا يمكن تغييره" / "Phone number cannot be changed" is shown
-
-**Scenario 6 — Rider adds a profile photo**
+**Scenario 4 — Rider adds a profile photo**
 - Given a rider with no profile photo
 - When she taps the placeholder and chooses a photo from her camera or her gallery
 - Then a preview is shown before she confirms
 - And on confirming, the photo is uploaded (#4475) and the header shows it in place of the placeholder
 
-**Scenario 7 — Rider replaces or removes her photo**
+**Scenario 5 — Rider replaces or removes her photo**
 - Given a rider who already has a profile photo
 - When she taps it, the actions offered are to change it or remove it
 - And choosing change and confirming a new image replaces it in the header
 - And choosing remove returns the header to the placeholder, exactly as for a rider who never set one
 
-**Scenario 8 — An unsupported or oversized photo is refused**
+**Scenario 6 — An unsupported or oversized photo is refused**
 - Given the rider picks a file that is not a JPEG or PNG, or is larger than 10 MB
 - When she confirms it
 - Then the error "اختاري صورة JPEG أو PNG أقل من 10 ميجا" / "Choose a JPEG or PNG under 10 MB" is shown
 - And her existing photo, if any, is unchanged
 
-**Scenario 9 — Rider saves a place**
+**Scenario 7 — Rider saves a place**
 - Given the rider opens Manage from the saved places section
 - When she adds a place, labels it Home and picks an address through the address search (#1548)
 - Then it is saved (#4475) and appears in the saved places section
 - And it can then be chosen as a pickup or a destination when she books
 
-**Scenario 10 — One Home and one Work**
+**Scenario 8 — One Home and one Work**
 - Given the rider already has a place saved as Home
 - When she saves a different address as Home
 - Then she is told the existing Home will be replaced, and on confirming exactly one Home remains
 - And the same applies to Work, while custom labels may repeat
 
-**Scenario 11 — Rider edits and deletes a saved place**
+**Scenario 9 — Rider edits and deletes a saved place**
 - Given the rider taps a saved place
 - When she changes its label or address and saves, the list shows the updated place
 - And when she deletes it, she is asked to confirm first, and afterwards it is gone and her other saved places are untouched
 
-**Scenario 12 — Saved places are capped at ten**
+**Scenario 10 — Saved places are capped at ten**
 - Given the rider already has ten saved places
 - When she tries to add another
 - Then she is told she must delete one first, and the add action does not proceed
 
-**Scenario 13 — The account rows open the screens that own them**
+**Scenario 11 — The account rows open the screens that own them**
 - Given the rider views her profile
 - When she taps the payment method row, the payments screen opens (#3992)
 - And when she taps the emergency contacts row, the emergency contacts screen opens (#1787)
+- And the contacts count on the row is the one the contacts endpoint returns (#1787)
 - And her outstanding balance is not shown anywhere on the profile screen
 
-**Scenario 14 — Account status is reflected on her photo**
+**Scenario 12 — Account status is reflected on her photo**
 - Given a rider whose account has been placed under review (#1687) or suspended (#1740)
 - When she opens the profile screen
 - Then the badge on her photo reflects that status rather than the active state
 
-**Scenario 15 — Network error loading the profile**
+**Scenario 13 — Network error loading the profile**
 - Given the profile screen cannot reach the platform
 - When it loads
 - Then a retry option is shown in place of the profile content, and retrying re-issues the request
 
-**Scenario 16 — Network error during a save**
-- Given the rider saves a name, a photo or a saved place
+**Scenario 14 — Network error during a save**
+- Given the rider saves a photo or a saved place
 - When the request fails
 - Then the toast "فشل الحفظ. حاول مجدداً" / "Save failed. Please try again." is shown
 - And she stays on the screen with her entry intact so she can retry
 
-**Scenario 17 — Logging out is unchanged**
+**Scenario 15 — Logging out is unchanged**
 - Given the rider taps Log Out
 - Then the existing logout flow runs exactly as it does today (#1547)
 
-**Scenario 18 — Arabic and English**
+**Scenario 16 — Arabic and English**
 - Given the rider switches language
 - Then every label, stat caption, section heading, action, empty state and error on the screen is displayed in the selected language
 - And the screen lays out correctly in RTL
 
 ### Out of Scope
+- Editing her name — it stays as registered (#1545)
 - Changing her phone number — it is her sign-in identity
 - Managing the emergency contacts themselves — this screen shows the count and links out (#1787)
 - Choosing or adding a payment method — cash is the only one in Phase 1 (#3992)
@@ -1350,8 +1342,8 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 
 ### Dependencies
 - #4475 — Rider profile is served in one call and its editable parts are saved (API — must be live; replaces the removed #1721)
-- #1729 — Rider changes language preference from profile screen (the language row on this screen)
-- #1787 — Rider sets up emergency contacts (the screen the contacts row opens)
+- #1729 — Rider changes language preference from profile screen (the language row on this screen; the preference is stored on the device, with no API)
+- #1787 — Rider sets up emergency contacts (supplies the contacts count, and is the screen the contacts row opens)
 - #3992 — Rider views her payment method (the screen the payment method row opens)
 - #1547 — Rider logs out (the Log Out action)
 - #1548 — Rider address search (the picker used when saving a place)
@@ -1367,7 +1359,7 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 
 ### Background
 
-The language preference toggle is available on the rider profile screen. The rider can switch between Arabic (default, RTL) and English (LTR). When she switches, the UI updates immediately without requiring a restart. The new preference is persisted via #1728. If the preference cannot be saved to the server due to connectivity loss, it is saved locally and synced when connectivity is restored.
+The language preference toggle is available on the rider profile screen. The rider can switch between Arabic (default, RTL) and English (LTR). When she switches, the UI updates immediately without requiring a restart. The preference is stored on the device itself — there is no server copy and no API behind it, so switching language never needs a connection and never fails for lack of one. It survives closing the app and logging out and back in on the same device; a new device starts in Arabic, the default.
 
 ### Acceptance Criteria
 
@@ -1376,36 +1368,40 @@ The language preference toggle is available on the rider profile screen. The rid
 - When she selects English on the language toggle on the profile screen
 - Then the UI language switches with app restart
 - And the layout direction changes from RTL to LTR
-- And the preference is saved via #1728
+- And the preference is saved on the device
 
 **Scenario 2 — Rider switches from English to Arabic**
 - Given the rider is using the app in English
 - When she selects Arabic on the language toggle
 - Then the UI language switches to Arabic with app restart
 - And the layout direction changes to RTL
-- And the preference is saved via #1728
+- And the preference is saved on the device
 
 **Scenario 3 — Language preference is restored after app restart**
 - Given the rider has selected English
 - When she closes and reopens the app
 - Then the app launches in English
 
-**Scenario 4 — Language preference is restored after re-login**
-- Given the rider has selected English, logged out, and logs back in
-- Then the app restores the English preference from the server
+**Scenario 4 — Language preference survives logging out and back in**
+- Given the rider has selected English on this device
+- When she logs out and logs back in on the same device
+- Then the app is still in English
+- And logging out does not clear her language preference
 
-**Scenario 5 — Network error during preference save**
-- Given the rider switches language while offline
-- Then the language updates immediately in the UI
-- And the preference is saved locally
-- And it is synced to the server when connectivity is restored
+**Scenario 5 — Changing the language needs no connection**
+- Given the rider has no network connection
+- When she switches language on the profile screen
+- Then the language changes exactly as it does online
+- And the preference is saved on the device, with no request sent to the platform
 
 ### Out of Scope
 - Languages other than Arabic and English
 - Per-notification language settings
+- Carrying the preference to another device — it is stored on the device only
+- Any server-side copy of the preference, or an API for it
 
 ### Dependencies
-- #1728 — User language preference is stored and retrieved (API — must be live)
+- None — the preference is stored on the device; no API is involved
 
 ---
 

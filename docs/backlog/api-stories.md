@@ -207,17 +207,17 @@ This authenticated endpoint returns the profile data of the user identified by t
 ---
 
 ## [API] #4475 — Rider profile is served in one call and its editable parts are saved 🆕
-**Feature:** Feature 4 — Authentication API (#1600) | **Sprint:** Backlog (not scheduled)
+**Feature:** Feature 4 — Authentication API (#1600) | **Sprint:** Sprint 5 last (phase 1)
 
 **Description:** As the rider app, I want a single endpoint that returns everything on the rider's profile screen and accepts the changes she is allowed to make to it, so that she can see who she is on the platform, how she is rated and how long she has been riding, and manage her photo and her saved places without a screenful of separate calls.
 
 ### Background
 
-The rider profile screen shows her photo, her name and phone, three headline figures — trips, rating and the year she joined — her payment method, her emergency contacts and her saved places. This story serves all of it in **one read**, and accepts the three things she is allowed to change: her name, her profile photo, and her saved places.
+The rider profile screen shows her photo, her name and phone, three headline figures — trips, rating and the year she joined — and her saved places. This story serves all of that in **one read**, and accepts the two things she is allowed to change: her profile photo and her saved places. The payment method row (always cash, #3992), the emergency contacts row (#1787) and her language preference, which the app stores on the device, are not part of this response.
 
-**It aggregates, it does not re-own.** The rating is computed by #2978, the emergency contacts are managed by #1787, the payment method is fixed at cash (#3992) and the language preference is stored by #1728. This endpoint reads those and returns them alongside its own fields; it never recalculates them and it is never the place they are edited. It supersedes the thin shared profile read (#1623) for the rider app.
+**It aggregates, it does not re-own.** The rating is computed by #2978. This endpoint reads those and returns them alongside its own fields; it never recalculates them and it is never the place they are edited. It supersedes the thin shared profile read (#1623) for the rider app.
 
-**Her phone number is not editable here.** It is the identity she signs in with, so changing it is an authentication concern and belongs to its own story. Everything else on the screen is either editable here or is a link through to the screen that owns it.
+**Her name and phone number are read-only here.** The phone is the identity she signs in with, and the name is the one she registered with (#1545); neither is changed through this endpoint.
 
 **Her photo is hers alone.** A rider photo is optional, is never used for verification, and is visible only to her — unlike the driver photo, which exists for gender verification (#1633). It is never returned to a driver and never appears on a trip payload.
 
@@ -228,22 +228,18 @@ The rider profile screen shows her photo, her name and phone, three headline fig
 | Field | Source | Notes |
 |---|---|---|
 | Profile photo URL | This story | Null when she has never uploaded one — the app renders its own placeholder |
-| Full name | #1545 registration | Editable here |
+| Full name | #1545 registration | Read-only here |
 | Phone number | #1545 registration | Read-only here; it is her sign-in identity |
 | Account status | #1687 / #1740 | `active`, `under_review` or `suspended` — drives the badge on her avatar |
 | Total completed trips | Trip records | Completed trips only; cancelled and expired trips are never counted |
 | Aggregate rating | #2978 | Null until she has been rated at least once — never 0.0 |
 | Member since | #1545 registration date | The registration date; the app shows the year |
-| Payment method | Fixed | Always cash in Phase 1 (#3992) |
-| Emergency contact count | #1787 | A count only — the contacts themselves stay on their own endpoint |
 | Saved places | This story | Each with its label and address; home and work first, then the rest newest-first |
-| Language preference | #1728 | Mirrors what the driver profile already returns (#1800), so the app reads it in one place |
 
 ### Field Validation — the editable fields
 
 | Field | Required | Type / Format | Accepted values | Min | Max | Error — empty | Error — invalid |
 |---|---|---|---|---|---|---|---|
-| Full name | Yes | Free text | Arabic and Latin letters, spaces, hyphens and apostrophes | 2 chars | 60 chars | Enter your name / أدخلي اسمك | Enter a valid name / أدخلي اسمًا صحيحًا |
 | Profile photo | No | Image file | JPEG or PNG | — | 10 MB | — | Choose a JPEG or PNG under 10 MB / اختاري صورة JPEG أو PNG أقل من 10 ميجا |
 | Saved place label | Yes | Enum or free text | `home`, `work`, or a custom label | 1 char | 30 chars | Name this place / سمي هذا المكان | — |
 | Saved place address | Yes | Address + coordinates | A resolvable address inside the service area (#1601) | — | — | Choose an address / اختاري عنوانًا | This address is outside our service area / هذا العنوان خارج نطاق الخدمة |
@@ -251,15 +247,15 @@ The rider profile screen shows her photo, her name and phone, three headline fig
 ### Acceptance Criteria
 
 **Scenario 1 — The whole profile comes back in one call**
-- Given an authenticated rider with a photo, 128 completed trips, an aggregate rating of 4.9, three emergency contacts and two saved places
+- Given an authenticated rider with a photo, 128 completed trips, an aggregate rating of 4.9 and two saved places
 - When the app calls the profile endpoint
-- Then a single response returns her photo URL, full name, phone number, account status, 128 completed trips, a rating of 4.9, her registration date, a payment method of cash, an emergency contact count of 3, both saved places with their labels and addresses, and her language preference
-- And no second call is needed to render any part of the profile screen
+- Then a single response returns her photo URL, full name, phone number, account status, 128 completed trips, a rating of 4.9, her registration date, and both saved places with their labels and addresses
+- And no second call is needed to render the header, the stats or the saved places
 
 **Scenario 2 — A brand-new rider returns empty, not zero**
 - Given a rider who registered today, has taken no trips, has never been rated and has saved no places
 - When the app calls the profile endpoint
-- Then the photo URL is null, the completed trip count is 0, the rating is null rather than 0.0, the emergency contact count is 0 and the saved places list is empty
+- Then the photo URL is null, the completed trip count is 0, the rating is null rather than 0.0 and the saved places list is empty
 - And her member-since date is today's registration date
 
 **Scenario 3 — Only completed trips are counted**
@@ -300,61 +296,57 @@ The rider profile screen shows her photo, her name and phone, three headline fig
 - When the file is not a JPEG or PNG, or is larger than 10 MB
 - Then the upload is refused with the validation error above and her existing photo, if any, is unchanged
 
-**Scenario 10 — She edits her name**
+**Scenario 10 — Her name and phone number cannot be changed here**
 - Given an authenticated rider
-- When she submits a new full name within the validation rules
-- Then the change is saved and a later read returns the new name
-- And a name that is empty or outside the length rules is refused with the stated error and nothing is changed
+- When a request attempts to change her name or her phone number through this endpoint
+- Then the request is refused and both are unchanged
 
-**Scenario 11 — Her phone number cannot be changed here**
-- Given an authenticated rider
-- When a request attempts to change her phone number through this endpoint
-- Then the request is refused and her phone number is unchanged
-
-**Scenario 12 — She saves a place**
+**Scenario 11 — She saves a place**
 - Given a rider with no saved places
 - When she saves an address with the label home
 - Then a later read returns that saved place with its label and address
 - And it can be selected as a pickup or a destination on the booking screen (#1601)
 
-**Scenario 13 — One home and one work at most**
+**Scenario 12 — One home and one work at most**
 - Given a rider who already has a place saved as home
 - When she saves a different address as home
 - Then the existing home is replaced rather than duplicated, and a read returns exactly one home
 - And the same rule holds for work, while custom labels may repeat
 
-**Scenario 14 — She edits and deletes a saved place**
+**Scenario 13 — She edits and deletes a saved place**
 - Given a rider with a saved place
 - When she changes its label or its address, a later read returns the updated place
 - And when she deletes it, a later read no longer returns it and her other saved places are untouched
 
-**Scenario 15 — Saved places are capped at ten**
+**Scenario 14 — Saved places are capped at ten**
 - Given a rider with ten saved places
 - When she tries to save an eleventh
 - Then the request is refused with a message telling her to delete one first, and her ten places are unchanged
 
-**Scenario 16 — An address outside the service area is refused**
+**Scenario 15 — An address outside the service area is refused**
 - Given a rider saving a place
 - When the address falls outside the service area (#1601)
 - Then the request is refused with the stated error and nothing is saved
 
-**Scenario 17 — A rider photo is never exposed to anyone else**
+**Scenario 16 — A rider photo is never exposed to anyone else**
 - Given a rider with a profile photo who is on an active trip
 - When the driver app retrieves that trip and its rider details
 - Then no rider photo URL is present in the response
 
-**Scenario 18 — Requests without a valid session are refused**
+**Scenario 17 — Requests without a valid session are refused**
 - Given any read or write on this endpoint
 - When the request arrives with no session token or an expired one
 - Then it is rejected with an authentication error before any profile data is read or changed
 - And a driver session token is refused on the rider profile endpoint
 
 ### Out of Scope
+- Editing her name — it stays as registered (#1545)
 - Changing her phone number — it is her sign-in identity and belongs to an authentication story
-- Managing the emergency contacts themselves — this endpoint returns their count only (#1787)
+- Her emergency contacts, including how many she has — they are served by their own endpoint (#1787)
 - Computing the aggregate rating (#2978)
 - The trip history list behind the trip count (Feature #1605)
-- Choosing or adding a payment method — cash is the only one in Phase 1 (#3992)
+- Her language preference — the app stores it on the device; no API is needed for it
+- Her payment method — always cash in Phase 1 and not part of this response (#3992)
 - Showing the rider's outstanding balance on the profile screen — she is told by the home-screen banner (#3995)
 - Deleting her account (Phase 2)
 - Any rider photo used for verification — the rider photo is decorative and is never checked against anything
@@ -364,8 +356,6 @@ The rider profile screen shows her photo, her name and phone, three headline fig
 - #1623 — User retrieves own profile (this story supersedes it for the rider app)
 - #1545 — Rider registration (supplies name, phone and registration date)
 - #2978 — Driver submits rider rating (supplies the aggregate rating)
-- #1787 — Rider sets up emergency contacts (supplies the count)
-- #1728 — User changes language preference (supplies the language preference)
 - #1601 — Rider Address, Map & Fare Estimate API (resolves and validates saved-place addresses)
 - #1687 / #1740 — Rider placed under review / rider suspension (supply the account status)
 
@@ -408,50 +398,6 @@ The rider profile screen shows her photo, her name and phone, three headline fig
 - Given no Authorization header or an invalid token is present
 - When the endpoint receives the request
 - Then the request is rejected by #1619 auth middleware before any logout action is taken
-
----
-
-## [API] #1728 — User changes language preference from profile screen 🆕
-**Feature:** Feature 4 — Authentication API | **Sprint:** 2
-
-**Description:** As the rider app and driver app, I want to store and retrieve the authenticated user's language preference so that the correct language is applied consistently across sessions and devices.
-
-### Background
-
-This endpoint serves both the rider and driver apps. It supports GET (retrieve current preference) and PUT (update preference). Accepted values are 'ar' (Arabic, default) and 'en' (English). The preference is stored on the user's account record and returned on login so the app can apply the correct locale immediately on launch.
-
-### Acceptance Criteria
-
-**Scenario 1 — GET: Preference is returned for authenticated user**
-- Given an authenticated user sends a GET request
-- When the endpoint is called
-- Then the response includes the current language preference: 'ar' or 'en'
-
-**Scenario 2 — PUT: Preference updated to English**
-- Given an authenticated user sends PUT with language: 'en'
-- When the endpoint is called
-- Then the preference is saved and the response confirms the update
-
-**Scenario 3 — PUT: Preference updated to Arabic**
-- Given an authenticated user sends PUT with language: 'ar'
-- When the endpoint is called
-- Then the preference is saved and the response confirms the update
-
-**Scenario 4 — PUT: Invalid language value is rejected**
-- Given an authenticated user sends PUT with an unsupported language code
-- When the endpoint is called
-- Then the platform returns a validation error
-
-**Scenario 5 — Unauthenticated request is rejected**
-- Given a request arrives without a valid auth token
-- Then the platform rejects it via #1619
-
-### Out of Scope
-- Languages other than 'ar' and 'en'
-- Per-notification language overrides
-
-### Dependencies
-- #1619 — Authentication service (must be live)
 
 ---
 

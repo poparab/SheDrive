@@ -217,64 +217,46 @@ and the historic trip-detail view, so the two match exactly.</em></p>
 
 ## [Driver] Balance & Statement
 
-**ADO:** #3977 — created 2026-09-08
+**ADO:** #3977 — created 2026-09-08 · rewritten 2026-09-21 (shorter, one format across all design stories)
 
 **Screen:** `driver/balance.html` (finish)
 **Parent:** #1840 — Driver — Trip Completion & Earnings
 **AcceptanceCriteria:** *(leave empty — design story format)*
 
 ```html
-<p>This is a driver's financial home base: one signed balance, read as either money
-she is owed (available) or money she owes the platform (outstanding), a warning band
-when she is approaching the outstanding limit, and a full statement of every credit
-and debit that produced that number — trip commissions, trip earnings, cancellation
-fees and shares, recovered-fee deductions, settlements and payouts —
-each with a plain-language cause. Any payout Finance has sent her appears here with
-its reference and date, exactly like a settlement — there is nothing for her to start;
-a payout is only ever recorded after Finance has already sent the money.</p>
-
-<h3>Components</h3>
+<p>The driver's one balance — what she owes SheDrive, or what SheDrive owes her — and the statement behind it. Reached from Earnings. </p>
+<h3>Sections </h3>
 <ul>
-  <li><code>sd-page</code> shell with <code>sd-app-header</code></li>
-  <li>Large balance figure (EGP, 2 decimals, right-aligned, tabular figures) with an
-  explicit "available" or "outstanding" label — never just a bare signed number</li>
-  <li>Warning band: a persistent banner (reuse the same new banner primitive as the
-  rider fee notice) shown once her outstanding balance crosses the configured warning
-  fraction of the limit</li>
-  <li>Statement list: one row per ledger entry — date, entry type in plain language
-  (e.g. "Trip commission", "Cash fee collected from rider", "Settlement recorded",
-  "Payout received"), signed amount, and a link to the related trip/settlement/payout
-  where one exists</li>
-  <li>Last-settlement summary block (date, amount, receipt number)</li>
-  <li><code>sd-button</code> entry point to <code>settle.html</code></li>
+<li>Balance card: the amount, a label that says which way it runs (<strong>You owe</strong> / <strong>Your available balance</strong>) and one line explaining it </li>
+<li>Limit band: shown when she is near or at the balance limit </li>
+<li><strong>Settle now</strong> (only while she owes) and <strong>Settlement history</strong> — both open the settle screen </li>
+<li>Last settlement: amount and date </li>
+<li>Statement: one row per movement — the cause in plain words, date and route or reference, and the signed amount. Trip rows open the trip. Load more at the end </li>
 </ul>
-
-<h3>States</h3>
+<h3>States </h3>
 <ul>
-  <li><strong>Default — available (positive) balance:</strong> balance reads as
-  money SheDrive owes her — an explanation, not an action; there is no withdraw entry
-  point anywhere on this screen</li>
-  <li><strong>Default — outstanding (negative) balance, under warning band:</strong>
-  balance reads as money she owes; settle entry point is the primary action</li>
-  <li><strong>Warning band:</strong> outstanding balance at or above the configured
-  warning fraction of the limit, still short of being blocked — persistent banner
-  above the balance</li>
-  <li><strong>Zero balance:</strong> a distinct neutral reading, not styled as either
-  a credit or a debit</li>
-  <li><strong>Empty statement:</strong> a brand-new driver with no ledger entries yet</li>
-  <li><strong>Loading:</strong> skeleton balance and statement rows</li>
-  <li><strong>Error:</strong> balance/statement failed to load, with retry</li>
+<li><strong>Owes</strong> — Settle now is the main action </li>
+<li><strong>In credit</strong> — explanation only; no settle, and no withdraw anywhere </li>
+<li><strong>Warning</strong> — amber band with the amount and the limit </li>
+<li><strong>Blocked</strong> — red band; she cannot go online until she settles </li>
+<li><strong>Zero</strong> — a new driver: neutral message and an empty statement </li>
+<li><strong>Error</strong> — message and retry </li>
 </ul>
-
-<h3>Behaviour</h3>
-<p><em>Note: credits and debits in the statement must be distinguishable without
-relying on colour alone — pair colour with a leading sign and/or a small icon.
-Every row must name its cause; a bare amount with no explanation is not acceptable
-anywhere on this screen. Every posted row is permanent — Phase 1 has no correction
-mechanism, so nothing here can be edited or reversed.</em></p>
-
-<h3>Preview</h3>
-<p>Mockup: &lt;to be added&gt;</p>
+<h3>Rules </h3>
+<ul>
+<li>Credit and debit rows must differ by sign as well as colour </li>
+<li>Every row names its cause, and no row can be edited or reversed </li>
+</ul>
+<h3>Preview Links </h3>
+<ul>
+<li>Owes — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?owed=200">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?owed=200</a> </li>
+<li>In credit — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?available=850">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?available=850</a> </li>
+<li>Warning — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?warn">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?warn</a> </li>
+<li>Blocked — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?blocked">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?blocked</a> </li>
+<li>Zero / empty statement — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?zero">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?zero</a> </li>
+<li>Error — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?error">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?error</a> </li>
+<li>English (LTR): use the AR / EN switch in the screen header </li>
+</ul>
 ```
 
 ---
@@ -285,144 +267,115 @@ mechanism, so nothing here can be edited or reversed.</em></p>
 
 ## [Driver] Settle What You Owe
 
-**ADO:** #3979 — created 2026-09-08
+**ADO:** #3979 — created 2026-09-08 · rewritten 2026-09-21 (shorter, one format across all design stories)
 
 **Screen:** `driver/settle.html` (new)
 **Parent:** #1840 — Driver — Trip Completion & Earnings
 **AcceptanceCriteria:** *(leave empty — design story format)*
 
 ```html
-<p>This screen is where a driver who owes the platform money finds out how to clear
-it. Settlement itself is recorded by an admin, in person or via a channel like a bank
-deposit — this screen does not take a payment, it tells her what she owes, where and
-how she can hand it over, and shows her the history of settlements she has already
-made, each with its receipt number.</p>
-
-<h3>Components</h3>
+<p>Where a driver sees what she owes, the ways to hand it over, and her past settlements. She settles in person or by transfer and Finance records it — there is no payment inside the app. </p>
+<h3>Sections </h3>
 <ul>
-  <li><code>sd-page</code> shell with <code>sd-app-header</code></li>
-  <li>Amount-owed summary card (EGP, 2 decimals, right-aligned, tabular figures)</li>
-  <li>Channel list: the configurable settlement channels (office cash, bank deposit,
-  mobile wallet, field agent) each with the detail she needs — office address and
-  hours for office cash, account/reference details for bank deposit and mobile
-  wallet, contact info for a field agent</li>
-  <li>Settlement history list: date, channel, amount, receipt number
-  (<code>S-nnnnn</code>)</li>
+<li>Amount owed, with one line on how settling works </li>
+<li>Ways to settle: office cash, bank deposit, mobile wallet, field agent — each says whether a reference number is needed </li>
+<li>SheDrive office: address and opening hours </li>
+<li>Settlement history: amount, date, channel and receipt number </li>
 </ul>
-
-<h3>States</h3>
+<h3>States </h3>
 <ul>
-  <li><strong>Default — owes money:</strong> amount-owed card, channel list, and
-  history all shown</li>
-  <li><strong>Zero owed:</strong> a neutral, positive-reading state — nothing to
-  settle, channel list can be hidden or muted</li>
-  <li><strong>Empty history:</strong> a new driver who has never settled before</li>
-  <li><strong>Loading / Error:</strong> standard fetch states with retry on error</li>
+<li><strong>Owes</strong> — amount, ways to settle and history </li>
+<li><strong>Nothing to settle</strong> — a neutral message; history empty for a new driver </li>
+<li><strong>Error</strong> — message and retry </li>
 </ul>
-
-<h3>Behaviour</h3>
-<p><em>Note: there is no in-app "pay now" button on this screen — settlement is a
-real-world action an admin records afterward. Design it as an instruction-and-history
-screen, not a checkout flow.</em></p>
-
-<h3>Preview</h3>
-<p>Mockup: &lt;to be added&gt;</p>
+<h3>Rules </h3>
+<ul>
+<li>An instruction-and-history screen, not a checkout — no pay button </li>
+</ul>
+<h3>Preview Links </h3>
+<ul>
+<li>Owes — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?owed=320">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?owed=320</a> </li>
+<li>Nothing to settle — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?zero">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?zero</a> </li>
+<li>Error — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?error">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?error</a> </li>
+<li>Reached from the balance screen — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?owed=320">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?owed=320</a> </li>
+<li>English (LTR): use the AR / EN switch in the screen header </li>
+</ul>
 ```
 
 ---
 
 ## [Driver] Go-Online Blocked & Warning Band
 
-**ADO:** #3980 — created 2026-09-08
+**ADO:** #3980 — created 2026-09-08 · rewritten 2026-09-21 (shorter, one format across all design stories)
 
 **Screen:** `driver/home.html` (extend)
 **Parent:** #1838 — Driver — Home & Trip Acceptance
 **AcceptanceCriteria:** *(leave empty — design story format)*
 
 ```html
-<p>This is the highest-stakes screen in the whole financial core: it is the one that
-can stop a driver from earning. When her outstanding balance reaches the platform
-limit, going online is blocked outright until she settles. Before that point, a
-warning band gives her advance notice while she can still work. Both states have to
-be immediately legible and immediately actionable — a driver seeing this screen
-should never be left wondering how much she owes, what the limit is, or what to do
-about it.</p>
-
-<h3>Components</h3>
+<p>How the driver home screen warns her as her balance nears the limit, and stops her going online once she reaches it. </p>
+<h3>Sections </h3>
 <ul>
-  <li><code>sd-page</code> shell with <code>sd-app-header</code> and the go-online
-  toggle/control</li>
-  <li>Blocked panel replacing the go-online control entirely: amount owed, the
-  configured limit, and a direct <code>sd-button</code> link to
-  <code>settle.html</code> — all three always shown together, never the amount alone</li>
-  <li>Warning band (the same persistent banner primitive used on
-  <code>balance.html</code>): shown below the go-online control once she crosses the
-  warning fraction of the limit, while she can still go online</li>
+<li>Top bar: online toggle and language switch; today's earnings and working zones </li>
+<li>Balance band under the top bar: the amount owed, the limit and a <strong>Settle now</strong> button — always together </li>
+<li>Blocked sheet: opens when a blocked driver taps the online toggle — why she is blocked, then Settle now, View balance and Close </li>
 </ul>
-
-<h3>States</h3>
+<h3>States </h3>
 <ul>
-  <li><strong>Normal:</strong> outstanding balance under the warning band — ordinary
-  go-online control, no banner</li>
-  <li><strong>Warning band:</strong> outstanding balance at or above the warning
-  fraction of the limit but still under it — go-online still works, banner states the
-  amount and the limit</li>
-  <li><strong>Blocked:</strong> outstanding balance at or over the limit — go-online
-  control is replaced by the blocked panel; amount, limit, and the route to
-  <code>settle.html</code> are always present together</li>
-  <li><strong>Limit disabled:</strong> the platform's outstanding-limit policy is set
-  to 0 (gate off) — no warning band, no block, ever, regardless of balance</li>
-  <li><strong>Loading:</strong> balance/limit status not yet resolved — go-online
-  control does not flash blocked and then clear</li>
-  <li><strong>Error:</strong> status failed to load — degrade to the normal
-  (unblocked) state rather than guessing, with a way to retry</li>
+<li><strong>Normal</strong> — no band </li>
+<li><strong>Warning</strong> — amber band; she can still go online </li>
+<li><strong>Blocked</strong> — red band; tapping the online toggle opens the blocked sheet </li>
 </ul>
-
-<h3>Preview</h3>
-<p>Mockup: &lt;to be added&gt;</p>
+<h3>Rules </h3>
+<ul>
+<li>Only going online is refused — a driver already online is never taken offline </li>
+<li>If the admin sets the limit to 0, no band and no block ever appear </li>
+</ul>
+<h3>Preview Links </h3>
+<ul>
+<li>Normal — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/home.html?zero">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/home.html?zero</a> </li>
+<li>Warning — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/home.html?warn">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/home.html?warn</a> </li>
+<li>Blocked (tap the online toggle for the sheet) — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/home.html?blocked">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/home.html?blocked</a> </li>
+<li>Settle screen the band opens — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?blocked">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?blocked</a> </li>
+<li>English (LTR): use the AR / EN switch in the screen header </li>
+</ul>
 ```
 
 ---
 
 ## [Driver] Cash Collection with a Recovered Fee
 
-**ADO:** #3981 — created 2026-09-08
+**ADO:** #3981 — created 2026-09-08 · rewritten 2026-09-21 (shorter, one format across all design stories)
 
 **Screen:** `driver/cash-collection.html` (extend)
 **Parent:** #1840 — Driver — Trip Completion & Earnings
 **AcceptanceCriteria:** *(leave empty — design story format)*
 
 ```html
-<p>When the rider on this trip is carrying a recovered outstanding fee, the driver's
-cash-collection screen has to tell her to collect more than the fare — fare plus fee
-equals the total she should ask for. This is the driver-side mirror of the rider's
-fare-summary story, so the numbers and the plain-language description of the fee must
-match exactly what the rider sees on her own screen.</p>
-
-<h3>Components</h3>
+<p>When the rider owes a fee from an earlier trip she cancelled late, it is collected with this fare. The cash screen lists it as its own line so the driver can explain the higher total. </p>
+<h3>Sections </h3>
 <ul>
-  <li><code>sd-page</code> shell</li>
-  <li>Itemised collection card: fare line, "Recovered fee" line (amount, EGP 2
-  decimals, right-aligned, tabular figures), then the total to collect, clearly the
-  largest/most prominent number on the screen</li>
+<li>Total to collect — the largest number on the screen </li>
+<li>Breakdown, only when a fee is recovered: Fare, <strong>Outstanding fee from a previous trip</strong>, Total, and a one-line reason </li>
+<li>Net earnings for this trip — on the fare only, never the fee </li>
+<li>Route </li>
 </ul>
-
-<h3>States</h3>
+<h3>States </h3>
 <ul>
-  <li><strong>Default — no recovered fee:</strong> ordinary single-line fare
-  collection, unchanged from today</li>
-  <li><strong>Default — recovered fee on this trip:</strong> itemised fare + fee =
-  total</li>
-  <li><strong>Loading / Error:</strong> standard fetch states with retry on error</li>
+<li><strong>No recovered fee</strong> — the total only </li>
+<li><strong>Recovered fee</strong> — fare + fee = total </li>
 </ul>
-
-<h3>Behaviour</h3>
-<p><em>Note: keep the itemisation and the amount identical to what
-<code>trip-complete.html</code> shows the rider — a mismatch here is what makes a fee
-recovery feel like the driver charging extra on her own initiative.</em></p>
-
-<h3>Preview</h3>
-<p>Mockup: &lt;to be added&gt;</p>
+<h3>Rules </h3>
+<ul>
+<li>The wording and the amounts match the rider's fare summary for the same trip exactly (fare 65 + fee 25 = 90 on both) </li>
+</ul>
+<h3>Preview Links </h3>
+<ul>
+<li>No recovered fee — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/cash-collection.html">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/cash-collection.html</a> </li>
+<li>Recovered fee — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/cash-collection.html?riderfee=25">https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/cash-collection.html?riderfee=25</a> </li>
+<li>Rider side of the same trip — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/trip-complete.html?fee=25">https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/trip-complete.html?fee=25</a> </li>
+<li>English (LTR): use the AR / EN switch in the screen header </li>
+</ul>
 ```
 
 ---
@@ -540,51 +493,28 @@ accept a photo of the receipt or transfer confirmation.</p>
 
 ## [Admin] Driver Balances — One Balance Column, Drop the Note Column
 
-**ADO:** #4381 — created 2026-09-17 · updated 2026-09-17 (freed column carries the #3982 proof thumbnail)
+**ADO:** #4381 — created 2026-09-17 · updated 2026-09-17 (freed column carries the #3982 proof thumbnail) · rewritten 2026-09-21 (shorter, one format across all design stories)
 
 **Screens:** `driver-balances.html`, `driver-balance-details.html` (revision to the delivered kit)
 **Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
 **AcceptanceCriteria:** *(leave empty — design story format)*
 
 ```html
-<p>Two small corrections to the delivered Driver Balances design (<code>driver-balances.html</code>
-and <code>driver-balance-details.html</code>, EN and AR). Everything else on both screens stays
-exactly as delivered — this is a column change only, not a redesign.</p>
-
-<h3>1. Combine "Outstanding" and "Available" into one balance column</h3>
-<p>On the driver balances grid, the two columns <strong>Outstanding (EGP)</strong> and
-<strong>Available (EGP)</strong> are replaced by a single <strong>Balance (EGP)</strong> column.
-A driver only ever has one balance; showing it as two columns means one of them is always empty
-and forces the reader to compare two cells to answer one question.</p>
+<p>Two column changes to the delivered Driver Balances design (driver-balances.html and driver-balance-details.html, English and Arabic). Everything else stays as delivered. </p>
+<h3>Changes </h3>
 <ul>
-  <li>One signed figure per row: negative means she owes the platform, positive means the
-  platform owes her</li>
-  <li>Right-aligned, 2 decimals, tabular figures</li>
-  <li>The direction must be readable without relying on colour alone — pair colour with the
-  leading sign and/or a short label</li>
-  <li>Zero reads as neutral — neither owed nor available</li>
-  <li>The existing balance-status filter and the go-online column are unchanged</li>
+<li><strong>One Balance column</strong> — Outstanding and Available become a single Balance (EGP) column: one signed figure, negative when she owes, positive when she is owed, zero neutral. Sign plus colour, never colour alone. A driver only ever has one balance, so two columns always left one empty </li>
+<li><strong>No Note column in the ledger</strong> — the entry type already names the cause. The freed slot carries the Proof thumbnail from #3982 (receipt or transfer slip, full size on click; — when there is none). Ledger columns: Date · Type · Amount (EGP) · Source · Proof </li>
 </ul>
-
-<h3>2. Remove the "Note" column from the ledger grid</h3>
-<p>On the driver balance details screen, drop the last column, <strong>Note</strong>. The entry
-type already names the cause of every row, so the note column added a mostly-empty column with
-no new information.</p>
-<p>The freed column is not left blank: it carries the <strong>Proof</strong> thumbnail added in
-#3982 — the receipt photo or transfer slip attached when the settlement or payout was recorded,
-opening full-size on click. The ledger grid therefore becomes: <strong>Date · Type · Amount (EGP)
-· Source · Proof</strong>. An entry with nothing attached shows an em dash.</p>
-
-<h3>Scope</h3>
+<h3>Rules </h3>
 <ul>
-  <li>Applies to both language versions of both screens (EN and AR/RTL)</li>
-  <li>No new states, modals or actions — existing empty, loading, error and long-text states
-  keep working with the revised columns</li>
+<li>Both screens, both languages; existing empty, loading, error and long-text states keep working </li>
 </ul>
-
-<h3>Preview</h3>
-<p>Current live screen: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html</p>
-<p>Revised mockup: &lt;to be added&gt;</p>
+<h3>Preview Links </h3>
+<ul>
+<li>Driver Balances (open any driver's ledger for the second change) — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html</a> </li>
+<li>Arabic (RTL) — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html?lang=ar">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html?lang=ar</a> </li>
+</ul>
 ```
 
 ---
@@ -595,7 +525,7 @@ opening full-size on click. The ledger grid therefore becomes: <strong>Date · T
 
 ## [Admin] Per-driver Earnings — Drop the Driver Debt Card, Searchable Driver Picker, Payment Method Column
 
-**ADO:** #4387 — created 2026-09-17
+**ADO:** #4387 — created 2026-09-17 · rewritten 2026-09-21 (shorter, one format across all design stories)
 
 **Screens:** `reconciliation.html`, `reconciliation_ar.html` (revision to the delivered kit `SheDrive.AdminPanel_v16-09-2026`)
 **Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
@@ -611,87 +541,59 @@ Three corrections, gathered into one story:
 | 3 | Add a **Payment method** column to the per-trip grid | It decides who is holding the money: on a cash trip the driver has the fare and owes the commission, on a digital trip the platform has the fare and owes her the net. Without it a row's net earnings cannot be read as "money she has" or "money she is owed", and the Cash vs digital rail cannot be traced back to individual trips. |
 
 ```html
-<p>Three corrections to the delivered Per-driver earnings &amp; settlement design
-(<code>reconciliation.html</code> and <code>reconciliation_ar.html</code>). Everything else on
-the screen stays exactly as delivered — this is a filter, card-row and grid-column change, not
-a redesign.</p>
-
-<h3>1. Remove the "Driver Debt" card — four cards, not five</h3>
-<p>The card row drops <strong>Driver Debt / مديونية السائقة</strong> and keeps four cards:
-<strong>Completed trips · Gross fares · Commission deducted · Net earnings</strong>.</p>
-<p>The four survivors are all <em>period</em> figures … (full copy in ADO #4387, including the
-bordered table giving each card's format, what it shows and what the admin uses it for)</p>
-
-<h3>2. One searchable driver picker — name <em>or</em> phone</h3>
+<p>Three changes to the delivered Per-driver earnings &amp; settlement design (reconciliation.html, English and Arabic). Everything else stays as delivered. Dev counterpart: #1833. </p>
+<h3>Changes </h3>
 <ul>
-  <li>Typing letters matches the <strong>name</strong>; typing digits matches the
-  <strong>phone number</strong></li>
-  <li>Every result row shows <strong>name and phone together</strong></li>
-  <li>01012345678, +20&nbsp;101&nbsp;234&nbsp;5678 and 1012345678 all find the same driver</li>
-  <li>No match → "No match for that name or phone / لا يوجد تطابق لهذا الاسم أو الرقم"</li>
-  <li>Keyboard: ↑ / ↓ move, Enter picks, Esc closes; the phone keeps LTR inside the RTL layout</li>
+<li><strong>Four cards, not five</strong> — drop Driver Debt. The other four — Completed trips, Gross fares, Commission deducted, Net earnings — all change with the date range; Driver Debt is a live balance that does not, so it misleads in that row. Her balance is already on this screen and on Driver Balances. Lay the four out as four equal columns </li>
+<li><strong>One searchable driver picker</strong> — replaces the name search box and the driver dropdown. Letters match the name, digits match the phone (in any format); each result shows name and phone; arrow keys, Enter and Esc work; the phone stays LTR in Arabic. The same picker is used everywhere one driver or rider is chosen, including Reassign on Trip detail </li>
+<li><strong>Payment method column</strong> — the grid becomes Trip date · Payment method · Fare · Commission · Net earnings. A Cash / Digital pill, second, because it decides who holds the money on each row. The CSV export includes it </li>
 </ul>
-
-<h3>3. Add a Payment method column to the per-trip breakdown</h3>
-<p>The grid becomes <strong>Trip date · Payment method · Fare (EGP) · Commission (EGP) ·
-Net earnings (EGP)</strong>, with Payment method as a Cash / نقدًا or Digital / إلكتروني
-status pill in second position. The CSV export carries the same column.</p>
-
-<h3>Preview</h3>
-<p>Live screen (all three implemented):
-https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html</p>
-<p>Arabic (RTL):
-https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html?lang=ar</p>
-<p>Searchable picker in a dialog:
-https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/trip-detail.html?id=TRP-24001
-→ "Reassign to another driver"</p>
-<p>Revised mockup: &lt;to be added&gt;</p>
+<h3>Rules </h3>
+<ul>
+<li>English and Arabic, at 1280 and 1440 px; existing empty, loading and error states keep working </li>
+</ul>
+<h3>Preview Links </h3>
+<ul>
+<li>Per-driver earnings — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html</a> </li>
+<li>Arabic (RTL) — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html?lang=ar">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html?lang=ar</a> </li>
+<li>Picker in a dialog (Reassign to another driver) — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/trip-detail.html?id=TRP-24001">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/trip-detail.html?id=TRP-24001</a> </li>
+</ul>
 ```
 
 ---
 
 ## [Admin] Rider Outstanding Fees
 
-**ADO:** #3984 — created 2026-09-08
+**ADO:** #3984 — created 2026-09-08 · rewritten 2026-09-21 (shorter, one format across all design stories)
 
 **Screen:** `admin-v2/rider-balances.html` (new)
 **Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
 **AcceptanceCriteria:** *(leave empty — design story format)*
 
 ```html
-<p>The rider-side counterpart to the driver balances screen: every rider currently
-carrying an outstanding cancellation balance, and her ledger of fee and payment
-entries. Most riders never appear here — this is exception handling, not a routine
-list. The screen is <strong>read-only</strong>: there is no waive and no write-off
-anywhere in the system. The only way a rider's balance clears is that she pays it, in
-full, on her next completed trip. The one action available is escalating a
-persistently abusive rider to the existing suspension flow.</p>
-
-<h3>Components</h3>
+<p>Riders who currently owe a late-cancellation fee, and the ledger behind each balance. Read-only: a fee is never waived — it clears only when she pays it in full on her next completed trip. </p>
+<h3>Sections </h3>
 <ul>
-  <li><code>ad-shell</code> page skeleton</li>
-  <li><code>ad-filter-bar</code>: search by name/phone, status filter (outstanding /
-  settled)</li>
-  <li><code>ad-data-table</code> columns: rider name, phone, outstanding amount
-  (EGP, right-aligned, tabular figures), oldest unpaid fee date,
-  <code>ad-status-pill</code> for status</li>
-  <li>Ledger view: <code>ad-detail-section</code> plus entries (cancellation fee,
-  fee collected) with cause and related trip link</li>
-  <li>Link into the existing rider-suspension flow (#1740), for persistent abuse —
-  the only action this screen offers beyond visibility</li>
+<li>Search by name or phone, and a balance filter: Outstanding, Settled, All </li>
+<li>Grid: name, phone, outstanding amount (EGP), oldest unpaid fee date, and a Ledger action </li>
+<li>Ledger: every fee and every recovery, with date, type, amount and trip </li>
+<li>Suspend-rider link for persistent abuse — the only action on this screen </li>
 </ul>
-
-<h3>States</h3>
+<h3>States </h3>
 <ul>
-  <li>Standard list states: <code>?state=empty</code>, <code>?state=loading</code>,
-  <code>?state=error</code>, <code>?state=long</code></li>
-  <li>Default populated list; empty state here reads as a genuinely good sign (no
-  riders currently owe anything) rather than a neutral "nothing found"</li>
-  <li>Ledger drawer/detail open, populated and empty</li>
+<li><strong>Default</strong> — riders who owe </li>
+<li><strong>Empty</strong> — no rider owes anything; reads as good news, not “nothing found” </li>
+<li><strong>Loading</strong>, <strong>Error</strong>, <strong>Long names</strong> </li>
 </ul>
-
-<h3>Preview</h3>
-<p>Mockup: &lt;to be added&gt;</p>
+<h3>Preview Links </h3>
+<ul>
+<li>Default — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html</a> </li>
+<li>Empty — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=empty">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=empty</a> </li>
+<li>Loading — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=loading">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=loading</a> </li>
+<li>Error — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=error">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=error</a> </li>
+<li>Long names — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=long">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=long</a> </li>
+<li>Arabic (RTL) — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?lang=ar">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?lang=ar</a> </li>
+</ul>
 ```
 
 ---
@@ -704,49 +606,41 @@ persistently abusive rider to the existing suspension flow.</p>
 
 ## [Admin] Balance & Fee Policy
 
-**ADO:** #3986 — created 2026-09-08 · retitled 2026-09-13
+**ADO:** #3986 — created 2026-09-08 · retitled 2026-09-13 · rewritten 2026-09-21 (shorter, one format across all design stories)
 
 **Screen:** `admin-v2/pricing-policies.html` (extend)
 **Parent:** #2857 — Admin — Pricing, Reporting & Reconciliation
 **AcceptanceCriteria:** *(leave empty — design story format)*
 
 ```html
-<p>This adds the balance policy block to the existing pricing and
-policies screen — the single place a super admin changes commission, grace periods,
-cancellation fees, and the driver outstanding limit and warning band, with no code
-deploy required. A rider's outstanding balance is always recovered in full on her
-next completed trip — there is nothing to configure on that side. A payout to a
-driver is recorded, never configured here — there is no request, approval, minimum,
-maximum, or cooling-off for it anywhere in the system. Every change here writes an
-audit-log entry with who, when, old value and new value, and values already
-snapshotted onto a trip at driver acceptance are never affected retroactively.</p>
-
-<h3>Components</h3>
+<p>The balance and fee section of Global Policies — where a super admin sets commission, grace periods, cancellation fees and the driver balance limit, with no code release. </p>
+<h3>Sections </h3>
 <ul>
-  <li><code>ad-shell</code> page skeleton, added as a new section alongside the
-  existing pricing-policy form on this screen</li>
-  <li>Form fields, grouped logically (trip economics / cancellation fees / driver
-  balance): platform commission %, rider grace period,
-  driver cancellation fee, driver cancellation grace period, rider no-show wait,
-  driver outstanding limit, driver warning band %</li>
-  <li>Inline helper text on the driver outstanding-limit field explicitly stating what
-  a value of 0 does: it disables the go-online gate entirely</li>
-  <li>Save action with a confirmation toast and an updated "last changed by / when"
-  line per field or per section</li>
-  <li>Link to the audit log (<code>audit-log.html</code>) for this screen's history</li>
+<li>Trip economics: platform commission % </li>
+<li>Cancellation: rider grace period, driver cancellation fee, driver grace period, rider no-show wait </li>
+<li>Driver balance: outstanding limit and warning band %. Under the limit, a line saying 0 turns the go-online block off </li>
+<li>One <strong>Save</strong> for the whole form, then a confirmation and the “last changed by / when” line </li>
+<li>Link to the audit log </li>
 </ul>
-
-<h3>States</h3>
+<h3>States </h3>
 <ul>
-  <li>Default — current policy values loaded</li>
-  <li>Loading / Error — standard fetch states, with retry on error and no partial
-  save on a failed submit</li>
-  <li>Validation errors — e.g. negative values, out-of-range percentages</li>
-  <li>Saved confirmation — toast plus the refreshed "last changed" metadata</li>
-  <li>Zero-value / gate-disabled state on the driver outstanding-limit field, with the
-  helper text visibly explaining what that means</li>
+<li><strong>Default</strong>, <strong>Loading</strong>, <strong>Error</strong> (a failed save changes nothing) </li>
+<li><strong>Validation errors</strong> — e.g. a negative value or a percentage over 100 </li>
+<li><strong>Saved</strong> — confirmation and refreshed “last changed” </li>
+<li><strong>Limit set to 0</strong> — the helper line explains the block is off </li>
 </ul>
-
-<h3>Preview</h3>
-<p>Mockup: &lt;to be added&gt;</p>
+<h3>Rules </h3>
+<ul>
+<li>Every change is written to the audit log: who, when, old value, new value </li>
+<li>A change never touches a trip already accepted — it keeps the values it was accepted with </li>
+<li>Nothing to set for riders: an outstanding fee is always recovered in full on her next trip </li>
+</ul>
+<h3>Preview Links </h3>
+<ul>
+<li>Default — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html</a> </li>
+<li>Loading — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?state=loading">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?state=loading</a> </li>
+<li>Error — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?state=error">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?state=error</a> </li>
+<li>Arabic (RTL) — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?lang=ar">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?lang=ar</a> </li>
+<li>Audit log — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/audit-log.html">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/audit-log.html</a> </li>
+</ul>
 ```
