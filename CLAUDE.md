@@ -85,7 +85,7 @@ Rules:
 2. **Always add new keys to BOTH** `shared/i18n/ar.json` AND `shared/i18n/en.json` at the same time.
 3. **Never mix Arabic and English inside a single text node.** One key per language — not `<span>طوارئ</span> SOS`.
 4. **Never use hardcoded `aria-label="..."`** on any element — always pair it with `data-i18n-aria-label`.
-5. Key namespaces: `login.*`, `home.*`, `matching.*`, `trip.*`, `emergency.*`, `complete.*`, `menu.*`, `aria.*`, `nav.*`, `common.*`, `splash.*`, `sos.*`, `verifyRider.*`.
+5. Key namespaces: `login.*`, `home.*`, `matching.*`, `trip.*`, `emergency.*`, `complete.*`, `menu.*`, `aria.*`, `nav.*`, `common.*`, `splash.*`, `sos.*`, `verifyRider.*`, `notifications.*`.
 
 `shared/scripts/i18n.js` handles all four attribute types in `applyTranslations()`.
 
@@ -102,6 +102,9 @@ Rules:
 | `shedrive.completedRating` | sessionStorage | string `'1'` | Rating submitted flag |
 | `shedrive.savedPlaces` | localStorage | JSON `[{id, label, name, address}]` | Rider saved places (home/work/custom) |
 | `shedrive.adminSession` | localStorage | JSON `{email, role, loginAt}` | Admin portal session (separate from `shedrive.session`) |
+| `shedrive.notificationsRead` | localStorage | JSON `{rider: [id], driver: [id]}` | Notification inbox read state, per app |
+| `shedrive.notificationPrefs` | localStorage | JSON `{rider: {key: bool}, driver: {…}}` | Notification category switches (locked categories are never stored) |
+| `shedrive.pushPermission` | localStorage | string `'default'\|'granted'\|'denied'` | Mock of the OS push permission |
 
 **Rider and driver screens are deliberately open**, the same way the admin portal is.
 `auth.requireAuth()` provisions a demo session instead of redirecting, so any screen can
@@ -267,6 +270,16 @@ Component APIs:
 - `sd-toast-host`
   - Auto-mounted by `sd-page` unless a page already contains one.
   - Exposes `showToast(message, type, duration)`.
+- `sd-notification-bell`
+  - Link to the notification inbox with an unread badge (caps at 9+).
+  - Attributes: `href`, `count`. The page script sets `count` from `unreadCount(role)` in `shared/scripts/notifications.js`.
+
+The notification inbox and notification settings screens are the same in both apps, so
+their controller (`shared/scripts/notification-inbox.js`), store
+(`shared/scripts/notifications.js`) and styles (`shared/styles/notifications.css`) are
+shared. Each app still owns its three files per screen; the page script only calls
+`mountInbox(role)` or `mountNotificationSettings(role)`. Settings switches use
+Framework7's `.toggle`, made keyboard-reachable and RTL-mirrored in `f7-overrides.css`.
 
 ---
 
@@ -367,6 +380,8 @@ index.html (Splash overlay → Login)
 | `rider/active-trip.html` | Live trip: map + driver card + SOS + demo-end |
 | `rider/emergency.html` | Full-screen SOS dashboard + mock call buttons |
 | `rider/trip-complete.html` | Rating (stars + tags + tip) + trip summary |
+| `rider/notifications.html` | Notification inbox (also `driver/notifications.html`) |
+| `rider/notification-settings.html` | Notification preferences (also `driver/notification-settings.html`) |
 
 ---
 
