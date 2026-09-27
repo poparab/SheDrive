@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-08-05
+> Last updated: 2026-09-24
 > Stories with changes from original are marked ✏️
 
 ---
@@ -478,6 +478,213 @@ All strings — the banner, its amount, its explanation and its dismiss control 
 
 ---
 
+## [Mobile] #4916 — Rider manages her saved places 🆕
+**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** Backlog (not scheduled)
+
+**Description:** As a rider, I want one screen where I can see, add, edit and delete the places I go to often, so that booking a ride to any of them takes one tap instead of a search.
+
+### Background
+
+The Saved Places screen is opened from the Saved Places section of the profile screen (#1724) and from View All next to the saved-places shortcuts on the booking screen. It is the one place she manages her list; everywhere else only reads it.
+
+**Four types of place.** Home and Work — at most one of each — plus Favorite and Other places that she names herself. Home carries a Default badge and is listed first, then Work, then the rest newest-first. The header shows how many she has saved against the cap (for example “4 of 10 places saved”), with the cap taken from the profile service (#4475).
+
+**Add and edit share one sheet.** A bottom sheet with the type chips, a name field and a location field. Choosing the location reuses the address search the booking screen already uses (#1549), so anything she saves can always be used as a pickup or a destination.
+
+**Deleting asks first.** A confirmation dialog warns that the place will be deleted permanently and cannot be undone. Deleting one place never touches the others.
+
+**A rider with nothing saved sees an invitation, not a blank list.** The empty state explains what saved places are for and offers Add as its only action.
+
+Her saved places are stored on her account through #4475, so they follow her to a new phone. All strings flow through `data-i18n` keys with Arabic fallback text in the HTML, and the screen lays out correctly in both LTR and RTL.
+
+### Screen layout
+
+| Section | Shows | Behaviour |
+|---|---|---|
+| Header | Title, a one-line explanation, and the count against the cap | Read-only |
+| Saved places list | Each place with its type icon, its name and its address; a Default badge on Home | Tapping a place opens its actions: edit or delete |
+| Add button | Add a Saved Place | Opens the add sheet. Hidden when she has reached the cap |
+| Add / edit sheet | Type chips, place name, location | Save is enabled only when every required field is valid |
+| Delete dialog | The warning that the deletion is permanent | Confirm deletes; Cancel closes the dialog and changes nothing |
+| Empty state | No Saved Places Yet, with a short explanation | Add is the only action |
+
+### Field Validation
+
+| Field | Required | Format | Min | Max | Error — empty | Error — invalid |
+|---|---|---|---|---|---|---|
+| Place type | Yes | `Home`, `Work`, `Favorite` or `Other` | — | — | اختاري نوع المكان / Choose a place type | — |
+| Place name | Yes for `Favorite` and `Other`; fixed for `Home` and `Work` | Free text | 1 char | 30 chars | سمي هذا المكان / Name this place | الاسم أطول من 30 حرفًا / Keep the name under 30 characters |
+| Location | Yes | Chosen through the existing address search (#1549) or by dropping a pin | — | — | اختاري عنوانًا / Choose an address | هذا العنوان خارج نطاق الخدمة / This address is outside our service area |
+
+### Acceptance Criteria
+
+**Scenario 1 — Rider views her saved places**
+- Given a rider with Home, Work and two other saved places
+- When she opens the Saved Places screen
+- Then Home is listed first with a Default badge, then Work, then the other two newest-first
+- And each place shows its name and its address
+- And the header shows 4 places saved against the cap
+
+**Scenario 2 — Rider with no saved places sees the empty state**
+- Given a rider who has saved no places
+- When she opens the Saved Places screen
+- Then the empty state explains what saved places are for
+- And Add a Saved Place is the only action offered
+
+**Scenario 3 — Rider adds a place**
+- Given a rider below the cap
+- When she taps Add a Saved Place, chooses Favorite, names it “Golden Gym Club” and picks its location through the address search
+- And she taps Save
+- Then the place is saved to her account (#4475) and appears in the list
+- And the count in the header goes up by one
+
+**Scenario 4 — Home and Work are one each**
+- Given a rider who already has a place saved as Home
+- When she adds a new place
+- Then Home is not offered as a type
+- And she can still replace her Home address by editing the existing Home place
+
+**Scenario 5 — Rider edits a place**
+- Given a rider with a saved place
+- When she chooses edit, changes its name or its location and taps Save
+- Then the list shows the updated place in the same position
+- And none of her other places change
+
+**Scenario 6 — Rider deletes a place after confirming**
+- Given a rider with a saved place
+- When she chooses delete
+- Then a dialog warns that the place will be deleted permanently and cannot be undone
+- And confirming removes it from the list and lowers the count by one
+- And cancelling closes the dialog with the place untouched
+
+**Scenario 7 — Rider reaches the cap**
+- Given a rider who has saved the maximum number of places
+- When she opens the Saved Places screen
+- Then Add a Saved Place is not offered
+- And the header explains that she must delete a place before adding another
+
+**Scenario 8 — Location outside the service area**
+- Given a rider adding or editing a place
+- When she picks a location outside the service area
+- Then an inline error says the address is outside the service area
+- And Save stays disabled
+
+**Scenario 9 — Network error while saving**
+- Given the app cannot reach the platform
+- When she saves, edits or deletes a place
+- Then an error toast is shown and the list stays exactly as it was
+- And the sheet keeps what she typed so she can try again
+
+**Scenario 10 — Bilingual and RTL**
+- Given the rider's language is Arabic
+- When she opens the Saved Places screen, the add sheet or the delete dialog
+- Then every string is shown in Arabic
+- And the screen lays out correctly in RTL
+
+### Out of Scope
+- Using a saved place as a pickup or destination, and saving a place from the booking screen — #4917
+- Sharing a saved place with someone else
+- Suggesting places automatically from her trip history
+- Reordering places by hand — the order is Home, Work, then newest-first
+
+### Dependencies
+- #4475 — Rider profile is served in one call and its editable parts are saved (API — must be live; stores the saved places)
+- #1724 — Rider views and manages her profile (the Saved Places section that opens this screen)
+- #1549 — Rider searches address with autocomplete (the location picker)
+- #4917 — Rider books from a saved place and saves a new one while booking
+- #4492 — [Rider] Saved Places (design)
+
+---
+
+## [Mobile] #4917 — Rider books from a saved place and saves a new one while booking 🆕
+**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** Backlog (not scheduled)
+
+**Description:** As a rider, I want my saved places offered to me when I choose a pickup or destination, and to be able to save a place right from the booking screen, so that I can book a ride to a place I go to often in one tap.
+
+### Background
+
+When she chooses a pickup (#1550) or a destination (#1551), the selection sheet shows a Saved Places strip above her recent places: Home and Work first, then her other places, with View All opening the full list (#4916).
+
+**Tapping a saved place fills the field.** It behaves exactly as if she had picked that address from the search results, so the fare estimate (#1552) and everything after it work unchanged.
+
+**She can save a place without leaving the booking screen.** When the address she has picked is not already saved, she can choose to save it. The same add sheet used on the Saved Places screen opens with the location already filled in; she chooses a type, names it if needed, and saves. Her booking stays exactly where it was.
+
+**No saved places means no strip.** A rider who has saved nothing sees her recent places only, with no empty saved-places block in the way.
+
+Her saved places come from her account (#4475). All strings flow through `data-i18n` keys with Arabic fallback text in the HTML, and the screen lays out correctly in both LTR and RTL.
+
+### Screen layout
+
+| Section | Shows | Behaviour |
+|---|---|---|
+| Saved Places strip | Home and Work first, then the other places, each with its name and address | Tapping one fills the pickup or destination field |
+| View All | Link next to the strip | Opens the Saved Places screen (#4916) |
+| Save this place | Shown for a picked address that is not already saved | Opens the add sheet with the location filled in |
+
+### Acceptance Criteria
+
+**Scenario 1 — Saved places are offered when choosing a destination**
+- Given a rider with Home and Work saved
+- When she opens the destination sheet
+- Then Home and Work are shown in a Saved Places strip above her recent places
+
+**Scenario 2 — Tapping a saved place fills the field**
+- Given the Saved Places strip is shown while choosing a destination
+- When she taps Work
+- Then the destination is set to her Work address
+- And the fare estimate is shown exactly as if she had picked it from the search
+
+**Scenario 3 — Saved places are offered when choosing a pickup**
+- Given a rider with saved places
+- When she opens the pickup sheet
+- Then the same Saved Places strip is shown and tapping a place sets it as her pickup
+
+**Scenario 4 — View All opens the full list**
+- Given the Saved Places strip is shown
+- When she taps View All
+- Then the Saved Places screen opens (#4916)
+
+**Scenario 5 — Rider saves a place while booking**
+- Given a rider has picked an address that is not one of her saved places
+- When she chooses to save it
+- Then the add sheet opens with that location already filled in
+- And after she chooses a type, names it and saves, the place appears in her Saved Places strip
+- And her pickup, destination and fare estimate are unchanged
+
+**Scenario 6 — An already-saved address is not offered for saving**
+- Given the picked address is already one of her saved places
+- Then no option to save it again is shown
+
+**Scenario 7 — No saved places**
+- Given a rider who has saved no places
+- When she opens the pickup or destination sheet
+- Then no Saved Places strip is shown and her recent places appear as usual
+
+**Scenario 8 — Saved places cannot be loaded**
+- Given the app cannot load her saved places
+- When she opens the pickup or destination sheet
+- Then the strip is left out and search and recent places work as usual
+
+**Scenario 9 — Bilingual and RTL**
+- Given the rider's language is Arabic
+- When she opens the pickup or destination sheet
+- Then the Saved Places strip and the save option are shown in Arabic
+- And the sheet lays out correctly in RTL
+
+### Out of Scope
+- Editing, deleting or reordering places from the booking screen — #4916
+- Suggesting places automatically from her trip history
+
+### Dependencies
+- #4475 — Rider profile is served in one call and its editable parts are saved (API — must be live; supplies and stores the saved places)
+- #1550 — Rider sets pickup point (extended by this story)
+- #1551 — Rider sets destination (extended by this story)
+- #1552 — Rider sees fare estimate before requesting (unchanged when a saved place is chosen)
+- #4916 — Rider manages her saved places
+- #4492 — [Rider] Saved Places (design)
+
+---
+
 ## Sprint 2
 
 ### Feature 8 — Trip Request & Matching
@@ -640,50 +847,7 @@ The rider completes her booking as normal; the block is applied at the moment sh
 
 ---
 
-## [Mobile] #1791 — Rider cannot book outside operating hours 🆕
-**Feature:** Feature 8 — Trip Request & Matching | **Sprint:** Phase 1
-
-**Description:** As a rider, I want to see when SheDrive is closed for the day so that I understand why I cannot book and when I can.
-
-### Background
-
-SheDrive runs daytime-only in Phase 1 (open decision OD-001). Outside the operating window, the home screen shows a clear service-closed state, disables Request Ride, and shows the next opening time. Any request attempted outside hours is rejected by #1785. A trip already in progress is not affected. All strings flow through data-i18n keys with Arabic fallback.
-
-### Acceptance Criteria
-
-**Scenario 1 — Inside operating hours**
-- Given the current time is within the operating window
-- When the rider opens the home screen
-- Then booking is available as normal
-
-**Scenario 2 — Outside operating hours**
-- Given the current time is outside the operating window
-- When the rider opens the home screen
-- Then a bilingual service-closed state is shown with the next opening time
-- And Request Ride is disabled
-
-**Scenario 3 — Request attempted outside hours is rejected**
-- Given the rider somehow submits a request outside hours
-- When it reaches the platform (#1785)
-- Then it is rejected and a bilingual service-closed message is shown
-
-**Scenario 4 — In-progress trip is unaffected**
-- Given a trip is in progress when the window closes
-- Then the trip continues uninterrupted
-
-**Scenario 5 — State updates when hours resume**
-- Given the operating window reopens
-- When the rider returns to the home screen
-- Then booking becomes available again
-
-### Out of Scope
-- Per-zone operating hours
-- Scheduled rides (#1737)
-- 24/7 operation
-
-### Dependencies
-- #1785 — Trip requests outside operating hours are rejected (API — must be live)
-- Open decision OD-001 — operating hours
+> **Removed 2026-09-24 — [Mobile] #1791 (rider cannot book outside operating hours):** operating-hours logic is dropped from the Mobile backlog; the app no longer has a service-closed state.
 
 ---
 
