@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-09-24
+> Last updated: 2026-09-27
 > Stories with changes from original are marked ✏️
 
 ---
@@ -226,6 +226,141 @@ After a successful login or registration the session token is stored in the devi
 ### Dependencies
 - #1619 — Auth middleware validates session tokens (must be live)
 - #1547 — Rider logs out (token must be cleared on logout)
+
+---
+
+## [Mobile] #5038 — Rider deletes her account 🆕
+**Feature:** Feature 2 — Rider Authentication (#1532) | **Sprint:** Backlog (not scheduled)
+
+**Description:** As a rider, I want to delete my SheDrive account from inside the app, so that I can leave SheDrive and have my personal data removed without having to contact anyone.
+
+### Background
+
+The App Store and Google Play both refuse an app that lets people sign up without letting them delete their account from inside the app, so this story must ship before the rider app is submitted.
+
+She opens the Delete Account screen from a **Delete account** link at the bottom of her profile, under Log out (#1724). The screen explains what will happen before anything happens: what is deleted, what SheDrive keeps and why, and that she has **30 days to change her mind**. She re-confirms her phone number with a one-time code, and the request is made (#5036). She is signed out at once. If she signs in again within 30 days she is offered her account back; after that the deletion is final.
+
+**A trip in progress blocks the request; an outstanding fee does not.** A fee can only be paid by taking a ride, so it is shown as information and never stands in her way.
+
+All strings flow through `data-i18n` keys with Arabic fallback text in the HTML, and every step lays out correctly in LTR and RTL.
+
+### Screen layout
+
+| Step | Shows | Behaviour |
+|---|---|---|
+| Review | Title, what will be deleted, what we keep and why, the 30-day window, an optional reason, an acknowledgement checkbox | Continue is enabled only once the checkbox is ticked. Keep my account goes back |
+| Outstanding-fee note | An amber note at the top of Review with the amount | Information only — never disables Continue |
+| Blocked — trip in progress | Finish your trip first, with Back to my trip | Replaces Review. Nothing is requested |
+| Confirm it's you | Six-box code input, the masked number, resend with countdown | Delete my account submits the code. Keep my account goes back |
+| Request received | The exact deletion date, how to restore, that a text message was sent | Done opens the sign-in screen. She is already signed out |
+| Restore at sign-in | After the sign-in code: the deletion date, Restore my account, Continue with deletion | Restore signs her in; Continue with deletion leaves her signed out |
+
+### Field Validation
+
+| Field | Required | Format | Min | Max | Error — empty | Error — invalid |
+|---|---|---|---|---|---|---|
+| Reason | No | One of five choices | — | — | — | — |
+| Acknowledgement | Yes | Checkbox | — | — | Continue stays disabled | — |
+| Deletion code | Yes | 6 digits | 6 | 6 | أدخلي الأرقام الستة للرمز / Enter all 6 digits of the code | Same messages as sign-in (#1546) |
+
+### Acceptance Criteria
+
+**Scenario 1 — Rider opens Delete Account from her profile**
+- Given an authenticated rider on her profile
+- When she taps Delete account under Log out
+- Then the Review step opens
+
+**Scenario 2 — Review explains what will happen**
+- Given the Review step is open
+- Then it lists what will be deleted: her name, photo and email, her saved places, her emergency contacts, her notifications and their settings, and signing in with her number
+- And it lists what SheDrive keeps and why: trip and payment records for tax and accounting, and safety reports and SOS cases to protect others
+- And it says she has 30 days to change her mind by signing in again
+
+**Scenario 3 — Continue waits for the acknowledgement**
+- Given the Review step is open
+- Then Continue is disabled
+- When she ticks the acknowledgement, Continue is enabled
+- And choosing a reason is optional
+
+**Scenario 4 — A trip in progress blocks the request**
+- Given the rider has a trip requested, matching, assigned or in progress
+- When she opens Delete Account
+- Then Finish your trip first is shown instead of Review, with Back to my trip
+- And no code is requested
+
+**Scenario 5 — An outstanding fee is shown but does not block**
+- Given the rider owes a 25 EGP cancellation fee
+- When she opens Delete Account
+- Then an amber note shows the 25 EGP and says it stays in SheDrive's financial records
+- And she can continue exactly as a rider with no fee
+
+**Scenario 6 — She confirms it is her**
+- Given she has ticked the acknowledgement and tapped Continue
+- Then a code is sent to her registered number (#5036) and Confirm it's you shows the masked number
+- And resend is available after the same countdown as sign-in
+
+**Scenario 7 — Wrong, expired or incomplete code**
+- Given the Confirm it's you step is open
+- When she submits fewer than six digits, a wrong code or an expired code
+- Then the matching message is shown under the code and nothing is deleted
+- And after the last allowed attempt she must resend a code
+
+**Scenario 8 — The request is received and she is signed out**
+- Given she submits the correct code
+- Then Request received shows the exact date her account will be deleted
+- And says she can sign in before that date to restore it, and that a text message has been sent
+- And she is signed out on this phone and every other device
+- And Done opens the sign-in screen
+
+**Scenario 9 — She changes her mind before confirming**
+- Given she is on Review or Confirm it's you
+- When she taps Keep my account or the back arrow
+- Then she returns to her profile and nothing about her account has changed
+
+**Scenario 10 — Signing in during the window offers her account back**
+- Given her account is waiting to be deleted
+- When she signs in with her number and code (#1546)
+- Then instead of the home screen she sees that the account is due to be deleted on its date, with Restore my account and Continue with deletion
+- And the new-rider name step is never shown for this number
+
+**Scenario 11 — Restoring brings everything back**
+- Given the restore step is shown
+- When she taps Restore my account
+- Then she lands on the home screen
+- And her profile, saved places, emergency contacts and trip history are all as they were
+
+**Scenario 12 — Continuing with the deletion changes nothing**
+- Given the restore step is shown
+- When she taps Continue with deletion
+- Then she stays signed out and the deletion keeps its date
+
+**Scenario 13 — After the deletion the number is new again**
+- Given her deletion has completed
+- When the same number signs in
+- Then it is treated as a new rider and goes to the name step (#1545)
+
+**Scenario 14 — Network error while requesting**
+- Given the app cannot reach the platform
+- When she asks for a code or submits one
+- Then an error toast is shown, she stays on the same step, and nothing about her account changes
+
+**Scenario 15 — Arabic and English**
+- Given the rider switches language
+- Then every label, list item, note, button and error on every step, including the deletion date, is shown in the selected language
+- And the screens lay out correctly in RTL
+
+### Out of Scope
+- The public web page for people without the app — design #5016, built with #5036
+- Downloading a copy of her data
+- Deleting an account from the sign-in screen without signing in
+- Paying an outstanding fee before deleting — a fee never blocks
+
+### Dependencies
+- #5036 — Rider account deletion is requested, restored and completed (API — must be live)
+- #1724 — Rider views and manages her profile (the Delete account link)
+- #1546 — Rider logs in (the restore step follows its code step)
+- #3995 — Rider sees an outstanding fee before she requests a ride (the same fee, shown here as information)
+- #5014 — [Rider] Delete Account (design)
 
 ---
 

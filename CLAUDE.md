@@ -85,7 +85,7 @@ Rules:
 2. **Always add new keys to BOTH** `shared/i18n/ar.json` AND `shared/i18n/en.json` at the same time.
 3. **Never mix Arabic and English inside a single text node.** One key per language — not `<span>طوارئ</span> SOS`.
 4. **Never use hardcoded `aria-label="..."`** on any element — always pair it with `data-i18n-aria-label`.
-5. Key namespaces: `login.*`, `home.*`, `matching.*`, `trip.*`, `emergency.*`, `complete.*`, `menu.*`, `aria.*`, `nav.*`, `common.*`, `splash.*`, `sos.*`, `verifyRider.*`, `notifications.*`.
+5. Key namespaces: `login.*`, `home.*`, `matching.*`, `trip.*`, `emergency.*`, `complete.*`, `menu.*`, `aria.*`, `nav.*`, `common.*`, `splash.*`, `sos.*`, `verifyRider.*`, `notifications.*`, `deleteAccount.*`.
 
 `shared/scripts/i18n.js` handles all four attribute types in `applyTranslations()`.
 
@@ -105,6 +105,7 @@ Rules:
 | `shedrive.notificationsRead` | localStorage | JSON `{rider: [id], driver: [id]}` | Notification inbox read state, per app |
 | `shedrive.notificationPrefs` | localStorage | JSON `{rider: {key: bool}, driver: {…}}` | Notification category switches (locked categories are never stored) |
 | `shedrive.pushPermission` | localStorage | string `'default'\|'granted'\|'denied'` | Mock of the OS push permission |
+| `shedrive.accountDeletion` | localStorage | JSON `{rider?, driver?}` each `{phone, requestedAt, deleteOn, reason}` | Account awaiting deletion (30-day window); sign-in offers a restore |
 
 **Rider and driver screens are deliberately open**, the same way the admin portal is.
 `auth.requireAuth()` provisions a demo session instead of redirecting, so any screen can
@@ -278,7 +279,15 @@ The notification inbox and notification settings screens are the same in both ap
 their controller (`shared/scripts/notification-inbox.js`), store
 (`shared/scripts/notifications.js`) and styles (`shared/styles/notifications.css`) are
 shared. Each app still owns its three files per screen; the page script only calls
-`mountInbox(role)` or `mountNotificationSettings(role)`. Settings switches use
+`mountInbox(role)` or `mountNotificationSettings(role)`.
+
+Account deletion follows the same pattern: `shared/scripts/account-deletion.js` and
+`shared/styles/account-deletion.css` drive `rider|driver/delete-account.html`
+(`mountAccountDeletion(role)`), the restore step on both login screens, and the public
+`/delete-account/` page. Store rules: an active trip blocks deletion in both apps and a
+driver's owed balance blocks hers; a rider's outstanding fee never does.
+
+Notification settings switches use
 Framework7's `.toggle`, made keyboard-reachable and RTL-mirrored in `f7-overrides.css`.
 
 ---
@@ -382,6 +391,8 @@ index.html (Splash overlay → Login)
 | `rider/trip-complete.html` | Rating (stars + tags + tip) + trip summary |
 | `rider/notifications.html` | Notification inbox (also `driver/notifications.html`) |
 | `rider/notification-settings.html` | Notification preferences (also `driver/notification-settings.html`) |
+| `rider/delete-account.html` | Account deletion — review, code, 30-day window (also `driver/delete-account.html`) |
+| `delete-account/index.html` | Public deletion request page for people without the app (Google Play requirement) |
 
 ---
 

@@ -1,6 +1,6 @@
 # SheDrive — Mobile Driver Stories
 > Canonical backlog for all [Mobile] Driver stories. Organized by sprint and feature.
-> Last updated: 2026-09-10
+> Last updated: 2026-09-27
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -274,6 +274,130 @@ After a successful login or registration the session token is stored in the devi
 ### Dependencies
 - #1619 — Auth middleware validates session tokens (must be live)
 - #1570 — Driver logs in (session issued here)
+
+---
+
+## [Mobile] #5039 — Driver deletes her account 🆕
+**Feature:** Feature 3 — Driver Authentication (#1538) | **Sprint:** Backlog (not scheduled)
+
+**Description:** As a driver, I want to delete my SheDrive account from inside the app, so that I can stop driving with SheDrive and have my personal data removed without having to contact anyone.
+
+### Background
+
+The App Store and Google Play both require in-app account deletion, so this story must ship before the driver app is submitted. It follows the rider flow (#5038) step for step, with what a driver additionally needs to know: she is taken offline, her official documents are kept for a regulatory period, and money between her and SheDrive is handled first.
+
+She opens the Delete Account screen from a **Delete account** link under the Log out button on her profile (#1801). She reads what will happen, re-confirms her number with a one-time code, and the request is made (#5037). She is taken offline and signed out at once, and has **30 days to change her mind** by signing in again.
+
+**Two things block the request: a trip in progress, and money she owes SheDrive.** The second has a way through — she settles (#3989), and can ask again as soon as the settlement is recorded. Money SheDrive owes her never blocks her.
+
+All strings flow through `data-i18n` keys with Arabic fallback text in the HTML, and every step lays out correctly in LTR and RTL.
+
+### Screen layout
+
+| Step | Shows | Behaviour |
+|---|---|---|
+| Review | A note that she goes offline at once; what will be deleted; what we keep and why; the 30-day window; an optional reason; an acknowledgement checkbox | Continue is enabled only once the checkbox is ticked |
+| Owed-to-her note | A blue note with the amount SheDrive owes her and that finance will contact her | Information only |
+| Blocked — balance owed | Settle your balance first, with the amount and How to settle | Replaces Review. How to settle opens the settle screen (#3989) |
+| Blocked — trip in progress | Finish your trip first, with Back to my trip | Replaces Review |
+| Confirm it's you | Six-box code input, the masked number, resend with countdown | Delete my account submits the code |
+| Request received | The exact deletion date, how to restore, that a text message was sent | Done opens the sign-in screen |
+| Restore at sign-in | After the sign-in code: the deletion date, Restore my account, Continue with deletion | The Login / Register switch and the terms line are hidden on this step |
+
+### Field Validation
+
+Same fields and messages as the rider flow (#5038): an optional reason, a required acknowledgement, and a six-digit code with the sign-in error messages (#1570).
+
+### Acceptance Criteria
+
+**Scenario 1 — Driver opens Delete Account from her profile**
+- Given an authenticated driver on her profile
+- When she taps Delete account under Log out
+- Then the Review step opens with a note that confirming takes her offline straight away
+
+**Scenario 2 — Review explains what will happen**
+- Given the Review step is open
+- Then it lists what will be deleted: her name and photo, her vehicle details and photos, her emergency contacts, her notifications and their settings, and signing in with her number
+- And it lists what SheDrive keeps and why: trip, earnings and settlement records; her national ID, licence and vehicle documents for the period the law requires; and safety reports and SOS cases
+- And Continue is disabled until she ticks the acknowledgement
+
+**Scenario 3 — Money she owes blocks the request**
+- Given she owes SheDrive 245 EGP
+- When she opens Delete Account
+- Then Settle your balance first is shown with the 245 EGP instead of Review
+- And How to settle opens the settle screen (#3989)
+
+**Scenario 4 — She can delete once she has settled**
+- Given she was blocked by a balance and her settlement has since been recorded
+- When she opens Delete Account again
+- Then the Review step opens as normal
+
+**Scenario 5 — A trip in progress blocks the request**
+- Given she has an accepted trip or is on a trip
+- When she opens Delete Account
+- Then Finish your trip first is shown with Back to my trip
+
+**Scenario 6 — Money SheDrive owes her is shown but does not block**
+- Given SheDrive owes her 320 EGP
+- When she opens Delete Account
+- Then a blue note shows the 320 EGP and says the finance team will contact her to transfer it
+- And she can continue as normal
+
+**Scenario 7 — She confirms it is her**
+- Given she has ticked the acknowledgement and tapped Continue
+- Then a code is sent to her registered number and Confirm it's you shows the masked number
+- And a wrong, expired or incomplete code shows the same messages as sign-in and deletes nothing
+
+**Scenario 8 — The request is received and she is taken offline**
+- Given she submits the correct code while online
+- Then she is taken offline and receives no further trip requests
+- And Request received shows the exact deletion date and how to restore
+- And she is signed out on every device, and Done opens the sign-in screen
+
+**Scenario 9 — She changes her mind before confirming**
+- Given she is on Review or Confirm it's you
+- When she taps Keep my account or the back arrow
+- Then she returns to her profile, her online status is unchanged, and nothing about her account has changed
+
+**Scenario 10 — Signing in during the window offers her account back**
+- Given her account is waiting to be deleted
+- When she signs in with her number and code (#1570)
+- Then she sees that the account is due to be deleted on its date, with Restore my account and Continue with deletion
+
+**Scenario 11 — Restoring does not put her online**
+- Given the restore step is shown
+- When she taps Restore my account
+- Then she is routed exactly as after a normal sign-in — to home if approved, to onboarding otherwise
+- And she is offline until she goes online herself
+
+**Scenario 12 — Continuing with the deletion changes nothing**
+- Given the restore step is shown
+- When she taps Continue with deletion
+- Then she stays signed out and the deletion keeps its date
+
+**Scenario 13 — Network error while requesting**
+- Given the app cannot reach the platform
+- When she asks for a code or submits one
+- Then an error toast is shown, she stays on the same step, and her account and online status are unchanged
+
+**Scenario 14 — Arabic and English**
+- Given the driver switches language
+- Then every label, note, amount, button and error on every step, including the deletion date, is shown in the selected language
+- And the screens lay out correctly in RTL
+
+### Out of Scope
+- The public web page for people without the app — design #5016, built with #5037
+- Settling inside this flow — the existing settle screen (#3989) is linked, not duplicated
+- Choosing how the money SheDrive owes her is paid — finance handles it as today
+- Downloading a copy of her data
+
+### Dependencies
+- #5037 — Driver account deletion is requested, restored and completed (API — must be live)
+- #1801 — Driver views her profile (the Delete account link)
+- #1570 — Driver logs in (the restore step follows its code step)
+- #1579 — Driver toggles online and offline (she is taken offline on confirming)
+- #3989 — Driver settles what she owes and sees her settlement history (How to settle)
+- #5015 — [Driver] Delete Account (design)
 
 ---
 
