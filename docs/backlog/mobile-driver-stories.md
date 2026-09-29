@@ -1,6 +1,6 @@
 # SheDrive — Mobile Driver Stories
 > Canonical backlog for all [Mobile] Driver stories. Organized by sprint and feature.
-> Last updated: 2026-09-27
+> Last updated: 2026-09-29
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -1560,7 +1560,6 @@ When is_first_trip is true, the driver sees the rider's registered full name on 
 
 The check is **mandatory and unconditional** for a first trip: the driver must **always** verify the rider on her first trip, the step cannot be skipped, dismissed or switched off, and the trip cannot start until the rider is verified. There is no exception for any passenger type. For all returning riders (is_first_trip = false) this step is skipped entirely and the driver proceeds directly to the "Start Trip" button.
 
-_Scope note (2026-09-09): the declared child-passenger exception has been removed from Phase 1. It is recorded in docs/backlog/phase-1.5-stories.md together with #1783 and #1790._
 
 ### Field Validation
 
@@ -1621,7 +1620,7 @@ _Scope note (2026-09-09): the declared child-passenger exception has been remove
 ### Out of Scope
 - Biometric or document scanning
 - Automatic identity verification via camera
-- Any per-passenger exception to the women-only rule (removed from Phase 1 — see the scope note above)
+- Any per-passenger exception to the women-only rule
 - SOS functionality
 - Penalty for drivers who cancel
 

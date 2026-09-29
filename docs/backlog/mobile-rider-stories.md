@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-09-27
+> Last updated: 2026-09-29
 > Stories with changes from original are marked ✏️
 
 ---
@@ -398,129 +398,388 @@ The rider home screen is the main screen after login for verified riders. It sho
 - SOS functionality
 - In-app calling
 
-### Dependencies
-- #1626 — Address autocomplete returns suggestions (must be live)
-- #1627 — Fare estimate uses Google Maps route data (must be live)
-
 ---
 
-## [Mobile] #1549 — Rider searches address with autocomplete
-**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** 1
+## [Mobile] #1549 — Rider searches address with autocomplete ✏️
+**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** 2
 
-**Description:** As a rider, I want address autocomplete suggestions to appear as I type so that I can quickly find and select my pickup or destination without typing the full address.
+**Description:** As a rider, I want a full-screen search that shows my saved places and recent places and suggests addresses as I type, so that I can find my pickup or destination quickly without typing the full address.
 
 ### Background
 
-When the rider taps either the pickup or destination input on the home screen (#1548) and begins typing, the app calls the autocomplete API (#1626) after 2 characters are entered. Results are biased to the Cairo/Giza area. Up to 5 suggestions are displayed below the input. Tapping a suggestion fills the input field with the selected address and dismisses the suggestion list. Fewer than 2 characters typed results in no suggestions being shown (not an error state).
+Tapping the pickup or the destination field on the home screen (#1548) opens a full-screen search screen for that field. It replaces the home screen until she picks a place or goes back. The search field is focused with the keyboard open, and the title names the field she is choosing — pickup or destination.
+
+Before she types, the screen offers two shortcuts. Saved Places shows her saved places — Home and Work first, then her other places — with View All opening the Saved Places screen in her profile (#1724). Recent Places lists the last five addresses she picked on this device, newest first, each with its name, its address, and its distance and driving time from where she is now.
+
+Once she has typed two characters, address suggestions from the maps provider replace both shortcuts: up to five, biased to Cairo and Giza. Picking a saved place, a recent place or a suggestion fills the field and returns her to the home screen; what happens next belongs to #1550 (pickup) and #1551 (destination). The pickup-only “Use my current location” and the “Pick on map” actions on this screen are owned by those two stories as well.
+
+Saved places are read-only here — adding, editing and deleting them is the Saved Places screen in her profile (#1724, delivered in Sprint 1). All strings are available in Arabic and English, and the screen lays out correctly in RTL and LTR.
+
+### Screen layout
+
+| Section | Shows | Behaviour |
+|---|---|---|
+| Header | Back arrow and a title naming the field being chosen | Back returns to the home screen with the field unchanged |
+| Search field | Pickup or Destination, focused, keyboard open | Typing two or more characters shows suggestions |
+| Saved Places | Home and Work first, then her other places, each with its name and address; View All | Tapping a place fills the field. View All opens the Saved Places screen (#1724). Left out when she has none or they cannot be loaded |
+| Recent Places | Up to five places she picked on this device, newest first: name, address, distance and driving time | Tapping one fills the field. Left out when she has none |
+| Suggestions | Up to five addresses, Cairo and Giza first | Replace Saved and Recent while she types; tapping one fills the field |
+| No results / error | A short message, with Retry for the error | Saved and Recent return when the search text is cleared |
 
 ### Field Validation
 
-| Field | Required | Format | Min | Max | Accepted characters | Error — empty | Error — invalid format | Error — length |
-|---|---|---|---|---|---|---|---|---|
-| Search query | No | Free text | 2 chars to trigger suggestions | 200 chars | Arabic and Latin text | — (no suggestions shown below 2 chars) | — | — |
+| Field | Required | Format | Min | Max | Accepted | Error message |
+|---|---|---|---|---|---|---|
+| Search text | No | Free text | 2 characters to show suggestions | 200 characters | Arabic and Latin text | — (below 2 characters, Saved and Recent are shown) |
 
 ### Acceptance Criteria
 
-**Scenario 1 — Happy path: suggestions appear after 2 characters**
-- Given the rider taps the pickup or destination input and types 2 or more characters
-- When the API (#1626) returns results
-- Then up to 5 address suggestions appear in a list below the input
+**Scenario 1 — Tapping a field opens the full-screen search**
+- Given the rider is on the home screen
+- When she taps the pickup or the destination field
+- Then the full-screen search opens for that field, with the search field focused and the keyboard open
+- And the title names the field she is choosing
 
----
+**Scenario 2 — Saved places are offered before she types**
+- Given a rider with Home, Work and one other saved place
+- When the search screen opens
+- Then the Saved Places section shows Home and Work first, then the other place, each with its name and address
 
-## [Mobile] #1550 — Rider sets pickup point
-**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** 1
+**Scenario 3 — Tapping a saved place fills the field**
+- Given the Saved Places section is shown
+- When she taps Work
+- Then the field is set to her Work address and she is returned to the home screen
 
-**Description:** As a rider, I want to set my pickup location by choosing an autocomplete suggestion, using my current location, or dropping a pin on the map so that the driver knows exactly where to pick me up.
+**Scenario 4 — View All opens her saved places**
+- Given the Saved Places section is shown
+- When she taps View All
+- Then the Saved Places screen in her profile opens (#1724)
 
-### Background
+**Scenario 5 — No saved places, or they cannot be loaded**
+- Given the rider has no saved places, or they fail to load
+- When the search screen opens
+- Then the Saved Places section is left out and the rest of the screen works as usual
 
-The rider can set her pickup using three methods on the home screen (#1548): (a) selecting an autocomplete suggestion from #1549, (b) tapping "Use my current location" which requires GPS permission, or (c) dropping a pin on the map by long-pressing or using a crosshair. The selected address is displayed in the pickup field. Once set, the fare estimate can be calculated when the destination is also set.
+**Scenario 6 — Recent places are offered before she types**
+- Given the rider has picked places before on this device
+- When the search screen opens
+- Then up to five of them are listed under Recent Places, newest first
+- And each shows its name, its address, and its distance and driving time from her current location
+- And when her location is unavailable, the distance and time are left out
 
-### Field Validation
+**Scenario 7 — A new rider sees no recent places**
+- Given the rider has never picked a place on this device
+- When the search screen opens
+- Then the Recent Places section is left out
 
-| Field | Required | Format | Min | Max | Accepted characters | Error — empty | Error — invalid format | Error — length |
-|---|---|---|---|---|---|---|---|---|
-| Pickup location | Yes (before fare/ride request) | Address or coordinates | — | — | — | اختاري موقع الانطلاق | — | — |
+**Scenario 8 — Suggestions appear after two characters**
+- Given the search screen is open
+- When she types two or more characters
+- Then up to five address suggestions replace the Saved and Recent sections, Cairo and Giza results first
+- And the suggestions update as she keeps typing
 
-### Acceptance Criteria
+**Scenario 9 — Fewer than two characters**
+- Given she has typed one character or cleared the field
+- Then no suggestions are shown and the Saved and Recent sections are shown again
 
-**Scenario 1 — Happy path: pickup set via autocomplete**
-- Given the rider types in the pickup field and selects a suggestion (#1549)
-- Then the pickup field displays the selected address
-- And a pin marker appears on the map at the selected location
+**Scenario 10 — Picking a suggestion**
+- Given suggestions are shown
+- When she taps one
+- Then the field is set to that address and she is returned to the home screen
+- And the address becomes the newest of her recent places
 
----
+**Scenario 11 — No results**
+- Given she has typed two or more characters
+- When the search finds nothing
+- Then “لم نجد أماكن تطابق بحثك” / “No places match your search” is shown in place of the suggestions
 
-## [Mobile] #1551 — Rider sets destination
-**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** 1
+**Scenario 12 — Search fails**
+- Given she has typed two or more characters
+- When the search request fails
+- Then “تعذّر البحث. تحقق من اتصالك وحاول مجدداً” / “Search failed. Check your connection and try again.” is shown with a Retry action
+- And Retry repeats the search for what she has typed
 
-**Description:** As a rider, I want to set my destination using autocomplete or a map pin so that the driver and platform know where I want to go.
+**Scenario 13 — Going back changes nothing**
+- Given the search screen is open
+- When she taps the back arrow without picking a place
+- Then she returns to the home screen and the field keeps its previous value
 
-### Background
-
-The rider sets her destination on the home screen (#1548) using either: (a) selecting an autocomplete suggestion from #1549, or (b) dropping a pin on the map. The "Use my current location" option is not available for the destination. The selected address appears in the destination field. The destination must differ from the pickup location; if they match, an inline error is shown. Once both pickup and destination are set, the fare estimate is automatically triggered (#1552).
-
-### Field Validation
-
-| Field | Required | Format | Min | Max | Accepted characters | Error — empty | Error — invalid format | Error — length |
-|---|---|---|---|---|---|---|---|---|
-| Destination | Yes (before fare/ride request) | Address or coordinates | — | — | — | اختاري وجهتك | يرجى اختيار وجهة مختلفة عن موقع الانطلاق | — |
-
-### Acceptance Criteria
-
-**Scenario 1 — Happy path: destination set via autocomplete**
-- Given the rider types in the destination field and selects a suggestion (#1549)
-- Then the destination field displays the selected address
-- And a destination pin appears on the map
-- And the fare estimate is triggered automatically if pickup is also set
-
----
-
-## [Mobile] #1552 — Rider sees fare estimate before requesting
-**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** 1
-
-**Description:** As a rider, I want to see an estimated fare and trip duration before I request a ride so that I can make an informed decision about booking.
-
-### Background
-
-Once both pickup and destination are set on the home screen (#1548), the app automatically calls the fare estimate API (#1627). The response is displayed fare and an estimated trip duration in minutes. The "Request Ride" CTA activates only after a successful fare fetch. If the fetch fails, a retry option is shown. If the rider changes either address, the estimate is recalculated automatically.
-
-### Acceptance Criteria
-
-**Scenario 1 — Happy path: fare and duration displayed**
-- Given both pickup and destination are set
-- When the fare estimate API (#1627) returns a result
-- Then fare is displayed on screen
-- And an estimated trip duration (in minutes) is displayed
-- And the "Request Ride" button becomes active
-
-**Scenario 2 — Fare fetch fails**
-- Given both pickup and destination are set but the API call fails
-- Then an error message is shown with a "Retry" button
-- And the "Request Ride" button remains inactive
-
-**Scenario 3 — Address changed, estimate recalculated**
-- Given a fare estimate is already displayed
-- When the rider changes the pickup or destination address
-- Then the displayed estimate is cleared
-- And a new fare fetch is triggered automatically
-- And the "Request Ride" button deactivates until the new estimate arrives
-
-**Scenario 4 — Same pickup and destination**
-- Given the rider somehow has the same pickup and destination (edge case)
-- When the fare estimate is triggered
-- Then the API returns a validation error
-- And the app shows an inline message: "يرجى اختيار وجهة مختلفة عن موقع الانطلاق"
+**Scenario 14 — Arabic and English**
+- Given the rider switches language
+- Then every title, section heading, message and action on the search screen is shown in the selected language
+- And the screen lays out correctly in RTL and LTR
 
 ### Out of Scope
-- Surge pricing display
-- Fare breakdown (base, per-km, per-min) shown to rider
-- Payment method selection
+
+- Adding, editing or deleting saved places — the Saved Places screen in her profile (#1724)
+- Saving a place from the search or the booking screen
+- Clearing or editing the recent places list
+- Suggesting places from her trip history
+- Addresses outside Egypt
 
 ### Dependencies
-- #1627 — Fare estimate uses Google Maps route data (must be live)
-- #1628 — Fare applies base, per-km, and per-minute rates (must be live)
+
+- #1548 — Rider sees home screen with map (the fields that open this screen)
+- #1550 — Rider sets pickup point (what happens after a pickup is picked; “Use my current location” and “Pick on map”)
+- #1551 — Rider sets destination (what happens after a destination is picked; “Pick on map”)
+- #1724 — Rider views and manages her profile (the Saved Places screen View All opens)
+- #4475 — Rider profile is served in one call and its editable parts are saved (API — supplies her saved places)
+- Address suggestions come from the maps provider directly; there is no SheDrive API for search
+- #4779 — [Rider] Restructure Pickup & Destination search (design)
+
+---
+
+## [Mobile] #1550 — Rider sets pickup point ✏️
+**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** 2
+
+**Description:** As a rider, I want to set my pickup from a search result, a saved or recent place, my current location, or a pin on the map, so that the driver knows exactly where to pick me up.
+
+### Background
+
+When location permission is granted, the pickup field on the home screen starts at her current location (#1548). To change it, she taps the pickup field, which opens the full-screen search for pickup (#1549).
+
+On that screen she can set her pickup five ways: a suggestion, a saved place or a recent place (all from #1549), “Use my current location”, or “Pick on map”. Pick on map opens a full-screen map with a pin fixed in the centre; she moves the map under the pin, the address under the pin is shown, and she confirms or cancels.
+
+Whichever way she chooses, she returns to the home screen with the pickup field showing the address and a pickup marker on the map. If a destination is already set, the fare estimate is recalculated (#1552). Whether the pickup is inside the service area is checked by the fare estimate (#1552), not here.
+
+All strings are available in Arabic and English, and every step lays out correctly in RTL and LTR.
+
+### Field Validation
+
+| Field | Required | Format | Min | Max | Accepted | Error message |
+|---|---|---|---|---|---|---|
+| Pickup location | Yes (before the fare estimate or a ride request) | Address and coordinates | — | — | — | “اختاري موقع الانطلاق” / “Choose a pickup point” |
+
+### Acceptance Criteria
+
+**Scenario 1 — Tapping pickup opens the search for pickup**
+- Given the rider is on the home screen
+- When she taps the pickup field
+- Then the full-screen search opens for pickup (#1549)
+- And “Use my current location” and “Pick on map” are offered
+
+**Scenario 2 — Pickup set from a suggestion, a saved place or a recent place**
+- Given the search screen for pickup is open
+- When she picks a suggestion, a saved place or a recent place
+- Then she returns to the home screen with the pickup field showing that address
+- And a pickup marker is shown on the map at that location
+
+**Scenario 3 — Pickup set from her current location**
+- Given location permission is granted
+- When she taps “Use my current location”
+- Then her pickup is set to her current location, shown as its address, and she returns to the home screen
+
+**Scenario 4 — Location permission not granted**
+- Given location permission has not been granted
+- When she taps “Use my current location”
+- Then the system permission prompt is shown
+- And if she refuses, “فعّلي خدمة الموقع لاستخدام موقعك الحالي” / “Turn on location to use your current location” is shown and she stays on the search screen to choose another way
+
+**Scenario 5 — Her location cannot be found**
+- Given location permission is granted but her position cannot be determined
+- When she taps “Use my current location”
+- Then “تعذّر تحديد موقعك. ابحثي عن العنوان أو اختاريه على الخريطة” / “We couldn’t find your location. Search for the address or pick it on the map.” is shown
+- And her pickup is unchanged
+
+**Scenario 6 — Pickup set on the map**
+- Given the search screen for pickup is open
+- When she taps “Pick on map”, moves the map so the pin sits on her pickup and confirms
+- Then her pickup is set to the pin’s location, shown as its address, and she returns to the home screen
+- And tapping cancel instead returns her to the search screen with the pickup unchanged
+
+**Scenario 7 — Changing the pickup**
+- Given a pickup and a destination are set and a fare estimate is shown
+- When she sets a different pickup
+- Then the pickup field and marker update
+- And the fare estimate is recalculated (#1552)
+
+**Scenario 8 — Going back changes nothing**
+- Given the search screen for pickup is open
+- When she goes back without picking a place
+- Then her pickup is unchanged
+
+**Scenario 9 — Arabic and English**
+- Given the rider switches language
+- Then the pickup field, the map picker and every message are shown in the selected language, laid out correctly in RTL and LTR
+
+### Out of Scope
+
+- The service-area check — done by the fare estimate (#1552)
+- Saving the pickup as a saved place
+- Notes or instructions for the driver about the pickup
+- More than one stop
+
+### Dependencies
+
+- #1548 — Rider sees home screen with map (the pickup field and its default)
+- #1549 — Rider searches address with autocomplete (the full-screen search)
+- #1552 — Rider sees fare estimate before requesting (recalculated when the pickup changes)
+- Current location and the address under the map pin come from the device and the maps provider; there is no SheDrive API
+- #4779 — [Rider] Restructure Pickup & Destination search (design)
+
+---
+
+## [Mobile] #1551 — Rider sets destination ✏️
+**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** 2
+
+**Description:** As a rider, I want to set my destination from a search result, a saved or recent place, or a pin on the map, so that the driver and the platform know where I want to go.
+
+### Background
+
+She taps the destination field on the home screen (#1548), which opens the full-screen search for destination (#1549). She can pick a suggestion, a saved place or a recent place, or use “Pick on map”, which works exactly as it does for pickup (#1550). “Use my current location” is not offered for the destination.
+
+She returns to the home screen with the destination field showing the address and a destination marker on the map. The destination must differ from the pickup; the app checks this before asking for a fare. Once both are set, the fare estimate is triggered automatically (#1552).
+
+The swap button between the two fields exchanges the pickup and the destination.
+
+All strings are available in Arabic and English, and every step lays out correctly in RTL and LTR.
+
+### Field Validation
+
+| Field | Required | Format | Min | Max | Accepted | Error message |
+|---|---|---|---|---|---|---|
+| Destination | Yes (before the fare estimate or a ride request) | Address and coordinates | — | — | Must differ from the pickup | “اختاري وجهتك” / “Choose your destination”; same as pickup: “يرجى اختيار وجهة مختلفة عن موقع الانطلاق” / “Choose a destination different from your pickup” |
+
+### Acceptance Criteria
+
+**Scenario 1 — Tapping destination opens the search for destination**
+- Given the rider is on the home screen
+- When she taps the destination field
+- Then the full-screen search opens for destination (#1549)
+- And “Pick on map” is offered, and “Use my current location” is not
+
+**Scenario 2 — Destination set from a suggestion, a saved place or a recent place**
+- Given the search screen for destination is open
+- When she picks a suggestion, a saved place or a recent place
+- Then she returns to the home screen with the destination field showing that address
+- And a destination marker is shown on the map
+- And if a pickup is set, the fare estimate is triggered (#1552)
+
+**Scenario 3 — Destination set on the map**
+- Given the search screen for destination is open
+- When she taps “Pick on map”, moves the map so the pin sits on her destination and confirms
+- Then her destination is set to the pin’s location, shown as its address, and she returns to the home screen
+
+**Scenario 4 — Destination the same as the pickup**
+- Given her pickup is set
+- When she picks the same place as her destination
+- Then the inline error “يرجى اختيار وجهة مختلفة عن موقع الانطلاق” / “Choose a destination different from your pickup” is shown under the destination
+- And no fare estimate is requested and “Request Ride” stays inactive
+
+**Scenario 5 — Swapping pickup and destination**
+- Given a pickup and a destination are set
+- When she taps the swap button
+- Then the pickup and the destination exchange places, and so do their markers
+- And the fare estimate is recalculated (#1552)
+
+**Scenario 6 — Changing the destination**
+- Given a destination is set and a fare estimate is shown
+- When she sets a different destination
+- Then the destination field and marker update and the fare estimate is recalculated (#1552)
+
+**Scenario 7 — Going back changes nothing**
+- Given the search screen for destination is open
+- When she goes back without picking a place
+- Then her destination is unchanged
+
+**Scenario 8 — Arabic and English**
+- Given the rider switches language
+- Then the destination field, the map picker and every message are shown in the selected language, laid out correctly in RTL and LTR
+
+### Out of Scope
+
+- “Use my current location” for the destination
+- Saving the destination as a saved place
+- More than one stop
+
+### Dependencies
+
+- #1548 — Rider sees home screen with map (the destination field and the swap button)
+- #1549 — Rider searches address with autocomplete (the full-screen search)
+- #1550 — Rider sets pickup point (“Pick on map” works the same way)
+- #1552 — Rider sees fare estimate before requesting (triggered once both are set)
+- #4779 — [Rider] Restructure Pickup & Destination search (design)
+
+---
+
+## [Mobile] #1552 — Rider sees fare estimate before requesting ✏️
+**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** 2
+
+**Description:** As a rider, I want to see an estimated fare, trip duration and distance before I request a ride so that I can make an informed decision about booking.
+
+### Background
+
+Once both pickup and destination are set on the home screen (#1548), the app asks the platform for a fare estimate. The Fare Estimate card shows one fare amount in EGP — a single figure, never a range — with the estimated trip duration in minutes and the distance in km. The route between pickup and destination is drawn on the map.
+
+The fare comes from the fare engine (#1628), using the zone of the pickup. The final fare is calculated from the actual trip when it ends (#1636), so it can differ from this estimate.
+
+“Request Ride” becomes active only after a successful estimate. While the estimate is loading, or if it fails, it stays inactive. If she changes either address the estimate is cleared and recalculated. If the pickup is outside every service zone, the platform refuses the estimate (#1629) and she is told the service is not available there.
+
+All strings are available in Arabic and English, and the card lays out correctly in RTL and LTR.
+
+### Acceptance Criteria
+
+**Scenario 1 — Fare, duration and distance are shown**
+- Given both pickup and destination are set
+- When the fare estimate returns
+- Then the Fare Estimate card shows one fare amount in EGP (for example EGP 340.00)
+- And the estimated trip duration in minutes and the distance in km are shown
+- And “Request Ride” becomes active
+
+**Scenario 2 — The fare is never a range**
+- Given a fare estimate is shown
+- Then exactly one amount is shown — never a range or a minimum and a maximum
+
+**Scenario 3 — The route is drawn on the map**
+- Given a fare estimate is shown
+- Then the route from the pickup to the destination is drawn on the map between the two markers
+
+**Scenario 4 — While the estimate is loading**
+- Given both pickup and destination have just been set
+- While the estimate is being fetched
+- Then the card shows a loading state and “Request Ride” stays inactive
+
+**Scenario 5 — The estimate fails**
+- Given both pickup and destination are set
+- When the fare estimate request fails
+- Then “تعذّر حساب الأجرة. حاول مجدداً” / “We couldn’t estimate the fare. Please try again.” is shown with a Retry action
+- And “Request Ride” stays inactive
+- And Retry requests the estimate again
+
+**Scenario 6 — An address changes**
+- Given a fare estimate is shown
+- When she changes the pickup or the destination
+- Then the estimate is cleared and a new one is requested automatically
+- And “Request Ride” is inactive until the new estimate arrives
+
+**Scenario 7 — Pickup outside the service area**
+- Given the pickup is outside every service zone
+- When the fare estimate is requested
+- Then no fare is shown and “الخدمة غير متاحة في موقع الانطلاق هذا بعد” / “SheDrive isn’t available at this pickup yet” is shown
+- And “Request Ride” stays inactive
+
+**Scenario 8 — Arabic and English**
+- Given the rider switches language
+- Then the card’s labels, amount, units and messages are shown in the selected language, laid out correctly in RTL and LTR
+
+### Out of Scope
+
+- A fare range or a minimum and maximum
+- Surge pricing
+- The fare breakdown (base, per-km, per-minute) — shown after the trip (#1564)
+- Choosing a payment method — online card payment is a separate story (#1732), awaiting the payment integration
+- The outstanding-fee line — added later by #3995
+- The same-as-pickup check — done by the app before the estimate (#1551)
+
+### Dependencies
+
+- #1628 — Fare calculation engine (API — prices the estimate)
+- #1629 — Rider creates trip request (API — the service-area guard that refuses an out-of-zone estimate)
+- #1548 — Rider sees home screen with map
+- #1550 — Rider sets pickup point
+- #1551 — Rider sets destination
+- The route, duration and distance come from the maps provider’s routing
+- #1518 — Rider Home (design)
 
 ---
 
@@ -607,210 +866,7 @@ All strings — the banner, its amount, its explanation and its dismiss control 
 
 ---
 
-## [Mobile] #4916 — Rider manages her saved places 🆕
-**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** Backlog (not scheduled)
-
-**Description:** As a rider, I want one screen where I can see, add, edit and delete the places I go to often, so that booking a ride to any of them takes one tap instead of a search.
-
-### Background
-
-The Saved Places screen is opened from the Saved Places section of the profile screen (#1724) and from View All next to the saved-places shortcuts on the booking screen. It is the one place she manages her list; everywhere else only reads it.
-
-**Four types of place.** Home and Work — at most one of each — plus Favorite and Other places that she names herself. Home carries a Default badge and is listed first, then Work, then the rest newest-first. The header shows how many she has saved against the cap (for example “4 of 10 places saved”), with the cap taken from the profile service (#4475).
-
-**Add and edit share one sheet.** A bottom sheet with the type chips, a name field and a location field. Choosing the location reuses the address search the booking screen already uses (#1549), so anything she saves can always be used as a pickup or a destination.
-
-**Deleting asks first.** A confirmation dialog warns that the place will be deleted permanently and cannot be undone. Deleting one place never touches the others.
-
-**A rider with nothing saved sees an invitation, not a blank list.** The empty state explains what saved places are for and offers Add as its only action.
-
-Her saved places are stored on her account through #4475, so they follow her to a new phone. All strings flow through `data-i18n` keys with Arabic fallback text in the HTML, and the screen lays out correctly in both LTR and RTL.
-
-### Screen layout
-
-| Section | Shows | Behaviour |
-|---|---|---|
-| Header | Title, a one-line explanation, and the count against the cap | Read-only |
-| Saved places list | Each place with its type icon, its name and its address; a Default badge on Home | Tapping a place opens its actions: edit or delete |
-| Add button | Add a Saved Place | Opens the add sheet. Hidden when she has reached the cap |
-| Add / edit sheet | Type chips, place name, location | Save is enabled only when every required field is valid |
-| Delete dialog | The warning that the deletion is permanent | Confirm deletes; Cancel closes the dialog and changes nothing |
-| Empty state | No Saved Places Yet, with a short explanation | Add is the only action |
-
-### Field Validation
-
-| Field | Required | Format | Min | Max | Error — empty | Error — invalid |
-|---|---|---|---|---|---|---|
-| Place type | Yes | `Home`, `Work`, `Favorite` or `Other` | — | — | اختاري نوع المكان / Choose a place type | — |
-| Place name | Yes for `Favorite` and `Other`; fixed for `Home` and `Work` | Free text | 1 char | 30 chars | سمي هذا المكان / Name this place | الاسم أطول من 30 حرفًا / Keep the name under 30 characters |
-| Location | Yes | Chosen through the existing address search (#1549) or by dropping a pin | — | — | اختاري عنوانًا / Choose an address | هذا العنوان خارج نطاق الخدمة / This address is outside our service area |
-
-### Acceptance Criteria
-
-**Scenario 1 — Rider views her saved places**
-- Given a rider with Home, Work and two other saved places
-- When she opens the Saved Places screen
-- Then Home is listed first with a Default badge, then Work, then the other two newest-first
-- And each place shows its name and its address
-- And the header shows 4 places saved against the cap
-
-**Scenario 2 — Rider with no saved places sees the empty state**
-- Given a rider who has saved no places
-- When she opens the Saved Places screen
-- Then the empty state explains what saved places are for
-- And Add a Saved Place is the only action offered
-
-**Scenario 3 — Rider adds a place**
-- Given a rider below the cap
-- When she taps Add a Saved Place, chooses Favorite, names it “Golden Gym Club” and picks its location through the address search
-- And she taps Save
-- Then the place is saved to her account (#4475) and appears in the list
-- And the count in the header goes up by one
-
-**Scenario 4 — Home and Work are one each**
-- Given a rider who already has a place saved as Home
-- When she adds a new place
-- Then Home is not offered as a type
-- And she can still replace her Home address by editing the existing Home place
-
-**Scenario 5 — Rider edits a place**
-- Given a rider with a saved place
-- When she chooses edit, changes its name or its location and taps Save
-- Then the list shows the updated place in the same position
-- And none of her other places change
-
-**Scenario 6 — Rider deletes a place after confirming**
-- Given a rider with a saved place
-- When she chooses delete
-- Then a dialog warns that the place will be deleted permanently and cannot be undone
-- And confirming removes it from the list and lowers the count by one
-- And cancelling closes the dialog with the place untouched
-
-**Scenario 7 — Rider reaches the cap**
-- Given a rider who has saved the maximum number of places
-- When she opens the Saved Places screen
-- Then Add a Saved Place is not offered
-- And the header explains that she must delete a place before adding another
-
-**Scenario 8 — Location outside the service area**
-- Given a rider adding or editing a place
-- When she picks a location outside the service area
-- Then an inline error says the address is outside the service area
-- And Save stays disabled
-
-**Scenario 9 — Network error while saving**
-- Given the app cannot reach the platform
-- When she saves, edits or deletes a place
-- Then an error toast is shown and the list stays exactly as it was
-- And the sheet keeps what she typed so she can try again
-
-**Scenario 10 — Bilingual and RTL**
-- Given the rider's language is Arabic
-- When she opens the Saved Places screen, the add sheet or the delete dialog
-- Then every string is shown in Arabic
-- And the screen lays out correctly in RTL
-
-### Out of Scope
-- Using a saved place as a pickup or destination, and saving a place from the booking screen — #4917
-- Sharing a saved place with someone else
-- Suggesting places automatically from her trip history
-- Reordering places by hand — the order is Home, Work, then newest-first
-
-### Dependencies
-- #4475 — Rider profile is served in one call and its editable parts are saved (API — must be live; stores the saved places)
-- #1724 — Rider views and manages her profile (the Saved Places section that opens this screen)
-- #1549 — Rider searches address with autocomplete (the location picker)
-- #4917 — Rider books from a saved place and saves a new one while booking
-- #4492 — [Rider] Saved Places (design)
-
----
-
-## [Mobile] #4917 — Rider books from a saved place and saves a new one while booking 🆕
-**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** Backlog (not scheduled)
-
-**Description:** As a rider, I want my saved places offered to me when I choose a pickup or destination, and to be able to save a place right from the booking screen, so that I can book a ride to a place I go to often in one tap.
-
-### Background
-
-When she chooses a pickup (#1550) or a destination (#1551), the selection sheet shows a Saved Places strip above her recent places: Home and Work first, then her other places, with View All opening the full list (#4916).
-
-**Tapping a saved place fills the field.** It behaves exactly as if she had picked that address from the search results, so the fare estimate (#1552) and everything after it work unchanged.
-
-**She can save a place without leaving the booking screen.** When the address she has picked is not already saved, she can choose to save it. The same add sheet used on the Saved Places screen opens with the location already filled in; she chooses a type, names it if needed, and saves. Her booking stays exactly where it was.
-
-**No saved places means no strip.** A rider who has saved nothing sees her recent places only, with no empty saved-places block in the way.
-
-Her saved places come from her account (#4475). All strings flow through `data-i18n` keys with Arabic fallback text in the HTML, and the screen lays out correctly in both LTR and RTL.
-
-### Screen layout
-
-| Section | Shows | Behaviour |
-|---|---|---|
-| Saved Places strip | Home and Work first, then the other places, each with its name and address | Tapping one fills the pickup or destination field |
-| View All | Link next to the strip | Opens the Saved Places screen (#4916) |
-| Save this place | Shown for a picked address that is not already saved | Opens the add sheet with the location filled in |
-
-### Acceptance Criteria
-
-**Scenario 1 — Saved places are offered when choosing a destination**
-- Given a rider with Home and Work saved
-- When she opens the destination sheet
-- Then Home and Work are shown in a Saved Places strip above her recent places
-
-**Scenario 2 — Tapping a saved place fills the field**
-- Given the Saved Places strip is shown while choosing a destination
-- When she taps Work
-- Then the destination is set to her Work address
-- And the fare estimate is shown exactly as if she had picked it from the search
-
-**Scenario 3 — Saved places are offered when choosing a pickup**
-- Given a rider with saved places
-- When she opens the pickup sheet
-- Then the same Saved Places strip is shown and tapping a place sets it as her pickup
-
-**Scenario 4 — View All opens the full list**
-- Given the Saved Places strip is shown
-- When she taps View All
-- Then the Saved Places screen opens (#4916)
-
-**Scenario 5 — Rider saves a place while booking**
-- Given a rider has picked an address that is not one of her saved places
-- When she chooses to save it
-- Then the add sheet opens with that location already filled in
-- And after she chooses a type, names it and saves, the place appears in her Saved Places strip
-- And her pickup, destination and fare estimate are unchanged
-
-**Scenario 6 — An already-saved address is not offered for saving**
-- Given the picked address is already one of her saved places
-- Then no option to save it again is shown
-
-**Scenario 7 — No saved places**
-- Given a rider who has saved no places
-- When she opens the pickup or destination sheet
-- Then no Saved Places strip is shown and her recent places appear as usual
-
-**Scenario 8 — Saved places cannot be loaded**
-- Given the app cannot load her saved places
-- When she opens the pickup or destination sheet
-- Then the strip is left out and search and recent places work as usual
-
-**Scenario 9 — Bilingual and RTL**
-- Given the rider's language is Arabic
-- When she opens the pickup or destination sheet
-- Then the Saved Places strip and the save option are shown in Arabic
-- And the sheet lays out correctly in RTL
-
-### Out of Scope
-- Editing, deleting or reordering places from the booking screen — #4916
-- Suggesting places automatically from her trip history
-
-### Dependencies
-- #4475 — Rider profile is served in one call and its editable parts are saved (API — must be live; supplies and stores the saved places)
-- #1550 — Rider sets pickup point (extended by this story)
-- #1551 — Rider sets destination (extended by this story)
-- #1552 — Rider sees fare estimate before requesting (unchanged when a saved place is chosen)
-- #4916 — Rider manages her saved places
-- #4492 — [Rider] Saved Places (design)
+> **Removed 2026-09-29 — [Mobile] #4916 (rider manages her saved places) and [Mobile] #4917 (rider books from a saved place and saves a new one while booking):** saved places were delivered in Sprint 1 under #1724 (profile). Using a saved place when choosing a pickup or destination is now part of the full-screen search (#1549, #1550, #1551). Saving a place from the booking screen is not in scope.
 
 ---
 
@@ -1626,7 +1682,7 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 - Editing her name — it stays as registered (#1545)
 - Changing her phone number — it is her sign-in identity
 - Managing the emergency contacts themselves — this screen shows the count and links out (#1787)
-- Choosing or adding a payment method — cash is the only one in Phase 1 (#3992)
+- Choosing or adding a payment method — online card payment is a separate story (#1732), awaiting the payment integration
 - Showing her outstanding balance on this screen — she is told by the home-screen banner (#3995)
 - The trip history list behind the trip count (#1568)
 - Account deletion (Phase 2)
@@ -1939,20 +1995,20 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 
 ---
 
-## [Mobile] #3992 — Rider views her payment method 🆕
-**Feature:** Feature 22 — Payments & Outstanding Fees (Rider) | **Sprint:** Phase 1
+## [Mobile] #3992 — Rider views her payment method ✏️
+**Feature:** Feature 22 — Payments & Outstanding Fees (Rider) | **Sprint:** 2
 
 **Description:** As a rider, I want to see how I pay for my rides so that I know what to expect at the end of a trip.
 
 ### Background
 
-Riders pay in cash. This story rewrites the payments screen, which today is a coming-soon stub, into a working one. It shows "Cash" as her payment method — the only one — and states plainly that rides are paid to the driver in cash at the end of the trip. That is the whole screen.
+Riders pay in cash today. This story rewrites the payments screen, which today is a coming-soon stub, into a working one, and builds its first section: the payment method. It shows "Cash" as her payment method and states plainly that rides are paid to the driver in cash at the end of the trip.
 
-**The outstanding balance is not shown here.** A rider who owes something is told by the banner on her home screen (#3995), and sees it charged as its own line on her fare summary when it is recovered (#3999). There is no dedicated page for the balance in the rider app.
+Online card payment is in scope for the rider app but waits for the payment integration. It has its own stories — choosing a payment method (#1732) and paying by card at the end of the trip (#1734) — and adds Card to this section when it ships. Until then Cash is the only method shown.
 
-A per-fee breakdown, a fee-detail view and a statement of past fees and recoveries are all deferred. The ledger behind them already exists (#4005) and the balance itself is already served (#4004), so they return as their own story when they are wanted.
+Further sections are added to this screen by later stories: the outstanding fees she owes, her fee history, a "No Fees Due" state and a load-error state, as shown in the design. This story does not build them.
 
-The payment method is static — it is not fetched, so the screen has no loading or error state. All strings flow through `data-i18n` keys with Arabic fallback text in the HTML.
+The payment-method section is static — it is not fetched, so it has no loading or error state of its own. All strings flow through `data-i18n` keys with Arabic fallback text in the HTML.
 
 ### Acceptance Criteria
 
@@ -1960,34 +2016,130 @@ The payment method is static — it is not fetched, so the screen has no loading
 - Given the rider opens the payments screen
 - Then "Cash" is shown as her payment method
 - And the screen states that she pays the driver in cash at the end of the ride
-- And no choice of another payment method is offered
+- And no other payment method is offered until online card payment ships (#1732)
 
-**Scenario 2 — The screen never shows a balance**
-- Given a rider who owes an outstanding balance of 20.00 EGP
-- When she opens the payments screen
-- Then the screen shows her payment method only
-- And no balance amount, no fee rows, no zero state and nothing to tap through to a fee detail are rendered
-- And the screen renders identically for a rider who owes nothing
-
-**Scenario 3 — The coming-soon stub is gone**
+**Scenario 2 — The coming-soon stub is gone**
 - Given the rider opens the payments screen
 - Then no coming-soon or placeholder content is shown
 
-**Scenario 4 — Arabic and English**
+**Scenario 3 — Arabic and English**
 - Given the rider switches language
 - Then the payment-method label and its explanation are displayed in the selected language
 
 ### Out of Scope
-- Showing the rider's outstanding balance on this screen — she is told by the home-screen banner (#3995) and sees it charged on her fare summary (#3999)
-- Any dedicated page for the outstanding balance in the rider app
-- A per-fee breakdown, a fee-detail view, and a statement of past fees and recoveries — deferred
+
+- The outstanding fees, fee history, "No Fees Due" and load-error sections of this screen — later stories
+- Online card payment: choosing a payment method (#1732) and paying by card at the end of the trip (#1734) — separate stories, awaiting the payment integration
 - Paying an outstanding balance from the app — the only way it clears is the surcharge on her next completed trip (#4000)
-- Adding or choosing another payment method (Phase 2)
 - Disputing a fee (Phase 2)
 - Receipts or invoices as PDFs
 
 ### Dependencies
-- None — the payment method is static. The outstanding balance this screen no longer shows is served by #4004 to the home-screen banner (#3995).
+
+- None — the payment method is static.
+
+---
+
+### Online card payment — awaiting the payment integration
+
+> In scope for the rider app, but waiting for the payment-gateway integration. Kept as separate stories outside the sprint plan (ADO tag `Awaiting payment integration`).
+
+---
+
+## [Mobile] #1732 — Rider selects a payment method ♻️
+**Feature:** Feature 22 — Payments & Outstanding Fees (Rider) | **Sprint:** Awaiting payment integration (not scheduled)
+
+**Description:** As a rider, I want to select my preferred payment method before booking a ride so that I and the driver both know how the fare will be settled at the end of the trip.
+
+### Background
+
+A payment method selector is shown on the home screen between the fare estimate and the "Request Ride" button. The available options for this sprint are Cash and Card (online payment). The default is Cash unless the rider has a saved preference. The selected method is included in the trip request payload via #1730 and is visible to the driver on the active trip screen. The payment method cannot be changed after the trip request is submitted.
+
+### Acceptance Criteria
+
+**Scenario 1 — Rider selects Cash**
+- Given the rider is on the home screen with a pickup and destination set
+- When she selects "Cash" as her payment method
+- Then "Cash" is highlighted as the selected option
+- And the fare estimate area shows "الدفع نقداً" / "Pay with Cash"
+
+**Scenario 2 — Rider selects Card (online payment)**
+- Given the rider selects "Card" as her payment method
+- Then "Card" is highlighted as the selected option
+- And the fare estimate area shows the estimated charge amount
+
+**Scenario 3 — Default is Cash for a new rider**
+- Given the rider has never selected a payment method before
+- When she opens the home screen
+- Then "Cash" is pre-selected by default
+
+**Scenario 4 — Last used method is pre-selected on return**
+- Given the rider previously used Card for her last trip
+- When she opens the home screen for a new booking
+- Then "Card" is pre-selected
+
+**Scenario 5 — Selected method is passed with trip request**
+- Given the rider has selected a payment method and taps "Request Ride"
+- Then the selected payment method is included in the trip request payload sent via #1730
+
+### Out of Scope
+- Card details entry or saved card management (handled separately)
+- Wallet top-up
+- Payment method change after trip submission
+- Promo codes
+
+### Dependencies
+- #1730 — Rider selects payment method for trip (API — must be live)
+- #1552 — Rider sees fare estimate before requesting (must be built)
+
+---
+
+## [Mobile] #1734 — Rider completes online card payment at trip end ♻️
+**Feature:** Feature 22 — Payments & Outstanding Fees (Rider) | **Sprint:** Awaiting payment integration (not scheduled)
+
+**Description:** As a rider, I want to be charged automatically via my card at the end of a trip so that I do not need to carry cash.
+
+### Background
+
+When the trip's payment method is Card, the trip-complete screen shows a payment processing state before the usual trip summary and rating prompt. The payment is charged automatically via #1733. If payment succeeds, the rider sees the charged amount and a receipt note. If payment fails, the rider is offered a Retry option and a "Pay Cash to Driver" fallback.
+
+### Acceptance Criteria
+
+**Scenario 1 — Card payment processes successfully**
+- Given the trip ends and the payment method is Card
+- When the trip-complete screen loads
+- Then a payment processing indicator is shown briefly
+- And on success, the trip summary is shown with the charged amount
+- And a receipt confirmation is shown to the rider
+- And the driver is notified that payment was received
+
+**Scenario 2 — Card payment fails — rider retries**
+- Given the card payment fails
+- When the rider taps "Retry Payment"
+- Then the payment is attempted again via #1733
+- And on success, the normal completion flow continues
+
+**Scenario 3 — Card payment fails — rider switches to cash**
+- Given the card payment fails after retry
+- When the rider taps "Pay Cash to Driver"
+- Then the trip is marked as cash-settled
+- And the driver is notified to collect cash
+- And the rider sees the cash amount to hand over
+
+**Scenario 4 — Cash trip skips card payment screen**
+- Given the trip's payment method is Cash
+- When the trip-complete screen loads
+- Then no payment processing state is shown
+- And the cash fare amount to hand to the driver is displayed
+
+### Out of Scope
+- Card details entry (card is pre-saved separately)
+- Partial payments
+- Refunds
+
+### Dependencies
+- #1733 — Trip fare is charged to rider's card at trip completion (API — must be live)
+- #1564 — Rider sees trip summary with cash fare (must be built)
 
 ---
 

@@ -1,6 +1,6 @@
 # SheDrive — API Stories
 > Canonical backlog for all [API] stories. Organized by sprint and feature.
-> Last updated: 2026-09-27
+> Last updated: 2026-09-29
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -2921,7 +2921,6 @@ This endpoint is called by the driver app when she confirms "Cancel — Rider No
 
 **Terminology.** The driver taps "Cancel — Rider Not Female" and the trip is **ended as Cancelled** with cancellation reason `gender_mismatch_report`. It is a cancellation of its own kind: it is never attributed to the rider or to the driver, so no cancellation fee is charged and neither party’s cancellation count moves. Likewise this endpoint **places the rider under review**; it never suspends her.
 
-_(The declared child-passenger carve-out was removed from Phase 1 on 2026-09-09 — #1783 and #1790 are Removed and recorded in docs/backlog/phase-1.5-stories.md.)_
 
 #### The report record
 
