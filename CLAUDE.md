@@ -55,6 +55,7 @@ Keep screen-specific markup, ids, and behavior in the rider screen files; only e
 - Rider pages should not manually duplicate shared `<link rel="stylesheet">` tags or manual `#toast-container` markup when they already use `sd-page`.
 - Preserve existing ids, `data-i18n*` attributes, and semantic roles when migrating markup into components.
 - Reuse existing class names intentionally so screen CSS keeps working after componentization.
+- **`<sd-page>` is the one scroll container on every screen** (`shared/styles/f7-overrides.css`). Framework7 locks the body's overflow, and the body is the transformed `.app-shell` that contains every `position: fixed` layer (drawer, toasts, sheets, pinned CTA bars), so it must never scroll. Scroll listeners and `scrollTo` target `document.querySelector('sd-page')`, not `window`; tall bottom sheets scroll internally.
 - Keep shared components presentational and attribute-driven. Screen-specific state, timers, auth checks, uploads, and storage flows stay in the page scripts.
 
 ---
@@ -106,6 +107,8 @@ Rules:
 | `shedrive.notificationPrefs` | localStorage | JSON `{rider: {key: bool}, driver: {…}}` | Notification category switches (locked categories are never stored) |
 | `shedrive.pushPermission` | localStorage | string `'default'\|'granted'\|'denied'` | Mock of the OS push permission |
 | `shedrive.accountDeletion` | localStorage | JSON `{rider?, driver?}` each `{phone, requestedAt, deleteOn, reason}` | Account awaiting deletion (30-day window); sign-in offers a restore |
+| `shedrive.historyReturn` | sessionStorage | JSON `{count, top}` | Rider trip history: pages loaded + scroll offset, restored on return from a trip detail |
+| `shedrive.driverHistoryScroll` | sessionStorage | string (px) | Driver trip history scroll offset, restored on return from a trip detail |
 
 **Rider and driver screens are deliberately open**, the same way the admin portal is.
 `auth.requireAuth()` provisions a demo session instead of redirecting, so any screen can

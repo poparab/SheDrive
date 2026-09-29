@@ -44,6 +44,16 @@
         "shedrive-web"
       ],
       "port": 8019
+    },
+    {
+      "name": "shedrive-review",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "scripts/serve-nocache.py",
+        "8021",
+        "shedrive-web"
+      ],
+      "port": 8021
     }
   ]
 }
