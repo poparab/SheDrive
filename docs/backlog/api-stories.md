@@ -451,152 +451,108 @@ This is a read-only GET on the driver profile endpoint. It returns the driver's 
 ## [API] #5036 — Rider account deletion is requested, restored and completed 🆕
 **Feature:** Feature 4 — Authentication API (Shared — Rider & Driver) | **Sprint:** Backlog (not scheduled)
 
-**Description:** As the rider app and the public account-deletion page, I want the platform to accept a rider's request to delete her account, hold it for 30 days while she can still restore it, and then permanently delete her personal data, so that SheDrive meets the App Store and Google Play account-deletion rules and a rider's right to have her data erased, without losing the records the law and rider safety require.
+**Description:** As the rider app, I want the platform to take a rider's deletion request, hold it for 30 days while she can restore it, and then delete her personal data, so that SheDrive meets the App Store and Google Play rules while keeping the records the law and safety require.
 
 ### Background
 
-**Why this exists.** The App Store and Google Play both reject an app that lets people create an account without letting them delete it from inside the app, and Google Play also requires a web link where someone who no longer has the app can ask for the same thing. This story is the backend for both: the rider app (#5038) and the rider path of the public deletion page (design #5016). Building the rider path of that page is part of this story.
+The App Store and Google Play reject an app that has no in-app account deletion. This story is the backend for the rider app (#5038).
 
-**Three stages.**
-- **Request.** The rider re-confirms her registered phone number with a fresh one-time code. The code has its own purpose (`account_deletion`) so a sign-in code can never confirm a deletion, but it follows the same length, expiry, attempt and resend rules as sign-in (#1622). When the code is verified and nothing blocks the request, the account moves to `pending_deletion` and `deletion_due_at` is set to 30 days later. The state the account had before (active, under review or suspended) is kept, so a restore returns it exactly there.
-- **The 30-day window.** Every session on every device ends and every push token is removed, exactly as on logout (#1624). She cannot request trips. A text message confirms the request and states the deletion date. Signing in still works, but instead of a normal session it returns `pending_deletion`, the due date and a restore-only token.
-- **Completion.** A scheduled job completes every deletion that has reached its due date, as described in the table below.
+**How it works.**
+1. **Request.** She confirms her registered number with a one-time code whose purpose is `account_deletion`, so a sign-in code can never confirm a deletion. Length, expiry, attempts, resend and rate limits are the same as sign-in (#1622).
+2. **Window.** When the code is verified and nothing blocks the request, the account becomes `pending_deletion` with `deletion_due_at` 30 days later. She is signed out on every device and her push tokens are removed, as on logout (#1624). A text message in her language gives the deletion date.
+3. **Restore.** Signing in during the window returns `pending_deletion`, the due date and a restore-only token instead of a session. Restoring cancels the deletion and puts the account back in the state it had before (active, under review or suspended).
+4. **Completion.** A scheduled job completes every deletion whose due date has passed. From then on the number can never sign up to the rider app again.
 
 **What blocks a request.**
 
-| Situation | Result | Why |
-|---|---|---|
-| A trip of hers is requested, matching, assigned, driver arrived or in progress | Refused with `active_trip`; nothing changes | She cannot be removed from a live trip. She can ask again once it has ended or been cancelled |
-| She has an outstanding cancellation fee (#4004) | Allowed. The response carries the amount so the app can show it | She can only pay a fee by taking a ride. Requiring a ride in order to delete an account is the same deadlock that got the rider booking gate rejected |
-| Her account is under gender-mismatch review (#1687) or suspended (#1740) | Allowed | The stores do not allow deletion to be withheld. The block list below stops the number being used to get round the decision |
-| She is involved in an open SOS incident or safety report | Allowed | The case records are kept (see below) |
+| Situation | Result |
+|---|---|
+| A trip of hers that is not yet completed or cancelled | Refused with `active_trip`; nothing changes |
+| An outstanding cancellation fee (#4004) | Allowed. A fee can only be paid by taking a ride, and "take a ride to delete your account" is the deadlock that got the rider booking gate rejected |
+| Suspended (#1740), under gender-mismatch review (#1687), or part of an open SOS incident or safety report | Allowed. The stores do not let deletion be withheld. Case records are kept, and the number can never come back |
+
+The app reads the fee from #4004 to show it on the Review step; this API only enforces the rules above.
 
 **What happens at completion.**
 
-| Data | At completion |
+| Data | Result |
 |---|---|
-| Name, photo, email | Deleted |
-| Saved places | Deleted |
-| Emergency contacts | Deleted, and they stop receiving anything from SheDrive |
-| Notification inbox, notification preferences, push tokens | Deleted |
-| Phone number | Removed from the account. The number can register again as a brand-new account with no history |
-| Trips she took | Kept for the legal retention period with her identity replaced by an anonymous reference. A driver's trip history shows "Deleted rider" |
-| Rider ledger entries, including any unpaid fee | Kept, anonymised, for the financial retention period. Never carried over to a new account |
-| Ratings she gave drivers | Stay in each driver's aggregate rating, anonymised |
-| Safety reports, SOS incidents and gender-mismatch reports that involve her | Kept with the identity details the case needs for the safety and legal retention period, then deleted |
-| The reason she gave | Kept only as an anonymous count |
+| Name, photo, email, saved places, emergency contacts, notifications and their settings, push tokens | Deleted. Emergency contacts stop receiving anything from SheDrive |
+| Phone number | Removed from the account. Only a one-way hash is kept, so the number can never sign up again |
+| Trips, ledger entries (including any unpaid fee), ratings she gave | Kept for the legal and financial retention periods under an anonymous reference. Drivers see "Deleted rider" |
+| Safety reports, SOS incidents and gender-mismatch reports involving her | Kept with the identity details the case needs for the safety retention period, then deleted |
 
-**Block list.** If the account was suspended or under gender-mismatch review when the deletion completed, a one-way hash of the phone number is kept, and registering with that number is refused with the standard sign-up refusal. Otherwise nothing that identifies her is kept outside the retained records above.
+**A deleted number can never sign up again.** Registering with the number of a completed deletion (#1621) is refused with `number_deleted`, whatever state the account was in. This also stops a suspended or reported rider coming back under the same number. Apart from that hash, nothing that identifies her is kept outside the records above.
 
-The retention periods are set by SheDrive's legal counsel and are configuration, not constants in this story.
+Retention periods are configuration set by SheDrive's legal counsel.
 
 ### Field Validation
 
 | Field | Required | Format | Min | Max | Error — empty | Error — invalid |
 |---|---|---|---|---|---|---|
 | Deletion code | Yes | 6 digits, purpose `account_deletion` | 6 | 6 | أدخلي الأرقام الستة للرمز / Enter all 6 digits of the code | الرمز غير صحيح / Incorrect code (same wording and attempt limit as #1622) |
-| Reason | No | `not_needed`, `privacy`, `experience`, `other_account`, `other` | — | — | — | Unknown values are stored as empty, never refused |
-| Phone number (web page only) | Yes | Egyptian mobile, 11 digits starting 010, 011, 012 or 015 | 11 | 11 | يرجى إدخال رقم الهاتف / Enter your phone number | Same message as #1622 |
-| App (web page only) | Yes | `rider` (this story) or `driver` (#5037) | — | — | — | — |
 
 ### Acceptance Criteria
 
-**Scenario 1 — A deletion code is sent to her registered number**
-- Given an authenticated rider with no trip in progress
-- When the rider app asks for a deletion code
-- Then a code with the purpose `account_deletion` is sent to her registered number
-- And the response carries her number masked, for the app to display
-
-**Scenario 2 — The request is confirmed with the correct code**
-- Given the rider has received a deletion code
-- When the app submits the correct code, with or without a reason
-- Then the account moves to `pending_deletion` with `deletion_due_at` 30 days from now
-- And the reason, if any, is stored
-- And the response returns the due date
-
-**Scenario 3 — Every session ends and she is signed out everywhere**
-- Given the request has just been confirmed
-- Then every session of hers on every device is invalidated and every push token removed
-- And any later request with one of those tokens is rejected by #1619
-
-**Scenario 4 — She is told by text message**
-- Given the request has just been confirmed
-- Then a text message in her language confirms it and states the deletion date
-
-**Scenario 5 — A trip in progress blocks the request**
-- Given the rider has a trip that is requested, matching, assigned, driver arrived or in progress
-- When the app asks for a deletion code or submits one
-- Then the request is refused with `active_trip`
-- And no code is sent and nothing about the account changes
-
-**Scenario 6 — An outstanding fee does not block the request**
-- Given the rider owes a 25 EGP cancellation fee
+**Scenario 1 — A deletion code is sent**
+- Given a signed-in rider with no trip in progress
 - When the app asks for a deletion code
-- Then the code is sent and the response carries the outstanding amount
-- And confirming the request succeeds and leaves her ledger entries untouched
+- Then an `account_deletion` code is sent to her registered number
+- And the response carries the number masked
 
-**Scenario 7 — Wrong, expired or too many codes**
-- Given the rider has requested a deletion code
-- When she submits a wrong or expired code
-- Then the same errors and attempt counting as sign-in (#1622) apply
-- And after the last allowed attempt she must request a new code
+**Scenario 2 — The correct code starts the 30-day window**
+- Given she has received a deletion code
+- When the app submits the correct code
+- Then the account is `pending_deletion` with `deletion_due_at` 30 days from now, and the response returns that date
+- And every session and push token of hers is removed, so any later call with one of those sessions is rejected as unauthenticated
+- And a text message in her language states the deletion date
+- And an outstanding fee does not stop any of this, and her ledger entries are untouched
+
+**Scenario 3 — A trip in progress blocks the request**
+- Given she has a trip that is not yet completed or cancelled
+- When the app asks for a code or submits one
+- Then it is refused with `active_trip`, no code is sent and nothing changes
+
+**Scenario 4 — Wrong code, expired code and too many requests**
+- Given she has asked for a deletion code
+- When she submits a wrong or expired code, or asks for codes too often
+- Then the same errors, attempt limit and rate limits as sign-in (#1622) apply
 - And the account is unchanged
 
-**Scenario 8 — A second request during the window changes nothing**
+**Scenario 5 — A repeated confirmation changes nothing**
 - Given the account is already `pending_deletion`
-- When a deletion is requested again, for example from the web page
-- Then the existing due date is returned
-- And the window is not extended or restarted
+- When the same confirmation arrives again, for example a retry after a network error
+- Then the existing due date is returned and the window does not restart
 
-**Scenario 9 — Signing in during the window offers only a restore**
+**Scenario 6 — Signing in during the window offers only a restore**
 - Given the account is `pending_deletion`
 - When she signs in with a correct code (#1622)
-- Then the response is `pending_deletion` with the due date and a restore-only token
-- And any endpoint other than restore rejects that token
+- Then the response is `pending_deletion`, the due date and a restore-only token, never a normal session and never the new-rider name step
+- And every endpoint except restore rejects that token
+- And if she does not restore, the token expires and the deletion keeps its date
 
-**Scenario 10 — Restoring returns the account to exactly where it was**
-- Given the account is `pending_deletion` and she holds a restore-only token
+**Scenario 7 — Restoring puts the account back where it was**
+- Given she holds a restore-only token
 - When the app calls restore
-- Then the deletion is cancelled and the account returns to the state it had before the request
-- And her profile, saved places, emergency contacts and trip history are unchanged
-- And a normal session is issued, or, for a suspended account, the response a suspended rider normally gets at sign-in
+- Then the deletion is cancelled and the account returns to its previous state, with her profile, saved places, emergency contacts and trip history unchanged
+- And the response is what a normal sign-in returns in that state: a session for an active rider, the suspension refusal for a suspended one
 
-**Scenario 11 — Declining the restore changes nothing**
-- Given she has signed in during the window
-- When she does not restore
-- Then the restore-only token expires unused and the deletion keeps its date
-
-**Scenario 12 — The deletion completes on its due date**
+**Scenario 8 — The deletion completes on its due date**
 - Given an account whose `deletion_due_at` has passed
 - When the scheduled job runs
 - Then her data is deleted, anonymised or kept exactly as listed in Background
-- And running the job again for the same account changes nothing
-- And a run that stops part-way through finishes the account on the next run
+- And running the job again changes nothing, and a run that stops part-way finishes the account on the next run
 
-**Scenario 13 — The number can register again as a new rider**
-- Given a deletion has completed for an account that was neither suspended nor under review
-- When the same number registers (#1621)
-- Then a brand-new account is created with no trips, no balance and no ratings
+**Scenario 9 — A deleted number can never sign up again**
+- Given a rider's deletion has completed, whatever state her account was in
+- When the same number verifies a sign-in code and tries to register (#1621)
+- Then registration is refused with `number_deleted` and no account is created
+- And the refusal is only returned after the code is verified, like every other account check
 
-**Scenario 14 — A suspended or reviewed account cannot come back through re-registration**
-- Given a deletion has completed for an account that was suspended or under gender-mismatch review
-- When the same number tries to register
-- Then registration is refused with the standard sign-up refusal
-
-**Scenario 15 — A request from the public web page**
-- Given someone on the public deletion page enters a valid Egyptian number and chooses Rider
-- When she asks for a code
-- Then a code is sent and the response is the same whether or not the number has a rider account
-- And only after the code is verified does the response say `no_account`, `active_trip` or `scheduled` with the due date
-
-**Scenario 16 — Code requests are rate-limited**
-- Given many deletion codes are requested for one number or from one address
-- Then the same limits as sign-in codes apply and further requests are refused until the limit resets
-
-**Scenario 17 — Unauthenticated request is rejected**
-- Given a request to the in-app deletion endpoints arrives without a valid session token
-- Then it is rejected by #1619 before any deletion logic runs
-- And the public web page endpoints are the only ones that accept a request without a session
+**Scenario 10 — Deletion endpoints need a session**
+- Given a call to a deletion endpoint without a valid session
+- Then it is rejected before any deletion logic runs
+- And only restore, with a restore-only token, accepts a call without a normal session
 
 ### Out of Scope
 - An admin deleting an account on someone's behalf
@@ -604,144 +560,108 @@ The retention periods are set by SheDrive's legal counsel and are configuration,
 - Downloading a copy of her data before deleting
 - Shortening or skipping the 30-day window
 - Changing her phone number instead of deleting the account
+- Releasing a deleted number for reuse, for example when the carrier has given it to someone new — a support follow-up
+- A public web page for requesting deletion without the app — removed from scope
 
 ### Dependencies
-- #1622 — User logs in with OTP verification (extended: returns `pending_deletion` during the window)
-- #1621 — User registers with OTP verification (extended: consults the block list)
-- #1624 — User session is invalidated on logout (the same invalidation, applied to every session)
-- #1619 — Auth middleware validates session tokens
-- #4004 — Rider retrieves her outstanding balance (the amount returned in Scenario 6)
-- #1687 — Gender-mismatch report puts the rider under review; #1740 — Operations admin suspends a rider account
-- #5014 — [Rider] Delete Account (design); #5016 — [Rider & Driver] Account Deletion Web Page (design)
+- #1622 — User logs in with OTP verification (extended here: returns `pending_deletion` during the window)
+- #1621 — User registers with OTP verification (extended here: refuses a deleted number with `number_deleted`)
+- #1624 — User session is invalidated on logout (the same sign-out, applied to every session)
+- #4004 — Rider retrieves her outstanding balance (the fee shown on the Review step)
+- #1687 — Rider account is placed under review after a gender mismatch report; #1740 — Operations admin suspends a rider account
+- #5038 — [Mobile] Rider deletes her account; #5014 — [Rider] Delete Account (design)
 
 ---
 
 ## [API] #5037 — Driver account deletion is requested, restored and completed 🆕
 **Feature:** Feature 4 — Authentication API (Shared — Rider & Driver) | **Sprint:** Backlog (not scheduled)
 
-**Description:** As the driver app and the public account-deletion page, I want the platform to accept a driver's request to delete her account, take her offline, hold the request for 30 days while she can still restore it, and then permanently delete her personal data, so that SheDrive meets the App Store and Google Play account-deletion rules without losing the financial, regulatory and safety records it must keep.
+**Description:** As the driver app, I want the platform to take a driver's deletion request the same way it takes a rider's, taking her offline and settling money first, so that SheDrive meets the store rules without losing the financial, regulatory and safety records it must keep.
 
 ### Background
 
-**Why this exists.** The App Store and Google Play both require in-app account deletion, and Google Play also requires a web link for people who no longer have the app. This story is the backend for the driver app (#5039) and the driver path of the public deletion page (design #5016). Building the driver path of that page is part of this story. It works exactly like the rider story (#5036) — code with the `account_deletion` purpose, a `pending_deletion` state kept for 30 days, a restore at sign-in, and a scheduled completion — with the differences below.
+This story is the backend for the driver app (#5039).
+
+**Everything in the rider story (#5036) applies to drivers**: the `account_deletion` code, the 30-day `pending_deletion` window, restore at sign-in, the scheduled completion and the field validation. This story lists only what is different.
 
 **What blocks a request.**
 
-| Situation | Result | Why |
-|---|---|---|
-| A trip of hers is accepted, en route to pickup, arrived or in progress | Refused with `active_trip`; nothing changes | A rider is depending on her. She can ask again once the trip has ended or been cancelled |
-| Her driver balance shows she owes SheDrive (#1781) | Refused with `balance_owed` and the amount | Unlike a rider's fee, she has a way through: she settles. The refusal lifts as soon as a settlement is recorded (#4379) |
-| SheDrive owes her money | Allowed. The response carries the amount | The ledger is kept, so finance can still record the payout (#4001) during the window or after completion |
-| Her onboarding application is still pending (#1576) | Allowed. The application is withdrawn and leaves the review queue | — |
-| She is suspended (#1742) or involved in an open safety case | Allowed | The block list below stops her returning under the same identity |
-
-**Online status.** Confirming the request sets her offline first, using the same logic logout uses (#1624), and she receives no further trip requests. Restoring the account never sets her online; she goes online herself as usual.
-
-**What happens at completion.**
-
-| Data | At completion |
+| Situation | Result |
 |---|---|
-| Name, profile photo | Deleted |
+| A trip she has accepted that is not yet completed or cancelled | Refused with `active_trip`; nothing changes |
+| She owes SheDrive money (#1781) | Refused with `balance_owed` and the amount. Unlike a rider's fee, she has a way through: she settles, and the refusal lifts as soon as the settlement is recorded (#4379) |
+| SheDrive owes her money | Allowed. Finance can still record the payout (#4001) during the window and after completion |
+| An onboarding application waiting for review (#1642) | Allowed. The application leaves the review queue while the deletion is pending, goes back into it on restore, and is deleted at completion |
+| Suspended (#1742), or part of an open SOS incident or safety report | Allowed. Case records are kept, the number can never come back, and the national-ID block below applies |
+
+The app reads her balance from #1781 to show it on the Review step; this API only enforces the rules above.
+
+**Online status.** Confirming the request sets her offline first, using the same logic as logout (#1624), so she receives no further trip requests. Restoring never sets her online; she goes online herself as usual.
+
+**What happens at completion** — as for a rider (#5036), with these differences.
+
+| Data | Result |
+|---|---|
 | Vehicle details and vehicle photos | Deleted |
-| Emergency contacts | Deleted |
-| Notification inbox, notification preferences, push tokens | Deleted |
-| National ID, driving licence, vehicle registration and the verification selfie | Kept for the regulatory retention period after her last trip, then deleted |
-| Phone number | Removed from the account. It can register again as a new driver, who goes through onboarding from the start |
-| Trips she drove | Kept for the legal retention period with her identity replaced by an anonymous reference. A rider's trip history shows "Deleted driver" |
-| Driver ledger entries (commission, settlements, payouts) | Kept for the financial retention period |
-| Ratings she gave riders | Stay in each rider's aggregate, anonymised |
-| Safety reports and SOS incidents that involve her | Kept with the identity details the case needs, for the safety and legal retention period |
+| National ID, driving licence, vehicle registration, verification selfie | Kept for the regulatory retention period after her last trip, then deleted |
+| Trips she drove, driver ledger (commission, settlements, payouts), ratings she gave | Kept for the legal and financial retention periods under an anonymous reference. Riders see "Deleted driver", without name, photo or plate |
+| Phone number | Removed from the account and, as for a rider, can never sign up to the driver app again. If SheDrive still owes her money, the number stays on her ledger as the payout contact until finance records the payout (#4001), then is removed |
 
-**Block list.** If she was suspended, or involved in an open safety case, when the deletion completed, one-way hashes of her phone number and her national ID number are kept, and a new driver application with either is refused. Otherwise nothing identifying her is kept outside the retained records above.
-
-Retention periods are configuration set by SheDrive's legal counsel.
+**National ID block.** If, at completion, she was suspended or the subject of an open safety report, a one-way hash of her national ID number is also kept, so a new driver application with the same ID is refused even from a new phone number.
 
 ### Field Validation
 
-The deletion code, reason, phone number and app fields follow the rider story (#5036) exactly, with `driver` as the app value.
+Same as the rider story (#5036).
 
 ### Acceptance Criteria
 
-**Scenario 1 — A deletion code is sent to her registered number**
-- Given an authenticated driver with no trip in progress and nothing owed to SheDrive
-- When the driver app asks for a deletion code
-- Then a code with the purpose `account_deletion` is sent to her registered number
-- And the response carries her number masked
+Scenarios 1–10 of #5036 also apply to a driver account. The scenarios below cover only what is different.
 
-**Scenario 2 — Confirming takes her offline and starts the window**
-- Given the driver is online and has received a deletion code
+**Scenario 1 — Confirming takes her offline first**
+- Given she is online and has received a deletion code
 - When the app submits the correct code
-- Then she is set offline first and receives no further trip requests
-- And the account moves to `pending_deletion` with `deletion_due_at` 30 days from now
-- And every session and push token of hers is removed, and a text message states the deletion date
+- Then she is set offline before the account becomes `pending_deletion`
+- And she receives no further trip requests
 
-**Scenario 3 — A trip in progress blocks the request**
-- Given the driver has an accepted trip, is en route, has arrived or is on a trip
-- When the app asks for a deletion code or submits one
-- Then the request is refused with `active_trip` and nothing changes
+**Scenario 2 — A trip in progress blocks the request**
+- Given she has accepted a trip that is not yet completed or cancelled
+- When the app asks for a code or submits one
+- Then it is refused with `active_trip` and nothing changes
 
-**Scenario 4 — Money she owes blocks the request**
-- Given her driver balance shows she owes SheDrive 245 EGP
+**Scenario 3 — Money she owes blocks the request until she settles**
+- Given she owes SheDrive 245 EGP
 - When the app asks for a deletion code
-- Then the request is refused with `balance_owed` and the amount 245
-- And no code is sent
+- Then it is refused with `balance_owed` and the amount 245, and no code is sent
+- And once a settlement clearing the balance is recorded (#4379), asking again sends the code
 
-**Scenario 5 — The block lifts once she has settled**
-- Given her request was refused with `balance_owed`
-- When a settlement clearing the balance is recorded (#4379) and she asks again
-- Then the code is sent as in Scenario 1
-
-**Scenario 6 — Money SheDrive owes her does not block the request**
+**Scenario 4 — Money SheDrive owes her does not block, and she can still be paid**
 - Given SheDrive owes her 320 EGP
 - When she requests deletion
-- Then the request is accepted and the response carries the amount owed to her
-- And finance can still record the payout (#4001) against her ledger during the window and after completion
+- Then the request goes ahead
+- And finance can record the payout (#4001) during the window or after completion
+- And after completion her phone number stays on her ledger as the payout contact until that payout is recorded
 
-**Scenario 7 — A pending onboarding application is withdrawn**
-- Given her onboarding application is still waiting for review
-- When her deletion request is confirmed
-- Then the application is withdrawn and no longer appears in the admin review queue
+**Scenario 5 — A pending onboarding application pauses with the account**
+- Given her onboarding application is waiting for review
+- When her deletion is confirmed
+- Then the application leaves the admin review queue
+- And if she restores, it goes back into the queue unchanged
+- And if the deletion completes, it is deleted
 
-**Scenario 8 — Wrong, expired or too many codes**
-- Given she has requested a deletion code
-- When she submits a wrong or expired code
-- Then the same errors and attempt counting as sign-in (#1622) apply and the account is unchanged
-
-**Scenario 9 — Signing in during the window offers only a restore**
-- Given the account is `pending_deletion`
-- When she signs in with a correct code
-- Then the response is `pending_deletion` with the due date and a restore-only token
-
-**Scenario 10 — Restoring does not put her back online**
+**Scenario 6 — Restoring does not put her back online**
 - Given she restores during the window
-- Then the account returns to the state it had before the request, with her vehicle, documents and history unchanged
+- Then the account returns to its previous state, with her vehicle, documents and history unchanged
 - And she is offline until she goes online herself
 
-**Scenario 11 — The deletion completes on its due date**
-- Given a driver account whose `deletion_due_at` has passed
-- When the scheduled job runs
-- Then her data is deleted, kept or anonymised exactly as listed in Background
-- And running the job again changes nothing
+**Scenario 7 — Completion keeps her official documents**
+- Given her deletion has completed
+- Then her vehicle details and photos are deleted, and her ID, licence, registration and selfie are kept until the regulatory period ends
+- And a rider who opens a trip with her sees "Deleted driver", without name, photo or plate
 
-**Scenario 12 — A rider's trip history shows a deleted driver**
-- Given a rider took a trip with a driver whose deletion has completed
-- When the rider opens that trip's detail
-- Then the driver is shown as "Deleted driver", without name, photo or plate
-
-**Scenario 13 — A suspended driver cannot return under the same identity**
-- Given a deletion has completed for a driver who was suspended
-- When a new driver application uses the same phone number or the same national ID number
+**Scenario 8 — A suspended or reported driver cannot return with a new number**
+- Given her deletion completed while she was suspended or the subject of an open safety report
+- When a new driver application uses her national ID number from a different phone number
 - Then the application is refused
-
-**Scenario 14 — A request from the public web page**
-- Given someone on the public deletion page enters a valid number and chooses Driver
-- When she asks for a code
-- Then the response is the same whether or not the number has a driver account
-- And only after the code is verified does the response say `no_account`, `active_trip`, `balance_owed` or `scheduled`
-
-**Scenario 15 — Unauthenticated request is rejected**
-- Given a request to the in-app deletion endpoints arrives without a valid session token
-- Then it is rejected before any deletion logic runs
 
 ### Out of Scope
 - An admin deleting a driver account on her behalf
@@ -750,13 +670,12 @@ The deletion code, reason, phone number and app fields follow the rider story (#
 - Downloading a copy of her data
 
 ### Dependencies
-- #5036 — Rider account deletion (the shared mechanism: code purpose, window, restore, scheduled completion)
-- #1622 — User logs in with OTP verification; #1624 — User session is invalidated on logout
-- #1781 — Driver retrieves her balance and statement (the balance checked in Scenario 4)
+- #5036 — Rider account deletion (the shared mechanism: code, window, restore, completion)
+- #1781 — Driver retrieves her balance and statement (the balance checked in Scenario 3)
 - #4379 — Admin records a driver settlement; #4001 — Admin records a payout sent to a driver
-- #1642 — Driver submits onboarding application (withdrawn in Scenario 7)
+- #1642 — Driver submits onboarding application (paused in Scenario 5)
 - #1742 — Operations admin suspends a driver account
-- #5015 — [Driver] Delete Account (design); #5016 — [Rider & Driver] Account Deletion Web Page (design)
+- #5039 — [Mobile] Driver deletes her account; #5015 — [Driver] Delete Account (design)
 
 ---
 

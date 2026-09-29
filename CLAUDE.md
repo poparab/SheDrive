@@ -283,9 +283,10 @@ shared. Each app still owns its three files per screen; the page script only cal
 
 Account deletion follows the same pattern: `shared/scripts/account-deletion.js` and
 `shared/styles/account-deletion.css` drive `rider|driver/delete-account.html`
-(`mountAccountDeletion(role)`), the restore step on both login screens, and the public
-`/delete-account/` page. Store rules: an active trip blocks deletion in both apps and a
-driver's owed balance blocks hers; a rider's outstanding fee never does.
+(`mountAccountDeletion(role)`), the restore step and the deleted-number refusal on both
+login screens. Store rules: an active trip blocks deletion in both apps and a driver's
+owed balance blocks hers; a rider's outstanding fee never does. A deleted number can never
+sign up again. There is no public web deletion page (removed from scope 2026-09-29).
 
 Notification settings switches use
 Framework7's `.toggle`, made keyboard-reachable and RTL-mirrored in `f7-overrides.css`.
@@ -391,8 +392,7 @@ index.html (Splash overlay → Login)
 | `rider/trip-complete.html` | Rating (stars + tags + tip) + trip summary |
 | `rider/notifications.html` | Notification inbox (also `driver/notifications.html`) |
 | `rider/notification-settings.html` | Notification preferences (also `driver/notification-settings.html`) |
-| `rider/delete-account.html` | Account deletion — review, code, 30-day window (also `driver/delete-account.html`) |
-| `delete-account/index.html` | Public deletion request page for people without the app (Google Play requirement) |
+| `rider/delete-account.html` | Account deletion — short confirmation, code, 30-day window (also `driver/delete-account.html`) |
 
 ---
 
