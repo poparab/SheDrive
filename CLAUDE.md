@@ -107,7 +107,6 @@ Rules:
 | `shedrive.savedPlaces` | localStorage | JSON `[{id, label, name, address}]` | Rider saved places (home/work/custom) |
 | `shedrive.adminSession` | localStorage | JSON `{email, role, loginAt}` | Admin portal session (separate from `shedrive.session`) |
 | `shedrive.notificationsRead` | localStorage | JSON `{rider: [id], driver: [id]}` | Notification inbox read state, per app |
-| `shedrive.notificationPrefs` | localStorage | JSON `{rider: {key: bool}, driver: {…}}` | Notification category switches (locked categories are never stored) |
 | `shedrive.pushPermission` | localStorage | string `'default'\|'granted'\|'denied'` | Mock of the OS push permission |
 | `shedrive.accountDeletion` | localStorage | JSON `{rider?: [..], driver?: [..]}` each entry `{phone, requestedAt, deleteOn}`, one per number | Accounts awaiting deletion (30-day window) or deleted; sign-in offers a restore only to the same number |
 | `shedrive.historyReturn` | sessionStorage | JSON `{count, top}` | Rider trip history: pages loaded + scroll offset, restored on return from a trip detail |
@@ -281,11 +280,12 @@ Component APIs:
   - Link to the notification inbox with an unread badge (caps at 9+).
   - Attributes: `href`, `count`. The page script sets `count` from `unreadCount(role)` in `shared/scripts/notifications.js`.
 
-The notification inbox and notification settings screens are the same in both apps, so
-their controller (`shared/scripts/notification-inbox.js`), store
-(`shared/scripts/notifications.js`) and styles (`shared/styles/notifications.css`) are
-shared. Each app still owns its three files per screen; the page script only calls
-`mountInbox(role)` or `mountNotificationSettings(role)`.
+The notification inbox is the same in both apps, so its controller
+(`shared/scripts/notification-inbox.js`), store (`shared/scripts/notifications.js`) and
+styles (`shared/styles/notifications.css`) are shared. Each app still owns its three files;
+the page script only calls `mountInbox(role)`. Tapping an item opens the part of the app it
+is about (its `href`). There is **no notification settings screen** — removed from scope
+2026-09-30; do not add per-category switches back.
 
 Account deletion follows the same pattern: `shared/scripts/account-deletion.js` and
 `shared/styles/account-deletion.css` drive `rider|driver/delete-account.html`
@@ -293,9 +293,6 @@ Account deletion follows the same pattern: `shared/scripts/account-deletion.js` 
 login screens. Store rules: an active trip blocks deletion in both apps and a driver's
 owed balance blocks hers; a rider's outstanding fee never does. A deleted number can never
 sign up again. There is no public web deletion page (removed from scope 2026-09-29).
-
-Notification settings switches use
-Framework7's `.toggle`, made keyboard-reachable and RTL-mirrored in `f7-overrides.css`.
 
 ---
 
@@ -397,7 +394,6 @@ index.html (Splash overlay → Login)
 | `rider/emergency.html` | Full-screen SOS dashboard + mock call buttons |
 | `rider/trip-complete.html` | Rating (stars + tags + tip) + trip summary |
 | `rider/notifications.html` | Notification inbox (also `driver/notifications.html`) |
-| `rider/notification-settings.html` | Notification preferences (also `driver/notification-settings.html`) |
 | `rider/delete-account.html` | Account deletion — short confirmation, code, 30-day window (also `driver/delete-account.html`) |
 
 ---
