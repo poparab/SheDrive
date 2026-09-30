@@ -107,7 +107,6 @@ Rules:
 | `shedrive.savedPlaces` | localStorage | JSON `[{id, label, name, address}]` | Rider saved places (home/work/custom) |
 | `shedrive.adminSession` | localStorage | JSON `{email, role, loginAt}` | Admin portal session (separate from `shedrive.session`) |
 | `shedrive.notificationsRead` | localStorage | JSON `{rider: [id], driver: [id]}` | Notification inbox read state, per app |
-| `shedrive.pushPermission` | localStorage | string `'default'\|'granted'\|'denied'` | Mock of the OS push permission |
 | `shedrive.accountDeletion` | localStorage | JSON `{rider?: [..], driver?: [..]}` each entry `{phone, requestedAt, deleteOn}`, one per number | Accounts awaiting deletion (30-day window) or deleted; sign-in offers a restore only to the same number |
 | `shedrive.historyReturn` | sessionStorage | JSON `{count, top}` | Rider trip history: pages loaded + scroll offset, restored on return from a trip detail |
 | `shedrive.driverHistoryScroll` | sessionStorage | string (px) | Driver trip history scroll offset, restored on return from a trip detail |
@@ -284,8 +283,9 @@ The notification inbox is the same in both apps, so its controller
 (`shared/scripts/notification-inbox.js`), store (`shared/scripts/notifications.js`) and
 styles (`shared/styles/notifications.css`) are shared. Each app still owns its three files;
 the page script only calls `mountInbox(role)`. Tapping an item opens the part of the app it
-is about (its `href`). There is **no notification settings screen** — removed from scope
-2026-09-30; do not add per-category switches back.
+is about (its `href`). That is all it does: there is **no notification settings screen**, no
+push-off banner and no permission explainer sheet — removed from scope 2026-09-30; do not
+add them back.
 
 Account deletion follows the same pattern: `shared/scripts/account-deletion.js` and
 `shared/styles/account-deletion.css` drive `rider|driver/delete-account.html`
