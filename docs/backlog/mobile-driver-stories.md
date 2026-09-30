@@ -1,6 +1,6 @@
 # SheDrive — Mobile Driver Stories
 > Canonical backlog for all [Mobile] Driver stories. Organized by sprint and feature.
-> Last updated: 2026-09-29
+> Last updated: 2026-09-30
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -362,14 +362,13 @@ Same as the rider flow (#5038): a six-digit code with the sign-in error messages
 
 **Scenario 10 — Signing in during the window offers her account back**
 - Given her account is waiting to be deleted
-- When she signs in with her number and code (#1570)
+- When she signs in or registers with her number and code (#1570)
 - Then she sees that the account is due to be deleted on its date, with Restore my account and Continue with deletion
 
 **Scenario 11 — Restoring does not put her online**
 - Given the restore step is shown
 - When she taps Restore my account
-- Then she is routed exactly as after a normal sign-in — to home if approved, to onboarding otherwise
-- And an onboarding application that was waiting for review is back in the review queue, unchanged
+- Then she is routed exactly as after a normal sign-in (#1570)
 - And she is offline until she goes online herself
 
 **Scenario 12 — Continuing with the deletion changes nothing**
@@ -380,7 +379,8 @@ Same as the rider flow (#5038): a six-digit code with the sign-in error messages
 **Scenario 13 — A deleted number can't sign up again**
 - Given her deletion has completed
 - When the same number enters a correct code, in Login or Register
-- Then she stays on the phone step with "This number belonged to a deleted SheDrive account and can't be used to sign up again"
+- Then she stays on the phone step with "This number belonged to a deleted SheDrive Driver account and can't be used to sign up again"
+- And the same number can still sign up in the rider app
 - And no account or application is created
 
 **Scenario 14 — Network error while requesting**
@@ -393,11 +393,18 @@ Same as the rider flow (#5038): a six-digit code with the sign-in error messages
 - Then every label, note, amount, button and error on every step, including the deletion date, is shown in the selected language
 - And the screens lay out correctly in RTL
 
+**Scenario 16 — A blocked national ID can't start a new application**
+- Given an earlier account with her national ID was deleted while suspended or reported (#5037)
+- When she submits an onboarding application with that national ID from a new number
+- Then the application is not submitted and she sees "This national ID can't be used for a new application. Please contact support."
+
 ### Out of Scope
 - A public web page for people without the app — removed from scope
 - Settling inside this flow — the existing settle screen (#3989) is linked, not duplicated
 - Choosing how the money SheDrive owes her is paid — finance handles it as today
 - Downloading a copy of her data
+- Deleting an account while the onboarding application is in review or rejected — she is not a driver yet and has no profile, so there is no Delete account link to reach (#1576)
+- A suspended driver deleting her account — she cannot sign in (#1742), so she can delete only once reinstated; accepted gap for now
 
 ### Dependencies
 - #5037 — Driver account deletion is requested, restored and completed (API — must be live)

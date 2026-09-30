@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-09-29
+> Last updated: 2026-09-30
 > Stories with changes from original are marked ✏️
 
 ---
@@ -240,7 +240,7 @@ The App Store and Google Play both refuse an app that lets people sign up withou
 
 She opens the Delete Account screen from a **Delete account** link at the bottom of her profile, under Log out (#1724). The screen is one short confirmation, not a list: her account closes at once and is deleted after 30 days, she can get it back by signing in before then, and **her number can never sign up again**. She re-confirms her phone number with a one-time code, and the request is made (#5036). She is signed out at once. If she signs in again within 30 days she is offered her account back; after that the deletion is final.
 
-**A trip in progress blocks the request; an outstanding fee does not.** A fee can only be paid by taking a ride, so it is shown as information and never stands in her way.
+**A trip in progress blocks the request; an outstanding fee does not.** A fee can only be paid by taking a ride, so it is shown as information and never stands in her way. An account under review or suspended does not block it either: she still signs in (only a ride request is refused), so she deletes like anyone else.
 
 All strings flow through `data-i18n` keys with Arabic fallback text in the HTML, and every step lays out correctly in LTR and RTL.
 
@@ -276,7 +276,7 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 - And Continue is enabled straight away; there is no list, no reason to choose and no checkbox
 
 **Scenario 3 — A trip in progress blocks the request**
-- Given the rider has a trip that is not yet completed or cancelled
+- Given the rider has a trip that is not yet completed or cancelled, including a request still searching for a driver
 - When she opens Delete Account
 - Then Finish your trip first is shown instead of Review, with Back to my trip
 - And no code is requested
@@ -319,7 +319,8 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 **Scenario 10 — Restoring brings everything back**
 - Given the restore step is shown
 - When she taps Restore my account
-- Then she goes wherever a normal sign-in would take her: the home screen for an active account, the suspension message for a suspended one
+- Then she goes wherever a normal sign-in would take her: the home screen
+- And her account keeps its current status, so a rider under review or suspended still sees the account-under-review message when she requests a ride
 - And her profile, saved places, emergency contacts and trip history are all as they were
 
 **Scenario 11 — Continuing with the deletion changes nothing**
@@ -342,6 +343,11 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 - Given the rider switches language
 - Then every label, note, button and error on every step, including the deletion date, is shown in the selected language
 - And the screens lay out correctly in RTL
+
+**Scenario 15 — A rider under review or suspended can still delete**
+- Given her account is under review (#1687) or suspended (#1740)
+- When she taps Delete account on her profile
+- Then the Review step opens and she can delete exactly as any other rider
 
 ### Out of Scope
 - A public web page for people without the app — removed from scope
