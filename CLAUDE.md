@@ -57,6 +57,9 @@ Keep screen-specific markup, ids, and behavior in the rider screen files; only e
 - Reuse existing class names intentionally so screen CSS keeps working after componentization.
 - **`<sd-page>` is the one scroll container on every screen** (`shared/styles/f7-overrides.css`). Framework7 locks the body's overflow, and the body is the transformed `.app-shell` that contains every `position: fixed` layer (drawer, toasts, sheets, pinned CTA bars), so it must never scroll. Scroll listeners and `scrollTo` target `document.querySelector('sd-page')`, not `window`; tall bottom sheets scroll internally.
 - Keep shared components presentational and attribute-driven. Screen-specific state, timers, auth checks, uploads, and storage flows stay in the page scripts.
+- **Back controls use `data-back`, never `onclick="history.back()"` or a bare href.** Mark the control `data-back="./parent.html"` (or `data-back` on a link, whose `href` is the parent). `shared/scripts/navigation.js` (wired by `sd-page`) pops history when she came from another screen of the same app and otherwise replaces the page with the parent — `history.back()` alone is dead on a screen opened from an ADO preview link. It also mirrors the arrow in RTL, so no per-screen flip rule is needed. From script, call `goBack(fallback)`.
+- **A screen's main buttons never float mid-screen.** Put them in `.action-dock` (`shared/styles/components.css`) and mark every wrapper between `<sd-page>` and the dock `.fill-screen`: the dock sits at the bottom of the screen on a short step and stays pinned while a long one scrolls under it. The dock supplies the bottom padding, so its panel's bottom padding is 0. Exception: the Emergency Contacts empty state keeps its add button inside the card, as the Figma frame draws it.
+- **One-way flow steps use `location.replace`** (sign-in → home, matching → active trip → trip complete, request → trip → cash collection, sign-out). The system back button must never land on a screen that auto-advances or belongs to a finished trip.
 
 ---
 
@@ -106,7 +109,7 @@ Rules:
 | `shedrive.notificationsRead` | localStorage | JSON `{rider: [id], driver: [id]}` | Notification inbox read state, per app |
 | `shedrive.notificationPrefs` | localStorage | JSON `{rider: {key: bool}, driver: {…}}` | Notification category switches (locked categories are never stored) |
 | `shedrive.pushPermission` | localStorage | string `'default'\|'granted'\|'denied'` | Mock of the OS push permission |
-| `shedrive.accountDeletion` | localStorage | JSON `{rider?, driver?}` each `{phone, requestedAt, deleteOn, reason}` | Account awaiting deletion (30-day window); sign-in offers a restore |
+| `shedrive.accountDeletion` | localStorage | JSON `{rider?: [..], driver?: [..]}` each entry `{phone, requestedAt, deleteOn}`, one per number | Accounts awaiting deletion (30-day window) or deleted; sign-in offers a restore only to the same number |
 | `shedrive.historyReturn` | sessionStorage | JSON `{count, top}` | Rider trip history: pages loaded + scroll offset, restored on return from a trip detail |
 | `shedrive.driverHistoryScroll` | sessionStorage | string (px) | Driver trip history scroll offset, restored on return from a trip detail |
 
@@ -262,7 +265,7 @@ Component APIs:
   - Attributes: `variant`, `size`, `full`, `icon`, `type`, `disabled`, plus ARIA and `data-i18n*` attributes.
 - `sd-bottom-sheet`
   - Framework7-styled bottom sheet wrapper for rider flows.
-  - Attributes: `height`; methods: `open()` and `close()`.
+  - Attributes: `height`, `closed` (mounts closed — required on every dialog sheet that starts hidden, or it slides up on page load); methods: `open()` and `close()`.
 - `sd-driver-card`
   - Shared driver summary card.
   - Variants: `detailed`, `preview`, `compact`.
