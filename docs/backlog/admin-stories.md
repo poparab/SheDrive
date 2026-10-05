@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-09-17
+> Last updated: 2026-10-05
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model:** Two admin roles — **Super admin** and **Admin** — with the same access to
@@ -20,11 +20,11 @@
 ## [Admin] #1656 — Admin portal shell and login screen are in place ✏️
 **Feature:** Feature 1 — Platform & Integration Foundation | **Sprint:** 1
 
-**Description:** As a super admin, I want a working admin web portal with a login screen and shell layout so that I can securely access SheDrive operations dashboards.
+**Description:** As an admin, I want a working admin web portal with a login screen and shell layout so that I can securely access SheDrive operations dashboards.
 
 ### Background
 
-The admin portal is a web application accessible to SheDrive operations staff. It presents a login screen (email + password) as its unauthenticated entry point. Successful authentication lands the admin on the main dashboard, which sits within a persistent shell consisting of a navigation sidebar or top bar and a content area. The portal is distinct from the rider/driver mobile app and serves as the operations team's command centre for approving drivers, monitoring trips, and managing the platform. The portal UI is English only. In this phase there is a single admin role — **super admin** — and every admin account has full privileges; finer-grained roles are a planned future addition. Two-factor authentication (#1806) is required at login, password reset (#1822) is self-service, and admin accounts are managed via #1807.
+The admin portal is a web application accessible to SheDrive operations staff. It presents a login screen (email + password) as its unauthenticated entry point. Successful authentication lands the admin on the main dashboard, which sits within a persistent shell consisting of a navigation sidebar or top bar and a content area. The portal is distinct from the rider/driver mobile app and serves as the operations team's command centre for approving drivers, monitoring trips, and managing the platform. The portal UI is English only. Every admin account can use every portal screen; the two admin roles differ only in suspending, unsuspending and deleting other admin accounts (#1821), and finer-grained roles are a planned future addition. Two-factor authentication (#1806) is required at login, password reset (#1822) is self-service, and admin accounts are managed via #1807.
 
 ### Field Validation
 
@@ -36,7 +36,7 @@ The admin portal is a web application accessible to SheDrive operations staff. I
 ### Acceptance Criteria
 
 **Scenario 1 — Admin logs in with valid credentials**
-- Given a super admin navigates to the admin portal login screen
+- Given an admin navigates to the admin portal login screen
 - When she enters a valid registered email and the correct password and submits the form
 - Then she is prompted for her second factor (#1806) and, on success, is redirected to the admin dashboard
 - And the shell navigation (sidebar or top bar) is visible
@@ -77,7 +77,7 @@ The admin portal is a web application accessible to SheDrive operations staff. I
 ## [Admin] #1806 — Admin login is protected by two-factor authentication 🆕
 **Feature:** Feature 1 — Platform & Integration Foundation | **Sprint:** 1
 
-**Description:** As a super admin, I want my login to require a second authentication factor so that the portal — which controls pricing, payouts, and account suspension — is protected against credential theft.
+**Description:** As an admin, I want my login to require a second authentication factor so that the portal — which controls pricing, payouts, and account suspension — is protected against credential theft.
 
 ### Background
 
@@ -125,14 +125,14 @@ After a successful email and password check on #1656, the portal requires a seco
 
 ---
 
-## [Admin] #1807 — Super admin adds an admin user account 🆕
+## [Admin] #1807 — Admin adds an admin user account 🆕
 **Feature:** Feature 1 — Platform & Integration Foundation | **Sprint:** 1
 
-**Description:** As a super admin, I want to invite/create a new admin user account by email so that I can grant a colleague access to the operations portal.
+**Description:** As an admin, I want to invite/create a new admin user account by email so that I can grant a colleague access to the operations portal.
 
 ### Background
 
-In this phase a single role — **super admin** — exists and every admin account has full portal privileges; finer-grained roles are a planned future addition. This story covers creating a new admin by email: on creation the system **generates a temporary password and emails it to the new admin's address**, and the account appears with status Active. The temporary password is single-use and the new admin must change it on her first login (#1822). Viewing the accounts list is #1820; enabling/disabling accounts is #1821.
+Any admin can add an admin account; the two admin roles differ only in suspending, unsuspending and deleting other admin accounts (#1821), and finer-grained roles are a planned future addition. This story covers creating a new admin by email: on creation the system **generates a temporary password and emails it to the new admin's address**, and the account appears with status Active. The temporary password is single-use and the new admin must change it on her first login (#1822). Viewing the accounts list is #1820; enabling/disabling accounts is #1821.
 
 ### Field Validation
 
@@ -142,27 +142,27 @@ In this phase a single role — **super admin** — exists and every admin accou
 
 ### Acceptance Criteria
 
-**Scenario 1 — Super admin creates an admin account**
-- Given the super admin is on the add-admin form
+**Scenario 1 — Admin creates an admin account**
+- Given the admin is on the add-admin form
 - When she enters a valid, unique email and confirms
 - Then a temporary password is auto-generated and emailed to the new admin's address, and the account appears with status Active
 
 **Scenario 2 — Temporary password is sent only to the new admin**
 - Given the account has just been created
-- Then the temporary password is delivered only to the new admin's email and is never displayed to the creating super admin
+- Then the temporary password is delivered only to the new admin's email and is never displayed to the creating admin
 - And first login with it forces a password change (#1822)
 
 **Scenario 3 — Duplicate email is rejected**
 - Given an account already exists with a given email
-- When the super admin tries to create another with the same email
+- When the admin tries to create another with the same email
 - Then a validation error is shown and no account is created
 
 **Scenario 4 — Invalid email format is rejected**
-- Given the super admin enters a malformed email
+- Given the admin enters a malformed email
 - Then a validation error is shown and no account is created
 
 **Scenario 5 — Email over the length limit is rejected**
-- Given the super admin enters an email longer than 254 characters
+- Given the admin enters an email longer than 254 characters
 - Then a length validation error is shown and no account is created
 
 ### Out of Scope
@@ -179,14 +179,14 @@ In this phase a single role — **super admin** — exists and every admin accou
 
 ---
 
-## [Admin] #1820 — Super admin views the admin user accounts list 🆕
+## [Admin] #1820 — Admin views the admin user accounts list 🆕
 **Feature:** Feature 1 — Platform & Integration Foundation | **Sprint:** 1
 
-**Description:** As a super admin, I want to view a searchable, filterable list of all admin user accounts so that I can see who has portal access and each account's status.
+**Description:** As an admin, I want to view a searchable, filterable list of all admin user accounts so that I can see who has portal access and each account's status.
 
 ### Background
 
-This screen lists all admin user accounts so the super admin ( only ) can see who has portal access. Each row shows email, status, created date, and last login. The list is searchable by email, filterable by status, and paginated. Creating accounts is #1807; enabling/disabling is #1821.
+This screen lists all admin user accounts so admins can see who has portal access. Each row shows email, status, created date, and last login. The list is searchable by email, filterable by status, and paginated. Creating accounts is #1807; enabling/disabling is #1821.
 
 ### Acceptance Criteria
 
@@ -197,17 +197,17 @@ This screen lists all admin user accounts so the super admin ( only ) can see wh
 
 **Scenario 2 — Search by email**
 - Given the list is loaded
-- When the super admin types part of an email
+- When the admin types part of an email
 - Then the list filters to accounts whose email contains that text
 
 **Scenario 3 — Filter by status**
 - Given the list is loaded
-- When the super admin selects All, Active, or Disabled
+- When the admin selects All, Active, or Disabled
 - Then only accounts in that status group are shown
 
 **Scenario 4 — Pagination**
 - Given there are more accounts than fit on one page
-- When the super admin navigates to the next page
+- When the admin navigates to the next page
 - Then the next page of accounts is displayed in the same order
 
 **Scenario 5 — Empty state**
@@ -303,7 +303,7 @@ From the admin accounts list (#1820), a Super admin can suspend an Active accoun
 
 ### Dependencies
 - #1656 — Admin portal shell and login
-- #1820 — Super admin views the admin user accounts list (where the actions live)
+- #1820 — Admin views the admin user accounts list (where the actions live)
 - #1816 — Admin activity audit log
 
 ---
@@ -366,7 +366,7 @@ The cards are totals for all admin accounts: they do not react to the search box
 - Refreshing the counts on a timer
 
 ### Dependencies
-- #1820 — Super admin views the admin user accounts list (the grid these cards sit above)
+- #1820 — Admin views the admin user accounts list (the grid these cards sit above)
 - #1821 — Super admin suspends and unsuspends admin user accounts (moves accounts between Active and Suspended)
 - #4122 — Super admin deletes an admin user account (removes accounts from every count)
 
@@ -431,7 +431,7 @@ A Super admin cannot delete her own account.
 - Suspending or unsuspending accounts (see #1821)
 
 ### Dependencies
-- #1820 — Super admin views the admin user accounts list (where the Delete action lives)
+- #1820 — Admin views the admin user accounts list (where the Delete action lives)
 - #1821 — Super admin suspends and unsuspends admin user accounts (defines the two roles)
 - #1816 — Admin activity audit log
 - #1822 — Admin password reset (must not work for a deleted account)
@@ -445,7 +445,7 @@ A Super admin cannot delete her own account.
 
 ### Background
 
-One secure cycle covers two triggers: (1) a newly created admin's **first login** using the temporary password emailed by #1807, and (2) a **password reset** — either self-service “forgot password” or a super-admin-initiated reset for another admin. In every case the system emails a single-use temporary password; on the next login the admin is forced to set a new password before she can reach any portal screen, and the temporary password is invalidated once the new one is set. To avoid account enumeration, the forgot-password response does not reveal whether an email is registered.
+One secure cycle covers two triggers: (1) a newly created admin's **first login** using the temporary password emailed by #1807, and (2) a **password reset** — either self-service “forgot password” or an admin-initiated reset for another admin. In every case the system emails a single-use temporary password; on the next login the admin is forced to set a new password before she can reach any portal screen, and the temporary password is invalidated once the new one is set. To avoid account enumeration, the forgot-password response does not reveal whether an email is registered.
 
 ### Field Validation
 
@@ -809,7 +809,7 @@ The Reject action is triggered from the full application detail screen (#1658). 
 ## [Admin] #1661 — Admin views rider list ✏️
 **Feature:** Feature 13 — Admin Rider Management | **Sprint:** 2
 
-**Description:** As a super admin, I want to view a searchable, filterable, paginated list of all registered riders so that I can find and review any rider account quickly.
+**Description:** As an admin, I want to view a searchable, filterable, paginated list of all registered riders so that I can find and review any rider account quickly.
 
 ### Background
 
@@ -970,11 +970,11 @@ Every status count must agree with the grid — the number on a card is exactly 
 ## [Admin] #1662 — Admin views rider profile ✏️
 **Feature:** Feature 13 — Admin Rider Management | **Sprint:** 2
 
-**Description:** As a super admin, I want to view a rider's full profile and their trip history so that I can understand their account activity and take account actions when needed.
+**Description:** As an admin, I want to view a rider's full profile and their trip history so that I can understand their account activity and take account actions when needed.
 
 ### Background
 
-The rider profile screen is opened by clicking any row in the rider list (#1661). It presents the rider's personal information at the top — including an account status badge (Active, Pending Review, or Suspended) — followed by a paginated list of the rider's past trips. A rider enters **Pending Review** automatically when a driver raises a gender-mismatch report (API #1687); such cases are triaged from the gender-mismatch queue (#1810/#1811). From this screen the super admin can also **suspend** an active rider or **reinstate** a suspended one (#1740/#1741). Trip history is read-only.
+The rider profile screen is opened by clicking any row in the rider list (#1661). It presents the rider's personal information at the top — including an account status badge (Active, Pending Review, or Suspended) — followed by a paginated list of the rider's past trips. A rider enters **Pending Review** automatically when a driver raises a gender-mismatch report (API #1687); such cases are triaged from the gender-mismatch queue (#1810/#1811). From this screen the admin can also **suspend** an active rider or **reinstate** a suspended one (#1740/#1741). Trip history is read-only.
 
 ### Acceptance Criteria
 
@@ -1126,7 +1126,7 @@ Accessible from the rider profile screen (#1662), this action allows the admin t
 
 ### Dependencies
 - #1739 — Account suspension status is updated by admin (API — must be live)
-- #1811 — Super admin actions a gender-mismatch report (the only way to suspend a rider who is under review)
+- #1811 — Admin actions a gender-mismatch report (the only way to suspend a rider who is under review)
 
 ---
 
@@ -1193,7 +1193,7 @@ Accessible from a suspended rider's profile screen, this action allows the admin
 ## [Admin] #1665 — Admin views driver list across all statuses ✏️
 **Feature:** Feature 14 — Admin Driver Management | **Sprint:** 2
 
-**Description:** As a super admin, I want to view a searchable, filterable list of all driver accounts grouped by status so that I can monitor the driver pipeline and locate any driver quickly.
+**Description:** As an admin, I want to view a searchable, filterable list of all driver accounts grouped by status so that I can monitor the driver pipeline and locate any driver quickly.
 
 ### Background
 
@@ -1352,11 +1352,11 @@ Three of the cards are status counts and must agree with the grid — the number
 ## [Admin] #1666 — Admin views driver profile ✏️
 **Feature:** Feature 14 — Admin Driver Management | **Sprint:** 2
 
-**Description:** As a super admin, I want to view a driver's full profile including their documents, vehicle details, and trip history so that I can assess their account comprehensively and take account actions when needed.
+**Description:** As an admin, I want to view a driver's full profile including their documents, vehicle details, and trip history so that I can assess their account comprehensively and take account actions when needed.
 
 ### Background
 
-The driver profile screen is opened by clicking any row in the driver list (#1665). It presents personal details, vehicle information, uploaded document images (viewable inline), the profile photo, current status badge, aggregate statistics, and — for pending, rejected, or suspended drivers — the decision history. Below the profile, a paginated list of the driver's completed trips is shown. Approve/reject actions remain on the pending queue screens (#1657–#1660); from this screen the super admin can **suspend** an approved driver or **reinstate** a suspended one (#1742/#1743).
+The driver profile screen is opened by clicking any row in the driver list (#1665). It presents personal details, vehicle information, uploaded document images (viewable inline), the profile photo, current status badge, aggregate statistics, and — for pending, rejected, or suspended drivers — the decision history. Below the profile, a paginated list of the driver's completed trips is shown. Approve/reject actions remain on the pending queue screens (#1657–#1660); from this screen the admin can **suspend** an approved driver or **reinstate** a suspended one (#1742/#1743).
 
 ### Acceptance Criteria
 
@@ -1583,7 +1583,7 @@ The dashboard is the landing page of the admin portal after login. It presents f
 ## [Admin] #1670 — Admin views trip list ✏️
 **Feature:** Feature 15 — Admin Operations Dashboard | **Sprint:** 2
 
-**Description:** As a super admin, I want to view a searchable, filterable list of all trips on the platform so that I can monitor trip activity and investigate specific trips.
+**Description:** As an admin, I want to view a searchable, filterable list of all trips on the platform so that I can monitor trip activity and investigate specific trips.
 
 ### Background
 
@@ -1806,8 +1806,8 @@ The trip detail screen is opened by clicking any row in the trip list (#1670). I
 - SOS event logs
 
 ### Dependencies
-- #1808 — Super admin cancels an in-progress trip
-- #1809 — Super admin reassigns a trip to another driver
+- #1808 — Admin cancels an in-progress trip
+- #1809 — Admin reassigns a trip to another driver
 
 ---
 
@@ -1859,7 +1859,7 @@ The completed trip detail screen extends the general trip detail screen (#1671) 
 ### Dependencies
 - #3058 — Completed-trip fare is served to rider and driver (fare data source)
 - #1639 — Rider submits driver rating (rating data source)
-- #1815 — Super admin processes a manual refund
+- #1815 — Admin processes a manual refund
 
 ---
 
@@ -2042,10 +2042,10 @@ Extends the live operations map (#1823) with a layer filter that limits which ma
 
 ---
 
-## [Admin] #1756 — Super admin creates a service zone 🆕
+## [Admin] #1756 — Admin creates a service zone 🆕
 **Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** 2
 
-**Description:** As a super admin, I want to create a named service zone by drawing its boundary on a map so that the platform can recognise trips originating in that area.
+**Description:** As an admin, I want to create a named service zone by drawing its boundary on a map so that the platform can recognise trips originating in that area.
 
 ### Background
 
@@ -2060,8 +2060,8 @@ Zones are the foundation of the pricing system. Every zone has a name and a poly
 
 ### Acceptance Criteria
 
-**Scenario 1 — Super admin creates a new zone**
-- Given the super admin is on the create-zone screen
+**Scenario 1 — Admin creates a new zone**
+- Given the admin is on the create-zone screen
 - When she enters a zone name, draws a polygon on the map, and saves
 - Then the zone is created and recognised by the platform for trips originating inside that polygon
 
@@ -2072,11 +2072,11 @@ Zones are the foundation of the pricing system. Every zone has a name and a poly
 
 **Scenario 3 — Zone names must be unique**
 - Given a zone already exists with a given name
-- When the super admin tries to save a new zone with the same name
+- When the admin tries to save a new zone with the same name
 - Then a validation error is returned: zone name must be unique
 
 **Scenario 4 — New boundary must be valid**
-- Given the super admin draws a boundary with fewer than 3 points or one that self-intersects
+- Given the admin draws a boundary with fewer than 3 points or one that self-intersects
 - Then a validation error is returned and the zone is not created
 
 ### Out of Scope
@@ -2087,19 +2087,19 @@ Zones are the foundation of the pricing system. Every zone has a name and a poly
 - Importing zone polygons from a file
 
 ### Dependencies
-- #1757 — Super admin configures zone rate card (activates the zone)
-- #1831 — Super admin views the service-zone list and map
+- #1757 — Admin configures zone rate card (activates the zone)
+- #1831 — Admin views the service-zone list and map
 
 ---
 
-## [Admin] #1757 — Super admin configures zone rate card 🆕
+## [Admin] #1757 — Admin configures zone rate card 🆕
 **Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** 2
 
-**Description:** As a super admin, I want to set and update each service zone's rate card so that fares are computed from the correct per-zone pricing.
+**Description:** As an admin, I want to set and update each service zone's rate card so that fares are computed from the correct per-zone pricing.
 
 ### Background
 
-This is the super admin's **per-zone rate-card** configuration under Pricing & Rate Management. Each service zone has its own rate card: base fare, per-km rate, per-min rate, minimum fare, and cancellation fee. Saving a zone's first complete, valid rate card makes the zone **Active** — it begins accepting trips; a zone with no rate card is **Inactive** and blocks trips in its area (status is derived automatically from the rate card, never toggled by hand). Changes take effect immediately on save, and are recorded in the pricing audit log (#1760). Minimum fare must be ≥ base fare. The global cancellation policy and platform commission are configured separately in #1759.
+This is the admin's **per-zone rate-card** configuration under Pricing & Rate Management. Each service zone has its own rate card: base fare, per-km rate, per-min rate, minimum fare, and cancellation fee. Saving a zone's first complete, valid rate card makes the zone **Active** — it begins accepting trips; a zone with no rate card is **Inactive** and blocks trips in its area (status is derived automatically from the rate card, never toggled by hand). Changes take effect immediately on save, and are recorded in the pricing audit log (#1760). Minimum fare must be ≥ base fare. The global cancellation policy and platform commission are configured separately in #1759.
 
 ### Field Validation — Zone rate card (per zone)
 
@@ -2115,20 +2115,20 @@ This is the super admin's **per-zone rate-card** configuration under Pricing & R
 
 **Scenario 1 — Sets a rate card for a zone and activates it**
 - Given a newly created zone that is Inactive with no rate card yet
-- When the super admin enters all required fields and saves
+- When the admin enters all required fields and saves
 - Then the rate card is active immediately and the zone status changes to Active and starts accepting new trips
 
 **Scenario 2 — Updates a rate**
 - Given a zone has an existing rate card
-- When the super admin changes one or more values and saves
+- When the admin changes one or more values and saves
 - Then the new values are active immediately for new trips and the previous values are preserved in the audit log
 
 **Scenario 3 — Minimum fare must be at least the base fare**
-- Given the super admin sets minimum fare lower than base fare
+- Given the admin sets minimum fare lower than base fare
 - Then a validation error is returned: minimum fare cannot be less than base fare
 
 **Scenario 4 — All rate-card fields are required**
-- Given the super admin tries to save with any field empty
+- Given the admin tries to save with any field empty
 - Then a validation error identifies the missing field and save is blocked
 
 **Scenario 5 — Inactive zone (no rate card) blocks trips**
@@ -2137,7 +2137,7 @@ This is the super admin's **per-zone rate-card** configuration under Pricing & R
 - Then the trip is blocked and the overview shows the zone as Inactive with a warning: "No rate card — trips will be blocked"
 
 **Scenario 6 — Status is derived, not manual**
-- Given the super admin is configuring rate cards
+- Given the admin is configuring rate cards
 - Then there is no manual control to activate or deactivate a zone — a zone is Active whenever it has a valid rate card and Inactive whenever it does not
 
 ### Out of Scope
@@ -2148,15 +2148,15 @@ This is the super admin's **per-zone rate-card** configuration under Pricing & R
 - Scheduled future rate changes
 
 ### Dependencies
-- #1756 — Super admin creates a service zone (zones must exist first)
-- #1760 — Super admin views pricing audit log (records changes)
+- #1756 — Admin creates a service zone (zones must exist first)
+- #1760 — Admin views pricing audit log (records changes)
 
 ---
 
-## [Admin] #1759 — Super admin configures global platform policies (cancellation policy + platform commission + dispatch) ✏️
+## [Admin] #1759 — Admin configures global platform policies (cancellation policy + platform commission + dispatch) ✏️
 **Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** 2
 
-**Description:** As a super admin, I want to configure the global cancellation policy, the platform commission, and the driver acceptance window so that fees, the driver/platform split, the platform's share, and how long a driver has to answer a trip offer are managed consistently across all zones.
+**Description:** As an admin, I want to configure the global cancellation policy, the platform commission, and the driver acceptance window so that fees, the driver/platform split, the platform's share, and how long a driver has to answer a trip offer are managed consistently across all zones.
 
 ### Background
 
@@ -2189,19 +2189,19 @@ These are the **global** platform policies, applied across all zones: the **canc
 **Cancellation policy**
 
 **Scenario 1 — Sets the rider grace period**
-- Given the super admin enters a rider grace period in minutes (e.g. 3) and saves
+- Given the admin enters a rider grace period in minutes (e.g. 3) and saves
 - Then all future rider cancellations use this grace period to determine whether the fee applies
 
 **Scenario 2 — Sets the driver cancellation fee**
-- Given the super admin enters a fixed driver cancellation fee in EGP (e.g. 20) and saves
+- Given the admin enters a fixed driver cancellation fee in EGP (e.g. 20) and saves
 - Then a driver who cancels after the driver cancellation grace period is charged this amount, unless the cancellation is a waived rider no-show; setting it to 0 disables the fee
 
 **Scenario 3 — Sets the driver cancellation grace period**
-- Given the super admin enters a driver cancellation grace period in minutes (e.g. 2) and saves
+- Given the admin enters a driver cancellation grace period in minutes (e.g. 2) and saves
 - Then a driver who cancels within this window after accepting is not charged, and one who cancels after it is subject to the driver cancellation fee
 
 **Scenario 4 — Sets the rider no-show wait time**
-- Given the super admin enters a rider no-show wait time in minutes (e.g. 5) and saves
+- Given the admin enters a rider no-show wait time in minutes (e.g. 5) and saves
 - Then a driver's cancellation fee is waived only when she cancels a rider no-show after waiting at least this long at the pickup
 
 **Scenario 5 — Policy change applies to new trips only**
@@ -2209,17 +2209,17 @@ These are the **global** platform policies, applied across all zones: the **canc
 - Then that trip uses the policy active at the time of driver acceptance and new trips use the updated policy
 
 **Scenario 6 — Driver share must be between 1 and 99**
-- Given the super admin enters 0 or 100 as the driver share
+- Given the admin enters 0 or 100 as the driver share
 - Then a validation error is returned: driver share must be between 1% and 99%
 
 **Scenario 7 — Fee and time values must be non-negative**
-- Given the super admin enters a negative driver cancellation fee, grace period, or no-show wait time
+- Given the admin enters a negative driver cancellation fee, grace period, or no-show wait time
 - Then a validation error is returned and the change is not saved
 
 **Platform commission**
 
 **Scenario 8 — Sets the commission percentage**
-- Given the super admin enters a commission percentage (e.g. 20%) and saves
+- Given the admin enters a commission percentage (e.g. 20%) and saves
 - Then all trips completed after this point use the new rate and the previous rate is preserved in the audit log
 
 **Scenario 9 — Commission is applied to total fare**
@@ -2227,27 +2227,27 @@ These are the **global** platform policies, applied across all zones: the **canc
 - Then the platform retains 20 EGP, the driver's net earnings are 80 EGP, and both are stored on the trip record
 
 **Scenario 10 — Commission cannot be 0% or above 50%**
-- Given the super admin tries to save 0 or a value above 50
+- Given the admin tries to save 0 or a value above 50
 - Then a validation error is returned
 
 **Dispatch**
 
 **Scenario 11 — Sets the driver acceptance window**
-- Given the super admin enters a driver acceptance window in seconds (e.g. 30) and saves
+- Given the admin enters a driver acceptance window in seconds (e.g. 30) and saves
 - Then every trip offer dispatched after the save gives the driver that many seconds to accept or reject before it is passed to the next driver (#1630)
 - And the driver app's countdown reflects the same value (#1582, #1585)
 
 **Scenario 12 — Default acceptance window is 30 seconds**
-- Given the platform has been set up and the super admin has not yet changed the value
+- Given the platform has been set up and the admin has not yet changed the value
 - Then the driver acceptance window is 30 seconds
 
 **Scenario 13 — Acceptance window must be between 10 and 120 seconds**
-- Given the super admin tries to save a value below 10 or above 120, or a non-whole number
+- Given the admin tries to save a value below 10 or above 120, or a non-whole number
 - Then a validation error is returned and the change is not saved
 
 **Scenario 14 — Acceptance window change does not affect a dispatch in flight**
 - Given a trip offer is already sitting with a driver under the previous window
-- When the super admin saves a new acceptance window
+- When the admin saves a new acceptance window
 - Then the in-flight offer keeps the window it was issued with and only later dispatches use the new value
 
 ### Out of Scope
@@ -2260,17 +2260,17 @@ These are the **global** platform policies, applied across all zones: the **canc
 - Per-zone, per-driver, or time-of-day acceptance windows (the window is a single global value)
 
 ### Dependencies
-- #1757 — Super admin configures zone rate card (per-zone rider cancellation fee lives there)
+- #1757 — Admin configures zone rate card (per-zone rider cancellation fee lives there)
 - #1764 — Cancellation fees are charged after grace period (consumes these settings)
-- #1760 — Super admin views pricing audit log (records changes)
+- #1760 — Admin views pricing audit log (records changes)
 - #1630 — Driver-matching engine (consumes the acceptance window when dispatching)
 
 ---
 
-## [Admin] #1830 — Super admin edits and deletes service zones 🆕
+## [Admin] #1830 — Admin edits and deletes service zones 🆕
 **Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** 2
 
-**Description:** As a super admin, I want to edit a zone's name or boundary and delete zones I no longer need so that the zone map stays accurate as the city's coverage changes.
+**Description:** As an admin, I want to edit a zone's name or boundary and delete zones I no longer need so that the zone map stays accurate as the city's coverage changes.
 
 ### Background
 
@@ -2287,31 +2287,31 @@ This covers editing and deleting existing service zones; creating and listing zo
 
 **Scenario 1 — Edits a zone boundary**
 - Given an existing zone is displayed on the map
-- When the super admin adjusts the polygon boundary and saves
+- When the admin adjusts the polygon boundary and saves
 - Then the updated boundary takes effect immediately for new trips and the change is recorded in the audit log
 
 **Scenario 2 — Renames a zone**
 - Given an existing zone
-- When the super admin changes the zone name and saves
+- When the admin changes the zone name and saves
 - Then the name is updated everywhere it appears, including rate-card screens and audit logs
 
 **Scenario 3 — Rename must remain unique**
 - Given another zone already uses a given name
-- When the super admin renames a zone to that same name
+- When the admin renames a zone to that same name
 - Then a validation error is returned: zone name must be unique
 
 **Scenario 4 — Edited boundary must stay valid**
-- Given the super admin edits a boundary so it has fewer than 3 points or self-intersects
+- Given the admin edits a boundary so it has fewer than 3 points or self-intersects
 - Then a validation error is returned and the change is not saved
 
 **Scenario 5 — Deletes a zone**
 - Given an existing zone with no trips currently in progress within it
-- When the super admin deletes it and confirms
+- When the admin deletes it and confirms
 - Then the zone is removed, its rate card is no longer accessible, and a confirmation dialog first warns that rides in that area will be blocked until a new zone is created
 
 **Scenario 6 — Cannot delete a zone with trips in progress**
 - Given a zone has one or more trips currently in progress within it
-- When the super admin attempts to delete it
+- When the admin attempts to delete it
 - Then deletion is blocked with a message that the zone has active trips and cannot be deleted yet
 
 ### Out of Scope
@@ -2322,16 +2322,16 @@ This covers editing and deleting existing service zones; creating and listing zo
 - Merging or splitting existing zones
 
 ### Dependencies
-- #1756 — Super admin creates and lists service zones (zones must exist first)
-- #1757 — Super admin configures zone rate card (a deleted zone's rate card becomes inaccessible)
-- #1760 — Super admin views pricing audit log (records changes)
+- #1756 — Admin creates and lists service zones (zones must exist first)
+- #1757 — Admin configures zone rate card (a deleted zone's rate card becomes inaccessible)
+- #1760 — Admin views pricing audit log (records changes)
 
 ---
 
-## [Admin] #1831 — Super admin views the service-zone list and map 🆕
+## [Admin] #1831 — Admin views the service-zone list and map 🆕
 **Feature:** Feature 16 — Pricing & Rate Management | **Sprint:** 2
 
-**Description:** As a super admin, I want to see all service zones on a map and in a list, each showing whether it is active or inactive, so that I can review coverage and spot zones that are not yet ready to take trips.
+**Description:** As an admin, I want to see all service zones on a map and in a list, each showing whether it is active or inactive, so that I can review coverage and spot zones that are not yet ready to take trips.
 
 ### Background
 
@@ -2347,7 +2347,7 @@ This is the read-only zones overview: a map showing every service zone as a colo
 ### Acceptance Criteria
 
 **Scenario 1 — Map overview shows all zones**
-- Given the super admin opens the Zones overview
+- Given the admin opens the Zones overview
 - Then every defined zone is rendered as a coloured polygon on a Cairo/Giza map with its name label
 - And Active and Inactive zones are visually distinct (e.g. Active filled, Inactive greyed)
 
@@ -2363,21 +2363,21 @@ This is the read-only zones overview: a map showing every service zone as a colo
 
 **Scenario 4 — Filter by status**
 - Given the overview is displayed
-- When the super admin filters by Active or Inactive
+- When the admin filters by Active or Inactive
 - Then only zones with that status are shown in both the list and the map
 
 **Scenario 5 — Search by zone name**
 - Given many zones exist
-- When the super admin types part of a zone name
+- When the admin types part of a zone name
 - Then the list narrows to matching zones
 
 **Scenario 6 — Open a zone for create/edit/delete**
 - Given the overview is displayed
-- Then the super admin can start creating a new zone (#1756) or open an existing zone to edit or delete it (#1830)
+- Then the admin can start creating a new zone (#1756) or open an existing zone to edit or delete it (#1830)
 
 **Scenario 7 — Empty state**
 - Given no zones have been created yet
-- Then the overview shows an empty state prompting the super admin to create the first zone
+- Then the overview shows an empty state prompting the admin to create the first zone
 
 ### Out of Scope
 - Creating zones (see #1756)
@@ -2386,9 +2386,9 @@ This is the read-only zones overview: a map showing every service zone as a colo
 - Manually toggling a zone's active/inactive status (status is automatic)
 
 ### Dependencies
-- #1756 — Super admin creates a service zone
-- #1757 — Super admin configures zone rate card (drives Active/Inactive status)
-- #1830 — Super admin edits and deletes service zones (row/map actions)
+- #1756 — Admin creates a service zone
+- #1757 — Admin configures zone rate card (drives Active/Inactive status)
+- #1830 — Admin edits and deletes service zones (row/map actions)
 
 ### List / Grid Specification
 
@@ -2488,14 +2488,14 @@ Changes take effect immediately on save and apply to new evaluations only: a dri
 
 ---
 
-## [Admin] #1810 — Super admin reviews the gender-mismatch report queue ✏️
+## [Admin] #1810 — Admin reviews the gender-mismatch report queue ✏️
 **Feature:** Feature 17 — Admin Safety & Incident Review | **Sprint:** 4
 
-**Description:** As a super admin, I want a queue of all driver-raised gender-mismatch reports so that I can promptly review potential women-only policy violations and open each one for resolution.
+**Description:** As an admin, I want a queue of all driver-raised gender-mismatch reports so that I can promptly review potential women-only policy violations and open each one for resolution.
 
 ### Background
 
-SheDrive is a women-only service. When a driver reports that the rider who showed up is not female, the trip is expired with reason gender_mismatch_report, a report record is created, and the reported rider's account is automatically set to pending_review on the API side (#1687). This screen is the **queue** of all open reports (oldest first — reported rider, reporting driver, trip id, report time, rider status); the super admin opens a report to review the trip snapshot, the reporting driver's statement, and the rider's current account state, then proceeds to resolve it. Resolving a report (suspend or dismiss) is handled by #1811.
+SheDrive is a women-only service. When a driver reports that the rider who showed up is not female, the trip is expired with reason gender_mismatch_report, a report record is created, and the reported rider's account is automatically set to pending_review on the API side (#1687). This screen is the **queue** of all open reports (oldest first — reported rider, reporting driver, trip id, report time, rider status); the admin opens a report to review the trip snapshot, the reporting driver's statement, and the rider's current account state, then proceeds to resolve it. Resolving a report (suspend or dismiss) is handled by #1811.
 
 **First-trip verification is mandatory.** On every rider's first trip the driver must **always** verify at pickup that the rider is female before the trip can start (#1588). The step cannot be skipped, dismissed or switched off, and there is no exception for any passenger. A gender-mismatch report can only be raised from that step, so every report relates to a rider's first trip; returning riders are not re-checked.
 
@@ -2513,7 +2513,7 @@ Oldest-first is deliberate and is the opposite of every other admin list: this i
 
 **Scenario 1 — Queue lists open reports**
 - Given one or more open gender-mismatch reports exist
-- When the super admin opens the queue
+- When the admin opens the queue
 - Then reports are listed oldest ( still opened ) first with reported rider, reporting driver, trip id, report time, and rider status
 
 **Scenario 2 — Empty state**
@@ -2521,12 +2521,12 @@ Oldest-first is deliberate and is the opposite of every other admin list: this i
 - Then a clear empty-state message is shown
 
 **Scenario 3 — Open a report**
-- Given the super admin clicks a report row
+- Given the admin clicks a report row
 - Then the detail shows the trip snapshot, the reporting driver's statement, and the rider's current account state
 
 **Scenario 4 — A report with no statement**
 - Given the reporting driver submitted no statement — it is optional on the driver side (#1588)
-- When the super admin opens that report
+- When the admin opens that report
 - Then the statement block states plainly that no statement was given and that the trip snapshot is the only evidence
 - And it is never left blank, so the admin can tell an absent statement from a failure to load one
 
@@ -2537,17 +2537,17 @@ Oldest-first is deliberate and is the opposite of every other admin list: this i
 
 **Scenario 6 — Filter the queue**
 - Given the queue has many entries
-- When the super admin filters by date range or status (open / resolved / all)
+- When the admin filters by date range or status (open / resolved / all)
 - Then only matching reports are shown
 
 **Scenario 7 — Export**
 - Given the queue is displayed
-- Then the super admin can export the current view to CSV/Excel
+- Then the admin can export the current view to CSV/Excel
 - And the export covers every report matching the current filters, not only the visible page
 
 **Scenario 8 — Proceed to action**
 - Given a report is open
-- When the super admin chooses to resolve it
+- When the admin chooses to resolve it
 - Then she is taken to the action step (#1811)
 
 **Scenario 9 — The linked trip is unavailable**
@@ -2573,7 +2573,7 @@ Oldest-first is deliberate and is the opposite of every other admin list: this i
 ### Dependencies
 - #1687 — Rider account is placed under review after a gender mismatch report (creates the records; owns pending_review)
 - #1662 — Admin views rider profile
-- #1811 — Super admin actions a gender-mismatch report
+- #1811 — Admin actions a gender-mismatch report
 - #1816 — Admin activity audit log
 
 ### List / Grid Specification
@@ -2592,14 +2592,14 @@ Oldest-first is deliberate and is the opposite of every other admin list: this i
 
 ---
 
-## [Admin] #1811 — Super admin actions a gender-mismatch report ✏️
+## [Admin] #1811 — Admin actions a gender-mismatch report ✏️
 **Feature:** Feature 17 — Admin Safety & Incident Review | **Sprint:** 4
 
-**Description:** As a super admin, I want to resolve a gender-mismatch report by either suspending the reported rider or dismissing the report so that flagged accounts do not stay in limbo.
+**Description:** As an admin, I want to resolve a gender-mismatch report by either suspending the reported rider or dismissing the report so that flagged accounts do not stay in limbo.
 
 ### Background
 
-Opened from a report in the queue (#1810), the super admin resolves it one of two ways: **Suspend** the reported rider (applies the same suspension as #1740 via API #1739, with the reason "Women-only policy violation (gender mismatch)" from the #1740 reason list and the report id attached as its reference) or **Dismiss** the report (the rider returns from pending_review to active). Because the gender-mismatch report is itself the recorded reason and the rider is already under review on this screen, an additional **resolution note** is **optional** free text on either outcome. The decision is written to the admin activity audit log (#1816) and the report leaves the open queue.
+Opened from a report in the queue (#1810), the admin resolves it one of two ways: **Suspend** the reported rider (applies the same suspension as #1740 via API #1739, with the reason "Women-only policy violation (gender mismatch)" from the #1740 reason list and the report id attached as its reference) or **Dismiss** the report (the rider returns from pending_review to active). Because the gender-mismatch report is itself the recorded reason and the rider is already under review on this screen, an additional **resolution note** is **optional** free text on either outcome. The decision is written to the admin activity audit log (#1816) and the report leaves the open queue.
 
 **First-trip verification is mandatory.** On every rider's first trip the driver must **always** verify at pickup that the rider is female before the trip can start (#1588). The step cannot be skipped, dismissed or switched off, and there is no exception for any passenger. A gender-mismatch report can only be raised from that step, so every report relates to a rider's first trip; returning riders are not re-checked.
 
@@ -2616,20 +2616,20 @@ Opened from a report in the queue (#1810), the super admin resolves it one of tw
 ### Acceptance Criteria
 
 **Scenario 1 — Suspend the reported rider**
-- Given the super admin is reviewing an open report
+- Given the admin is reviewing an open report
 - When she chooses Suspend (optionally adding a free-text note)
 - Then the rider's status changes from pending_review to suspended, her sessions are invalidated, and the report is marked resolved-suspended
 - And the suspension is recorded with the reason "Women-only policy violation (gender mismatch)" — the same value from the #1740 reason list — with the report id attached as its reference, so her profile shows why she was suspended and which report it came from
 
 **Scenario 2 — Dismiss the report**
-- Given the super admin determines the report is unfounded
+- Given the admin determines the report is unfounded
 - When she chooses Dismiss (optionally adding a free-text note)
 - Then the rider returns from pending_review to active and the report is marked resolved-dismissed
 - And no suspension record is created and her sessions are untouched
 - And she can request trips again immediately
 
 **Scenario 3 — Resolution note is optional**
-- Given the super admin chooses Suspend or Dismiss without entering any note
+- Given the admin chooses Suspend or Dismiss without entering any note
 - Then the decision proceeds with no required-field error
 - And given a note longer than 500 characters, the error "يجب ألا تتجاوز الملاحظة 500 حرف" is shown and nothing is changed
 
@@ -2649,13 +2649,13 @@ Opened from a report in the queue (#1810), the super admin resolves it one of tw
 
 **Scenario 7 — A rider under review is only actioned from the report**
 - Given a rider's account is in `pending_review`
-- When the super admin views her in the rider list (#1661) or opens her profile (#1662)
+- When the admin views her in the rider list (#1661) or opens her profile (#1662)
 - Then no Suspend or Reinstate action is offered there
 - And her profile links to the open gender-mismatch report instead, so the decision is always taken against the report on this screen
 
 **Scenario 8 — The report and the account never disagree**
 - Given any part of the resolution fails
-- Then neither the report status nor the rider's account status is changed, and the super admin is told the decision was not recorded
+- Then neither the report status nor the rider's account status is changed, and the admin is told the decision was not recorded
 
 ### Out of Scope
 - Contacting the rider
@@ -2664,7 +2664,7 @@ Opened from a report in the queue (#1810), the super admin resolves it one of tw
 - Automated resolution
 
 ### Dependencies
-- #1810 — Super admin reviews the gender-mismatch report queue
+- #1810 — Admin reviews the gender-mismatch report queue
 - #1687 — Rider account is placed under review after a gender mismatch report (creates the report and owns `pending_review`)
 - #1740 / #1739 — Account suspension (the mechanism reused to uphold a report)
 - #1741 — Rider reinstatement (the separate path for lifting an unrelated suspension)
@@ -2672,10 +2672,10 @@ Opened from a report in the queue (#1810), the super admin resolves it one of tw
 
 ---
 
-## [Admin] #4120 — Super admin sees summary cards above the gender-mismatch report queue 🆕
+## [Admin] #4120 — Admin sees summary cards above the gender-mismatch report queue 🆕
 **Feature:** Feature 17 — Admin Safety & Incident Review | **Sprint:** 4
 
-**Description:** As a super admin, I want to see how many gender-mismatch reports there are in total, how many are open and how many are resolved so that I know the size of the review workload at a glance.
+**Description:** As an admin, I want to see how many gender-mismatch reports there are in total, how many are open and how many are resolved so that I know the size of the review workload at a glance.
 
 ### Background
 
@@ -2694,18 +2694,18 @@ Reports only come from the driver's check on a rider's first trip, which the dri
 ### Acceptance Criteria
 
 **Scenario 1 — Cards are shown**
-- Given the super admin opens the gender-mismatch report queue
+- Given the admin opens the gender-mismatch report queue
 - Then the Total reports, Open and Resolved cards are shown above the filters, each with a count
 - And Open plus Resolved equals Total reports
 
 **Scenario 2 — Counts stay the same when filtering**
 - Given the cards are shown
-- When the super admin changes the status filter or the date range
+- When the admin changes the status filter or the date range
 - Then only the grid changes and the card counts stay the same
 
 **Scenario 3 — Counts update after a change**
 - Given a new report is raised or an open report is resolved
-- When the super admin reloads the queue
+- When the admin reloads the queue
 - Then the card counts reflect the change
 
 **Scenario 4 — Zero or unavailable count**
@@ -2714,7 +2714,7 @@ Reports only come from the driver's check on a rider's first trip, which the dri
 
 **Scenario 5 — Cards are not clickable**
 - Given the cards are shown
-- When the super admin clicks a card
+- When the admin clicks a card
 - Then nothing happens
 
 ### Out of Scope
@@ -2723,15 +2723,15 @@ Reports only come from the driver's check on a rider's first trip, which the dri
 - Trends, charts or auto-refresh
 
 ### Dependencies
-- #1810 — Super admin reviews the gender-mismatch report queue
-- #1811 — Super admin actions a gender-mismatch report
+- #1810 — Admin reviews the gender-mismatch report queue
+- #1811 — Admin actions a gender-mismatch report
 
 ---
 
-## [Admin] #3945 — Super admin reviews the SOS request queue 🆕
+## [Admin] #3945 — Admin reviews the SOS request queue 🆕
 **Feature:** Feature 17 — Admin Safety & Incident Review | **Sprint:** Phase 1
 
-**Description:** As a super admin, I want a queue of every SOS raised from inside a trip so that I can see which incidents are still unreviewed and open one to decide what to do.
+**Description:** As an admin, I want a queue of every SOS raised from inside a trip so that I can see which incidents are still unreviewed and open one to decide what to do.
 
 ### Background
 
@@ -2754,13 +2754,13 @@ Resolving a case (suspend and close) is #3946.
 
 **Scenario 1 — Queue lists open cases first**
 - Given one or more SOS cases exist
-- When the super admin opens the queue
+- When the admin opens the queue
 - Then open cases are listed above closed ones regardless of the chosen sort
 - And within each group the newest case is listed first
 
 **Scenario 2 — Each row identifies the incident at a glance**
 - Given the queue is displayed
-- When the super admin scans the list
+- When the admin scans the list
 - Then each row shows the time it was raised, who raised it (rider or driver, with their name), trip id, trip state at the moment of the tap, location, how many contacts were alerted, and the case status
 - And an open case is visually distinguished so a safety row does not read like an ordinary trip row
 - And a closed case shows how it was closed, not merely "closed"
@@ -2772,23 +2772,23 @@ Resolving a case (suspend and close) is #3946.
 
 **Scenario 4 — Filter the queue**
 - Given the queue has many entries
-- When the super admin filters by status, by who raised it, or by date range
+- When the admin filters by status, by who raised it, or by date range
 - Then only matching cases are shown and the count badge reflects the filtered total
 
 **Scenario 5 — Open a case**
 - Given the queue is displayed
-- When the super admin clicks a case row
+- When the admin clicks a case row
 - Then the case detail opens (#3946)
 
 **Scenario 6 — Open-case count is visible from anywhere**
 - Given one or more cases are open
-- When the super admin is anywhere in the portal
+- When the admin is anywhere in the portal
 - Then the SOS item in the side navigation carries the open-case count
 - And the queue is a review surface only — no sound and no popup alert is raised
 
 **Scenario 7 — Export**
 - Given the queue is displayed
-- When the super admin chooses to export
+- When the admin chooses to export
 - Then the current view is exported to CSV
 
 **Scenario 8 — Empty state**
@@ -2817,7 +2817,7 @@ Resolving a case (suspend and close) is #3946.
 
 ### Dependencies
 - #1779 — Emergency & Safety API (the SOS case record)
-- #3946 — Super admin actions an SOS request
+- #3946 — Admin actions an SOS request
 - #1816 — Admin activity audit log
 - #1662 — Admin views rider profile
 
@@ -3684,10 +3684,10 @@ Recording a payout happens on the driver's ledger (#4378), in the same place as 
 
 ---
 
-## [Admin] #1816 — Super admin views the admin activity audit log 🆕
+## [Admin] #1816 — Admin views the admin activity audit log 🆕
 **Feature:** Feature 19 — Admin Audit & Compliance | **Sprint:** 2
 
-**Description:** As a super admin, I want a chronological, searchable log of every consequential admin action so that I can hold the team accountable and investigate decisions.
+**Description:** As an admin, I want a chronological, searchable log of every consequential admin action so that I can hold the team accountable and investigate decisions.
 
 ### Background
 
@@ -3715,11 +3715,11 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 **Scenario 3 — Filtering**
 - Given the log has many entries
-- When the super admin filters by actor, action type, date range, or target entity
+- When the admin filters by actor, action type, date range, or target entity
 - Then only matching entries are shown
 
 **Scenario 4 — Read-only**
-- Given the super admin views the log
+- Given the admin views the log
 - Then no entry can be edited or deleted
 
 **Scenario 5 — Pagination**
@@ -3728,7 +3728,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 **Scenario 6 — Export**
 - Given a filtered view is displayed
-- Then the super admin can export it to CSV/Excel
+- Then the admin can export it to CSV/Excel
 
 ### Out of Scope
 - Logging read-only views or navigation
