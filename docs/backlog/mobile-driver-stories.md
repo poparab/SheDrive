@@ -2721,7 +2721,6 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 - My profile shows a **Payout method** row (type and masked number) that opens the payout method screen.
 - She can change it any time, with the same fields and rules as onboarding. **No approval: it applies immediately**, and the next payout uses it.
 - If her last payout failed, the screen shows the amount and reason and asks her to check her method.
-- A driver with no method (joined before this step existed) sees an empty state with **Add payout method**.
 
 ### Acceptance Criteria
 **Scenario 1 — Change it**
@@ -2744,7 +2743,6 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 ### Mockup (ADO comment)
 - Payout method: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html
 - Last payout failed: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html?state=failed
-- No method yet: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html?state=none
 - My profile (Payout method row): https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/my-profile.html
 
 ---

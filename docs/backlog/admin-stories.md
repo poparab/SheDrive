@@ -3849,9 +3849,8 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ### Rules
 - A payable earning (trip earnings, rider cancellation-fee credit) becomes **due 7 calendar days** after it happens. Until then it is **on hold**.
 - An admin generates a batch by hand on working days. There is no automatic run.
-- One line per driver, only when all three hold: her due earnings net above 0; her whole balance is positive; she has a payout method.
+- One line per driver whose due earnings net above 0 and whose whole balance is positive. A driver who owes SheDrive isn't in the batch — she settles instead.
 - **Line amount = the smaller of her due net and her whole balance.** No minimum amount. Transfer fees are ignored.
-- Drivers left out are listed with the reason: *owes SheDrive — must settle first* or *no payout method*.
 - A generated batch is **Pending approval** (maker-checker). Its earnings are *in a batch* and can't be picked up by another batch.
 - Batch reference format: `PB-YYYYMMDD-nn`.
 
@@ -3871,7 +3870,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 **Scenario 1 — Preview before generating**
 - Given three drivers have due earnings and one of them owes SheDrive 40.00 EGP overall
 - When the admin chooses Generate payout batch
-- Then the preview lists two lines with their amounts and total, and the third driver under "Not included — owes SheDrive"
+- Then the preview lists two lines with their amounts and total; the third driver isn't listed
 
 **Scenario 2 — Amount is capped by her balance**
 - Given a driver's due earnings are 300.00 EGP but her whole balance is 180.00 EGP (commission from this week)
@@ -4090,7 +4089,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Record settlement (#4379) and Record payout (#4001) keep their fields and validation, but now create a request instead of posting.
 - While a driver has a settlement or a payout awaiting approval, that action is replaced by a notice with a link to the request, and her row in Driver balances shows **Awaiting approval**.
 - An approved manual payout marks her oldest due earnings **Paid**, up to its amount.
-- The driver ledger (#4378) shows her payout method (masked) or *No payout method*, a *Last payout failed* warning when it applies, her totals **On hold / Due / In a batch / Sent to bank**, and a payout status on each earning.
+- The driver ledger (#4378) shows her payout method (masked), a *Last payout failed* warning when it applies, her totals **On hold / Due / In a batch / Sent to bank**, and a payout status on each earning.
 
 ### Acceptance Criteria
 **Scenario 1 — Balance doesn't move until approved**
@@ -4165,7 +4164,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - The driver profile and the driver application show the payout method: type, provider or bank, holder name, number masked as `•••• 1234`, and who changed it last (the driver or an admin).
-- A driver with no method shows *No payout method — she won't be included in payouts until she adds one in the app*.
 - *Last payout failed* shows with the reason and a link to the batch.
 - An admin edit uses the same fields and rules as the driver's own form, and is a request (maker-checker). The current method stays until approval.
 
@@ -4200,7 +4198,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Mockup (ADO comment)
 - Driver profile — last payout failed: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069
-- Driver profile — no payout method: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1082
 - Driver profile — prepaid card: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1089
 - Driver application — payout method: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-application.html?id=1061
 

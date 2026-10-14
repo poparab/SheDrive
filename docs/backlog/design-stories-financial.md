@@ -687,7 +687,7 @@ The list of payout batches and the place to generate a new one.
 ### Sections
 - Intro: earnings are due 7 days after they happen; batches run on working days
 - KPI row: due now, in open batches, paid this month
-- **Generate payout batch** → preview modal: lines (driver, method, masked number, due, balance, amount) with total, and *Not included* drivers with the reason
+- **Generate payout batch** → preview modal: lines (driver, method, masked number, due, balance, amount) with total
 - Grid: batch ref, created, lines, total, paid / failed, status
 
 ### States
@@ -756,7 +756,7 @@ Where Finance's sheet of drivers who paid is uploaded, checked row by row and se
 Changes to Driver balances and the driver ledger for maker-checker and the payout cycle.
 
 ### Sections
-- Grid chips: *Awaiting approval*, *No payout method*
+- Grid chip: *Awaiting approval*
 - Record settlement / Record payout: note that another admin approves; after submit the button becomes a pending notice with a link
 - Ledger header: payout method (masked), *Last payout failed* band, totals On hold / Due / In a batch / Sent to bank
 - Payout status chip on each earning
@@ -794,13 +794,11 @@ The driver's payout method on the driver profile and in the application review.
 ### Sections
 - Card: type, provider or bank, holder, masked number, last changed by
 - *Last payout failed* warning with the batch link
-- No-method state
 - **Edit payout method** modal (fields per type), then a *Change awaiting approval* notice
 - Application review: the same method, read-only
 
 ### Mockup (ADO comment)
 - Profile — failed payout: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069
-- Profile — no method: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1082
 - Application: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-application.html?id=1061
 
 ---
@@ -854,12 +852,11 @@ Opened from My profile. Shows where SheDrive sends her earnings and lets her cha
 - **Change payout method** → the same form as onboarding, saved in the action dock
 
 ### States
-- Default, last payout failed, no method yet (empty state with Add payout method)
+- Default, last payout failed
 
 ### Mockup (ADO comment)
 - Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html
 - Last payout failed: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html?state=failed
-- No method yet: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html?state=none
 
 ---
 
