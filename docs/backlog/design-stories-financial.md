@@ -728,13 +728,13 @@ One batch from generation to completion: its lines, the bank file and the result
 **Feature:** #2857 Admin — Pricing, Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
 **Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
 
-Where Finance's sheet of drivers who paid is uploaded, checked row by row and sent for approval.
+Where Finance's sheet of payments drivers already made is uploaded, applied row by row and sent for approval. Any amount applies.
 
 ### Sections
 - Step 1: download the template + columns table
 - Step 2: upload
-- Step 3: check results — summary (ready, rejected, amount) and a row table with a result pill per row (Ready, Unknown driver, Owes nothing, Reference already used, Amount differs — shows both amounts, Already awaiting approval)
-- Send ready rows for approval
+- Step 3: check results — summary (rows to apply, amount, can't apply) and a row table with her balance now, her balance after, and the outcome (Settled in full, Part paid — still owes X, Paid more — X added to her balance); a row that can't be applied says why (no driver with this national ID, already imported)
+- Send the rows that can be applied for approval
 - Import history grid and a detail modal with receipt numbers
 
 ### States

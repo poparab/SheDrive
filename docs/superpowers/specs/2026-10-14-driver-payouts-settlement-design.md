@@ -99,23 +99,23 @@ it marks her oldest due entries *Paid* up to the amount.
 **Settlement sheet** — we propose the template to Finance (CSV):
 `national_id, driver_name, amount_egp, payment_date, payment_channel, payment_reference`.
 
-Each row is checked, in this order:
+The sheet lists **only payments that already went through** (changed 2026-10-14). Every row is
+applied as paid:
 
-| Check | Result when it fails |
-|---|---|
-| National ID matches a driver | Rejected — unknown driver |
-| The driver owes SheDrive | Rejected — nothing owed |
-| `payment_reference` not used before (in this file or earlier) | Rejected — duplicate |
-| Amount equals exactly what she owes on the import day | Rejected — amount mismatch (no partial or overpayment) |
-| No settlement for her already awaiting approval | Rejected — already awaiting approval |
+- **Any amount.** Less than she owes settles part of it; more than she owes adds the extra to
+  her balance, so SheDrive then owes her that amount.
+- Each row shows her balance now, her balance after, and the outcome: *Settled in full*,
+  *Part paid — still owes X*, or *Paid more — X added to her balance*. Two rows for the same
+  driver apply one after the other.
+- A row can't be applied only when its **national ID matches no driver**, or its
+  **payment reference was already imported** (the same payment never posts twice). Those rows
+  are not stored; Finance fixes them and sends them again.
 
-The admin sees the check result per row, then submits the ready rows as one
-`settlement_import` request. On approval each row posts a `settlement` entry with a receipt
-number (`S-nnnnn`), and her go-online block lifts if she is now under the limit. Rejected rows
-are not stored; Finance corrects and re-sends them.
+The admin sends the rows that can be applied as one `settlement_import` request. On approval
+each row posts a `settlement` entry with a receipt number (`S-nnnnn`), and her go-online block
+lifts once she is under the limit.
 
-The manual settlement on the driver ledger keeps its current rules (#3982 allows a surplus),
-but now goes through approval.
+The manual settlement on the driver ledger keeps its current rules and goes through approval.
 
 ## 5. Fee waiver
 

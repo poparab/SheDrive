@@ -3966,21 +3966,21 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - SheDrive provides the sheet template (CSV): `national_id, driver_name, amount_egp, payment_date, payment_channel, payment_reference`.
-- A row matches a driver by **national ID**. The name is for Finance's reference only.
-- Each row is checked in this order; the first failure decides its result: unknown driver → driver owes nothing → payment reference already used → amount differs from what she owes today → a settlement for her is already awaiting approval.
-- **No partial payments and no overpayments**: the amount must equal exactly what she owes on the import day.
-- Only ready rows are sent, as one request (maker-checker). Rejected rows are not stored; Finance corrects and re-sends them.
-- On approval each row posts a `settlement` entry with a receipt number (`S-nnnnn`) and her go-online block lifts if she is now under the limit.
+- The sheet lists only payments that already went through. A row matches a driver by **national ID**; the name is for Finance's reference only.
+- **Any amount is applied.** Less than she owes settles part of it. More than she owes adds the extra to her balance, so SheDrive then owes her that amount.
+- A row can't be applied only when its national ID matches no driver, or its payment reference was already imported (the same payment never posts twice). Those rows are not stored; Finance fixes them and sends them again.
+- Each row shows her balance now, her balance after, and the outcome: *Settled in full*, *Part paid — still owes X*, or *Paid more — X added to her balance*. Two rows for the same driver apply one after the other.
+- The rows that can be applied go as one request (maker-checker). On approval each posts a `settlement` entry with a receipt number (`S-nnnnn`), and her go-online block lifts once she is under the limit.
 
 ### Field Validation
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
 |---|---|---|---|---|---|---|---|---|---|
 | Settlement sheet | Yes | File (.csv) | All six template columns present; at least one row | 1 row | — | none | Choose the settlement sheet / اختر ملف التسويات | Missing column: {column} / عمود ناقص: {column} | The sheet has no rows / الملف لا يحتوي على صفوف |
-| national_id | Yes | 14 digits | A registered driver's national ID | 14 | 14 | — | Row rejected — unknown driver / مرفوض — سائقة غير معروفة | Row rejected — unknown driver / مرفوض — سائقة غير معروفة | — |
-| amount_egp | Yes | Decimal (EGP), 2 decimals | Exactly what she owes today | — | — | — | Row rejected — amount differs from what she owes / مرفوض — المبلغ لا يطابق المستحق | Row rejected — amount differs from what she owes / مرفوض — المبلغ لا يطابق المستحق | — |
+| national_id | Yes | 14 digits | A registered driver's national ID | 14 | 14 | — | Not applied — no driver with this national ID / لم يُطبَّق — لا توجد سائقة بهذا الرقم القومي | Not applied — no driver with this national ID / لم يُطبَّق — لا توجد سائقة بهذا الرقم القومي | — |
+| amount_egp | Yes | Decimal (EGP), 2 decimals | Any positive amount she paid | 0.01 | — | — | — | — | — |
 | payment_date | Yes | Date (YYYY-MM-DD) | Not in the future | — | today | — | — | — | — |
 | payment_channel | Yes | Text | Bank transfer, Fawry, Mobile wallet, Field agent | — | — | — | — | — | — |
-| payment_reference | Yes | Text | Unique across all imports | 1 | 60 | — | Row rejected — payment reference already used / مرفوض — مرجع الدفع مستخدم من قبل | Row rejected — payment reference already used / مرفوض — مرجع الدفع مستخدم من قبل | — |
+| payment_reference | Yes | Text | Not imported before | 1 | 60 | — | Not applied — already imported / لم يُطبَّق — تم استيراده من قبل | Not applied — already imported / لم يُطبَّق — تم استيراده من قبل | — |
 
 ### List / Grid Specification (import history)
 **Page size:** 20 · **Default sort:** Uploaded — newest first
@@ -3990,25 +3990,24 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Import ID | No | No | — |
 | File name | No | No | — |
 | Uploaded at / by | Yes | No | — |
-| Ready / total rows | No | No | — |
+| Applied / total rows | No | No | — |
 | Amount (EGP) | Yes | No | — |
 | Status (Pending approval / Approved / Rejected) | No | No | — |
 | Decided at / by | Yes | No | — |
 
 ### Acceptance Criteria
 **Scenario 1 — Check a sheet**
-- Given a sheet of 6 rows: 3 correct, 1 for half of what the driver owes, 1 with an unknown national ID, 1 with a payment reference used last week
+- Given a sheet where one driver pays exactly the 102.08 EGP she owes, one pays 42.00 of 84.22, one pays 50.00 more than she owes, one pays 75.00 while owing nothing, one row has an unknown national ID and one repeats a reference imported last week
 - When the admin uploads it
-- Then 3 rows show Ready and the other 3 show the reason, with the sheet amount next to what she owes for the mismatch
+- Then four rows show *Settled in full*, *Part paid — still owes 42.22*, *Paid more — 50.00 added*, *Paid more — 75.00 added*, and the last two say why they can't be applied
 
 **Scenario 2 — Send for approval and approve**
-- When the admin sends the 3 ready rows and another admin approves
-- Then three settlement entries are posted with receipt numbers, the three balances become 0.00, and the import shows Approved
+- When the admin sends the four rows and another admin approves
+- Then four settlement entries are posted with receipt numbers: the first driver's balance is 0.00, the second still owes 42.22, and the other two show the extra on their balance
 
-**Scenario 3 — Same driver twice before approval**
-- Given an import for Mona is awaiting approval
-- When a new sheet has another row for Mona
-- Then that row shows "already awaiting approval"
+**Scenario 3 — Same driver twice**
+- Given two rows for the same driver, 40.00 and 60.00, and she owes 100.00
+- Then the first shows *Part paid — still owes 60.00* and the second *Settled in full*
 
 **Scenario 4 — Wrong file**
 - Given the file has no `payment_reference` column
@@ -4017,7 +4016,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ### Out of Scope
 - Reading bank statements directly
 - Editing a row on screen (Finance corrects the sheet)
-- Partial settlement by import (the manual settlement on the ledger, #4379, still allows it)
 
 ### Dependencies
 - #4379 — Admin records a driver settlement (same ledger entry and receipt)
