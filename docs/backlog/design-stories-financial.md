@@ -959,3 +959,21 @@ Change to Delete Account (#5015).
 - Delete account: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/delete-account.html
 
 ---
+
+## [Admin] #5664 — Sidebar — Finance, Pricing and Reporting groups 🆕
+**Feature:** #2857 Admin — Pricing, Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+The old *Money & config* group is split into three, so the daily finance screens sit apart from pricing settings and reports.
+
+### Sections
+- Operations · People · **Finance** (Approvals with its count, Driver balances, Payouts, Settlement imports, Rider balances) · **Pricing** (Pricing & zones, Global policies) · **Reporting** (Reports, Reconciliation) · Administration
+- One icon per item; Payouts and Settlement imports use the withdrawal and deposit wallet icons
+- Item names don't change
+
+### Mockup (ADO comment)
+- Sidebar on any screen: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?lang=ar
+- Screen index (same groups): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/screens.html
+
+---

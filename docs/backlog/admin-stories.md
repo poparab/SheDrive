@@ -4237,3 +4237,41 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Payout batch lines — open a batch from Payouts: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
 
 ---
+
+## [Admin] #5663 — Sidebar groups Finance, Pricing and Reporting 🆕
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+
+**Description:** As an admin, I want the sidebar grouped by the job I'm doing so that the daily finance screens aren't mixed with pricing settings and reports.
+
+### Rules
+- Sidebar groups, in this order:
+- **Operations**: Dashboard · Trips · SOS requests · Safety reports
+- **People**: Driver applications · Drivers · Riders
+- **Finance**: Approvals · Driver balances · Payouts · Settlement imports · Rider balances
+- **Pricing**: Pricing & zones · Global policies
+- **Reporting**: Reports · Reconciliation
+- **Administration**: Audit log · Admin users
+- Item names, pages and links don't change; only the group headings and the order.
+- No two items share an icon. Payouts and Settlement imports use the withdrawal and deposit wallet icons.
+- Approvals keeps its pending-request count.
+
+### Acceptance Criteria
+**Scenario 1 — Finance group**
+- When an admin opens any screen
+- Then the sidebar shows Finance with Approvals first, followed by Driver balances, Payouts, Settlement imports and Rider balances
+
+**Scenario 2 — Arabic**
+- When the portal is in Arabic
+- Then the headings read العمليات · المستخدمون · المالية · التسعير · التقارير والمصالحات · الإدارة
+
+### Dependencies
+- #5617 — Approvals
+- #5618 — Payouts
+- #5620 — Settlement imports
+
+### Mockup (ADO comment)
+- Sidebar on any screen: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?lang=ar
+- Screen index (same groups): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/screens.html
+
+---
