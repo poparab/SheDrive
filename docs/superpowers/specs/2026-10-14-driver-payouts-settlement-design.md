@@ -122,7 +122,8 @@ The manual settlement on the driver ledger keeps its current rules and goes thro
 - An admin waives **one** rider cancellation fee, with a reason. No limit on amount or count.
 - On approval: the rider ledger posts `fee_waived` (+fee) and the credited driver's ledger posts
   `fee_credit_reversed` (−fee). Both point to the original entry (`reversesEntryId`) — the
-  ledger's first correction path.
+  ledger's first correction path. **Nothing is edited or deleted**: the original fee and credit
+  stay in both ledgers with their amounts; the new entries cancel them.
 - If the rider had already paid the fee, the waiver leaves her with a **credit** (positive
   balance). The credit is shown, not spent, in this phase.
 - A waived fee shows *Waived*; a fee with a pending waiver can't be waived again.

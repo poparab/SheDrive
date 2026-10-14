@@ -454,8 +454,7 @@ accept a photo of the receipt or transfer confirmation.</p>
 
 <h3>States</h3>
 <ul>
-  <li>Standard list states per the portal convention: <code>?state=empty</code>,
-  <code>?state=loading</code>, <code>?state=error</code>, <code>?state=long</code></li>
+  <li>Long-text state: <code>?state=long</code></li>
   <li>Default populated list, with blocked/over-limit drivers visually distinguished
   in the status column</li>
   <li>Ledger drawer/detail open, populated and empty (a driver with no ledger
@@ -481,8 +480,8 @@ accept a photo of the receipt or transfer confirmation.</p>
 
 <h3>Preview Links</h3>
 <ul>
-  <li>Default / Empty / Loading / Error / Long text / Arabic (RTL):
-  <code>admin-v2/balances.html</code> with <code>?state=empty|loading|error|long</code>
+  <li>Default / Long text / Arabic (RTL):
+  <code>admin-v2/balances.html</code> with <code>?state=long</code>
   or <code>?lang=ar</code></li>
   <li>Record payout: set the balance filter to "Owed by the platform", open Reem
   Nabil's ledger, then Record payout</li>
@@ -508,7 +507,7 @@ accept a photo of the receipt or transfer confirmation.</p>
 </ul>
 <h3>Rules </h3>
 <ul>
-<li>Both screens, both languages; existing empty, loading, error and long-text states keep working </li>
+<li>Both screens, both languages; the existing long-text state keeps working </li>
 </ul>
 <h3>Preview Links </h3>
 <ul>
@@ -550,7 +549,6 @@ Three corrections, gathered into one story:
 </ul>
 <h3>Rules </h3>
 <ul>
-<li>English and Arabic, at 1280 and 1440 px; existing empty, loading and error states keep working </li>
 </ul>
 <h3>Preview Links </h3>
 <ul>
@@ -582,15 +580,11 @@ Three corrections, gathered into one story:
 <h3>States </h3>
 <ul>
 <li><strong>Default</strong> — riders who owe </li>
-<li><strong>Empty</strong> — no rider owes anything; reads as good news, not “nothing found” </li>
-<li><strong>Loading</strong>, <strong>Error</strong>, <strong>Long names</strong> </li>
+<li><strong>Long names</strong> </li>
 </ul>
 <h3>Preview Links </h3>
 <ul>
 <li>Default — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html</a> </li>
-<li>Empty — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=empty">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=empty</a> </li>
-<li>Loading — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=loading">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=loading</a> </li>
-<li>Error — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=error">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=error</a> </li>
 <li>Long names — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=long">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?state=long</a> </li>
 <li>Arabic (RTL) — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?lang=ar">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?lang=ar</a> </li>
 </ul>
@@ -624,7 +618,7 @@ Three corrections, gathered into one story:
 </ul>
 <h3>States </h3>
 <ul>
-<li><strong>Default</strong>, <strong>Loading</strong>, <strong>Error</strong> (a failed save changes nothing) </li>
+<li><strong>Default</strong> (a failed save changes nothing) </li>
 <li><strong>Validation errors</strong> — e.g. a negative value or a percentage over 100 </li>
 <li><strong>Saved</strong> — confirmation and refreshed “last changed” </li>
 <li><strong>Limit set to 0</strong> — the helper line explains the block is off </li>
@@ -638,8 +632,6 @@ Three corrections, gathered into one story:
 <h3>Preview Links </h3>
 <ul>
 <li>Default — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html</a> </li>
-<li>Loading — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?state=loading">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?state=loading</a> </li>
-<li>Error — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?state=error">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?state=error</a> </li>
 <li>Arabic (RTL) — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?lang=ar">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?lang=ar</a> </li>
 <li>Audit log — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/audit-log.html">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/audit-log.html</a> </li>
 </ul>
@@ -666,14 +658,11 @@ The maker-checker queue in **Money & config**, with a count badge in the sidebar
 - Demo-only switch "Act as another admin" — not part of the real product
 
 ### States
-- Pending, Decided, made by you (actions disabled with a note), empty, loading, error
+- Pending, Decided, made by you (actions disabled with a note)
 
 ### Preview Links
 - Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html
 - Review modal: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
-- Empty: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?state=empty
-- Loading: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?state=loading
-- Error: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?state=error
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?lang=ar
 
 ---
@@ -692,13 +681,10 @@ The list of payout batches and the place to generate a new one.
 
 ### States
 - Statuses: Pending approval, Ready to export, Sent to bank, Result pending approval, Completed, Rejected
-- Preview with nothing due, empty, loading, error
+- Preview with nothing due
 
 ### Preview Links
 - Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
-- Empty: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?state=empty
-- Loading: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?state=loading
-- Error: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?state=error
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?lang=ar
 
 ---
@@ -738,12 +724,11 @@ Where Finance's sheet of payments drivers already made is uploaded, applied row 
 - Import history grid and a detail modal with receipt numbers
 
 ### States
-- Before upload, checked, sent, missing-column error, history empty / loading / error
+- Before upload, checked, sent, missing-column error
 
 ### Preview Links
 - Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html
 - Import detail: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?id=IMP-0001
-- Empty history: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?state=empty
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?lang=ar
 
 ---

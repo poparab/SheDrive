@@ -3836,7 +3836,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ### Mockup (ADO comment)
 - Approvals (pending): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html
 - A request open for review: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
-- Empty: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?state=empty
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?lang=ar
 
 ---
@@ -3900,7 +3899,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Mockup (ADO comment)
 - Payouts (generate a batch here): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
-- Empty: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?state=empty
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?lang=ar
 
 ---
@@ -4025,7 +4023,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ### Mockup (ADO comment)
 - Settlement imports: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html
 - An approved import with receipts: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?id=IMP-0001
-- Empty history: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?state=empty
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?lang=ar
 
 ---
@@ -4037,7 +4034,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - A waiver applies to **one** cancellation fee, from the rider's ledger, with a reason. No limit on amount or count.
-- It is a request (maker-checker). On approval the rider ledger posts `fee_waived` (+fee) and the driver who was credited that fee gets `fee_credit_reversed` (−fee). Both point to the original entry.
+- **A waiver never edits or deletes the fee.** It is a request (maker-checker); on approval it adds two new entries that cancel it: `fee_waived` (+fee) on the rider's ledger and `fee_credit_reversed` (−fee) on the ledger of the driver who was credited that fee. Both point to the original entry, which stays in both ledgers with its amount, marked *Waived*.
 - If the rider had already paid the fee, the waiver leaves her a **credit** on her balance. The credit is shown, not spent, in this phase.
 - A waived fee shows **Waived**. A fee with a waiver awaiting approval can't be waived again.
 - Rider balances gains a **Has a credit** filter and a Credit column.
@@ -4051,7 +4048,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 **Scenario 1 — Waive an unpaid fee**
 - Given a rider owes a 20.00 EGP fee for trip T-1042, credited to driver Sara
 - When an admin waives it and another admin approves
-- Then the rider owes 0.00, Sara's balance drops by 20.00, and the fee shows Waived
+- Then the rider's ledger still shows the −20.00 fee, now marked Waived, plus a new +20.00 *Fee waived* entry; Sara's ledger keeps her +20.00 credit and gains a −20.00 reversal; the rider owes 0.00
 
 **Scenario 2 — Waive a fee she already paid**
 - Given the rider paid that fee on her next trip
