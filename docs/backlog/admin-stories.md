@@ -4272,3 +4272,45 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Screen index (same groups): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/screens.html
 
 ---
+
+## [Admin] #5668 — Driver earnings statement — who holds the fare and her balance for the period 🆕
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+
+**Description:** As an admin, I want a driver's earnings statement to show who holds each fare and how her balance moved over the period so that I can explain exactly why she owes SheDrive, or is owed, a given amount.
+
+### Rules
+- The screen is renamed **Driver earnings** in the sidebar (Reporting group) and **Driver earnings statement** as the page title (AR: أرباح السائقات / كشف أرباح السائقة). Its trip figures and trip table stay as #1833 describes.
+- **Who holds the fare** card, for the selected driver and period:
+- *Driver holds the fare* — number of trips, their fares, and the commission she owes SheDrive.
+- *SheDrive holds the fare* — number of trips, their fares, the net SheDrive owes her, and that net split by payout status (on hold, due, in a batch, sent to bank, paid).
+- **Balance for the period** card, from her ledger: opening balance (her balance at the start of the period, or 0 with no start date), one line per movement type with its count and signed total (trip commission, trip earnings, cancellation fees, rider fee credits and hand-backs, waiver reversals, settlements, payouts), and the closing balance. Opening plus movements always equals closing, and with no end date the closing balance equals her current ledger balance. Negative means she owes SheDrive.
+- Each trip row shows **Held by** (Driver / SheDrive) and, for SheDrive-held trips, its **Payout** status, in place of the payment method.
+- The live "Outstanding cash balance" figure is removed; the balance card replaces it. The CSV export follows the new columns.
+
+### Acceptance Criteria
+**Scenario 1 — Balance ties to the ledger**
+- Given a driver whose ledger reads +250.50 EGP today
+- When the admin opens her statement with no dates
+- Then the balance card closes at +250.50 EGP, built from opening 0.00, trip commission −89.44, trip earnings +475.50 and payouts −135.56
+
+**Scenario 2 — A period starts mid-way**
+- Given a start date three weeks ago
+- Then the opening balance is her balance on that date, only that period's movements are listed, and the closing balance still matches her ledger
+
+**Scenario 3 — Platform-held trips**
+- Given two card trips with a net of 135.56 EGP already paid out
+- Then the card shows *SheDrive holds the fare — 2 trips*, *Net SheDrive owes her +135.56*, *Paid 135.56*, and those rows say *SheDrive holds · Paid*
+
+### Out of Scope
+- Matching against bank statements or a payment provider's reports
+
+### Dependencies
+- #1833 — Admin views per-driver earnings & settlement report (the screen this extends)
+- #4378 — Driver ledger
+- #5618, #5619 — payout batches (payout status)
+
+### Mockup (ADO comment)
+- Driver earnings (choose a driver, e.g. Laila Fathy): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html?lang=ar
+
+---

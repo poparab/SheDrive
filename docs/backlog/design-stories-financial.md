@@ -964,3 +964,22 @@ The old *Money & config* group is split into three, so the daily finance screens
 - Screen index (same groups): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/screens.html
 
 ---
+
+## [Admin] #5669 — Driver earnings statement — who holds the fare and balance for the period 🆕
+**Feature:** #2857 Admin — Pricing, Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+Changes to the per-driver report (#2875, #4387), now named **Driver earnings statement** (sidebar: Driver earnings).
+
+### Sections
+- Title and sidebar label renamed; file stays `reconciliation.html`
+- **Who holds the fare** card: driver-held trips (fares, commission she owes) and SheDrive-held trips (fares, net owed to her, split by payout status)
+- **Balance for the period** card: opening balance, one line per movement type with count and signed total, closing balance; a note that it matches her ledger
+- Trip table: *Held by* and *Payout* columns instead of *Payment method*
+- The *Cash vs digital* card and the live *Outstanding cash balance* are gone
+
+### Preview Links
+- Driver earnings (choose a driver, e.g. Laila Fathy): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html?lang=ar
+
+---
