@@ -3492,3 +3492,77 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 - Payments — credit: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/payments.html?state=credit
 
 ---
+
+
+# No masking of phone numbers or national IDs (2026-10-14)
+
+> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change. ADO tag "No masking".
+
+---
+
+## [API] #5654 — Driver profile returns her full national ID 🆕
+**Feature:** #1600 Authentication API — Shared | **Sprint:** — | **Tag:** No masking
+
+**Description:** As a driver, I want my profile to return my full national ID so that the app can show it to me.
+
+### Rules
+- The driver profile read (#1800) returns her full national ID, not the last 4 digits.
+- It is returned only to the driver herself.
+
+### Acceptance Criteria
+**Scenario 1 — Full value returned**
+- When a signed-in driver reads her profile
+- Then the national ID comes back with all 14 digits
+
+### Dependencies
+- #1800 — Driver retrieves her profile
+- #5653 [Mobile] Driver sees her full national ID on her profile
+
+### Mockup (ADO comment)
+- My profile: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/my-profile.html
+
+---
+
+## [API] #5657 — Rider account deletion returns the full phone number for the code step 🆕
+**Feature:** #1600 Authentication API — Shared | **Sprint:** — | **Tag:** No masking
+
+**Description:** As a rider, I want the deletion code step to tell the app my full phone number so that it can show me where the code went.
+
+### Rules
+- When the deletion code is sent (#5036), the response carries her full phone number, not a masked one.
+
+### Acceptance Criteria
+**Scenario 1 — Full number returned**
+- When a rider asks for a deletion code
+- Then the response names her full number
+
+### Dependencies
+- #5036 — Rider account deletion
+- #5655 [Mobile] Rider sees her full phone number when confirming account deletion
+
+### Mockup (ADO comment)
+- Delete account: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/delete-account.html
+
+---
+
+## [API] #5658 — Driver account deletion returns the full phone number for the code step 🆕
+**Feature:** #1600 Authentication API — Shared | **Sprint:** — | **Tag:** No masking
+
+**Description:** As a driver, I want the deletion code step to tell the app my full phone number so that it can show me where the code went.
+
+### Rules
+- When the deletion code is sent (#5037), the response carries her full phone number, not a masked one.
+
+### Acceptance Criteria
+**Scenario 1 — Full number returned**
+- When a driver asks for a deletion code
+- Then the response names her full number
+
+### Dependencies
+- #5037 — Driver account deletion
+- #5656 [Mobile] Driver sees her full phone number when confirming account deletion
+
+### Mockup (ADO comment)
+- Delete account: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/delete-account.html
+
+---

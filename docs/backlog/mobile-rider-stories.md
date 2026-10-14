@@ -2183,3 +2183,33 @@ When the trip's payment method is Card, the trip-complete screen shows a payment
 - Payments — credit: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/payments.html?state=credit
 
 ---
+
+
+# No masking of phone numbers or national IDs (2026-10-14)
+
+> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change. ADO tag "No masking".
+
+---
+
+## [Mobile] #5655 — Rider sees her full phone number when confirming account deletion 🆕
+**Feature:** #1532 Rider Authentication | **Sprint:** — | **Tag:** No masking
+
+**Description:** As a rider, I want to see my full phone number on the deletion code step so that I know exactly which number the code went to.
+
+### Rules
+- The code step of Delete account (#5038) shows her full number, e.g. +20 10 1234 5678, instead of +20 10 •••• 5678.
+
+### Acceptance Criteria
+**Scenario 1 — Full number**
+- Given her number is 01012345678
+- When she reaches the code step
+- Then it says the code was sent to +20 10 1234 5678
+
+### Dependencies
+- #5038 — Rider deletes her account
+- #5657 [API] Rider account deletion returns the full phone number for the code step
+
+### Mockup (ADO comment)
+- Delete account: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/delete-account.html
+
+---

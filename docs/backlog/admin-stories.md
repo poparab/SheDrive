@@ -4202,3 +4202,40 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Driver application — payout method: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-application.html?id=1061
 
 ---
+
+
+# No masking of phone numbers or national IDs (2026-10-14)
+
+> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change. ADO tag "No masking".
+
+---
+
+## [Admin] #5652 — Admin sees a driver's full national ID 🆕
+**Feature:** #1614 Admin — Driver Management | **Sprint:** — | **Tag:** No masking
+
+**Description:** As an admin, I want to see a driver's full national ID so that I can match her to her documents and to Finance's settlement sheet without asking for it.
+
+### Rules
+- The driver profile (#1666), the driver application (#1658) and the payout batch lines (#5619) show the full 14-digit national ID. Nothing is masked.
+- Phone numbers are shown in full, as today.
+- Payout account and card numbers stay masked (`•••• 1234`).
+
+### Acceptance Criteria
+**Scenario 1 — Driver profile**
+- Given a driver whose national ID is 29805120104821
+- When an admin opens her profile
+- Then the national ID reads 29805120104821
+
+**Scenario 2 — Payout batch line**
+- When an admin opens a payout batch
+- Then every line shows the driver's full national ID next to her name
+
+### Dependencies
+- #1666, #1658, #5619
+
+### Mockup (ADO comment)
+- Driver profile: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069
+- Driver application: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-application.html?id=1061
+- Payout batch lines — open a batch from Payouts: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
+
+---

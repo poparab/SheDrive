@@ -2783,3 +2783,56 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 - Notifications: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/notifications.html
 
 ---
+
+
+# No masking of phone numbers or national IDs (2026-10-14)
+
+> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change. ADO tag "No masking".
+
+---
+
+## [Mobile] #5653 — Driver sees her full national ID on her profile 🆕
+**Feature:** #1538 Driver Authentication | **Sprint:** — | **Tag:** No masking
+
+**Description:** As a driver, I want to see my full national ID on my profile so that I can check it is the one SheDrive verified.
+
+### Rules
+- My profile (#1801) shows her full 14-digit national ID instead of the last 4 digits. It stays read-only.
+
+### Acceptance Criteria
+**Scenario 1 — Full national ID**
+- Given her national ID is 29805120104821
+- When she opens My profile
+- Then Personal details shows 29805120104821
+
+### Dependencies
+- #1801 — Driver views her profile
+- #5654 [API] Driver profile returns her full national ID
+
+### Mockup (ADO comment)
+- My profile: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/my-profile.html
+
+---
+
+## [Mobile] #5656 — Driver sees her full phone number when confirming account deletion 🆕
+**Feature:** #1538 Driver Authentication | **Sprint:** — | **Tag:** No masking
+
+**Description:** As a driver, I want to see my full phone number on the deletion code step so that I know exactly which number the code went to.
+
+### Rules
+- The code step of Delete account (#5039) shows her full number, e.g. +20 10 1234 5678, instead of +20 10 •••• 5678.
+
+### Acceptance Criteria
+**Scenario 1 — Full number**
+- Given her number is 01012345678
+- When she reaches the code step
+- Then it says the code was sent to +20 10 1234 5678
+
+### Dependencies
+- #5039 — Driver deletes her account
+- #5658 [API] Driver account deletion returns the full phone number for the code step
+
+### Mockup (ADO comment)
+- Delete account: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/delete-account.html
+
+---

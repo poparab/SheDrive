@@ -714,7 +714,6 @@ One batch from generation to completion: its lines, the bank file and the result
 - Status timeline: Generated → Approved → Sent to bank → Result imported → Completed
 - Action area that changes with the status: waiting for approval, Export bank file, Import result file, waiting for result approval, completed summary
 - Lines: line ref, driver, national ID, method, masked number, amount, line status (In batch, Sent to bank, Paid + bank reference, Failed + reason)
-- Bank file columns reference
 
 ### States
 - One per batch status, plus result-file errors and not found
@@ -892,5 +891,71 @@ Change to Payments (#3974): a credit row when SheDrive waived a fee she had alre
 
 ### Mockup (ADO comment)
 - Payments — credit: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/payments.html?state=credit
+
+---
+
+
+# No masking of phone numbers or national IDs (2026-10-14)
+
+> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change. ADO tag "No masking".
+
+---
+
+## [Admin] #5659 — Full national ID on driver profile, application and payout batch 🆕
+**Feature:** #2855 Admin — Driver Onboarding & Management | **Sprint:** — | **Tag:** No masking
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+Changes to Driver profile (#2867), Driver application (#2865) and Payout batch (#5635).
+
+### Sections
+- National ID shows all 14 digits, no dots
+- Payout account and card numbers stay masked
+
+### Mockup (ADO comment)
+- Driver profile: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069
+- Driver application: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-application.html?id=1061
+- Payout batch lines — open a batch from Payouts: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
+
+---
+
+## [Driver] #5660 — Profile — full national ID 🆕
+**Feature:** #1842 Driver — Menu & Profile | **Sprint:** — | **Tag:** No masking
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+Change to Profile (#5232).
+
+### Sections
+- Personal details: National ID shows all 14 digits instead of •••• 4821
+
+### Mockup (ADO comment)
+- My profile: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/my-profile.html
+
+---
+
+## [Rider] #5661 — Delete Account — full phone number 🆕
+**Feature:** #1849 Rider — Menu & Profile | **Sprint:** — | **Tag:** No masking
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+Change to Delete Account (#5014).
+
+### Sections
+- Code step: "sent to +20 10 1234 5678" — the full number, no dots
+
+### Mockup (ADO comment)
+- Delete account: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/delete-account.html
+
+---
+
+## [Driver] #5662 — Delete Account — full phone number 🆕
+**Feature:** #1842 Driver — Menu & Profile | **Sprint:** — | **Tag:** No masking
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+Change to Delete Account (#5015).
+
+### Sections
+- Code step: "sent to +20 10 1234 5678" — the full number, no dots
+
+### Mockup (ADO comment)
+- Delete account: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/delete-account.html
 
 ---
