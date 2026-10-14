@@ -659,7 +659,7 @@ Three corrections, gathered into one story:
 The maker-checker queue in **Money & config**, with a count badge in the sidebar. Every finance request waits here until a different admin approves or rejects it.
 
 ### Sections
-- KPI row: pending requests, pending amount, decided today
+- KPI row: pending requests, oldest waiting (how long the oldest pending request has waited), decided today
 - Tabs: Pending / Decided, with a type filter
 - Grid: request, type, subject (links to it), amount, made by, status; Decided adds checked by
 - Review modal: who made it and when, **before → after** table, the lines or rows for batches and imports, Approve / Reject (reason required)

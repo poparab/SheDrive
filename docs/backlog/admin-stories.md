@@ -3780,6 +3780,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Only one pending request per subject (one zone, one driver's settlement, one fee, one batch).
 - Requested, approved and rejected are each written to the audit log (#1816).
 - The sidebar shows the number of pending requests next to **Approvals**.
+- Above the queue: the number of pending requests, how long the oldest pending request has waited ("5 hours", "2 days"), and how many were decided today.
 
 ### Field Validation
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
