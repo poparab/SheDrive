@@ -2657,3 +2657,131 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 - #1951 — the driver's emergency contacts must exist to be alerted
 
 ---
+
+
+# Payouts, settlement import and maker-checker (2026-10-14)
+
+> Spec: `docs/superpowers/specs/2026-10-14-driver-payouts-settlement-design.md`. Created in ADO 2026-10-14 with tag "Payouts & settlement".
+
+---
+
+## [Mobile] #5625 — Driver adds a payout method during onboarding 🆕
+**Feature:** #1539 Driver Onboarding | **Sprint:** — | **Tag:** Payouts & settlement
+
+**Description:** As a driver applicant, I want to choose how SheDrive pays me while I apply so that my earnings can be sent to me from my first payout.
+
+### Rules
+- A new last onboarding step, **Payout method**, is required to submit the application.
+- She picks one: **Mobile wallet**, **Bank account** or **Prepaid card**, then enters its details. Only the format is checked; the name doesn't have to match her national ID.
+- The step explains that earnings are paid 7 days after each trip.
+
+### Field Validation
+| Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
+|---|---|---|---|---|---|---|---|---|---|
+| Payout method | Yes | Single choice | Mobile wallet, Bank account, Prepaid card | — | — | none | Choose how you want to get paid / اختاري طريقة استلام أرباحك | — | — |
+| Wallet provider | Yes (wallet) | Dropdown | Vodafone Cash, Orange Cash, e& money, WE Pay | — | — | none | Choose your wallet provider / اختاري مزوّد المحفظة | — | — |
+| Wallet number | Yes (wallet) | Egyptian mobile | `01` + 9 digits | 11 | 11 | empty | Enter your wallet number / أدخلي رقم المحفظة | Enter a valid Egyptian mobile number / أدخلي رقم موبايل مصري صحيح | — |
+| Bank | Yes (bank) | Dropdown | CIB, National Bank of Egypt, Banque Misr, QNB Al Ahli, AAIB, Banque du Caire, HSBC Egypt | — | — | none | Choose your bank / اختاري البنك | — | — |
+| Account holder / name on card | Yes (bank, card) | Free text | Letters and spaces | 3 | 100 | empty | Enter the name / أدخلي الاسم | — | Name must be 3–100 characters / يجب أن يكون الاسم بين 3 و100 حرف |
+| Account number / IBAN | Yes (bank) | Digits or IBAN | 10–20 digits, or `EG` + 27 digits | 10 | 29 | empty | Enter your account number / أدخلي رقم الحساب | Enter a valid account number or IBAN / أدخلي رقم حساب أو IBAN صحيح | — |
+| Card number | Yes (card) | Digits | 16 digits, any prepaid card | 16 | 16 | empty | Enter your card number / أدخلي رقم الكارت | Enter the 16-digit card number / أدخلي رقم الكارت المكوّن من 16 رقمًا | — |
+
+### Acceptance Criteria
+**Scenario 1 — Mobile wallet**
+- Given she chooses Mobile wallet, Vodafone Cash, 01012345678
+- When she submits the application
+- Then the application is submitted with that payout method
+
+**Scenario 2 — Fields follow the choice**
+- When she switches from Mobile wallet to Bank account
+- Then only the bank fields show and the wallet fields are cleared
+
+**Scenario 3 — Can't skip**
+- Given she hasn't completed this step
+- Then Submit stays disabled and the missing fields are named
+
+### Out of Scope
+- Verifying the account with the bank or wallet provider
+
+### Dependencies
+- #5629 [API] Driver payout method is captured at onboarding
+- #1572, #1575 — earlier onboarding steps
+
+### Mockup (ADO comment)
+- Onboarding — payout method step: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/onboarding.html?step=7
+
+---
+
+## [Mobile] #5626 — Driver views and changes her payout method 🆕
+**Feature:** #1769 Earnings — Driver | **Sprint:** — | **Tag:** Payouts & settlement
+
+**Description:** As a driver, I want to see and change where SheDrive sends my earnings so that my payouts keep reaching me when my account changes.
+
+### Rules
+- My profile shows a **Payout method** row (type and masked number) that opens the payout method screen.
+- She can change it any time, with the same fields and rules as onboarding. **No approval: it applies immediately**, and the next payout uses it.
+- If her last payout failed, the screen shows the amount and reason and asks her to check her method.
+- A driver with no method (joined before this step existed) sees an empty state with **Add payout method**.
+
+### Acceptance Criteria
+**Scenario 1 — Change it**
+- Given her method is Vodafone Cash •••• 5678
+- When she changes it to a CIB account and saves
+- Then the screen shows the new masked account and says her next payout goes there
+
+**Scenario 2 — After a failed payout**
+- Given her last payout of 245.50 EGP failed "Wallet number not registered"
+- Then the screen shows that warning until she changes the method or a payout succeeds
+
+### Out of Scope
+- More than one payout method
+
+### Dependencies
+- #5630 [API] Driver views and changes her payout method
+- #5625 Driver adds a payout method during onboarding — same fields and rules
+- #1801 — Driver profile screen
+
+### Mockup (ADO comment)
+- Payout method: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html
+- Last payout failed: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html?state=failed
+- No method yet: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html?state=none
+- My profile (Payout method row): https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/my-profile.html
+
+---
+
+## [Mobile] #5627 — Driver sees the payout status of her earnings 🆕
+**Feature:** #1769 Earnings — Driver | **Sprint:** — | **Tag:** Payouts & settlement
+
+**Description:** As a driver, I want to see when each earning will be paid and whether it was paid so that I know what money is coming to me.
+
+### Rules
+- Each earning in her statement (#1788) shows one status: **On hold until <date>**, **Due**, **Being transferred**, **Paid**, or **Failed**.
+- The balance screen shows *On hold: X EGP · Due for payout: Y EGP* and links to her payout method.
+- She gets a notification when a payout is sent ("245.50 EGP was sent to your Vodafone Cash wallet") and when one fails ("Payout failed — check your payout method").
+- An earning is paid 7 calendar days after it happens, in the next payout Finance runs.
+- The settle screen (#3989) tells her Finance matches her payment to her by her national ID, and to keep her transfer reference.
+
+### Acceptance Criteria
+**Scenario 1 — On hold**
+- Given she earned 60.00 EGP on 14 Oct
+- Then it reads "On hold until 21 Oct"
+
+**Scenario 2 — Failed**
+- Given her last payout failed
+- Then the balance screen shows a failed-payout banner linking to her payout method
+
+### Out of Scope
+- Choosing when to be paid
+
+### Dependencies
+- #1788 — Driver views her balance and statement
+- #5631 [API] Driver retrieves the payout status of her earnings
+- Notification inbox (design #4914)
+
+### Mockup (ADO comment)
+- Balance — payout status: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html
+- Failed payout banner: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?state=payout-failed
+- Settle screen (national-ID line): https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?owed=120
+- Notifications: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/notifications.html
+
+---

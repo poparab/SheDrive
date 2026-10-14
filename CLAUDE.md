@@ -110,6 +110,7 @@ Rules:
 | `shedrive.accountDeletion` | localStorage | JSON `{rider?: [..], driver?: [..]}` each entry `{phone, requestedAt, deleteOn}`, one per number | Accounts awaiting deletion (30-day window) or deleted; sign-in offers a restore only to the same number |
 | `shedrive.historyReturn` | sessionStorage | JSON `{count, top}` | Rider trip history: pages loaded + scroll offset, restored on return from a trip detail |
 | `shedrive.driverHistoryScroll` | sessionStorage | string (px) | Driver trip history scroll offset, restored on return from a trip detail |
+| `shedrive.payoutMethod` | localStorage | JSON `{type, provider, holder, last4, savedAt}` | Driver payout method (mobile wallet / bank account / prepaid card); only the last 4 digits are kept in the mockup |
 
 **Rider and driver screens are deliberately open**, the same way the admin portal is.
 `auth.requireAuth()` provisions a demo session instead of redirecting, so any screen can
@@ -395,6 +396,7 @@ index.html (Splash overlay → Login)
 | `rider/trip-complete.html` | Rating (stars + tags + tip) + trip summary |
 | `rider/notifications.html` | Notification inbox (also `driver/notifications.html`) |
 | `rider/delete-account.html` | Account deletion — short confirmation, code, 30-day window (also `driver/delete-account.html`) |
+| `driver/payout-method.html` | Driver payout method — view and change; applies immediately, no approval. Also onboarding step 7 |
 
 ---
 

@@ -2149,3 +2149,37 @@ When the trip's payment method is Card, the trip-complete screen shows a payment
 
 ---
 
+
+
+# Payouts, settlement import and maker-checker (2026-10-14)
+
+> Spec: `docs/superpowers/specs/2026-10-14-driver-payouts-settlement-design.md`. Created in ADO 2026-10-14 with tag "Payouts & settlement".
+
+---
+
+## [Mobile] #5628 — Rider sees a credit from a waived fee 🆕
+**Feature:** #1768 Payments — Rider | **Sprint:** — | **Tag:** Payouts & settlement
+
+**Description:** As a rider, I want to see a credit when SheDrive waives a fee I already paid so that I know the money is on my account.
+
+### Rules
+- When her balance is positive (a waived fee she had already paid), Payments shows **Credit: X EGP — from a waived cancellation fee. It isn't used for rides yet.**
+- The credit isn't spent on trips in this phase.
+
+### Acceptance Criteria
+**Scenario 1 — Credit shown**
+- Given SheDrive waived a 20.00 EGP fee she paid on her next trip
+- Then Payments shows a 20.00 EGP credit
+
+### Out of Scope
+- Using the credit on a trip
+- Withdrawing the credit
+
+### Dependencies
+- #3992 — Rider views her payment method
+- #5632 [API] Rider retrieves her credit
+
+### Mockup (ADO comment)
+- Payments — credit: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/payments.html?state=credit
+
+---

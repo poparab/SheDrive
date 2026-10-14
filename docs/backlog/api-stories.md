@@ -3370,3 +3370,125 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 - #1780 and #1952 — the link is what the alerted contacts receive
 
 ---
+
+
+# Payouts, settlement import and maker-checker (2026-10-14)
+
+> Spec: `docs/superpowers/specs/2026-10-14-driver-payouts-settlement-design.md`. Created in ADO 2026-10-14 with tag "Payouts & settlement".
+
+---
+
+## [API] #5629 — Driver payout method is captured at onboarding 🆕
+**Feature:** #1776 Earnings — Driver API | **Sprint:** — | **Tag:** Payouts & settlement
+
+**Description:** As a driver applicant, I want my payout method saved with my application so that SheDrive knows where to send my earnings from day one.
+
+### Rules
+- The application can't be submitted without one payout method: mobile wallet (provider, number), bank account (bank, holder name, account number or IBAN) or prepaid card (name on card, card number).
+- Formats as in the onboarding story; the name isn't matched to the national ID.
+- Account and card numbers are stored encrypted and returned masked everywhere except the payout export file.
+- The admin application review returns the method (masked).
+
+### Acceptance Criteria
+**Scenario 1 — Missing method**
+- Given an application without a payout method
+- Then it is refused and names the missing method
+
+**Scenario 2 — Masked on read**
+- When the application is read back
+- Then the number comes back as the last 4 digits only
+
+### Out of Scope
+- Bank or wallet verification
+
+### Dependencies
+- #1642 — Driver submits onboarding application
+- #5625 [Mobile] Driver adds a payout method during onboarding
+
+### Mockup (ADO comment)
+- Onboarding — payout method step: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/onboarding.html?step=7
+- Driver application (admin): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-application.html?id=1061
+
+---
+
+## [API] #5630 — Driver views and changes her payout method 🆕
+**Feature:** #1776 Earnings — Driver API | **Sprint:** — | **Tag:** Payouts & settlement
+
+**Description:** As a driver, I want to read and replace my payout method so that my next payout goes where I choose.
+
+### Rules
+- Returns her method (masked) and her last failed payout, if any.
+- A change applies immediately with no approval and is used by the next payout batch; batches already generated keep the details they were generated with.
+- Same field rules as onboarding.
+- Each change is recorded with who made it (the driver or an admin).
+
+### Acceptance Criteria
+**Scenario 1 — Change applies to the next batch**
+- Given a batch was generated yesterday with her old wallet
+- When she changes to a bank account today
+- Then yesterday's batch keeps the wallet and the next batch uses the bank account
+
+### Out of Scope
+- More than one method per driver
+
+### Dependencies
+- #5626 [Mobile] Driver views and changes her payout method
+
+### Mockup (ADO comment)
+- Payout method: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html
+
+---
+
+## [API] #5631 — Driver retrieves the payout status of her earnings 🆕
+**Feature:** #1776 Earnings — Driver API | **Sprint:** — | **Tag:** Payouts & settlement
+
+**Description:** As a driver, I want my statement to tell me each earning's payout status so that I can see what is on hold, due and paid.
+
+### Rules
+- Each payable entry (trip earnings, rider fee credit) returns its status — on hold, due, being transferred, paid — and its due date (entry date + 7 calendar days).
+- Totals: on hold, due, being transferred.
+- A paid entry returns the payout's bank reference; a failed payout returns its reason.
+- A payout sent or failed triggers the driver notification.
+
+### Acceptance Criteria
+**Scenario 1 — Statuses**
+- Given an earning from 3 days ago and one paid in last week's batch
+- Then the first returns on hold with its due date and the second paid with its reference
+
+### Out of Scope
+- Changing the 7-day hold per driver
+
+### Dependencies
+- #1781 — Driver retrieves her balance and statement
+- #5627 [Mobile] Driver sees the payout status of her earnings
+
+### Mockup (ADO comment)
+- Balance — payout status: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html
+
+---
+
+## [API] #5632 — Rider retrieves her credit 🆕
+**Feature:** #1775 Payments — Rider API | **Sprint:** — | **Tag:** Payouts & settlement
+
+**Description:** As a rider, I want my account to report any credit I have so that the app can show it to me.
+
+### Rules
+- Her balance read (#4004) returns a credit when her balance is positive, with the waived fee it came from.
+- The credit is not applied to any fare in this phase.
+
+### Acceptance Criteria
+**Scenario 1 — Credit returned**
+- Given a 20.00 EGP waived fee she had paid
+- Then her balance read returns credit 20.00 EGP and the fee it came from
+
+### Out of Scope
+- Spending or withdrawing the credit
+
+### Dependencies
+- #4004 — Rider retrieves her outstanding balance
+- #5628 [Mobile] Rider sees a credit from a waived fee
+
+### Mockup (ADO comment)
+- Payments — credit: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/payments.html?state=credit
+
+---

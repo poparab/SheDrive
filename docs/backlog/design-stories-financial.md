@@ -644,3 +644,256 @@ Three corrections, gathered into one story:
 <li>Audit log — <a href="https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/audit-log.html">https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/audit-log.html</a> </li>
 </ul>
 ```
+
+
+# Payouts, settlement import and maker-checker (2026-10-14)
+
+> Spec: `docs/superpowers/specs/2026-10-14-driver-payouts-settlement-design.md`. Created in ADO 2026-10-14 with tag "Payouts & settlement".
+
+---
+
+## [Admin] #5633 — Approvals 🆕
+**Feature:** #2857 Admin — Pricing, Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+The maker-checker queue in **Money & config**, with a count badge in the sidebar. Every finance request waits here until a different admin approves or rejects it.
+
+### Sections
+- KPI row: pending requests, pending amount, decided today
+- Tabs: Pending / Decided, with a type filter
+- Grid: request, type, subject (links to it), amount, made by, status; Decided adds checked by
+- Review modal: who made it and when, **before → after** table, the lines or rows for batches and imports, Approve / Reject (reason required)
+- Demo-only switch "Act as another admin" — not part of the real product
+
+### States
+- Pending, Decided, made by you (actions disabled with a note), empty, loading, error
+
+### Mockup (ADO comment)
+- Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html
+- Review modal: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
+- Empty: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?state=empty
+- Loading: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?state=loading
+- Error: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?state=error
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?lang=ar
+
+---
+
+## [Admin] #5634 — Payouts 🆕
+**Feature:** #2857 Admin — Pricing, Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+The list of payout batches and the place to generate a new one.
+
+### Sections
+- Intro: earnings are due 7 days after they happen; batches run on working days
+- KPI row: due now, in open batches, paid this month
+- **Generate payout batch** → preview modal: lines (driver, method, masked number, due, balance, amount) with total, and *Not included* drivers with the reason
+- Grid: batch ref, created, lines, total, paid / failed, status
+
+### States
+- Statuses: Pending approval, Ready to export, Sent to bank, Result pending approval, Completed, Rejected
+- Preview with nothing due, empty, loading, error
+
+### Mockup (ADO comment)
+- Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
+- Empty: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?state=empty
+- Loading: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?state=loading
+- Error: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?state=error
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?lang=ar
+
+---
+
+## [Admin] #5635 — Payout batch 🆕
+**Feature:** #2857 Admin — Pricing, Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+One batch from generation to completion: its lines, the bank file and the result file.
+
+### Sections
+- Header: ref, status, totals, who generated, approved, exported and imported it
+- Status timeline: Generated → Approved → Sent to bank → Result imported → Completed
+- Action area that changes with the status: waiting for approval, Export bank file, Import result file, waiting for result approval, completed summary
+- Lines: line ref, driver, national ID, method, masked number, amount, line status (In batch, Sent to bank, Paid + bank reference, Failed + reason)
+- Bank file columns reference
+
+### States
+- One per batch status, plus result-file errors and not found
+
+### Mockup (ADO comment)
+- Open any batch from Payouts: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
+- Not found: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payout-batch.html?id=unknown
+
+---
+
+## [Admin] #5636 — Settlement imports 🆕
+**Feature:** #2857 Admin — Pricing, Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+Where Finance's sheet of drivers who paid is uploaded, checked row by row and sent for approval.
+
+### Sections
+- Step 1: download the template + columns table
+- Step 2: upload
+- Step 3: check results — summary (ready, rejected, amount) and a row table with a result pill per row (Ready, Unknown driver, Owes nothing, Reference already used, Amount differs — shows both amounts, Already awaiting approval)
+- Send ready rows for approval
+- Import history grid and a detail modal with receipt numbers
+
+### States
+- Before upload, checked, sent, missing-column error, history empty / loading / error
+
+### Mockup (ADO comment)
+- Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html
+- Import detail: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?id=IMP-0001
+- Empty history: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?state=empty
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?lang=ar
+
+---
+
+## [Admin] #5637 — Driver balances — approvals and payout status 🆕
+**Feature:** #2857 Admin — Pricing, Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+Changes to Driver balances and the driver ledger for maker-checker and the payout cycle.
+
+### Sections
+- Grid chips: *Awaiting approval*, *No payout method*
+- Record settlement / Record payout: note that another admin approves; after submit the button becomes a pending notice with a link
+- Ledger header: payout method (masked), *Last payout failed* band, totals On hold / Due / In a batch / Sent to bank
+- Payout status chip on each earning
+
+### Mockup (ADO comment)
+- Driver balances: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html?lang=ar
+
+---
+
+## [Admin] #5638 — Rider balances — fee waiver and credit 🆕
+**Feature:** #2857 Admin — Pricing, Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+Changes to Rider balances for waiving one fee and showing a rider's credit.
+
+### Sections
+- Filter *Has a credit* and a Credit column
+- **Waive fee** on each cancellation fee → modal: amount, trip, reason, note that the driver's share is removed too and another admin approves
+- Fee chips: *Waived*, *Waiver awaiting approval*
+- Credit line: shown on her account, not used this phase
+
+### Mockup (ADO comment)
+- Rider balances: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?lang=ar
+
+---
+
+## [Admin] #5639 — Driver payout method on profile and application 🆕
+**Feature:** #2855 Admin — Driver Onboarding & Management | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+The driver's payout method on the driver profile and in the application review.
+
+### Sections
+- Card: type, provider or bank, holder, masked number, last changed by
+- *Last payout failed* warning with the batch link
+- No-method state
+- **Edit payout method** modal (fields per type), then a *Change awaiting approval* notice
+- Application review: the same method, read-only
+
+### Mockup (ADO comment)
+- Profile — failed payout: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069
+- Profile — no method: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1082
+- Application: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-application.html?id=1061
+
+---
+
+## [Admin] #5640 — Pricing changes awaiting approval 🆕
+**Feature:** #2857 Admin — Pricing, Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+Rate card and commission changes that wait for another admin.
+
+### Sections
+- Zone: *Rate card change awaiting approval* banner with the proposed values; edit locked while pending
+- Policies: one-line hint that commission changes need approval; pending banner "Commission change to N% awaiting approval"; commission field locked
+
+### Mockup (ADO comment)
+- Pricing & zones: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-zones.html
+- Global policies: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html
+
+---
+
+## [Driver] #5641 — Onboarding — Payout method step 🆕
+**Feature:** #1837 Driver — Authentication & Onboarding | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+The new last step of driver onboarding, required to submit: how she wants to be paid.
+
+### Sections
+- Progress at step 7
+- Short explainer: earnings are paid 7 days after each trip
+- Three choices: Mobile wallet, Bank account, Prepaid card
+- Fields for the chosen method (wallet: provider + number; bank: bank + holder + account number/IBAN; card: name + 16-digit number)
+- Submit in the action dock
+
+### States
+- Nothing chosen, each method, validation errors
+
+### Mockup (ADO comment)
+- Payout method step: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/onboarding.html?step=7
+
+---
+
+## [Driver] #5642 — Payout method 🆕
+**Feature:** #1842 Driver — Menu & Profile | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+Opened from My profile. Shows where SheDrive sends her earnings and lets her change it; a change applies immediately.
+
+### Sections
+- Current method: type, provider or bank, masked number
+- Failed-payout warning: amount, reason, ask to check the method
+- **Change payout method** → the same form as onboarding, saved in the action dock
+
+### States
+- Default, last payout failed, no method yet (empty state with Add payout method)
+
+### Mockup (ADO comment)
+- Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html
+- Last payout failed: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html?state=failed
+- No method yet: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html?state=none
+
+---
+
+## [Driver] #5643 — Balance — payout status of earnings 🆕
+**Feature:** #1840 Driver — Trip Completion & Earnings | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+Changes to Balance & Statement (#3977) for the payout cycle.
+
+### Sections
+- Summary line: On hold X EGP · Due for payout Y EGP, and a Payout method link
+- Status chip on each earning: On hold until <date>, Due, Being transferred, Paid, Failed
+- Failed-payout banner
+- Two notifications: payout sent, payout failed
+- Settle What You Owe (#3979): one line under the ways to pay — Finance matches her payment by her national ID; keep the transfer reference
+
+### Mockup (ADO comment)
+- Balance: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html
+- Failed payout: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?state=payout-failed
+- Settle screen (national-ID line): https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?owed=120
+- Notifications: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/notifications.html
+
+---
+
+## [Rider] #5644 — Payments — credit from a waived fee 🆕
+**Feature:** #1849 Rider — Menu & Profile | **Sprint:** — | **Tag:** Payouts & settlement
+**Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
+
+Change to Payments (#3974): a credit row when SheDrive waived a fee she had already paid.
+
+### Sections
+- Credit row: amount, "from a waived cancellation fee", "isn't used for rides yet"
+
+### Mockup (ADO comment)
+- Payments — credit: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/payments.html?state=credit
+
+---
