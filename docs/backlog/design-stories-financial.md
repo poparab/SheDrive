@@ -668,7 +668,7 @@ The maker-checker queue in **Money & config**, with a count badge in the sidebar
 ### States
 - Pending, Decided, made by you (actions disabled with a note), empty, loading, error
 
-### Mockup (ADO comment)
+### Preview Links
 - Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html
 - Review modal: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
 - Empty: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?state=empty
@@ -694,7 +694,7 @@ The list of payout batches and the place to generate a new one.
 - Statuses: Pending approval, Ready to export, Sent to bank, Result pending approval, Completed, Rejected
 - Preview with nothing due, empty, loading, error
 
-### Mockup (ADO comment)
+### Preview Links
 - Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
 - Empty: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?state=empty
 - Loading: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?state=loading
@@ -718,7 +718,7 @@ One batch from generation to completion: its lines, the bank file and the result
 ### States
 - One per batch status, plus result-file errors and not found
 
-### Mockup (ADO comment)
+### Preview Links
 - Open any batch from Payouts: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
 - Not found: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payout-batch.html?id=unknown
 
@@ -740,7 +740,7 @@ Where Finance's sheet of payments drivers already made is uploaded, applied row 
 ### States
 - Before upload, checked, sent, missing-column error, history empty / loading / error
 
-### Mockup (ADO comment)
+### Preview Links
 - Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html
 - Import detail: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?id=IMP-0001
 - Empty history: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?state=empty
@@ -760,10 +760,11 @@ Changes to Driver balances and the driver ledger for maker-checker and the payou
 - Ledger header: payout method (masked), *Last payout failed* band, totals On hold / Due / In a batch / Sent to bank
 - Payout status chip on each earning
 
-### Mockup (ADO comment)
+### Preview Links
 - Driver balances: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html?lang=ar
 
+- A driver's ledger: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-balance-details.html?id=1067
 ---
 
 ## [Admin] #5638 — Rider balances — fee waiver and credit 🆕
@@ -778,10 +779,11 @@ Changes to Rider balances for waiving one fee and showing a rider's credit.
 - Fee chips: *Waived*, *Waiver awaiting approval*
 - Credit line: shown on her account, not used this phase
 
-### Mockup (ADO comment)
+### Preview Links
 - Rider balances: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?lang=ar
 
+- A rider's fee ledger: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balance-details.html?id=1021
 ---
 
 ## [Admin] #5639 — Driver payout method on profile and application 🆕
@@ -796,7 +798,7 @@ The driver's payout method on the driver profile and in the application review.
 - **Edit payout method** modal (fields per type), then a *Change awaiting approval* notice
 - Application review: the same method, read-only
 
-### Mockup (ADO comment)
+### Preview Links
 - Profile — failed payout: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069
 - Application: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-application.html?id=1061
 
@@ -812,7 +814,7 @@ Rate card and commission changes that wait for another admin.
 - Zone: *Rate card change awaiting approval* banner with the proposed values; edit locked while pending
 - Policies: one-line hint that commission changes need approval; pending banner "Commission change to N% awaiting approval"; commission field locked
 
-### Mockup (ADO comment)
+### Preview Links
 - Pricing & zones: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-zones.html
 - Global policies: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html
 
@@ -834,7 +836,7 @@ The new last step of driver onboarding, required to submit: how she wants to be 
 ### States
 - Nothing chosen, each method, validation errors
 
-### Mockup (ADO comment)
+### Preview Links
 - Payout method step: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/onboarding.html?step=7
 
 ---
@@ -853,7 +855,7 @@ Opened from My profile. Shows where SheDrive sends her earnings and lets her cha
 ### States
 - Default, last payout failed
 
-### Mockup (ADO comment)
+### Preview Links
 - Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html
 - Last payout failed: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html?state=failed
 
@@ -872,7 +874,7 @@ Changes to Balance & Statement (#3977) for the payout cycle.
 - Two notifications: payout sent, payout failed
 - Settle What You Owe (#3979): one line under the ways to pay — Finance matches her payment by her national ID; keep the transfer reference
 
-### Mockup (ADO comment)
+### Preview Links
 - Balance: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html
 - Failed payout: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?state=payout-failed
 - Settle screen (national-ID line): https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?owed=120
@@ -889,7 +891,7 @@ Change to Payments (#3974): a credit row when SheDrive waived a fee she had alre
 ### Sections
 - Credit row: amount, "from a waived cancellation fee", "isn't used for rides yet"
 
-### Mockup (ADO comment)
+### Preview Links
 - Payments — credit: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/payments.html?state=credit
 
 ---
@@ -911,7 +913,7 @@ Changes to Driver profile (#2867), Driver application (#2865) and Payout batch (
 - National ID shows all 14 digits, no dots
 - Payout account and card numbers stay masked
 
-### Mockup (ADO comment)
+### Preview Links
 - Driver profile: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069
 - Driver application: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-application.html?id=1061
 - Payout batch lines — open a batch from Payouts: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
@@ -927,7 +929,7 @@ Change to Profile (#5232).
 ### Sections
 - Personal details: National ID shows all 14 digits instead of •••• 4821
 
-### Mockup (ADO comment)
+### Preview Links
 - My profile: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/my-profile.html
 
 ---
@@ -941,7 +943,7 @@ Change to Delete Account (#5014).
 ### Sections
 - Code step: "sent to +20 10 1234 5678" — the full number, no dots
 
-### Mockup (ADO comment)
+### Preview Links
 - Delete account: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/delete-account.html
 
 ---
@@ -955,7 +957,7 @@ Change to Delete Account (#5015).
 ### Sections
 - Code step: "sent to +20 10 1234 5678" — the full number, no dots
 
-### Mockup (ADO comment)
+### Preview Links
 - Delete account: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/delete-account.html
 
 ---
@@ -971,7 +973,7 @@ The old *Money & config* group is split into three, so the daily finance screens
 - One icon per item; Payouts and Settlement imports use the withdrawal and deposit wallet icons
 - Item names don't change
 
-### Mockup (ADO comment)
+### Preview Links
 - Sidebar on any screen: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?lang=ar
 - Screen index (same groups): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/screens.html
