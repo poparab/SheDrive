@@ -1189,7 +1189,8 @@ Throughout the active trip — from en_route_pickup through trip_ended — the r
 ### Out of Scope
 - Turn-by-turn navigation for the rider (the rider only views the route)
 - Estimated arrival time to destination for the rider
-- Rider-initiated contact with the driver (chat or call)
+- Calling the driver
+- The trip chat and its Message your driver button on this screen — covered by #5678
 - Sharing driver details with a third party from this screen
 - SOS functionality
 
