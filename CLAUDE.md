@@ -106,6 +106,7 @@ Rules:
 | `shedrive.completedRating` | sessionStorage | string `'1'` | Rating submitted flag |
 | `shedrive.savedPlaces` | localStorage | JSON `[{id, label, name, address}]` | Rider saved places (home/work/custom) |
 | `shedrive.adminSession` | localStorage | JSON `{email, role, loginAt}` | Admin portal session (separate from `shedrive.session`) |
+| `shedrive.adminToast` | sessionStorage | JSON `{message, type, title?, duration?}` | admin-v2: a toast held across a redirect (approve/reject application, sign out), shown once by the next page |
 | `shedrive.notificationsRead` | localStorage | JSON `{rider: [id], driver: [id]}` | Notification inbox read state, per app |
 | `shedrive.accountDeletion` | localStorage | JSON `{rider?: [..], driver?: [..]}` each entry `{phone, requestedAt, deleteOn}`, one per number | Accounts awaiting deletion (30-day window) or deleted; sign-in offers a restore only to the same number |
 | `shedrive.historyReturn` | sessionStorage | JSON `{count, top}` | Rider trip history: pages loaded + scroll offset, restored on return from a trip detail |
