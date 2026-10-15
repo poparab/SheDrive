@@ -104,6 +104,7 @@ Rules:
 | `shedrive.pendingTrip` | sessionStorage | JSON `{pickup, destination}` | Home → Matching handoff |
 | `shedrive.activeTrip` | sessionStorage | JSON `{driver, trip}` | Matching → Active Trip handoff |
 | `shedrive.completedRating` | sessionStorage | string `'1'` | Rating submitted flag |
+| `shedrive.tripChat` | sessionStorage | JSON `{messages: [..], read: {rider, driver}}` | Rider ↔ driver trip chat for the current trip; cleared when the trip ends or is cancelled |
 | `shedrive.savedPlaces` | localStorage | JSON `[{id, label, name, address}]` | Rider saved places (home/work/custom) |
 | `shedrive.adminSession` | localStorage | JSON `{email, role, loginAt}` | Admin portal session (separate from `shedrive.session`) |
 | `shedrive.adminToast` | sessionStorage | JSON `{message, type, title?, duration?}` | admin-v2: a toast held across a redirect (approve/reject application, sign out), shown once by the next page |
@@ -289,6 +290,15 @@ is about (its `href`). That is all it does: there is **no notification settings 
 push-off banner and no permission explainer sheet — removed from scope 2026-09-30; do not
 add them back.
 
+The rider ↔ driver trip chat follows the same pattern: `shared/scripts/trip-chat-store.js`
+(data rules, quick replies, phone-number masking, mock peer), `shared/scripts/trip-chat.js`
+(`mountChat(role)` for `rider|driver/chat.html`, `wireChatEntry(role, getState)` for the
+Message button, unread badge and push on the trip screens) and `shared/styles/trip-chat.css`.
+Scope agreed 2026-10-15: text + quick replies, open from acceptance until the trip ends,
+phone numbers hidden, the driver sends quick replies only while in-ride, push when the app
+is closed. **No message reporting and no transcript kept for admins** — the chat is gone
+when the trip ends. No photos, voice notes, typing indicator or chat history.
+
 Account deletion follows the same pattern: `shared/scripts/account-deletion.js` and
 `shared/styles/account-deletion.css` drive `rider|driver/delete-account.html`
 (`mountAccountDeletion(role)`), the restore step and the deleted-number refusal on both
@@ -396,6 +406,7 @@ index.html (Splash overlay → Login)
 | `rider/emergency.html` | Full-screen SOS dashboard + mock call buttons |
 | `rider/trip-complete.html` | Rating (stars + tags + tip) + trip summary |
 | `rider/notifications.html` | Notification inbox (also `driver/notifications.html`) |
+| `rider/chat.html` | Trip chat with the driver — quick replies, text, hidden phone numbers (also `driver/chat.html`) |
 | `rider/delete-account.html` | Account deletion — short confirmation, code, 30-day window (also `driver/delete-account.html`) |
 | `driver/payout-method.html` | Driver payout method — view and change; applies immediately, no approval. Also onboarding step 7 |
 

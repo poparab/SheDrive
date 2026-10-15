@@ -1,6 +1,6 @@
 # SheDrive — Mobile Driver Stories
 > Canonical backlog for all [Mobile] Driver stories. Organized by sprint and feature.
-> Last updated: 2026-09-30
+> Last updated: 2026-10-15
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -1987,6 +1987,56 @@ This mirrors the rider side of the same flow (#1565 rider rates driver / #1639 A
 - #2978 — Driver submits rider rating (API — must be live)
 - #1592 — Driver sees cash fare to collect and returns to available (this screen follows it)
 - #1753 — Driver App - Rating Passenger (closed design; mockup "11_Rate Passenger.jpg" on task #1754)
+
+---
+
+## [Mobile] #5679 — Driver chats with her rider during the trip 🆕
+**Feature:** #1542 Active Trip — Driver | **Sprint:** — | **Tag:** Trip chat
+
+**Description:** As a driver, I want to message my rider from accepting her trip until it ends so that I can find her at pickup without calling her or sharing my number.
+
+### Rules
+- Same chat as the rider's (#5678): one chat per trip, open from acceptance until the trip is completed or cancelled, nothing kept afterwards, phone numbers hidden, the 300-character message field, message statuses, unread badge and push all follow the rules listed there once.
+- A **Message** button with the unread count is on the En Route and Arrived cards, and the Message button in the in-ride action row opens the same chat.
+- Quick replies before the rider boards: *I'm on my way*, *Running 5 minutes late*, *I've arrived at the pickup point*, *Where are you exactly?*, *OK*. During the ride: *OK*, *Thank you*, *We're almost there*.
+- **No typing while driving.** Once the trip has started she can send quick replies only; the text box is replaced by "While you drive, you can send quick replies only." She can still read every message.
+- The push shows the rider's name; it also arrives while she is in Google Maps or Waze.
+
+### Acceptance Criteria
+**Scenario 1 — Driving mode**
+- Given she has started the trip
+- When she opens the chat
+- Then there is no text box, only the note and the chips OK, Thank you and We're almost there; tapping We're almost there sends it
+
+**Scenario 2 — Typing before boarding**
+- Given she is waiting at pickup
+- When she types "I'm at the side gate, white Corolla" and sends it
+- Then the rider receives it as written
+
+**Scenario 3 — A message while she navigates**
+- Given she is following Waze to the pickup
+- When the rider sends "Please wait 2 minutes"
+- Then she gets a push from Nour, and tapping it opens the chat
+
+**Scenario 4 — The rider cancels**
+- Given the chat has 3 messages
+- When the rider cancels the trip
+- Then the chat closes with the trip and the messages are gone
+
+### Out of Scope
+- As in #5678
+- Changes to the Call button
+
+### Dependencies
+- #5680 [API] Rider and driver exchange trip chat messages
+- #5678 [Mobile] Rider chats with her driver during the trip — shared rules
+- #5677 [Driver] Trip Chat — design
+
+### Mockup (ADO comment)
+- Before boarding: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/chat.html?state=en-route&thread=sample
+- Driving mode: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/chat.html?state=in-ride&thread=sample
+- Trip ended: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/chat.html?state=ended&thread=sample
+- Message button + push: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/trip.html?state=en-route&push=chat
 
 ---
 

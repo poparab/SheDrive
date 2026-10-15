@@ -1,6 +1,6 @@
 # SheDrive — API Stories
 > Canonical backlog for all [API] stories. Organized by sprint and feature.
-> Last updated: 2026-09-30
+> Last updated: 2026-10-15
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -1582,6 +1582,73 @@ This is the single endpoint the rider app polls for the whole active trip. Every
 **Scenario 6 — Unauthenticated request is rejected**
 - Given a request arrives without a valid driver session token
 - Then the request is rejected
+
+---
+
+## [API] #5680 — Rider and driver exchange trip chat messages 🆕
+**Feature:** #1603 Active Trip — Rider API | **Sprint:** — | **Tag:** Trip chat
+
+**Description:** As the rider and driver apps, we want to send and receive messages for the current trip so that a rider and her driver can coordinate pickup without sharing phone numbers.
+
+### Rules
+- One shared API story serves both apps (#5678 rider, #5679 driver).
+- One conversation per trip. Only the trip's rider and its assigned driver can read it or send to it.
+- Open from the moment the driver accepts until the trip is completed or cancelled. After that, sending is refused and the trip's messages are deleted: they are not kept and are not available to admins.
+- A message is either text (1–300 characters after trimming) or a quick-reply key from the fixed list in #5678 and #5679; any other key is refused.
+- **Phone numbers are hidden on the server**, so no app can bypass it: any run of 7 or more digits (Latin or Arabic-Indic), including spaces, dashes, dots, brackets or a leading +, is replaced by ••••• before the message is stored or delivered. The response says when something was hidden.
+- Once the trip has started, typed text from the driver is refused; her quick replies are accepted.
+- Messages are returned in the order sent. When the reader opens the chat they are marked read, and the sender sees Seen.
+- When the recipient's app is not showing the chat, she gets a push: title = the sender's first name, body = the message text (numbers hidden) or the quick reply in the recipient's language. Unread messages of one trip collapse into one push with a count. Chat messages are never written to the notification inbox.
+- A resent message with the same client message ID is stored once.
+- More than 20 messages a minute from one sender are refused.
+
+### Acceptance Criteria
+**Scenario 1 — A number is hidden by the server**
+- Given an app sends "Call me 0100 123 4567"
+- Then the stored and delivered text is "Call me •••••" and the response says a number was hidden
+
+**Scenario 2 — Driver typing in ride**
+- Given trip T-1042 has started
+- When the driver sends typed text
+- Then it is refused with "quick replies only while driving", and the quick reply "almostThere" is accepted
+
+**Scenario 3 — The trip is over**
+- Given trip T-1042 was completed at 18:40
+- When the rider sends a message at 18:41
+- Then it is refused with "chat closed", and the trip's messages are no longer returned
+
+**Scenario 4 — Not her trip**
+- Given a rider who is not on trip T-1042
+- When she asks for its messages
+- Then the request is refused
+
+**Scenario 5 — Retry after a timeout**
+- Given the app sent message ID c-77 and timed out
+- When it sends c-77 again
+- Then there is still one message
+
+**Scenario 6 — Several messages while the app is closed**
+- Given the rider's app is closed
+- When the driver sends 3 messages
+- Then the rider has one push showing the latest message and "and 2 more"
+
+**Scenario 7 — Unauthenticated request is rejected**
+- Given a request without a valid session
+- Then it is rejected and nothing is sent
+
+### Out of Scope
+- Attachments, typing indicator, editing or deleting messages
+- Translating typed text
+- Reporting messages, keeping them after the trip, or showing them to admins
+
+### Dependencies
+- #5678 [Mobile] Rider chats with her driver during the trip
+- #5679 [Mobile] Driver chats with her rider during the trip
+- #1633 Rider tracks her active trip — the trip states that open and close the chat
+
+### Mockup (ADO comment)
+- Rider chat: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/chat.html?state=arrived&thread=sample
+- Driver chat, driving mode: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/chat.html?state=in-ride&thread=sample
 
 ---
 

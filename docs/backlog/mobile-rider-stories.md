@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-09-30
+> Last updated: 2026-10-15
 > Stories with changes from original are marked ✏️
 
 ---
@@ -1197,6 +1197,72 @@ Throughout the active trip — from en_route_pickup through trip_ended — the r
 - #1818 — Platform serves active-trip route geometry to the rider for an in-app trip view (must be live)
 - #1633 — Rider tracks her active trip (must be live; drives this screen's state)
 - #1653 — Driver streams GPS from acceptance to completion (must be live)
+
+---
+
+## [Mobile] #5678 — Rider chats with her driver during the trip 🆕
+**Feature:** #1535 Active Trip — Rider | **Sprint:** — | **Tag:** Trip chat
+
+**Description:** As a rider, I want to message my driver from the moment she accepts my trip until it ends so that we can find each other at pickup without sharing our phone numbers.
+
+### Rules
+- The chat opens when the driver accepts the trip and closes when the trip is completed or cancelled. There is one chat per trip, between the rider and her assigned driver only, and nothing is kept after the trip: no chat history.
+- **Message your driver** on the live trip screen opens it in every trip state until the trip ends, and shows the unread count (caps at 9+).
+- She sends typed text or a quick reply. Before boarding: *Coming now*, *Please wait 2 minutes*, *I'm at the entrance*, *OK*. After boarding: *OK*, *Thank you*.
+- A quick reply shows in each reader's own language; typed text shows as written.
+- **Phone numbers are hidden.** A number she types is replaced by ••••• before it is sent, and she is told it was hidden.
+- Her latest message shows *Sending…*, *Sent* or *Seen*. A message that could not be sent shows *Not sent. Tap to retry*.
+- **Push:** a new message while the app is closed, or while she is on another screen, arrives as a push with the driver's name and the message text; tapping it opens the chat. No push while the chat is open. Chat messages are not added to the notification inbox.
+- Opening the chat marks every message as read and clears the badge.
+
+### Field Validation
+| Field | Required | Accepted values | Min | Max | Placeholder | Behaviour |
+|---|---|---|---|---|---|---|
+| Message | Yes, to send | Any text, Arabic or English; phone numbers are hidden on send | 1 character (spaces alone do not count) | 300 characters | Write to your driver / اكتبي رسالة إلى سائقتك | Send is disabled while empty; typing stops at 300 and a counter shows from 250 |
+
+### Acceptance Criteria
+**Scenario 1 — A phone number is hidden**
+- Given she types "Call me on 0100 123 4567"
+- When she sends it
+- Then the driver receives "Call me on •••••", and she sees the same text with "Phone number hidden" under it
+
+**Scenario 2 — A quick reply in the driver's language**
+- Given the rider uses Arabic and the driver uses English
+- When she taps "أنا قادمة الآن"
+- Then the driver reads "Coming now"
+
+**Scenario 3 — Push while the app is closed**
+- Given her app is closed while she waits for pickup
+- When the driver sends "I've arrived at the pickup point"
+- Then she gets a push from Nora Ahmed with that text, and tapping it opens the chat with the message read and the badge cleared
+
+**Scenario 4 — No signal**
+- Given she has no connection
+- When she sends "Taking the stairs"
+- Then it shows "Not sent. Tap to retry", and once the connection is back a tap sends it
+
+**Scenario 5 — The trip ends with the chat open**
+- Given the chat is open
+- When the driver completes the trip
+- Then the quick replies and text box are replaced by "This trip has ended, so the chat is closed.", and her next trip starts with an empty chat
+
+### Out of Scope
+- Photos, voice notes, sharing location, typing indicator, editing or deleting messages
+- Reporting a message, and any copy of the messages for admins
+- Calling the driver
+
+### Dependencies
+- #5680 [API] Rider and driver exchange trip chat messages
+- #5679 [Mobile] Driver chats with her rider during the trip
+- #1561 Rider sees driver live location and details during trip — the screen that holds the Message button
+- #5676 [Rider] Trip Chat — design
+
+### Mockup (ADO comment)
+- Chat (empty): https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/chat.html?state=arrived
+- Conversation: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/chat.html?state=arrived&thread=sample
+- Trip ended: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/chat.html?state=ended&thread=sample
+- No signal: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/chat.html?offline=1
+- Push + Message button: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/active-trip.html?push=chat
 
 ---
 
