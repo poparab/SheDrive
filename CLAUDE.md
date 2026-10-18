@@ -112,7 +112,7 @@ Rules:
 | `shedrive.accountDeletion` | localStorage | JSON `{rider?: [..], driver?: [..]}` each entry `{phone, requestedAt, deleteOn}`, one per number | Accounts awaiting deletion (30-day window) or deleted; sign-in offers a restore only to the same number |
 | `shedrive.historyReturn` | sessionStorage | JSON `{count, top}` | Rider trip history: pages loaded + scroll offset, restored on return from a trip detail |
 | `shedrive.driverHistoryScroll` | sessionStorage | string (px) | Driver trip history scroll offset, restored on return from a trip detail |
-| `shedrive.payoutMethod` | localStorage | JSON `{type, provider, holder, last4, savedAt}` | Driver payout method (mobile wallet / bank account / prepaid card); only the last 4 digits are kept in the mockup |
+| `shedrive.payoutMethod` | localStorage | JSON `{type, provider, holder, number, savedAt}` | Driver payout method (mobile wallet / bank account / prepaid card); the number is kept and shown in full — no masking (2026-10-18) |
 
 **Rider and driver screens are deliberately open**, the same way the admin portal is.
 `auth.requireAuth()` provisions a demo session instead of redirecting, so any screen can
