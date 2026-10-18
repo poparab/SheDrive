@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-10-15
+> Last updated: 2026-10-18
 > Stories with changes from original are marked ✏️
 
 ---
@@ -1253,7 +1253,7 @@ Throughout the active trip — from en_route_pickup through trip_ended — the r
 - Calling the driver
 
 ### Dependencies
-- #5680 [API] Rider and driver exchange trip chat messages
+- #5680 [API] Rider sends and receives trip chat messages
 - #5679 [Mobile] Driver chats with her rider during the trip
 - #1561 Rider sees driver live location and details during trip — the screen that holds the Message button
 - #5676 [Rider] Trip Chat — design

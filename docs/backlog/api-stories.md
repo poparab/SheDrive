@@ -1,6 +1,6 @@
 # SheDrive — API Stories
 > Canonical backlog for all [API] stories. Organized by sprint and feature.
-> Last updated: 2026-10-15
+> Last updated: 2026-10-18
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -1585,18 +1585,17 @@ This is the single endpoint the rider app polls for the whole active trip. Every
 
 ---
 
-## [API] #5680 — Rider and driver exchange trip chat messages 🆕
+## [API] #5680 — Rider sends and receives trip chat messages 🆕
 **Feature:** #1603 Active Trip — Rider API | **Sprint:** — | **Tag:** Trip chat
 
-**Description:** As the rider and driver apps, we want to send and receive messages for the current trip so that a rider and her driver can coordinate pickup without sharing phone numbers.
+**Description:** As the rider app, I want to send and receive chat messages with the driver of my current trip so that the rider can coordinate pickup without sharing her phone number.
 
 ### Rules
-- One shared API story serves both apps (#5678 rider, #5679 driver).
+- The conversation rules below apply to both sides of the chat; the driver side (#5683) adds only what is different for the driver.
 - One conversation per trip. Only the trip's rider and its assigned driver can read it or send to it.
 - Open from the moment the driver accepts until the trip is completed or cancelled. After that, sending is refused and the trip's messages are deleted: they are not kept and are not available to admins.
-- A message is either text (1–300 characters after trimming) or a quick-reply key from the fixed list in #5678 and #5679; any other key is refused.
+- A message is either text (1–300 characters after trimming) or a quick-reply key. The rider may send only the rider keys in #5678; any other key is refused.
 - **Phone numbers are hidden on the server**, so no app can bypass it: any run of 7 or more digits (Latin or Arabic-Indic), including spaces, dashes, dots, brackets or a leading +, is replaced by ••••• before the message is stored or delivered. The response says when something was hidden.
-- Once the trip has started, typed text from the driver is refused; her quick replies are accepted.
 - Messages are returned in the order sent. When the reader opens the chat they are marked read, and the sender sees Seen.
 - When the recipient's app is not showing the chat, she gets a push: title = the sender's first name, body = the message text (numbers hidden) or the quick reply in the recipient's language. Unread messages of one trip collapse into one push with a count. Chat messages are never written to the notification inbox.
 - A resent message with the same client message ID is stored once.
@@ -1604,36 +1603,35 @@ This is the single endpoint the rider app polls for the whole active trip. Every
 
 ### Acceptance Criteria
 **Scenario 1 — A number is hidden by the server**
-- Given an app sends "Call me 0100 123 4567"
+- Given the rider app sends "Call me 0100 123 4567"
 - Then the stored and delivered text is "Call me •••••" and the response says a number was hidden
 
-**Scenario 2 — Driver typing in ride**
-- Given trip T-1042 has started
-- When the driver sends typed text
-- Then it is refused with "quick replies only while driving", and the quick reply "almostThere" is accepted
-
-**Scenario 3 — The trip is over**
+**Scenario 2 — The trip is over**
 - Given trip T-1042 was completed at 18:40
 - When the rider sends a message at 18:41
 - Then it is refused with "chat closed", and the trip's messages are no longer returned
 
-**Scenario 4 — Not her trip**
+**Scenario 3 — Not her trip**
 - Given a rider who is not on trip T-1042
 - When she asks for its messages
 - Then the request is refused
 
+**Scenario 4 — A driver-only quick reply**
+- When the rider app sends the key "onMyWay"
+- Then it is refused
+
 **Scenario 5 — Retry after a timeout**
-- Given the app sent message ID c-77 and timed out
+- Given the rider app sent message ID c-77 and timed out
 - When it sends c-77 again
 - Then there is still one message
 
-**Scenario 6 — Several messages while the app is closed**
+**Scenario 6 — Several messages while her app is closed**
 - Given the rider's app is closed
 - When the driver sends 3 messages
 - Then the rider has one push showing the latest message and "and 2 more"
 
 **Scenario 7 — Unauthenticated request is rejected**
-- Given a request without a valid session
+- Given a request without a valid rider session
 - Then it is rejected and nothing is sent
 
 ### Out of Scope
@@ -1643,11 +1641,66 @@ This is the single endpoint the rider app polls for the whole active trip. Every
 
 ### Dependencies
 - #5678 [Mobile] Rider chats with her driver during the trip
-- #5679 [Mobile] Driver chats with her rider during the trip
+- #5683 [API] Driver sends and receives trip chat messages — the other side of the same conversation
 - #1633 Rider tracks her active trip — the trip states that open and close the chat
 
 ### Mockup (ADO comment)
 - Rider chat: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/chat.html?state=arrived&thread=sample
+- Driver chat, driving mode: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/chat.html?state=in-ride&thread=sample
+
+---
+
+## [API] #5683 — Driver sends and receives trip chat messages 🆕
+**Feature:** #1609 Active Trip — Driver API | **Sprint:** — | **Tag:** Trip chat
+
+**Description:** As the driver app, I want to send and receive chat messages with the rider of my current trip so that the driver can coordinate pickup without sharing her phone number.
+
+### Rules
+- The conversation rules in #5680 apply to the driver unchanged: one conversation per trip, open from acceptance until the trip ends, messages deleted afterwards, text up to 300 characters, phone numbers hidden on the server, order and Seen, push, duplicate sends and the rate limit.
+- Only the driver assigned to the trip can read or send as its driver.
+- The driver may send only the driver keys in #5679; any other key is refused.
+- **No typing while driving:** once the trip has started, typed text from the driver is refused; her quick replies are accepted.
+- Her pushes arrive while the driver app is in the background, for example while she navigates in Google Maps or Waze.
+
+### Acceptance Criteria
+**Scenario 1 — Typing in ride is refused**
+- Given trip T-1042 has started
+- When the driver sends typed text
+- Then it is refused with "quick replies only while driving", and the quick reply "almostThere" is accepted
+
+**Scenario 2 — Typing before boarding**
+- Given trip T-1042 is in arrived_pickup
+- When the driver sends "I'm at the side gate, white Corolla"
+- Then it is accepted and delivered to the rider
+
+**Scenario 3 — A rider-only quick reply**
+- When the driver app sends the key "comingNow"
+- Then it is refused
+
+**Scenario 4 — Push while she navigates**
+- Given the driver app is in the background behind Waze
+- When the rider sends "Please wait 2 minutes"
+- Then the driver gets a push from the rider with that text
+
+**Scenario 5 — Not her trip**
+- Given a driver who is not assigned to trip T-1042
+- When she asks for its messages
+- Then the request is refused
+
+**Scenario 6 — Unauthenticated request is rejected**
+- Given a request without a valid driver session
+- Then it is rejected and nothing is sent
+
+### Out of Scope
+- As in #5680
+
+### Dependencies
+- #5679 [Mobile] Driver chats with her rider during the trip
+- #5680 [API] Rider sends and receives trip chat messages — the shared conversation rules
+- #1653 Driver streams GPS from acceptance to completion — the trip states the driver app runs through
+
+### Mockup (ADO comment)
+- Driver chat, before boarding: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/chat.html?state=en-route&thread=sample
 - Driver chat, driving mode: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/chat.html?state=in-ride&thread=sample
 
 ---

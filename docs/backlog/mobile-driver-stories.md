@@ -1,6 +1,6 @@
 # SheDrive — Mobile Driver Stories
 > Canonical backlog for all [Mobile] Driver stories. Organized by sprint and feature.
-> Last updated: 2026-10-15
+> Last updated: 2026-10-18
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -2028,7 +2028,7 @@ This mirrors the rider side of the same flow (#1565 rider rates driver / #1639 A
 - Changes to the Call button
 
 ### Dependencies
-- #5680 [API] Rider and driver exchange trip chat messages
+- #5683 [API] Driver sends and receives trip chat messages
 - #5678 [Mobile] Rider chats with her driver during the trip — shared rules
 - #5677 [Driver] Trip Chat — design
 
