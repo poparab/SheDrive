@@ -3888,7 +3888,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Then the batch shows Rejected and its earnings are due again for the next batch
 
 ### Out of Scope
-- Scheduling batches automatically
 - Excluding a single driver from a batch by hand
 - Holiday calendars
 
@@ -3943,8 +3942,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Out of Scope
 - Sending the file to the bank automatically (Finance uploads it on the bank portal)
-- Separate files per bank or method
-- Partial results (every line must be in the file)
 
 ### Dependencies
 - #5618 Admin generates a payout batch
@@ -4060,8 +4057,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Then the fee shows "Waiver awaiting approval" and offers no Waive action
 
 ### Out of Scope
-- Spending the rider's credit on a trip
-- Waiving several fees in one action
 - Refunding the rider in cash
 
 ### Dependencies
@@ -4253,11 +4248,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Approvals keeps its pending-request count.
 
 ### Acceptance Criteria
-**Scenario 1 — Finance group**
-- When an admin opens any screen
-- Then the sidebar shows Finance with Approvals first, followed by Driver balances, Payouts, Settlement imports and Rider balances
-
-**Scenario 2 — Arabic**
+**Scenario 1 — Arabic**
 - When the portal is in Arabic
 - Then the headings read العمليات · المستخدمون · المالية · التسعير · التقارير والمصالحات · الإدارة
 

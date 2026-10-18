@@ -1235,7 +1235,7 @@ Throughout the active trip — from en_route_pickup through trip_ended — the r
 **Scenario 3 — Push while the app is closed**
 - Given her app is closed while she waits for pickup
 - When the driver sends "I've arrived at the pickup point"
-- Then she gets a push from Nora Ahmed with that text, and tapping it opens the chat with the message read and the badge cleared
+- Then she gets a push from Nora Ahmed with that text
 
 **Scenario 4 — No signal**
 - Given she has no connection
@@ -1245,7 +1245,7 @@ Throughout the active trip — from en_route_pickup through trip_ended — the r
 **Scenario 5 — The trip ends with the chat open**
 - Given the chat is open
 - When the driver completes the trip
-- Then the quick replies and text box are replaced by "This trip has ended, so the chat is closed.", and her next trip starts with an empty chat
+- Then the quick replies and text box are replaced by "This trip has ended, so the chat is closed."
 
 ### Out of Scope
 - Photos, voice notes, sharing location, typing indicator, editing or deleting messages

@@ -1637,7 +1637,7 @@ This is the single endpoint the rider app polls for the whole active trip. Every
 ### Out of Scope
 - Attachments, typing indicator, editing or deleting messages
 - Translating typed text
-- Reporting messages, keeping them after the trip, or showing them to admins
+- Reporting messages
 
 ### Dependencies
 - #5678 [Mobile] Rider chats with her driver during the trip

@@ -2006,7 +2006,7 @@ This mirrors the rider side of the same flow (#1565 rider rates driver / #1639 A
 **Scenario 1 — Driving mode**
 - Given she has started the trip
 - When she opens the chat
-- Then there is no text box, only the note and the chips OK, Thank you and We're almost there; tapping We're almost there sends it
+- Then tapping We're almost there sends it
 
 **Scenario 2 — Typing before boarding**
 - Given she is waiting at pickup
