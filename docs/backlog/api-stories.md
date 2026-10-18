@@ -697,6 +697,109 @@ Scenarios 1–12 of #5036 also apply to a driver account. The scenarios below co
 
 ---
 
+## [API] #5722 — Rider notification inbox is listed and marked read 🆕
+**Feature:** #1600 Authentication API — Shared | **Sprint:** — | **Tag:** Notification inbox
+
+**Description:** As the rider app, I want to fetch the rider's notifications, her unread count, and mark them read so that the rider has a lasting record of every notification and can open what each one is about.
+
+### Rules
+- The inbox rules below apply to both apps; the driver side (#5723) adds only what is different.
+- **Every notification the platform sends is stored as an inbox item first; the push is a copy of it** and carries the item's ID. An item is stored even if the push fails, the phone has no push token, or notifications are off on the phone. Trip chat messages are never stored as items (#5680).
+- Each item has: ID, type, category, title and body in the language the app asks for (Arabic or English, so older items switch language too), created time, read flag, and its target (the screen and record it opens, e.g. trip T-1042).
+- **Rider types:** driver found, driver arrived, trip started, trip completed (with fare), trip cancelled, cancellation fee added, emergency contact added or removed, SheDrive announcement, welcome.
+- **List:** newest first, 20 per page, filter All or Unread. Items are kept for 7 days, then deleted.
+- **Unread count** is returned with the list and on its own for the bell.
+- **Mark read:** one item, or all — "all" marks only items created up to that moment. Marking an item already read changes nothing.
+- A rider sees only her own items. Announcements sent to all riders (#4800) create one item per rider.
+- Items are deleted with the account (#5036).
+
+### Acceptance Criteria
+**Scenario 1 — Push failed, item kept**
+- Given the rider's push token is out of date
+- When trip T-1042 completes with a 55 EGP fare
+- Then the push fails, the item "trip completed" is still stored unread, and the unread count goes up by 1
+
+**Scenario 2 — Paging**
+- Given she has 47 items
+- When the app asks for page 3
+- Then items 41–47 are returned, newest first
+
+**Scenario 3 — Mark all while a new one arrives**
+- Given she has 4 unread items and marks all read at 18:00:00
+- When "driver arrived" is created at 18:00:01
+- Then the 4 are read and the new one stays unread, so the count is 1
+
+**Scenario 4 — Language switch**
+- Given an item created while her app was in Arabic
+- When the app asks in English
+- Then its title and body come back in English
+
+**Scenario 5 — Someone else's item**
+- When the rider marks read an item ID that belongs to another rider
+- Then it is refused as not found and nothing changes
+
+**Scenario 6 — Unauthenticated request is rejected**
+- Given a request without a valid rider session
+- Then it is rejected and nothing is returned
+
+### Out of Scope
+- Notification preferences or muting a type
+- Deleting single items
+- Showing inbox items in the admin portal
+
+### Dependencies
+- #5720 [Mobile] Rider sees her notifications and opens what each one is about
+- #5723 [API] Driver notification inbox is listed and marked read — the driver side
+- #5036 Rider account deletion — items are deleted with the account
+
+### Mockup (ADO comment)
+- Rider inbox: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/notifications.html
+- Figma — Notifications: https://www.figma.com/design/KKPU4knlJ3AnrCfwjapyg9/SheDrive-App?node-id=2563-993
+
+---
+
+## [API] #5723 — Driver notification inbox is listed and marked read 🆕
+**Feature:** #1600 Authentication API — Shared | **Sprint:** — | **Tag:** Notification inbox
+
+**Description:** As the driver app, I want to fetch the driver's notifications, her unread count, and mark them read so that the driver has a lasting record of her earnings, balance, document and trip notifications.
+
+### Rules
+- The inbox rules in #5722 apply to the driver unchanged: stored first and pushed as a copy, item fields and language, 20 per page, kept 7 days, unread count, mark read, own items only, deleted with the account (#5037).
+- **Driver types:** application approved or rejected, settlement received, payout sent, payout failed, close to the balance limit, trips blocked until settlement, driving licence or vehicle registration expiring, new rating, trip cancelled by the rider, cancellation fee applied, SheDrive announcement.
+- **Trip requests are never stored as items**; they keep their own push (#1581).
+- Announcements sent to all drivers (#4800) create one item per driver.
+
+### Acceptance Criteria
+**Scenario 1 — Settlement recorded**
+- Given an admin records a 250 EGP settlement for the driver at 10:05
+- Then a "settlement received" item targeting her Balance is stored unread and pushed
+
+**Scenario 2 — Trip request is not an item**
+- Given a trip request is sent to her at 14:00
+- Then she gets the request push and no inbox item is created
+
+**Scenario 3 — Payout failed**
+- Given her 245.50 EGP payout to Vodafone Cash fails
+- Then a "payout failed" item targeting Payout method is stored unread
+
+**Scenario 4 — Unauthenticated request is rejected**
+- Given a request without a valid driver session
+- Then it is rejected and nothing is returned
+
+### Out of Scope
+- As in #5722
+
+### Dependencies
+- #5721 [Mobile] Driver sees her notifications and opens what each one is about
+- #5722 [API] Rider notification inbox is listed and marked read — the shared inbox rules
+- #5037 Driver account deletion — items are deleted with the account
+
+### Mockup (ADO comment)
+- Driver inbox: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/notifications.html
+- Figma — Notifications: https://www.figma.com/design/KKPU4knlJ3AnrCfwjapyg9/SheDrive-App?node-id=2585-3358
+
+---
+
 ### Feature 7 — Rider Home, Address Search & Fare Estimate
 
 ---

@@ -364,6 +364,68 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 
 ---
 
+## [Mobile] #5720 — Rider sees her notifications and opens what each one is about 🆕
+**Feature:** #1532 Rider Authentication | **Sprint:** — | **Tag:** Notification inbox
+
+**Description:** As a rider, I want one list of everything SheDrive has told me, where tapping a notification opens what it is about, so that I never lose a trip update, fee or safety message I missed on the lock screen.
+
+### Rules
+- **Entry points:** a bell with an unread badge in the Book a ride header (caps at 9+, hidden at zero, its screen-reader label includes the count), **Notifications** in the side menu, and tapping any push.
+- **A push is a copy of an inbox item.** Whatever she gets as a push is also in the inbox, even if she never saw the push or notifications are off on her phone. Trip chat messages are not inbox items (#5678).
+- **List:** newest first, grouped under **New** (today), **Yesterday**, then one heading per older date (e.g. "Oct 2, 2026"). Each row: category icon (trip, safety, payments, account, news), title, body cut to two lines, and the time — "6 min ago" today, "1 d ago · 09:33 am" on older rows. Unread rows are tinted with a bold title and a dot. More rows load as she scrolls.
+- **Filter:** two pills, **All** and **Unread**; Unread shows the unread count. **Mark all as read** sits at the end of the row and is disabled when nothing is unread; using it shows "All notifications marked as read".
+- **Tap to open:** tapping a row marks it read and opens what it is about — a trip update opens that trip in My Rides (or the live trip screen while the trip is still running), a fee opens Payments, an emergency-contact change opens Emergency Contacts, announcements and the welcome message open Book a ride.
+- Text shows in her current app language, older notifications included.
+- **States:** empty — "No notifications yet" with "Trip updates and safety alerts will show up here."; Unread with nothing unread — "You're all caught up"; loading — skeleton rows; error — message plus **Try again**.
+- There is no notification settings screen: every type is delivered and none can be switched off in the app.
+
+### Acceptance Criteria
+**Scenario 1 — A push she missed is waiting**
+- Given her phone was off when her trip completed at 18:40
+- When she opens the inbox at 19:15
+- Then "Your trip is complete — You paid 55 EGP cash to Noura" is at the top under New, unread, and the bell shows 1
+
+**Scenario 2 — Tapping a push**
+- Given she gets the push "Your driver has arrived"
+- When she taps it
+- Then the live trip screen opens and that item is read in the inbox
+
+**Scenario 3 — The trip is already over**
+- Given "Your driver has arrived" from a trip that has since been completed
+- When she taps it
+- Then that trip's detail in My Rides opens, not the live trip screen
+
+**Scenario 4 — Many unread**
+- Given she has 12 unread notifications
+- Then the bell shows 9+ and the Unread pill shows 12
+
+**Scenario 5 — No connection**
+- Given she has no connection
+- When she opens the inbox
+- Then she sees "Couldn't load your notifications. Check your connection." and **Try again** reloads the list once she is back online
+
+### Out of Scope
+- Notification settings, switching categories off, a push permission explainer
+- Deleting or archiving a single notification
+- Trip chat messages
+
+### Dependencies
+- #5722 [API] Rider notification inbox is listed and marked read
+- #4914 [Rider] Notification Inbox — design
+- #5721 [Mobile] Driver sees her notifications and opens what each one is about — the same screen in the driver app
+
+### Mockup (ADO comment)
+- Inbox: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/notifications.html
+- All unread: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/notifications.html?state=unread
+- Empty: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/notifications.html?state=empty
+- Error: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/notifications.html?state=error
+- Bell on Book a ride: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/home.html
+- Figma — Notifications: https://www.figma.com/design/KKPU4knlJ3AnrCfwjapyg9/SheDrive-App?node-id=2563-993
+- Figma — Unread: https://www.figma.com/design/KKPU4knlJ3AnrCfwjapyg9/SheDrive-App?node-id=2565-2351
+- Figma — Caught up: https://www.figma.com/design/KKPU4knlJ3AnrCfwjapyg9/SheDrive-App?node-id=2566-2669
+
+---
+
 ### Feature 7 — Rider Home, Address Search & Fare Estimate
 
 ---

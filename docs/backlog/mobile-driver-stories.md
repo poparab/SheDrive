@@ -416,6 +416,55 @@ Same as the rider flow (#5038): a six-digit code with the sign-in error messages
 
 ---
 
+## [Mobile] #5721 — Driver sees her notifications and opens what each one is about 🆕
+**Feature:** #1538 Driver Authentication | **Sprint:** — | **Tag:** Notification inbox
+
+**Description:** As a driver, I want one list of everything SheDrive has told me about my earnings, balance, documents and trips, where tapping a notification opens what it is about, so that I never miss a settlement, a limit warning or an expiring document.
+
+### Rules
+- The inbox works as in #5720 (push is a copy of an item, list and grouping, filter, mark all as read, language, states, no settings screen). Only the differences are listed here.
+- **Entry points:** a bell with an unread badge in the home screen's bottom bar next to her avatar, **Notifications** on her profile menu, and tapping any push.
+- **Trip requests are not inbox items.** A request lives on its acceptance screen and expires; what reaches the inbox is what follows a trip (rating, cancellation, fee).
+- Categories: trips, safety, earnings, documents & account, announcements.
+- **Tap to open:** a settlement or payout sent opens Balance; a failed payout opens Payout method; nearing the balance limit opens Settle; an expiring licence or registration opens My Profile; a rating, a cancelled trip or a cancellation fee opens that trip in Trip history; the approval message and announcements open Home.
+- Empty state hint: "Updates on your earnings, documents and SheDrive announcements will show up here."
+
+### Acceptance Criteria
+**Scenario 1 — Settlement while she was offline**
+- Given the office recorded her 250 EGP settlement at 10:05 while her app was closed
+- When she opens the inbox
+- Then "Settlement received — We received 250 EGP. You don't owe anything now." is unread under New, and tapping it opens Balance
+
+**Scenario 2 — Close to the limit**
+- Given she owes 2,650 of a 3,000 EGP limit
+- When she taps "You're close to your balance limit"
+- Then Settle opens
+
+**Scenario 3 — A trip request is not kept**
+- Given she received a trip request at 14:00 and let it expire
+- When she opens the inbox
+- Then there is no item for that request
+
+### Out of Scope
+- As in #5720
+- Trip requests in the inbox
+
+### Dependencies
+- #5723 [API] Driver notification inbox is listed and marked read
+- #5720 [Mobile] Rider sees her notifications and opens what each one is about — the shared inbox rules
+- #4915 [Driver] Notification Inbox — design
+
+### Mockup (ADO comment)
+- Inbox: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/notifications.html
+- All unread: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/notifications.html?state=unread
+- Empty: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/notifications.html?state=empty
+- Bell on home: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/home.html
+- Figma — Notifications: https://www.figma.com/design/KKPU4knlJ3AnrCfwjapyg9/SheDrive-App?node-id=2585-3358
+- Figma — Unread: https://www.figma.com/design/KKPU4knlJ3AnrCfwjapyg9/SheDrive-App?node-id=2588-4277
+- Figma — Caught up: https://www.figma.com/design/KKPU4knlJ3AnrCfwjapyg9/SheDrive-App?node-id=2590-4609
+
+---
+
 ### Feature 5 — Driver Onboarding & Admin Approval
 
 ---
