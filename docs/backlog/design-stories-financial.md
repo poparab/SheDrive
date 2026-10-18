@@ -676,7 +676,7 @@ The list of payout batches and the place to generate a new one.
 ### Sections
 - Intro: earnings are due 7 days after they happen; batches run on working days
 - KPI row: due now, in open batches, paid this month
-- **Generate payout batch** → preview modal: lines (driver, method, masked number, due, balance, amount) with total
+- **Generate payout batch** → preview modal: lines (driver, method, full number, due, balance, amount) with total
 - Grid: batch ref, created, lines, total, paid / failed, status
 
 ### States
@@ -699,7 +699,7 @@ One batch from generation to completion: its lines, the bank file and the result
 - Header: ref, status, totals, who generated, approved, exported and imported it
 - Status timeline: Generated → Approved → Sent to bank → Result imported → Completed
 - Action area that changes with the status: waiting for approval, Export bank file, Import result file, waiting for result approval, completed summary
-- Lines: line ref, driver, national ID, method, masked number, amount, line status (In batch, Sent to bank, Paid + bank reference, Failed + reason)
+- Lines: line ref, driver, national ID, method, full number, amount, line status (In batch, Sent to bank, Paid + bank reference, Failed + reason)
 
 ### States
 - One per batch status, plus result-file errors and not found
@@ -742,7 +742,7 @@ Changes to Driver balances and the driver ledger for maker-checker and the payou
 ### Sections
 - Grid chip: *Awaiting approval*
 - Record settlement / Record payout: note that another admin approves; after submit the button becomes a pending notice with a link
-- Ledger header: payout method (masked), *Last payout failed* band, totals On hold / Due / In a batch / Sent to bank
+- Ledger header: payout method with the full number, *Last payout failed* band, totals On hold / Due / In a batch / Sent to bank
 - Payout status chip on each earning
 
 ### Preview Links
@@ -778,7 +778,7 @@ Changes to Rider balances for waiving one fee and showing a rider's credit.
 The driver's payout method on the driver profile and in the application review.
 
 ### Sections
-- Card: type, provider or bank, holder, masked number, last changed by
+- Card: type, provider or bank, holder, full number, last changed by
 - *Last payout failed* warning with the batch link
 - **Edit payout method** modal (fields per type), then a *Change awaiting approval* notice
 - Application review: the same method, read-only
@@ -833,7 +833,7 @@ The new last step of driver onboarding, required to submit: how she wants to be 
 Opened from My profile. Shows where SheDrive sends her earnings and lets her change it; a change applies immediately.
 
 ### Sections
-- Current method: type, provider or bank, masked number
+- Current method: type, provider or bank, full number
 - Failed-payout warning: amount, reason, ask to check the method
 - **Change payout method** → the same form as onboarding, saved in the action dock
 

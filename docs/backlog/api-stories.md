@@ -3504,19 +3504,37 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 **Description:** As a driver applicant, I want my payout method saved with my application so that SheDrive knows where to send my earnings from day one.
 
 ### Rules
-- The application can't be submitted without one payout method: mobile wallet (provider, number), bank account (bank, holder name, account number or IBAN) or prepaid card (name on card, card number).
-- Formats as in the onboarding story; the name isn't matched to the national ID.
-- Account and card numbers are stored encrypted and returned masked everywhere except the payout export file.
-- The admin application review returns the method (masked).
+- The onboarding application (#1642) is refused without exactly one payout method. Its fields depend on the type, as in the request table; a field that does not belong to the chosen type is refused with `payout_fields_mismatch`.
+- Only the format is checked; the name isn't matched to the national ID.
+- The number is stored encrypted and returned in full.
+- The admin application review returns the method in the same shape as the response table.
+
+### Request — the payout method in the application
+| Field | Required | Type | Accepted values | Min | Max | Error code (missing or invalid) |
+|---|---|---|---|---|---|---|
+| `payout_method` | Yes | Object | One method | — | — | `payout_method_required` |
+| `payout_method.type` | Yes | String | `wallet`, `bank`, `card` | — | — | `invalid_payout_type` |
+| `payout_method.provider` | Yes (wallet, bank) | String | Wallet: `vodafone_cash`, `orange_cash`, `e_money`, `we_pay`; Bank: `cib`, `nbe`, `banque_misr`, `qnb`, `aaib`, `banque_du_caire`, `hsbc` | — | — | `invalid_provider` |
+| `payout_method.holder_name` | Yes (bank, card) | String | Arabic or Latin letters and spaces; trimmed | 3 | 100 | `invalid_holder_name` |
+| `payout_method.number` | Yes | String | Wallet: `01` + 9 digits; Bank: 10–20 digits, or `EG` + 27 digits (IBAN); Card: 16 digits; Spaces and dashes are removed before the check | Wallet 11, bank 10, card 16 | Wallet 11, bank 29, card 16 | `invalid_number` |
+
+### Response — the payout method on read
+| Field | Type | Value |
+|---|---|---|
+| `type` | String | `wallet`, `bank` or `card` |
+| `provider` | String or null | Wallet provider or bank id; null for a card |
+| `holder_name` | String or null | As saved; null for a wallet |
+| `number` | String | The full number, as saved |
 
 ### Acceptance Criteria
-**Scenario 1 — Missing method**
-- Given an application without a payout method
-- Then it is refused and names the missing method
+**Scenario 1 — Several mistakes at once**
+- Given a bank method with `holder_name` "A" and `number` "12345"
+- When the application is submitted
+- Then it is refused once, listing both `invalid_holder_name` and `invalid_number`
 
-**Scenario 2 — Masked on read**
-- When the application is read back
-- Then the number comes back as the last 4 digits only
+**Scenario 2 — Unauthenticated request is rejected**
+- Given a request without a valid applicant session
+- Then it is rejected and nothing is saved
 
 ### Out of Scope
 - Bank or wallet verification
@@ -3537,7 +3555,7 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 **Description:** As a driver, I want to read and replace my payout method so that my next payout goes where I choose.
 
 ### Rules
-- Returns her method (masked) and her last failed payout, if any.
+- Returns her method with the full number and her last failed payout, if any.
 - A change applies immediately with no approval and is used by the next payout batch; batches already generated keep the details they were generated with.
 - Same field rules as onboarding.
 - Each change is recorded with who made it (the driver or an admin).

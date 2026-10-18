@@ -3822,7 +3822,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 **Scenario 5 — The checker sees enough to decide**
 - Given the request is a payout batch, a payout result or a settlement import
-- Then its lines or rows are shown in the review, with masked account numbers
+- Then its lines or rows are shown in the review, with full account numbers
 
 ### Out of Scope
 - Role-based approval limits (who may approve which type or amount)
@@ -4079,7 +4079,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Record settlement (#4379) and Record payout (#4001) keep their fields and validation, but now create a request instead of posting.
 - While a driver has a settlement or a payout awaiting approval, that action is replaced by a notice with a link to the request, and her row in Driver balances shows **Awaiting approval**.
 - An approved manual payout marks her oldest due earnings **Paid**, up to its amount.
-- The driver ledger (#4378) shows her payout method (masked), a *Last payout failed* warning when it applies, her totals **On hold / Due / In a batch / Sent to bank**, and a payout status on each earning.
+- The driver ledger (#4378) shows her payout method with the full number, a *Last payout failed* warning when it applies, her totals **On hold / Due / In a batch / Sent to bank**, and a payout status on each earning.
 
 ### Acceptance Criteria
 **Scenario 1 — Balance doesn't move until approved**
@@ -4153,7 +4153,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 **Description:** As an admin, I want to see a driver's payout method and correct it on her behalf so that payouts reach her when she can't fix it herself.
 
 ### Rules
-- The driver profile and the driver application show the payout method: type, provider or bank, holder name, number masked as `•••• 1234`, and who changed it last (the driver or an admin).
+- The driver profile and the driver application show the payout method: type, provider or bank, holder name, the full number, and who changed it last (the driver or an admin).
 - *Last payout failed* shows with the reason and a link to the batch.
 - An admin edit uses the same fields and rules as the driver's own form, and is a request (maker-checker). The current method stays until approval.
 
@@ -4172,7 +4172,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 **Scenario 1 — Correct a failed method**
 - Given a driver's last payout failed "Account closed"
 - When an admin enters a new bank account and another admin approves
-- Then the profile shows the new masked number, updated by an admin, and her next due earnings go into the next batch
+- Then the profile shows the new number, updated by an admin, and her next due earnings go into the next batch
 
 **Scenario 2 — Pending edit**
 - Given an edit is awaiting approval
@@ -4208,7 +4208,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ### Rules
 - The driver profile (#1666), the driver application (#1658) and the payout batch lines (#5619) show the full 14-digit national ID. Nothing is masked.
 - Phone numbers are shown in full, as today.
-- Payout account and card numbers stay masked (`•••• 1234`).
+- Payout account, card and wallet numbers are shown in full too.
 
 ### Acceptance Criteria
 **Scenario 1 — Driver profile**

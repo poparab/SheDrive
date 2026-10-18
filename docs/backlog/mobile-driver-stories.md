@@ -300,7 +300,7 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 | Owed-to-her note | A blue note with the amount SheDrive owes her and that finance will contact her on this number to transfer it, even after the account is deleted | Information only |
 | Blocked — balance owed | Settle your balance first, with the amount and How to settle | Replaces Review. How to settle opens the settle screen (#3989) |
 | Blocked — trip in progress | Finish your trip first, with Back to my trip | Replaces Review |
-| Confirm it's you | Six-box code input, the masked number, resend with countdown | Delete my account submits the code |
+| Confirm it's you | Six-box code input, her full number, resend with countdown | Delete my account submits the code |
 | Request received | The exact deletion date and that signing in before it keeps the account | Done opens the sign-in screen |
 | Restore at sign-in | After the sign-in code: the deletion date, Restore my account, Continue with deletion | The Login / Register switch and the terms line are hidden on this step |
 
@@ -346,7 +346,7 @@ Same as the rider flow (#5038): a six-digit code with the sign-in error messages
 
 **Scenario 7 — She confirms it is her**
 - Given she taps Continue on Review
-- Then a code is sent to her registered number and Confirm it's you shows the masked number
+- Then a code is sent to her registered number and Confirm it's you shows her full number
 - And a wrong, expired or incomplete code shows the same messages as sign-in and deletes nothing
 
 **Scenario 8 — The request is received and she is taken offline**
@@ -2768,15 +2768,15 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 **Description:** As a driver, I want to see and change where SheDrive sends my earnings so that my payouts keep reaching me when my account changes.
 
 ### Rules
-- My profile shows a **Payout method** row (type and masked number) that opens the payout method screen.
+- My profile shows a **Payout method** row (type and full number) that opens the payout method screen.
 - She can change it any time, with the same fields and rules as onboarding. **No approval: it applies immediately**, and the next payout uses it.
 - If her last payout failed, the screen shows the amount and reason and asks her to check her method.
 
 ### Acceptance Criteria
 **Scenario 1 — Change it**
-- Given her method is Vodafone Cash •••• 5678
+- Given her method is Vodafone Cash 01012345678
 - When she changes it to a CIB account and saves
-- Then the screen shows the new masked account and says her next payout goes there
+- Then the screen shows the new account number and says her next payout goes there
 
 **Scenario 2 — After a failed payout**
 - Given her last payout of 245.50 EGP failed "Wallet number not registered"

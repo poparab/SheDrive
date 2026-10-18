@@ -251,7 +251,7 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 | Review | Title, one sentence on the 30-day window, an amber warning that she can't sign up again with this number, and a one-line note that trip, payment and safety records are kept only as long as the law requires | Continue opens Confirm it's you. Keep my account goes back |
 | Outstanding-fee note | A blue note on Review with the amount, saying it doesn't stop her deleting | Information only — never disables Continue |
 | Blocked — trip in progress | Finish your trip first, with Back to my trip | Replaces Review. Nothing is requested |
-| Confirm it's you | Six-box code input, the masked number, resend with countdown | Delete my account submits the code. Keep my account goes back |
+| Confirm it's you | Six-box code input, her full number, resend with countdown | Delete my account submits the code. Keep my account goes back |
 | Request received | The exact deletion date and that signing in before it keeps the account | Done opens the sign-in screen. She is already signed out |
 | Restore at sign-in | After the sign-in code: the deletion date, Restore my account, Continue with deletion | Restore continues exactly as a normal sign-in would; Continue with deletion leaves her signed out |
 
@@ -289,7 +289,7 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 
 **Scenario 5 — She confirms it is her**
 - Given she taps Continue on Review
-- Then a code is sent to her registered number (#5036) and Confirm it's you shows the masked number
+- Then a code is sent to her registered number (#5036) and Confirm it's you shows her full number
 - And resend is available after the same countdown as sign-in
 
 **Scenario 6 — Wrong, expired or incomplete code**
