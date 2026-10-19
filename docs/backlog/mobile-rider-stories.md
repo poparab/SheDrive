@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-10-18
+> Last updated: 2026-10-19
 > Stories with changes from original are marked ✏️
 
 ---
@@ -944,6 +944,63 @@ All strings — the banner, its amount, its explanation and its dismiss control 
 
 ---
 
+## [Mobile] #1553 — Rider submits trip request ✏️
+**Feature:** Feature 8 — Trip Request & Matching (#1534) | **Sprint:** 3
+
+> Restored 2026-10-19 — removed 2026-06-08 with no replacement; nothing else owned tapping Request Ride.
+
+**Description:** As a rider, I want to request a ride once I have seen the fare, so that the platform starts finding me a driver.
+
+### Rules
+- **Request Ride** on the fare estimate card (#1552) sends her pickup, destination and estimated fare to the platform (#1629). It is the only way to request a ride.
+- While the request is being sent the button shows a spinner and cannot be tapped again, so one request creates one trip.
+- When the request succeeds, the matching screen opens (#1554).
+- When the request is refused she stays on the home screen with her pickup, destination and fare still set, and sees the outcome in the table below.
+- All strings are available in Arabic and English, and the screen lays out correctly in RTL and LTR.
+
+### Refusals
+| Refusal | What she sees |
+|---|---|
+| Pickup outside the service area | "SheDrive isn't available at this pickup yet" / "الخدمة غير متاحة في موقع الانطلاق هذا بعد" |
+| She already has an active trip | That trip's screen opens (matching or live trip) |
+| Account under review | The account-under-review screen (#3768) |
+| Network or server error | Toast: "Something went wrong. Please try again." / "حدث خطأ ما. حاولي مجدداً." |
+
+### Acceptance Criteria
+**Scenario 1 — Request sent**
+- Given pickup Maadi, destination Zamalek and a fare of EGP 120 are shown
+- When she taps Request Ride
+- Then the matching screen opens showing Maadi and Zamalek
+
+**Scenario 2 — Double tap**
+- Given the fare is shown
+- When she taps Request Ride twice quickly
+- Then one trip is created
+
+**Scenario 3 — Connection lost**
+- Given she taps Request Ride and the request fails
+- Then she sees the error toast, stays on home and can tap Request Ride again
+
+### Out of Scope
+- A fare confirmation step
+- Promo codes
+- Multiple stops
+- Scheduled rides
+- Child-passenger declaration
+- Operating hours
+
+### Dependencies
+- #1552 — Rider sees fare estimate before requesting
+- #1554 — Rider sees matching screen
+- #1629 — [API] Rider creates trip request
+- #3768 — Rider is told her account is under review after a gender-mismatch report
+
+### Mockup (ADO comment)
+- Home — fare estimate with Request Ride: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/home?state=fare
+- Matching: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/matching
+
+---
+
 ## [Mobile] #1554 — Rider sees matching screen
 **Feature:** Feature 8 — Trip Request & Matching | **Sprint:** 2
 
@@ -1035,6 +1092,53 @@ When a driver accepts the trip, the matching screen transitions to display a dri
 ### Dependencies
 - #1631 — Rider polls for match status (API — must be live)
 - #1633 — Rider tracks her active trip (API — must be live; supplies the driver's live position and ETA on this screen)
+
+---
+
+## [Mobile] #1557 — Rider sees no-driver state and tries again ✏️
+**Feature:** Feature 8 — Trip Request & Matching (#1534) | **Sprint:** 3
+
+> Restored 2026-10-19 — removed 2026-06-08 with no replacement while #1554 still sends the rider here. Buttons follow the mockup.
+
+**Description:** As a rider, I want to be told clearly when no driver is available and to try again with one tap, so that I am not left waiting on a search that has ended.
+
+### Rules
+- The no-driver state replaces the search animation on the matching screen when the platform reports the search ended without a driver (status `expired`, #1631). The app has no timer of its own; it only reacts to that status.
+- Title: "No drivers available right now" / "لا يوجد سائقات متاحات الآن". Body: "All nearby drivers are busy. Try again in a few minutes." / "جميع السائقات القريبات مشغولات. حاولي مجدداً بعد دقائق."
+- **Try Again** ("حاولي مجدداً") sends a new request for the same pickup and destination (the rules of #1553 apply) and returns to searching.
+- **Return Home** ("العودة للرئيسية") opens home with her pickup and destination still set, and the fare is estimated again (#1552).
+- She is not charged for a request that found no driver.
+- All strings are available in Arabic and English, and the screen lays out correctly in RTL and LTR.
+
+### Acceptance Criteria
+**Scenario 1 — Search ends**
+- Given she is on the matching screen
+- When the platform reports the request expired
+- Then the no-driver state shows with Try Again and Return Home
+
+**Scenario 2 — Try Again**
+- Given the no-driver state for Maadi → Zamalek
+- When she taps Try Again
+- Then a new search starts for Maadi → Zamalek without going back to home
+
+**Scenario 3 — Return Home**
+- Given the no-driver state for Maadi → Zamalek
+- When she taps Return Home
+- Then home shows Maadi and Zamalek with a new fare estimate
+
+### Out of Scope
+- A push when no driver is found
+- Automatic retry
+- Queueing the request
+
+### Dependencies
+- #1553 — Rider submits trip request
+- #1554 — Rider sees matching screen
+- #1630 — [API] Driver-matching engine (decides when a search expires)
+- #1631 — [API] Rider polls for match status
+
+### Mockup (ADO comment)
+- Matching — no driver available: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/matching?state=no-driver
 
 ---
 
@@ -1260,6 +1364,52 @@ Throughout the active trip — from en_route_pickup through trip_ended — the r
 - #1818 — Platform serves active-trip route geometry to the rider for an in-app trip view (must be live)
 - #1633 — Rider tracks her active trip (must be live; drives this screen's state)
 - #1653 — Driver streams GPS from acceptance to completion (must be live)
+
+---
+
+## [Mobile] #5911 — Rider follows her driver on the map on the way to pickup 🆕
+**Feature:** Feature 10 — Active Trip (#1535) | **Sprint:** 3
+
+**Description:** As a rider, I want to see my driver moving toward me and how long until she arrives, so that I know when to be ready at the pickup.
+
+### Rules
+- Applies from the moment the driver accepts (`en_route_pickup`) until she taps I've Arrived (#1559). The driver card on this screen is owned by #1561.
+- The map shows the driver as a moving car marker and the pickup pin, and keeps both in view.
+- The header shows the ETA: "Arriving in 5 min" / "الوصول خلال 5 دقائق". Under one minute: "Arriving now" / "تصل الآن". No ETA: "ETA unavailable" / "الوقت المتوقع غير متاح".
+- Position and ETA refresh at least every 5 seconds (#1633); the marker glides between positions rather than jumping.
+- If the last position is more than 30 seconds old, the marker stays where it was and "Updating driver location…" / "جارٍ تحديث موقع السائقة…" is shown.
+- All strings are available in Arabic and English, and the screen lays out correctly in RTL and LTR.
+
+### Acceptance Criteria
+**Scenario 1 — Getting closer**
+- Given the ETA is 6 min
+- When the next update arrives
+- Then the marker moves and the ETA shows 5 min
+
+**Scenario 2 — Signal lost**
+- Given the last update was 40 seconds ago
+- Then the marker holds its position with the updating message
+- And the next update clears the message
+
+**Scenario 3 — App reopened**
+- Given the driver is on the way
+- When she closes and reopens the app
+- Then the live trip screen opens with the current position, not the matching screen
+
+### Out of Scope
+- A route line to the pickup
+- Turn-by-turn directions
+- A push as the driver approaches
+
+### Dependencies
+- #1555 — Rider sees confirmed driver card
+- #1559 — Rider sees driver-arrived state
+- #1561 — Rider sees driver live location and details during trip
+- #1633 — [API] Rider tracks her active trip (returns driver position and ETA in en_route_pickup; linked as Related — no separate API story)
+- #1646 — [API] Driver updates GPS location
+
+### Mockup (ADO comment)
+- Live trip — driver on the way: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/active-trip
 
 ---
 
@@ -2321,7 +2471,7 @@ When the trip's payment method is Card, the trip-complete screen shows a payment
 ---
 
 ## [Mobile] #5655 — Rider sees her full phone number when confirming account deletion 🆕
-**Feature:** #1532 Rider Authentication | **Sprint:** — | **Tag:** No masking
+**Feature:** #1532 Rider Authentication | **Sprint:** 1 | **Tag:** No masking
 
 **Description:** As a rider, I want to see my full phone number on the deletion code step so that I know exactly which number the code went to.
 

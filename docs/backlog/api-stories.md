@@ -1423,6 +1423,73 @@ This is the internal matching/dispatch engine, triggered immediately after a tri
 - #1648 — Driver retrieves pending trip request / dispatch to driver (must be live)
 - #1649 — Driver accepts trip — assignment removes her from all other pools (must be live)
 - #1650 — Driver rejects trip (must be live)
+## [API] #1631 — Rider polls for match status ✏️
+**Feature:** Feature 8 — Trip Request & Matching API (#1602) | **Mobile:** #1554, #1557
+
+> Restored 2026-10-19 — removed 2026-06-22 with no comment, but #1554, #1630 and #1633 still depend on it. Expiry is list-driven per #1630.
+
+**Description:** As the rider app, I want to ask the platform how the search for my driver is going, so that the rider sees the search, her matched driver or the no-driver state at the right moment without doing anything.
+
+### Rules
+- The rider app polls this endpoint from the moment the trip is created (#1629) until it reports `matched`, `expired` or `cancelled`. From `matched` on, it polls #1633 instead.
+- It returns one of `searching`, `matched`, `expired` or `cancelled`. A status never goes back to an earlier one.
+- `matched` includes the driver card: full name, photo URL (or null), vehicle make, model, colour and plate number, average rating, and ETA to the pickup (or null when it cannot be computed). This feeds #1555.
+- `expired` is set by the matching engine when its candidate list ends with no acceptance or was empty (#1630). There is no time-based window. This feeds #1557.
+- `cancelled` is set when the rider cancels the search (#1715).
+
+### Acceptance Criteria
+**Scenario 1 — Still searching**
+- Given the trip was created 20 seconds ago and no driver has accepted
+- When the rider app polls
+- Then the response is searching
+
+**Scenario 2 — Driver accepts**
+- Given a driver accepts (#1649)
+- When the rider app next polls
+- Then the response is matched with the driver card, e.g. ETA 6 min
+
+**Scenario 3 — No ETA or photo**
+- Given the matched driver has no photo and the ETA cannot be computed
+- Then the response is matched with the photo URL and ETA set to null
+
+**Scenario 4 — No driver found**
+- Given the matching engine reached the end of its candidate list
+- When the rider app next polls
+- Then the response is expired
+
+**Scenario 5 — Late poll after acceptance**
+- Given the trip is already en_route_pickup
+- When the rider app polls this endpoint
+- Then the response is matched, never searching
+
+**Scenario 6 — Another rider's trip**
+- Given the trip ID belongs to another account or does not exist
+- Then the response is not found or forbidden
+
+**Scenario 7 — Unauthenticated request is rejected**
+- Given a request has no valid rider session token
+- Then it is rejected
+
+### Out of Scope
+- Push for match or no-driver (polling only)
+- Trip progress after acceptance (#1633)
+- Showing which driver is currently being offered the trip
+
+### Dependencies
+- #1629 — Rider creates trip request
+- #1630 — Driver-matching engine
+- #1649 — Driver accepts trip
+- #1715 — Rider cancels a trip
+- Mobile: #1554, #1555, #1557
+
+### Mockup (ADO comment)
+- Searching: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/matching
+- Driver found: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/matching?state=confirmed
+- No driver available: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/matching?state=no-driver
+
+---
+
+
 - #1631 — Rider polls for match status — surfaces the driver being attempted and the expired result
 
 ---
