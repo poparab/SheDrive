@@ -2437,6 +2437,151 @@ The rider's aggregate rating is maintained here rather than in a separate story,
 
 ---
 
+## [API] #5912 — Rider trip history returns her completed trips by period 🆕
+**Feature:** Feature 12 — Trip History (#1605) | **Sprint:** — | **Mobile:** #1567
+
+**Description:** As the rider app, I want the rider's completed trips for today, this week or this month, one summary per trip, so that the Trip History screen shows exactly what she expects to see.
+
+### Rules
+- Returns only her completed trips (ended by the driver, #1591). Cancelled, expired and in-progress trips are not returned.
+- Scoped to one period (table below), judged on the time the trip ended. There is no unbounded “all” value.
+- Newest first, in pages of 20. A page cursor fetches the next page with no trip repeated or skipped.
+- Each trip returns the fields in the row table below — nothing else. The full record is #1714.
+- A period with no trips returns an empty list; the app shows its “No trips yet” state.
+
+### Period filter
+| Value | Screen tab | Covers (Africa/Cairo) |
+|---|---|---|
+| `today` (default) | Today | 00:00 today until now |
+| `this_week` | This Week | 00:00 on Saturday of the current week until now |
+| `this_month` | This Month | 00:00 on the 1st of the current month until now |
+
+### What each row returns
+| Field | Shown on the screen as | Notes |
+|---|---|---|
+| Trip ID | Not shown — opens the trip detail | Used to call #1714 |
+| Trip date | “Mon, June 8” | Date of the trip's end; date only |
+| Pickup area | First line, labelled Pickup | Area name, e.g. “Sheikh Zayed City, Giza”, not the street address |
+| Destination area | Second line, labelled Destination | Area name |
+| Status | “Completed” badge | Always completed |
+| Trip fare (EGP) | “650 LE — Trip Fare” | What she paid for the trip — the same figure as the Total in #1714 |
+| Driver first name and photo URL | Avatar + first name, e.g. “Noura” | Photo may be null; the app then shows the initial |
+
+### Acceptance Criteria
+**Scenario 1 — Today is the default**
+- Given trips that ended today at 09:10 and yesterday at 18:00
+- When the app asks with no period
+- Then only today's trip is returned
+
+**Scenario 2 — This week starts on Saturday**
+- Given today is Tuesday
+- When the app asks for this_week
+- Then a trip that ended Saturday at 08:00 is returned and one that ended Friday is not
+
+**Scenario 3 — Pages**
+- Given 45 completed trips this month
+- When the app pages through this_month
+- Then it gets 20, 20 and 5 trips, none twice
+
+**Scenario 4 — Cancelled trip left out**
+- Given she cancelled a trip this morning
+- Then it is not in today's list
+
+**Scenario 5 — Unauthenticated request is rejected**
+- Given a request has no valid rider session token
+- Then it is rejected
+
+### Out of Scope
+- Cancelled trips
+- Searching or exporting history
+- The trip detail (#1714)
+
+### Dependencies
+- Mobile: #1567 — Rider views trip history
+- #1714 — Rider retrieves past trip detail
+- #1591 — Driver ends the trip
+- #1641 — Rider retrieves trip history (earlier version, Closed)
+
+### Mockup (ADO comment)
+- Trip history: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/history
+- Figma screens attached: Rider - Trip History.png, Rider - Trip History - No Trip Yet.png. The Back to Home button is screen-only.
+
+---
+
+## [API] #1714 — Rider retrieves past trip detail ✏️
+**Feature:** Feature 12 — Trip History (#1605) | **Sprint:** — | **Mobile:** #1568
+
+> Restored 2026-10-19 as the counterpart of #1568, with the fields the Trip Details screen shows.
+
+**Description:** As the rider app, I want the full record of one of the rider's completed trips, so that the Trip Details screen can show its fare breakdown, route, driver and her rating.
+
+### Rules
+- Returns one of her own completed trips. Every amount is the settled figure stored when the trip ended (#1636) — never recomputed — so it matches what she saw on her trip summary (#1564).
+- The fare lines are Base fare, Distance and Duration, plus **Outstanding fee from a previous trip** only when an earlier fee was recovered on this trip (#3999). The lines add up to the Total. Fares are VAT-inclusive: there is no Taxes line and no waiting fee.
+- Her rating is the stars (1–5) and tags she gave (#1565), or null when she has not rated. After she rates from this screen (#1639) the next read returns it.
+- Every driver is approved, so the Verified badge is always shown — it is not a field.
+
+### What the response returns
+| Field | Shown on the screen as | Notes |
+|---|---|---|
+| Trip reference | “Trip ID #46821” |  |
+| Status | “Completed” badge | Always completed |
+| Start date and time | Header “Mon, Jun 8 · 2:38 PM” | Africa/Cairo |
+| Total fare (EGP) | “650.00 EGP” | Two decimals; equals the sum of the lines |
+| Fare lines | Breakdown rows + Total | Label and amount per line, see Rules |
+| Pickup and destination | Address card and the two map pins | Full address, area name for the pin label, and coordinates |
+| Start and end time | “2:38 PM Start”, “5:03 PM End” |  |
+| Driver | Driver card | Photo URL (or null), full name, vehicle make and model, colour, plate number, average rating, completed rides count |
+| Her rating | “Your Rating” stars and tags, or “Rate this trip” | Null when unrated |
+| Distance | “128.5 Km” | km, one decimal |
+| Duration | “2h 18m” | Minutes; the app formats it |
+| Payment method | “Cash” |  |
+
+### Acceptance Criteria
+**Scenario 1 — Lines add up**
+- Given a trip with base fare 25.00, distance 96.00 and duration 21.00
+- Then the Total is 142.00 EGP with three lines
+
+**Scenario 2 — Recovered fee on this trip**
+- Given a 20.00 EGP fee from an earlier trip was recovered on this one
+- Then a fourth line “Outstanding fee from a previous trip — 20.00” is returned and the Total is 162.00
+
+**Scenario 3 — Rated later**
+- Given she skipped rating this trip
+- Then her rating is null
+- And after she submits 4 stars with “ودود” (#1639) the next read returns them
+
+**Scenario 4 — Driver without a photo**
+- Given the driver has no photo
+- Then the photo URL is null
+
+**Scenario 5 — Not hers or not completed**
+- Given a trip ID of another rider, or of a trip she cancelled
+- Then the response is not found
+
+**Scenario 6 — Unauthenticated request is rejected**
+- Given a request has no valid rider session token
+- Then it is rejected
+
+### Out of Scope
+- A drawn route line — the map shows the two pins only
+- A downloadable receipt
+- Disputing a fare
+- A written comment with the rating — ratings are stars and tags only
+
+### Dependencies
+- Mobile: #1568 — Rider views past trip detail and rates unrated trips
+- #1636 — Trip settlement (stores the fare lines)
+- #1639 — Rider submits driver rating
+- #3999 — Rider sees the recovered fee on her fare summary
+
+### Mockup (ADO comment)
+- Trip detail: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/trip-detail
+- Figma screens attached: Rider - Trip Details.png. It shows Waiting Fee, Cancellation Fee and Taxes lines and a written rating comment; none of these exist in the platform — the lines in this story are the ones the fare engine produces. Flagged to design.
+
+---
+
+
 ## [API] #1655 — Driver retrieves trip history
 **Feature:** Feature 12 — Trip History | **Sprint:** 2
 
@@ -2935,6 +3080,77 @@ A read-only endpoint that returns **one number**: what the rider currently owes.
 - #1619 — Authentication service (must be live)
 
 ---
+
+## [API] #5913 — Rider retrieves her outstanding fees and fee history 🆕
+**Feature:** #1775 Payments — Rider API | **Sprint:** — | **Mobile:** #5914
+
+**Description:** As the rider app, I want the rider's outstanding fee total and every fee she has been charged, so that the Payment Method screen shows what she owes and what happened to each fee.
+
+### Rules
+- Everything is read from her rider ledger (#4005); nothing is recomputed from trips.
+- Outstanding total: the sum of her unsettled fees in EGP, two decimals; 0.00 when she owes nothing. It is the same figure #4004 returns.
+- Fee history: every fee she has been charged, newest first, in pages of 20, with the fields below.
+- Read-only: no payment link, due date or instruction to pay.
+
+### What each fee returns
+| Field | Shown on the screen as | Notes |
+|---|---|---|
+| Fee type | “Cancellation fee” | `cancellation_fee` is the only type today (#1764) |
+| Amount (EGP) | “EGP 20” |  |
+| Trip | “Sheikh Zayed City → Cairo Airport” | Trip ID plus the pickup and destination area names of the trip that caused the fee |
+| Charged at | “Sep 10, 2026 • 6:38 pm” | Africa/Cairo |
+| Status | Status badge | See Fee status |
+| Recovered on | Not shown | The trip ID it was recovered on; settled fees only |
+
+### Fee status
+| Status | Shown as | Meaning |
+|---|---|---|
+| `unsettled` | “Unsettled” / “غير مسددة” | She owes it; her whole outstanding balance is added to her next completed ride |
+| `settled` | “Settled” / “مسددة” | Recovered on a later trip; the response names that trip |
+| `waived` | “Waived” / “تم الإعفاء” | SheDrive waived it. If she had already paid it, it becomes a credit (#5632) |
+
+### Acceptance Criteria
+**Scenario 1 — She owes one fee**
+- Given a 20.00 cancellation fee charged on Sep 10 and a 20.00 fee recovered in August
+- Then the total is 20.00 and the history has two rows: unsettled and settled
+
+**Scenario 2 — Recovered on her next ride**
+- Given she owes 20.00
+- When her next ride completes
+- Then the fee becomes settled with that trip's ID and the total is 0.00
+
+**Scenario 3 — Never charged**
+- Given she has never had a fee
+- Then the total is 0.00 and the history is empty
+
+**Scenario 4 — Waived**
+- Given SheDrive waives her unsettled 20.00 fee
+- Then it shows as waived and the total drops by 20.00
+
+**Scenario 5 — Unauthenticated request is rejected**
+- Given a request has no valid rider session token
+- Then it is rejected
+
+### Out of Scope
+- Paying a fee from the app
+- Disputing a fee
+- Her credit amount (#5632)
+- Waiting fees — the platform has none
+
+### Dependencies
+- Mobile: #5914 — Rider sees her outstanding fees and fee history
+- #4005 — rider ledger
+- #1764 — Cancellation fees are charged after the grace period
+- #4004 — Rider retrieves her outstanding balance (same total)
+- #5632 — Rider retrieves her credit
+
+### Mockup (ADO comment)
+- Payments — fees owed: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/payments
+- Payments — nothing owed: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/payments?zero
+- Figma screens attached: Rider - Payment Method.png, Rider - Payment Method - No Fees Due.png, Rider - Payment Method - Error Loading.png. The Waiting Fee row in the Fee History is sample data — only cancellation fees exist.
+
+---
+
 
 ### Feature 20 — Trip Cancellation API
 

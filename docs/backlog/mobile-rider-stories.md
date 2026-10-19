@@ -2374,6 +2374,59 @@ The payment-method section is static — it is not fetched, so it has no loading
 
 ---
 
+## [Mobile] #5914 — Rider sees her outstanding fees and fee history 🆕
+**Feature:** #1768 Payments — Rider | **Sprint:** 5 | **API:** #5913
+
+**Description:** As a rider, I want to see what I owe and every fee I have been charged on my payment screen, so that I understand each fee and know when it will be paid.
+
+### Rules
+- The Payment Method screen shows two sections under Payment Methods (#3992): **Outstanding Fees** and **Fee History**, both from one read (the paired API story).
+- Outstanding Fees shows the total, e.g. “EGP 20.00”, the badge “Pending next ride” / “تُضاف لرحلتكِ القادمة” and “This will be added to your next ride” / “سيُضاف هذا المبلغ إلى رحلتك القادمة”.
+- When she owes nothing, Outstanding Fees shows “You don't owe any fees” / “لا توجد رسوم مستحقة عليكِ” with “Great! Your account is clear.” / “رائع! حسابكِ خالٍ من أي رسوم مستحقة.” Fee History still lists her past fees.
+- Each Fee History row shows the fee name, amount, the trip's pickup → destination, the date and time, and a status badge (Unsettled, Settled or Waived). Tapping the route opens that trip's detail (#1568).
+- More fees load as she scrolls to the end of the list.
+- If the fees cannot be loaded, both sections are replaced by “Couldn't load your payment details. Check your connection.” / “تعذّر تحميل بيانات المدفوعات. تحقّقي من اتصالك.” with “Try again” / “حاولي مجدداً”. Payment Methods still shows.
+- All strings are available in Arabic and English, and the screen lays out correctly in RTL and LTR.
+
+### Acceptance Criteria
+**Scenario 1 — She owes a fee**
+- Given she owes a 20.00 cancellation fee from Sep 10
+- Then Outstanding Fees shows EGP 20.00 with Pending next ride
+- And Fee History shows that fee as Unsettled
+
+**Scenario 2 — Nothing owed**
+- Given her only fee was settled in August
+- Then Outstanding Fees shows the no-fees state and Fee History shows the fee as Settled
+
+**Scenario 3 — Load fails**
+- Given the read fails
+- When she taps Try again and it succeeds
+- Then both sections appear
+
+**Scenario 4 — Open the trip**
+- Given a fee row for Sheikh Zayed City → Cairo Airport
+- When she taps the route
+- Then that trip's detail opens
+
+### Out of Scope
+- Paying a fee from the app
+- Disputing a fee
+- The credit row (#5628)
+
+### Dependencies
+- #3992 — Rider views her payment method
+- API: #5913 — Rider retrieves her outstanding fees and fee history
+- #1568 — Rider views past trip detail
+- #5628 — Rider sees a credit from a waived fee
+
+### Mockup (ADO comment)
+- Payments — fees owed: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/payments
+- Payments — nothing owed: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/payments?zero
+- Figma screens attached: Rider - Payment Method.png, Rider - Payment Method - No Fees Due.png, Rider - Payment Method - Error Loading.png. The Waiting Fee row in the Fee History is sample data — only cancellation fees exist.
+
+---
+
+
 ### Online card payment — awaiting the payment integration
 
 > In scope for the rider app, but waiting for the payment-gateway integration. Kept as separate stories outside the sprint plan (ADO tag `Awaiting payment integration`).
