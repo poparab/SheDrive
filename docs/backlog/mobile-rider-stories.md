@@ -1204,7 +1204,56 @@ The rider completes her booking as normal; the block is applied at the moment sh
 
 ---
 
-> **Removed 2026-09-24 — [Mobile] #1791 (rider cannot book outside operating hours):** operating-hours logic is dropped from the Mobile backlog; the app no longer has a service-closed state.
+## [Mobile] #1791 — Rider cannot book outside operating hours ✏️
+**Feature:** Feature 8 — Trip Request & Matching (#1534) | **Sprint:** 3 | **Story points:** 5
+
+> Restored 2026-10-19 — operating hours is back in scope (removed 2026-09-24). API counterpart: #1785.
+
+**Description:** As a rider, I want to see when SheDrive is closed and when it opens again, so that I understand why I cannot book and when I can.
+
+### Rules
+- SheDrive takes ride requests only inside the operating window set by operations (the hours are open decision OD-001). The app asks the platform whether booking is open each time the home screen opens or comes back to the foreground (#1785); it never decides from the phone's clock.
+- When booking is closed, the home screen shows a banner: "SheDrive is closed now. We open again at 7:00 AM." / "شي درايف مغلقة الآن. نفتح مجدداً الساعة 7:00 صباحاً." She can still set her pickup and destination and see the fare; **Request Ride** is disabled.
+- A request refused for being outside hours (#1785) switches the home screen to the closed state, with her pickup, destination and fare kept.
+- If the status cannot be loaded, booking works as normal; the platform still refuses a request outside hours.
+- A trip already requested or in progress is not affected.
+- All strings are available in Arabic and English, and the screen lays out correctly in RTL and LTR.
+
+### Acceptance Criteria
+**Scenario 1 — Closed at night**
+- Given the window is 07:00–23:00 and it is 23:30
+- When she opens the app
+- Then the banner says SheDrive opens again at 7:00 AM and Request Ride is disabled
+
+**Scenario 2 — Window closes while she books**
+- Given she saw a fare at 22:59
+- When she taps Request Ride at 23:00
+- Then the request is refused and the home screen shows the closed banner
+
+**Scenario 3 — Open again**
+- Given the closed banner was shown last night
+- When she opens the app at 07:05
+- Then the banner is gone and she can book
+
+**Scenario 4 — Trip running at closing time**
+- Given her trip is in progress at 23:00
+- Then the trip continues to the end
+- And home shows the closed banner afterwards
+
+### Out of Scope
+- Different hours per zone
+- Scheduled rides
+- A push when SheDrive opens
+- A countdown to opening
+
+### Dependencies
+- #1785 — [API] Booking is open only inside operating hours
+- #1552 — Rider sees fare estimate before requesting
+- #1553 — Rider submits trip request
+- Open decision OD-001 — the operating hours
+
+### Mockup (ADO comment)
+- None yet — the closed state was taken out of the home mockup on 2026-09-24.
 
 ---
 

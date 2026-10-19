@@ -1419,6 +1419,10 @@ This is the internal matching/dispatch engine, triggered immediately after a tri
 - #1629 — Rider creates trip request (triggers the engine)
 - #1645 — Driver online status and location tracking — supplies driver location/ETA inputs (must be live)
 - #1747 — Platform selects fastest traffic-aware route (supplies the ETA used for filtering and ranking)
+- #1631 — Rider polls for match status — surfaces the driver being attempted and the expired result
+
+---
+
 - #1759 — Super admin configures the driver acceptance window (supplies the dispatch window duration)
 - #1648 — Driver retrieves pending trip request / dispatch to driver (must be live)
 - #1649 — Driver accepts trip — assignment removes her from all other pools (must be live)
@@ -1485,12 +1489,69 @@ This is the internal matching/dispatch engine, triggered immediately after a tri
 ### Mockup (ADO comment)
 - Searching: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/matching
 - Driver found: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/matching?state=confirmed
+## [API] #1785 — Booking is open only inside operating hours ✏️
+**Feature:** Feature 8 — Trip Request & Matching API (#1602) | **Mobile:** #1791
 - No driver available: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/matching?state=no-driver
 
 ---
 
 
-- #1631 — Rider polls for match status — surfaces the driver being attempted and the expired result
+> Restored 2026-10-19 as the counterpart of [Mobile] #1791. Now also returns the open/closed status so the app can show the closed state before a request. #1629 Scenarios 9–13 describe the same refusal; this story owns it.
+
+**Description:** As the rider app, I want to know whether booking is open now and when it next opens, and to have requests outside the operating window refused, so that riders only book while SheDrive is serving.
+
+### Rules
+- There is one daily operating window in Africa/Cairo time, set in platform configuration by operations (the hours are open decision OD-001). A change applies without a release.
+- A status read returns `open` or `closed` and, when closed, the next opening date and time. The rider app reads it when the home screen opens or returns to the foreground (#1791).
+- Trip creation (#1629) outside the window is refused with `service_closed` and the next opening time; no trip is created.
+- The window includes its opening minute and excludes its closing minute.
+- Only new requests are refused: a trip created before closing keeps searching and runs to its end.
+
+### Acceptance Criteria
+**Scenario 1 — Open**
+- Given the window is 07:00–23:00 and it is 10:00
+- When the app reads the status
+- Then it is open
+
+**Scenario 2 — Closed late at night**
+- Given it is 23:30
+- When the app reads the status
+- Then it is closed, opening tomorrow at 07:00
+
+**Scenario 3 — Closed early morning**
+- Given it is 05:00
+- When the app reads the status
+- Then it is closed, opening today at 07:00
+
+**Scenario 4 — Boundaries**
+- Given a request arrives at 07:00:00, it is accepted
+- Given a request arrives at 23:00:00, it is refused with service_closed
+
+**Scenario 5 — Search running at closing time**
+- Given a trip was created at 22:59 and is still searching at 23:00
+- Then matching continues (#1630)
+
+**Scenario 6 — Hours changed**
+- Given operations moves closing from 23:00 to 22:00
+- When the app reads the status at 22:30
+- Then it is closed
+
+**Scenario 7 — Unauthenticated request is rejected**
+- Given a request has no valid rider session token
+- Then it is rejected
+
+### Out of Scope
+- Different hours per zone
+- An admin screen to edit the hours
+- Holidays and one-off closures
+
+### Dependencies
+- #1629 — Rider creates trip request
+- #1630 — Driver-matching engine
+- Mobile: #1791 — Rider cannot book outside operating hours
+
+
+- Open decision OD-001 — the operating hours
 
 ---
 
