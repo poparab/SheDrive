@@ -1792,48 +1792,52 @@ All strings — the recovered-fee line label and its explanation — flow throug
 
 ---
 
-## [Mobile] #1567 — Rider views trip history
-**Feature:** Feature 12 — Trip History | **Sprint:** 2
+## [Mobile] #1567 — Rider views trip history ✏️
+**Feature:** Feature 12 — Trip History (#1537) | **Sprint:** 5 | **Story points:** 3
 
-**Description:** As a rider, I want to view a list of my past trips so that I can review where I have travelled and how much I have spent.
+> Updated 2026-10-19 to the Figma screen: period tabs, pickup and driver on each card (API #5912).
 
-### Background
+**Description:** As a rider, I want to see my completed trips for today, this week or this month, so that I can review where I have travelled and how much I have spent.
 
-Riders access trip history from the menu or profile section of the app. The list is sorted most recent first and shows a summary row for each past trip. This screen gives riders a quick overview without surfacing every detail — tapping any row opens the full trip detail screen (#1568). If the rider has not yet completed any trips, an empty state message is displayed instead of the list.
+### Rules
+- Trip History opens from the menu with three tabs: **Today** (selected when the screen opens), **This Week** (from Saturday) and **This Month**. Each tab shows that period's completed trips, newest first (#5912).
+- Each trip card shows the date (“Mon, June 8”), pickup area, destination area, a “Completed” / “مكتملة” badge, the trip fare (“650 LE — Trip Fare”) and the driver's avatar and first name. Tapping a card opens its trip detail (#1568).
+- More trips load as she scrolls to the end of the list.
+- A tab with no trips shows “No trips yet” / “لا توجد رحلات بعد” with “Book a ride” / “احجزي رحلة”.
+- Coming back from a trip detail returns her to the same tab, with the trips she had loaded and her scroll position.
+- **Back to Home** stays pinned at the bottom of the screen.
+- All strings are available in Arabic and English, and the screen lays out correctly in RTL and LTR.
 
 ### Acceptance Criteria
+**Scenario 1 — Today on open**
+- Given she completed two trips today and one yesterday
+- When she opens Trip History
+- Then the Today tab shows the two trips from today
 
-**Scenario 1 — Rider opens trip history with past trips**
-- Given the rider is authenticated and has at least one completed trip
-- When she opens the trip history screen from the menu
-- Then a paginated list of her past trips is displayed, most recent first
-- And each row shows: trip date, destination name, fare paid (EGP), and status "Completed"
+**Scenario 2 — This Week**
+- Given today is Tuesday and she completed a trip on Saturday
+- When she taps This Week
+- Then Saturday's trip is listed
 
-**Scenario 2 — Rider taps a trip row**
-- Given the trip history list is visible with at least one row
-- When the rider taps any trip row
-- Then the app navigates to the trip detail screen (#1568) for that trip
+**Scenario 3 — Empty tab**
+- Given she has no trips today
+- Then the Today tab shows No trips yet with Book a ride
 
-**Scenario 3 — Rider has no past trips**
-- Given the rider is authenticated and has never completed a trip
-- When she opens the trip history screen
-- Then an empty state message is shown indicating no trips are available yet
-- And no list rows are rendered
-
-**Scenario 4 — Rider paginates the list**
-- Given the rider has more than one page of past trips
-- When she scrolls to the bottom of the current page
-- Then the next page of trips loads and appends to the list
-- And the order remains most recent first
+**Scenario 4 — Back from a trip**
+- Given she scrolled This Month and opened a trip
+- When she goes back
+- Then This Month is still selected at the same position
 
 ### Out of Scope
-- Cancellations and in-progress trips
-- Filtering or searching trip history
-- Exporting trip history
-- SOS-related trip records
+- Cancelled trips
+- Searching or exporting history
 
 ### Dependencies
-- #1641 — Rider retrieves trip history (must be live)
+- #5912 — [API] Rider trip history returns her completed trips by period
+- #1568 — Rider views past trip detail and rates unrated trips
+
+### Mockup (ADO comment)
+- Trip history: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/history
 
 ---
 
