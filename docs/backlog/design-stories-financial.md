@@ -654,15 +654,27 @@ The maker-checker queue. Every finance request waits here until a different admi
 - KPI row: pending requests, oldest waiting (how long the oldest pending request has waited), decided today
 - Filters: status (Pending / Decided), made by (Anyone / Other admins — mine to decide / Me — waiting for others), area (Payouts & settlements, Rider fees, Pricing, Driver details) and type
 - Grid: request, type, subject (links to it), amount, made by, status; Decided adds checked by
-- Review modal: who made it and when, **before → after** table, the lines or rows for batches and imports, Approve / Reject (reason required). The same modal opens **in place** over a business screen when its pending notice or request link is clicked; those screens draw only the notice (#5635, #5636, #5637, #5638, #5639, #5640)
+- Review modal — **one layout for every request type**, wide (xl): Request (who made it and when, status) → **Before → after** → Details (only when the type has facts of its own) → **Lines** (payout batch, payout result, settlement import: a summary table with a Total row, a search, a Success / Failed filter on a result, and a list paged 10 / 20 / 50) → Approve / Reject (reason required). The same modal opens **in place** over a business screen when its pending notice or request link is clicked; those screens draw only the notice (#5635, #5636, #5637, #5638, #5639, #5640)
 - Demo-only switch "Act as another admin" — not part of the real product
 
 ### States
 - Pending, Decided, made by you (actions disabled with a note)
+- Review: with and without Details; Lines at 12, 100 and 1,000 lines; a result filtered to Failed; a search with no match
 
 ### Preview Links
 - Default: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html
-- Review modal: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
+- Review modal, every request type:
+  - Rate card change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0008
+  - Fee waiver: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
+  - Manual settlement: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0010
+  - Payout batch, 12 lines: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0011
+  - Payout batch, 100 lines: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0012
+  - Payout batch, 1,000 lines: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0013
+  - Payout result, 100 lines with 6 failed: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0014
+  - Settlement import, 13 rows: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0015
+  - Manual payout: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0016
+  - Payout method change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0017
+  - Commission change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0018
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?lang=ar
 
 ---

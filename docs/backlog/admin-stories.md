@@ -3781,6 +3781,8 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Requested, approved and rejected are each written to the audit log (#1816).
 - The review opens from the Approvals queue and also **in place**, over the screen the request is about, from that screen's pending notice or request link (driver and rider balance, driver profile, payout batch, pricing zones and policies, settlement imports). It is the same review with the same rules; after a decision that screen refreshes.
 - When the queue is opened from a link on another screen, the admin goes back to that screen after the decision.
+- Every request type opens in the **same review layout**, in this order: **Request** (subject, amount, made by, status; checked by, decided on and rejection reason once decided) → **Before → after** (every field the request changes; a payout method change shows type, provider, number and holder) → **Details**, only when the type has facts of its own (batch and its status, file, trip and reason, method, reference, payment date, note) → **Lines**, only for a payout batch, a payout result and a settlement import.
+- Lines: a summary with one row per payout type (batch), result (payout result) or channel (import), each with its count and amount, and a Total row; then a search by driver, national ID, account or reference over a list paged 10 / 20 / 50 (default 10). A payout result lists failed lines first and filters Success / Failed. National IDs and account numbers are shown in full.
 - The sidebar shows the number of pending requests next to **Approvals**.
 - Above the queue: the number of pending requests, how long the oldest pending request has waited ("5 hours", "2 days"), and how many were decided today.
 
@@ -3822,9 +3824,10 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - When an admin tries to change Zamalek's rate card again
 - Then she is told a change is already awaiting approval and nothing is created
 
-**Scenario 5 — The checker sees enough to decide**
-- Given the request is a payout batch, a payout result or a settlement import
-- Then its lines or rows are shown in the review, with full account numbers
+**Scenario 5 — A 1,000-line batch**
+- Given a payout batch of 1,000 lines totalling 760,089.39 EGP
+- When the checker opens it
+- Then the summary reads Bank account 333, Mobile wallet 338, Prepaid card 329, Total 1,000 · 760,089.39 EGP, the list shows lines 1–10 of 1,000, and typing a driver's national ID narrows it to her line
 
 **Scenario 6 — Decide on the screen she is on**
 - Given Yasmin Bakr's ledger shows a settlement awaiting approval (APR-0010)
@@ -3842,8 +3845,20 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Mockup (ADO comment)
 - Approvals (pending): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html
-- A request open for review: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?lang=ar
+
+**Review cases** — one pending request of every type, each opens straight into the review:
+- Rate card change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0008
+- Fee waiver: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
+- Manual settlement: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0010
+- Payout batch, 12 lines: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0011
+- Payout batch, 100 lines: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0012
+- Payout batch, 1,000 lines: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0013
+- Payout result, 100 lines with 6 failed: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0014
+- Settlement import, 13 rows: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0015
+- Manual payout: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0016
+- Payout method change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0017
+- Commission change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0018
 
 ---
 
