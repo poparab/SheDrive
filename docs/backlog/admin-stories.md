@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-10-05
+> Last updated: 2026-10-22
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model:** Two admin roles — **Super admin** and **Admin** — with the same access to
@@ -3779,6 +3779,8 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Requests never expire. A rejection needs a reason; a rejected request changes nothing.
 - Only one pending request per subject (one zone, one driver's settlement, one fee, one batch).
 - Requested, approved and rejected are each written to the audit log (#1816).
+- The review opens from the Approvals queue and also **in place**, over the screen the request is about, from that screen's pending notice or request link (driver and rider balance, driver profile, payout batch, pricing zones and policies, settlement imports). It is the same review with the same rules; after a decision that screen refreshes.
+- When the queue is opened from a link on another screen, the admin goes back to that screen after the decision.
 - The sidebar shows the number of pending requests next to **Approvals**.
 - Above the queue: the number of pending requests, how long the oldest pending request has waited ("5 hours", "2 days"), and how many were decided today.
 
@@ -3788,7 +3790,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Rejection reason | Yes (reject only) | Free text (textarea) | Any characters | 10 chars | 500 chars | empty | Give a reason for rejecting / اذكر سبب الرفض | — | Reason must be 10–500 characters / يجب أن يكون السبب بين 10 و500 حرف |
 
 ### List / Grid Specification
-**Tabs:** Pending (default) · Decided · **Page size:** 20 · **Default sort:** Pending — newest made first; Decided — newest decided first
+**Tabs:** Pending (default) · Decided · **Area filter:** All / Payouts & settlements (payout batch, payout result, manual payout, manual settlement, settlement import) / Rider fees (fee waiver) / Pricing (rate card, commission) / Driver details (payout method edit) — a filter only, every admin still sees and can decide every area · **Page size:** 20 · **Default sort:** Pending — newest made first; Decided — newest decided first
 
 | Column | Sortable | Filterable | Filter type |
 |---|---|---|---|
@@ -3796,7 +3798,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Type | No | Yes | Dropdown (All / the nine types) |
 | Subject (driver, rider, zone, batch, import or policy — links to it) | No | No | — |
 | Amount (EGP) | Yes | No | — |
-| Made by / at | Yes | No | — |
+| Made by / at | Yes | Yes | Dropdown (Anyone / Other admins — mine to decide / Me — waiting for others) |
 | Status | No | No | — |
 | Checked by / at (Decided tab) | Yes | No | — |
 
@@ -3823,6 +3825,11 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 **Scenario 5 — The checker sees enough to decide**
 - Given the request is a payout batch, a payout result or a settlement import
 - Then its lines or rows are shown in the review, with full account numbers
+
+**Scenario 6 — Decide on the screen she is on**
+- Given Yasmin Bakr's ledger shows a settlement awaiting approval (APR-0010)
+- When another admin clicks the notice and approves in the review that opens over the ledger
+- Then she stays on the ledger, the notice gives way to Record settlement again, and APR-0010 leaves the Pending queue
 
 ### Out of Scope
 - Role-based approval limits (who may approve which type or amount)

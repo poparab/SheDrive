@@ -648,13 +648,13 @@ Three corrections, gathered into one story:
 **Feature:** #2857 Admin — Pricing, Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
 **Area:** `SheDrive\Design Team` · **AcceptanceCriteria:** *(empty — design story format)*
 
-The maker-checker queue in **Money & config**, with a count badge in the sidebar. Every finance request waits here until a different admin approves or rejects it.
+The maker-checker queue. Every finance request waits here until a different admin approves or rejects it.
 
 ### Sections
 - KPI row: pending requests, oldest waiting (how long the oldest pending request has waited), decided today
-- Tabs: Pending / Decided, with a type filter
+- Filters: status (Pending / Decided), made by (Anyone / Other admins — mine to decide / Me — waiting for others), area (Payouts & settlements, Rider fees, Pricing, Driver details) and type
 - Grid: request, type, subject (links to it), amount, made by, status; Decided adds checked by
-- Review modal: who made it and when, **before → after** table, the lines or rows for batches and imports, Approve / Reject (reason required)
+- Review modal: who made it and when, **before → after** table, the lines or rows for batches and imports, Approve / Reject (reason required). The same modal opens **in place** over a business screen when its pending notice or request link is clicked; those screens draw only the notice (#5635, #5636, #5637, #5638, #5639, #5640)
 - Demo-only switch "Act as another admin" — not part of the real product
 
 ### States
