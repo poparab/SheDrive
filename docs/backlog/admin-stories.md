@@ -1,11 +1,11 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-11-04
+> Last updated: 2026-11-04 (approval request page, one payout method per batch — #6570)
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model (2026-10-27):** Five admin roles — **Admin (users & IT)**, **Operations officer**,
 > **Operations lead**, **Financial officer**, **Financial lead** — replace Super admin / Admin.
-> One story per role, each with its own column of the access matrix: #6480 Admin (users & IT, also the rules every role shares), #6481 Operations officer, #6482 Operations lead, #6483 Financial officer, #6484 Financial lead. Setting and changing a role: #6485. Financial-lead-only approvals: #6212. (#6210 and #6211 Removed 2026-10-29.)
+> One story per role, each with its own column of the access matrix: #6480 Admin (users & IT, also the rules every role shares), #6481 Operations officer, #6482 Operations lead, #6483 Financial officer, #6484 Financial lead. Setting a role when adding an account: #6485. Financial-lead-only approvals: #6212. (#6210 and #6211 Removed 2026-10-29.)
 > Built stories that still say "Super admin" or "any other admin" are left as they are; these stories carry the change.
 > **Portal UI:** English only. **Safety/SOS:** the SOS queue + escalation workflow
 > is deferred to a later phase; the women-only gender-mismatch report triage is in scope.
@@ -3771,28 +3771,39 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ## [Admin] #5617 — Financial lead approves or rejects finance requests (maker-checker) 🆕
 **Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Approval
 
-**Description:** As a Financial lead, I want every finance request in one queue with one review so that I can check each one and decide it before money or prices move.
+**Description:** As a Financial lead, I want every finance request in one queue, each on its own page, so that I can check each one and decide it before money or prices move.
 
 ### Rules
-- Approvals lists every finance request. What creates each type and what deciding it does is in that type's approval cycle story (Dependencies).
+- **Approvals** lists every finance request. What creates each type and what deciding it does is in that type's approval cycle story (Dependencies).
 - Financial officers and Financial leads make requests; only a Financial lead decides, and never her own request (#6484).
 - With no other active Financial lead, a lead's own request shows "Waiting for another Financial lead" / "في انتظار رئيس فريق مالي آخر" and stays pending.
 - Requests never expire.
-- Approve asks for a confirmation that says what the approval does. Reject asks for a reason.
-- A row opens its review; so does a request link (`approvals.html?id=APR-nnnn`). A queue opened from another screen's link returns her there after the decision.
-- One review layout for every type, in this order:
+- Above the queue, three cards:
 
-| Section | Shows |
+| Card | Shows |
 |---|---|
-| Request | Subject (links to it), amount, made by and on, status; once decided: checked by, decided on, rejection reason |
-| Before → after | Every changed field (each cycle story lists its fields) |
-| Details | Only the facts a type has of its own |
-| Lines | Payout result and settlement import only: a summary table with a Total row, a search, and the list paged 10 / 20 / 50 |
+| Pending Requests / طلبات قيد الانتظار | How many are pending |
+| Longest Waiting / أطول انتظار | Age of the oldest pending one ("5 hours", "2 days") |
+| Decided Today / قرارات اليوم | Approved or rejected today |
 
+- **View** on a row, and every link to a request on another screen, opens the **request page** (`approval-request.html?id=APR-nnnn`). Its back button returns to the screen she came from (Approvals by default).
+- Every request page has the same frame; each cycle story lists what its type puts in it:
+
+| Block | Shows |
+|---|---|
+| Title | "{type} —" and the request ID |
+| Request details | Subject (links to it), amount, created by and when, the type's own facts, status; once decided: checked by, decided on |
+| Before → After | Every changed value, old → new |
+| The type's sections | What the checker needs for that type (in its cycle story) |
+| What approving does | Short bullets: what Approve does, what Reject leaves |
+| Actions | **Approve Request** · **Reject Request**, under the content |
+
+- Approve asks to confirm and says what the approval does. Reject asks for a reason. After either, she stays on the page: a success message shows and the page shows the decision.
+- A decided request's page opens with a banner: "Approved by {name} on {date}" or "Rejected by {name} on {date}" with the reason.
+- A lead's own request shows Approve and Reject disabled with "You made this request — another Financial lead must decide it." / "أنت من قدّم هذا الطلب — يجب أن يقرر فيه رئيس فريق مالي آخر."
+- **Financial officer**: sees only her own requests, read-only (no Approve or Reject), with no Created by filter; her sidebar count is her own pending requests.
 - National IDs and account numbers are shown in full.
-- The sidebar shows the pending count next to **Approvals**. Above the queue: pending requests, oldest waiting ("5 hours", "2 days"), decided today.
-- **Financial officer**: sees only her own requests, read-only, with no Made by filter; her sidebar count is her own pending requests.
-- Every request, approval and rejection is written to the audit log (#1816).
+- The sidebar shows the pending count next to **Approvals**.
 
 ### Field Validation
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
@@ -3800,43 +3811,55 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Rejection reason | Yes (reject only) | Free text (textarea) | Any characters | 10 chars | 500 chars | empty | Give a reason for rejecting / اذكر سبب الرفض | — | Reason must be 10–500 characters / يجب أن يكون السبب بين 10 و500 حرف |
 
 ### List / Grid Specification
-**Tabs:** Pending (default) · Decided · **Area filter:** All / Payouts & settlements (payout result, manual payout, manual settlement, settlement import, payout settings) / Rider fees (fee waiver) / Pricing (rate card, commission, cancellation policy, balance limit) / Driver details (payout method change) — a filter only · **Page size:** 20 · **Default sort:** Pending — newest made first; Decided — newest decided first
+**Status filter:** Pending (default) · Decided · **Page size:** 20 · **Default sort:** Pending — newest made first; Decided — newest decided first
 
-| Column | Sortable | Filterable | Filter type |
-|---|---|---|---|
-| Request ID | No | No | — |
-| Type | No | Yes | Dropdown (All / the eleven types) |
-| Subject (driver, rider, zone, batch, file or policy — links to it) | No | No | — |
-| Amount (EGP) | Yes | No | — |
-| Made by / at | Yes | Yes | Dropdown (Anyone / Other admins — mine to decide / Me — waiting for others) |
-| Status | No | No | — |
-| Checked by / at (Decided tab) | Yes | No | — |
+| Filter | Options |
+|---|---|
+| Created by | Anyone / Other admins — mine to decide / Me — waiting for others |
+| Area | All / Payouts & settlements (payout result, manual payout, manual settlement, settlement import, payout settings) / Rider fees (fee waiver) / Pricing (rate card, commission, cancellation policy, balance limit) / Driver details (payout method change) |
+| Request type | All / the eleven types |
+
+| Column | Sortable |
+|---|---|
+| Request ID | No |
+| Type | No |
+| Subject (driver, rider, zone, batch, file or policy — links to it) | No |
+| Amount (EGP) | Yes |
+| Created by / at ("You" chip on her own) | Yes |
+| Status | No |
+| Checked by / at (Decided only) | Yes |
+| Actions (View) | No |
 
 ### Acceptance Criteria
-**Scenario 1 — Approve**
+**Scenario 1 — Approve on the request page**
 - Given a pending request made by another admin
-- When a Financial lead opens it and approves
-- Then it moves to Decided with her name and the time, the pending count drops by one, and the change applies as its cycle story says
+- When a Financial lead opens it with View, approves and confirms
+- Then the page shows "Approved by …", Approve and Reject are gone, the pending count drops by one, and the change applies as its cycle story says
 
 **Scenario 2 — Reject needs a reason**
 - When she rejects with no reason
 - Then she sees "Give a reason for rejecting" and nothing is decided
 - When she gives one
-- Then the request is Rejected, the reason shows on it, and the subject stays as it was
+- Then the page shows "Rejected by …" with the reason, and the subject stays as it was
 
-**Scenario 3 — Maker cannot decide her own request**
+**Scenario 3 — Back to where she came from**
+- Given she opened a request from a payout batch's pending notice
+- When she uses the back button after deciding
+- Then she is on that batch again
+
+**Scenario 4 — Maker cannot decide her own request**
 - Given Hala made a commission change
 - When she opens it
-- Then Approve and Reject are disabled and the review says another Financial lead must decide it
+- Then Approve and Reject are disabled and the page says another Financial lead must decide it
 
-**Scenario 4 — No other Financial lead**
+**Scenario 5 — No other Financial lead**
 - Given Hala is the only active Financial lead
 - Then her own request shows "Waiting for another Financial lead" and stays pending
 
-**Scenario 5 — Financial officer's queue**
+**Scenario 6 — Financial officer's queue**
 - Given Mona (Financial officer) has two pending requests and Hala has one
 - When Mona opens Approvals
-- Then she sees her two, without Approve or Reject, and not Hala's
+- Then she sees her two, without Approve or Reject on their pages, and not Hala's
 
 ### Out of Scope
 - Approval limits by amount
@@ -3846,71 +3869,83 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Dependencies
 - #6483, #6484 — Financial officer and Financial lead
-- #1816 — Audit log
-- Approval cycles:
-- #6559 — Payout result
-- #6560 — Settlement import
-- #6561 — Manual settlement
-- #6562 — Manual payout
-- #6563 — Fee waiver
-- #6564 — Payout method change
-- #5623 — Rate card change
-- #6565 — Commission change
-- #6566 — Cancellation policy change
-- #6567 — Balance limit change
-- #6568 — Payout settings change
+- #1816 — Audit log (every request, approval and rejection is logged)
+- Approval cycles — each lists its request page's sections:
+
+| Story | Type |
+|---|---|
+| #6559 | Payout result |
+| #6560 | Settlement import |
+| #6561 | Manual settlement |
+| #6562 | Manual payout |
+| #6563 | Fee waiver |
+| #6564 | Payout method change |
+| #5623 | Rate card change |
+| #6565 | Commission change |
+| #6566 | Cancellation policy change |
+| #6567 | Balance limit change |
+| #6568 | Payout settings change |
 
 ### Mockup (ADO comment)
 - Approvals as a Financial lead: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?as=fin_lead
 - As a Financial officer: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?as=fin_officer
-- Own request, another lead must decide: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0021&as=fin_lead
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?as=fin_lead&lang=ar
-- Review with Lines (payout result, 338 lines): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0012
-- Review without Lines (rate card change): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
-- Every other review case is in its approval cycle story (#6559–#6568, #5623).
+- Request page (payout result, 338 lines): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0012&as=nour.hassan@shedrive.app
+- Own request, another lead must decide: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0021&as=hala.mahmoud@shedrive.app
+- Decided request (rejected): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0008
+- Request not found: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-9999
+- Every type's request page is in its approval cycle story.
 
 ---
 
 ## [Admin] #6559 — Approval cycle — Payout result 🆕
 **Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Approval, Payout
 
-**Description:** As a Financial lead, I want to check each bank file's result before it is posted so that a driver is marked paid only when her transfer really went through.
+**Description:** As a Financial lead, I want to check a batch's result file before it is posted so that a driver is marked paid only when her transfer really went through.
 
 ### Rules
-- Made when an admin imports the result of one bank file (#5619): one request per payout-method file. Subject: the batch.
-- Pending notice: on the batch, that file reads Result pending approval with a link to its request. Clicking it opens the review over this screen; she stays here after deciding.
-- Before → after: successful lines, failed lines. Details: the batch, its status and the method's file.
-- Lines: a summary by result (Failed, Success: count and amount, then Total), then every line, failed first — line ref, driver, national ID, method, account number, amount, result with the bank reference or the failure reason. Search by driver, national ID, account or reference; filter All / Success / Failed.
-- Approve: each SUCCESS line posts a payout entry (−line amount, bank reference) and the driver is notified she was paid. Each FAILED line goes back to Due, flags her Last payout failed with the reason, and she is notified. The file is Done; the batch is Completed once every file is.
-- Reject: nothing posts. The file goes back to Waiting for the result, so a corrected result can be imported.
+- Made when an admin imports a batch's result file (#5619). A batch pays one method, so one request per batch. Subject: the batch. Amount: the successful lines.
+- Pending notice: the batch reads Result pending approval with a link to the request page; its back button returns to the batch.
+
+### Request page
+| Block | Shows |
+|---|---|
+| Request details | Batch (links to it), successful amount, created by, **File type** (the payout method), file name, status |
+| Before → After | Lines sent to bank: n → 0 · Lines paid: 0 → n · Lines back to Due: 0 → n |
+| Result file — tiles | File total (amount, lines) · Successful (amount, lines) · Failed (amount, lines) |
+| Result file — list | Search (driver, national ID, account, reference) · Result filter (All / Failed / Success) · Reset · failed lines first · paged 10 / 20 / 50 |
+| List columns | Line, Driver name, National ID, Wallet provider or Bank (not for prepaid card), Wallet / Account / Card number, Amount (EGP), Result, Bank reference (success) or Reason (failed) |
+
+### What approving does
+- Each SUCCESS line posts a payout entry (−line amount, bank reference); the driver is told she was paid.
+- Each FAILED line goes back to Due, flags her Last payout failed with the reason, and she is told.
+- The batch is Completed.
+- Reject: nothing posts; the batch is Sent to bank again, so a corrected result can be imported.
 
 ### Acceptance Criteria
-**Scenario 1 — One file of a 1,000-line batch**
-- Given a 1,000-line batch whose mobile wallet file has 338 lines, and its result marks 332 SUCCESS and 6 FAILED
-- When the checker opens that result
-- Then the summary reads Failed 6 · 5,980.56 EGP, Success 332 · 259,141.54 EGP, Total 338 · 265,122.10 EGP, the list shows lines 1–10 of 338 with the failed lines first, and typing a driver's national ID narrows it to her line
+**Scenario 1 — A 338-line result**
+- Given a mobile wallet batch of 338 lines whose result marks 332 SUCCESS and 6 FAILED
+- When the checker opens the request
+- Then the tiles read File total 265,122.10 EGP (338), Successful 259,141.54 EGP (332), Failed 5,980.56 EGP (6), the list shows lines 1–10 of 338 failed first, and typing a driver's national ID narrows it to her line
 
 **Scenario 2 — Approved**
 - When the checker approves it
-- Then the 332 drivers are paid with their bank reference, the 6 failed lines are Due again with Last payout failed, and the mobile wallet file is Done
+- Then the 332 drivers are paid with their bank reference, the 6 failed lines are Due again with Last payout failed, and the batch is Completed
 
-**Scenario 3 — The other files wait**
-- Given the bank account and prepaid card files of the same batch are still pending
-- Then the batch stays Result pending approval until both are decided
-
-**Scenario 4 — Rejected**
-- When the checker rejects the result with a reason
-- Then no line is paid and the mobile wallet file is Waiting for the result again
+**Scenario 3 — Rejected**
+- When the checker rejects it with a reason
+- Then no line is paid and the batch is Sent to bank again, showing the reason
 
 ### Dependencies
-- #5617 — Approvals: the queue and the review
-- #5619 — Bank files and results
+- #5617 — Approvals and the request page
+- #5619 — Bank file and result
 
 ### Mockup (ADO comment)
-- Review case — mobile wallet file of a 1,000-line batch (338 lines, 6 failed): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0012
-- Bank account file of the same batch (333 lines): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0013
-- Prepaid card file of the same batch (329 lines): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0014
-- Mobile wallet file of a 100-line batch (38 lines, 3 failed): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0015
+- Request page — mobile wallet batch, 338 lines, 6 failed: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0012&as=nour.hassan@shedrive.app
+- Bank account batch, 333 lines: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0013&as=nour.hassan@shedrive.app
+- Prepaid card batch, 329 lines (no provider column): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0014&as=nour.hassan@shedrive.app
+- Approved result: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0005
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0012&as=nour.hassan@shedrive.app&lang=ar
 
 ---
 
@@ -3921,11 +3956,21 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Made when an admin sends a checked file (#5620): one request for the whole file. Subject: the file. Amount: the file's total.
-- Pending notice: the settlements history (#6492) shows the file as Pending approval. Clicking it opens the review over this screen; she stays here after deciding.
-- Before → after: rows. Details: the file.
-- Lines: a summary by payment channel (count and amount, then Total), then every row — driver, national ID, phone, amount, balance now and after, payment reference with date and channel, result (Settled in full, Part paid — still owes X, Paid more — X added to her balance). Search by driver, national ID, phone or reference.
-- Approve: each row posts a settlement entry with a receipt number (S-nnnnn); a driver's go-online block lifts once she is under the limit. The file is Approved and gets its View page (#6492).
-- Reject: nothing posts. The file is Rejected with the reason; its payment references can be imported again in a corrected file.
+- Pending notice: the settlements history (#6492) shows the file as Pending approval with a link to the request page; its back button returns to the history.
+
+### Request page
+| Block | Shows |
+|---|---|
+| Request details | File name, amount, created by, rows, status |
+| Before → After | Owed by these drivers: total before → total after |
+| File rows — tiles | Amount (rows) · Settled in full · Part paid · Paid more |
+| File rows — list | Search (driver, national ID, phone, reference) · Result filter (All / Settled in full / Part paid / Paid more) · Reset · paged 10 / 20 / 50 |
+| List columns | Row, Driver, National ID, Phone, Amount (EGP), Balance now → after, Payment (reference, date, channel), Result (Settled in full · Part paid — still owes X · Paid more — X added to her balance) |
+
+### What approving does
+- Each row posts a settlement entry with a receipt number (S-nnnnn); a driver's go-online block lifts once she is under the limit.
+- The file is Approved and gets its View page (#6492).
+- Reject: nothing posts; the file is Rejected with the reason, and its payment references can be imported again in a corrected file.
 
 ### Acceptance Criteria
 **Scenario 1 — Approved**
@@ -3938,12 +3983,13 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Then no balance changes, the history shows Rejected with that reason, and a corrected file with the same references passes step 3
 
 ### Dependencies
-- #5617 — Approvals: the queue and the review
+- #5617 — Approvals and the request page
 - #5620 — Settlement import wizard
 - #6492 — Settlements history
 
 ### Mockup (ADO comment)
-- Review case — settlement import, 13 rows: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0018
+- Request page — settlement import, 13 rows: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0018&as=nour.hassan@shedrive.app
+- Rejected file: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0025
 - Settlements history: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?as=fin_lead
 
 ---
@@ -3955,9 +4001,18 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Record settlement (#4379) on the driver's ledger creates a request instead of posting. Subject: the driver. Amount: the settlement.
-- Pending notice: Record settlement gives way to the notice with a link to the request; her Driver balances row shows Awaiting approval. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for her settlement; another is refused: "A change is already awaiting approval".
-- Before → after: balance. Details: method, payment date, reference, note.
-- Approve: the settlement posts with its receipt number as #4379 describes; her go-online block lifts once she is under the limit.
+- Pending notice: Record settlement gives way to the notice with a link to the request page; her Driver balances row shows Awaiting approval.
+- Only one request can be pending for her settlement; another is refused: "A change is already awaiting approval".
+
+### Request page
+| Block | Shows |
+|---|---|
+| Request details | Driver, amount, created by, payment channel, status |
+| Before → After | Balance |
+| Settlement details | Driver (links to her ledger), balance now, payment channel, payment date, reference, note, proof of payment |
+
+### What approving does
+- The settlement posts with its receipt number as #4379 describes; her go-online block lifts once she is under the limit.
 - Reject: her balance stays; Record settlement is offered again.
 
 ### Acceptance Criteria
@@ -3975,11 +4030,11 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Then the balance stays −300.00 and Record settlement is back
 
 ### Dependencies
-- #5617 — Approvals: the queue and the review
+- #5617 — Approvals and the request page
 - #4379 — Admin records a driver settlement
 
 ### Mockup (ADO comment)
-- Review case — manual settlement: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0011
+- Request page — manual settlement: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0011&as=hala.mahmoud@shedrive.app
 - Driver balances: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html
 
 ---
@@ -3991,9 +4046,19 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Record payout (#4001) on the driver's ledger creates a request instead of posting. Subject: the driver. Amount: the payout.
-- Pending notice: Record payout gives way to the notice with a link to the request; her Driver balances row shows Awaiting approval. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for her payout; another is refused: "A change is already awaiting approval".
-- Before → after: balance. Details: reference, payment date.
-- Approve: the payout posts to her ledger and marks her oldest Due earnings Paid, up to its amount.
+- Pending notice: Record payout gives way to the notice with a link to the request page; her Driver balances row shows Awaiting approval.
+- Only one request can be pending for her payout; another is refused: "A change is already awaiting approval".
+
+### Request page
+| Block | Shows |
+|---|---|
+| Request details | Driver, amount, created by, reference, status |
+| Before → After | Balance |
+| Payout details | Driver (links to her ledger), paid to (method and provider), account / wallet / card number, account holder, reference, payment date, proof of payment |
+| Where her earnings stand — tiles | Due · On hold (7 days) · In an open batch |
+
+### What approving does
+- The payout posts to her ledger and marks her oldest Due earnings Paid, up to its amount.
 - Reject: her balance and earnings stay; Record payout is offered again.
 
 ### Acceptance Criteria
@@ -4007,11 +4072,11 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Then her balance stays 620.00 and nothing is marked Paid
 
 ### Dependencies
-- #5617 — Approvals: the queue and the review
+- #5617 — Approvals and the request page
 - #4001 — Admin records a payout sent to a driver
 
 ### Mockup (ADO comment)
-- Review case — manual payout: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0019
+- Request page — manual payout: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0019&as=nour.hassan@shedrive.app
 - Driver balances: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html
 
 ---
@@ -4023,9 +4088,19 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Waive fee on the rider's ledger (#5621) creates a request. Subject: the rider. Amount: the fee.
-- Pending notice: the fee reads "Waiver awaiting approval" and offers no Waive action. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for the fee; another is refused: "A change is already awaiting approval".
-- Before → after: fee owed. Details: the trip and the reason.
-- Approve: the fee is waived on her ledger and the driver's credit for it is reversed, as #5621 describes.
+- Pending notice: the fee reads "Waiver awaiting approval" with a link to the request page and offers no Waive action.
+- Only one request can be pending for the fee; another is refused: "A change is already awaiting approval".
+
+### Request page
+| Block | Shows |
+|---|---|
+| Request details | Rider, fee, created by, trip, status |
+| Before → After | Fee owed |
+| Fee details | Rider (links to her ledger), trip (links to it), trip date, route, driver, fee to waive, what the rider owes now, reason |
+
+### What approving does
+- An unpaid fee is removed from what the rider owes; a paid one becomes a credit on her balance.
+- The driver's credit for that fee is reversed, as #5621 describes.
 - Reject: the fee stays owed; Waive is offered again.
 
 ### Acceptance Criteria
@@ -4039,11 +4114,11 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Then the rider still owes 20.00 and Waive is back on the fee
 
 ### Dependencies
-- #5617 — Approvals: the queue and the review
+- #5617 — Approvals and the request page
 - #5621 — Admin waives a rider's cancellation fee
 
 ### Mockup (ADO comment)
-- Review case — fee waiver: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0010
+- Request page — fee waiver: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0010&as=nour.hassan@shedrive.app
 - Rider balances: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html
 
 ---
@@ -4055,27 +4130,37 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - An admin's edit on the driver profile (#5624) creates a request. The driver's own change in the app does not. Subject: the driver.
-- Pending notice: the profile reads "Change awaiting approval" and Edit is disabled. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for her payout method; another is refused: "A change is already awaiting approval".
-- Before → after: payout type, provider or bank, account number, account holder — all in full.
-- Approve: her payout method is replaced and shows it was updated by an admin.
+- Pending notice: the profile reads "Change awaiting approval" with a link to the request page, and Edit is disabled.
+- Only one request can be pending for her payout method; another is refused: "A change is already awaiting approval".
+
+### Request page
+| Block | Shows |
+|---|---|
+| Request details | Driver, created by, status |
+| Before → After | Payout type, provider or bank, account number, account holder — all in full |
+| Driver | Driver (links to her profile), when the current method was last updated and by whom, due now, in an open batch |
+
+### What approving does
+- Her payout method is replaced and shows it was updated by an admin; her next batch uses the new method.
+- A line already in an open batch is paid to the method it was generated with.
 - Reject: her current method stays; Edit is offered again.
 
 ### Acceptance Criteria
 **Scenario 1 — Approved**
 - Given her method is a Vodafone Cash wallet and an admin requested a CIB bank account
 - When a Financial lead approves it
-- Then her next payout goes to the CIB account
+- Then her next payout goes in a bank-account batch to the CIB account
 
 **Scenario 2 — Rejected**
 - When a Financial lead rejects it
 - Then her payouts still go to the wallet
 
 ### Dependencies
-- #5617 — Approvals: the queue and the review
+- #5617 — Approvals and the request page
 - #5624 — Admin views and edits a driver's payout method
 
 ### Mockup (ADO comment)
-- Review case — payout method change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0020
+- Request page — payout method change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0020&as=nour.hassan@shedrive.app
 - Driver profile: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069
 
 ---
@@ -4087,9 +4172,18 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Saving or removing a zone's rate card (#1757) creates a request. Only a Financial lead makes it. Subject: the zone.
-- Pending notice: the zone reads "Rate card change awaiting approval" with the proposed values; its card is locked. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for the zone; another is refused: "A change is already awaiting approval".
-- Before → after: base fare, per-km rate, per-minute rate, minimum fare, cancellation fee; a removal shows Rate card → Removed.
-- Approve: new trips in the zone price on the new card; the zone status follows the card. Logged in #1760.
+- Pending notice: the zone reads "Rate card change awaiting approval" with the proposed values and a link to the request page; its card is locked.
+- Only one request can be pending for the zone; another is refused: "A change is already awaiting approval".
+
+### Request page
+| Block | Shows |
+|---|---|
+| Request details | Zone, created by, status |
+| Before → After | Base fare, per-km rate, per-minute rate, minimum fare, cancellation fee; a removal shows Rate card → Removed |
+| Where it applies | Zone (links to Pricing & zones), zone status, "To new trips in this zone, from the moment it is approved." |
+
+### What approving does
+- New trips in the zone price on the new card; the zone status follows the card. Logged in #1760.
 - Reject: the card stays and is unlocked.
 
 ### Acceptance Criteria
@@ -4110,12 +4204,12 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Scheduling a price change for a future date
 
 ### Dependencies
-- #5617 — Approvals: the queue and the review
+- #5617 — Approvals and the request page
 - #1757 — Zone rate card
 - #1760 — Pricing changes are logged
 
 ### Mockup (ADO comment)
-- Review case — rate card change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
+- Request page — rate card change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0009&as=hala.mahmoud@shedrive.app
 - Pricing & zones: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-zones.html
 
 ---
@@ -4127,10 +4221,19 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Saving the commission on Global policies, Pricing tab (#1759, #6486) creates a request. Only a Financial lead makes it. Subject: platform commission.
-- Pending notice: "Commission change to {pct} awaiting approval" / "تغيير العمولة إلى {pct} بانتظار الموافقة"; the field is locked and the current rate stays in force. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for the commission; another is refused: "A change is already awaiting approval".
+- Pending notice: "Commission change to {pct} awaiting approval" / "تغيير العمولة إلى {pct} بانتظار الموافقة" with a link to the request page; the field is locked and the current rate stays in force.
+- Only one request can be pending for the commission; another is refused: "A change is already awaiting approval".
 - Saving the Pricing tab with both commission and cancellation policy changed sends two requests, one per card.
-- Before → after: commission (%).
-- Approve: the new commission is saved and applies from then on.
+
+### Request page
+| Block | Shows |
+|---|---|
+| Request details | Platform commission, created by, status |
+| Before → After | Commission (%) |
+| Where it applies | Setting, Global policies tab (Pricing — links to it), "To trips completed after it is approved." |
+
+### What approving does
+- The new commission is saved and applies from then on.
 - Reject: the commission stays; the field is unlocked.
 
 ### Acceptance Criteria
@@ -4145,11 +4248,12 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Then commission is 19%
 
 ### Dependencies
-- #5617 — Approvals: the queue and the review
+- #5617 — Approvals and the request page
 - #1759 — Global policies
 
 ### Mockup (ADO comment)
-- Review case — commission change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0021&as=nour.hassan@shedrive.app
+- Request page — commission change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0021&as=nour.hassan@shedrive.app
+- Rejected commission change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0008
 - Global policies, Pricing tab: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=pricing
 
 ---
@@ -4161,9 +4265,18 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Saving the Cancellation policy card on Global policies, Pricing tab (#1759, #6486) creates one request for the whole card. Only a Financial lead makes it. Subject: cancellation policy.
-- Pending notice: "Cancellation policy change awaiting approval" / "تغيير سياسة الإلغاء بانتظار الموافقة"; the card is locked. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for the cancellation policy; another is refused: "A change is already awaiting approval".
-- Before → after: rider grace period, cancellation fee, driver cancellation fee, driver grace period, rider no-show wait — the changed ones.
-- Approve: the policy is saved and applies to new trips.
+- Pending notice: "Cancellation policy change awaiting approval" / "تغيير سياسة الإلغاء بانتظار الموافقة" with a link to the request page; the card is locked.
+- Only one request can be pending for the cancellation policy; another is refused: "A change is already awaiting approval".
+
+### Request page
+| Block | Shows |
+|---|---|
+| Request details | Cancellation policy, created by, status |
+| Before → After | The changed ones of: rider grace period, cancellation fee, driver cancellation fee, driver grace period, rider no-show wait |
+| Where it applies | Setting, Global policies tab (Pricing — links to it), "To trips requested after it is approved." |
+
+### What approving does
+- The policy is saved and applies to new trips.
 - Reject: the policy stays; the card is unlocked.
 
 ### Acceptance Criteria
@@ -4177,11 +4290,11 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Then cancellations on new trips charge the driver 25
 
 ### Dependencies
-- #5617 — Approvals: the queue and the review
+- #5617 — Approvals and the request page
 - #1759 — Global policies
 
 ### Mockup (ADO comment)
-- Review case — cancellation policy change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0022
+- Request page — cancellation policy change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0022&as=hala.mahmoud@shedrive.app
 - Global policies, Pricing tab: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=pricing
 
 ---
@@ -4193,9 +4306,18 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Saving the driver balance limit on Global policies, Finance tab (#3994, #6486) creates a request. Only a Financial lead makes it. Subject: driver balance limit.
-- Pending notice: "Balance limit change to {limit} awaiting approval" / "تغيير حد الرصيد إلى {limit} بانتظار الموافقة"; the field is locked. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for the balance limit; another is refused: "A change is already awaiting approval".
-- Before → after: balance limit (EGP).
-- Approve: the new limit is saved; go-online blocks follow it (#3994).
+- Pending notice: "Balance limit change to {limit} awaiting approval" / "تغيير حد الرصيد إلى {limit} بانتظار الموافقة" with a link to the request page; the field is locked.
+- Only one request can be pending for the balance limit; another is refused: "A change is already awaiting approval".
+
+### Request page
+| Block | Shows |
+|---|---|
+| Request details | Driver balance limit, created by, status |
+| Before → After | Balance limit (EGP) |
+| Where it applies | Setting, Global policies tab (Finance — links to it), "At once: drivers under the new limit can go online, drivers over it cannot." |
+
+### What approving does
+- The new limit is saved; go-online blocks follow it (#3994).
 - Reject: the limit stays; the field is unlocked.
 
 ### Acceptance Criteria
@@ -4209,11 +4331,11 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Then the limit stays 500 EGP and she stays blocked
 
 ### Dependencies
-- #5617 — Approvals: the queue and the review
+- #5617 — Approvals and the request page
 - #3994 — Driver balance limit
 
 ### Mockup (ADO comment)
-- Review case — balance limit change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0023
+- Request page — balance limit change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0023&as=hala.mahmoud@shedrive.app
 - Global policies, Finance tab: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=finance
 
 ---
@@ -4225,9 +4347,18 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Saving the Payouts card on Global policies, Finance tab (#6486) creates a request. Only a Financial lead makes it. Subject: payout settings.
-- Pending notice: "Payout settings change awaiting approval" / "تغيير إعدادات المدفوعات بانتظار الموافقة"; the card is locked. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for the payout settings; another is refused: "A change is already awaiting approval".
-- Before → after: minimum payout, transfer fee (%), its minimum and maximum, who pays it — the changed ones.
-- Approve: the settings apply to the next batch generated; a batch generated before keeps its own.
+- Pending notice: "Payout settings change awaiting approval" / "تغيير إعدادات المدفوعات بانتظار الموافقة" with a link to the request page; the card is locked.
+- Only one request can be pending for the payout settings; another is refused: "A change is already awaiting approval".
+
+### Request page
+| Block | Shows |
+|---|---|
+| Request details | Payout settings, created by, status |
+| Before → After | The changed ones of: minimum payout, transfer fee (%), fee minimum, fee maximum, who pays it |
+| Where it applies | Setting, Global policies tab (Finance — links to it), "To the next payout batch generated. Batches already generated keep their own settings." |
+
+### What approving does
+- The settings apply to the next batch generated, whatever its method; a batch generated before keeps its own.
 - Reject: the settings stay; the card is unlocked.
 
 ### Acceptance Criteria
@@ -4241,11 +4372,11 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Then batches keep the 100.00 minimum and the driver pays the fee
 
 ### Dependencies
-- #5617 — Approvals: the queue and the review
+- #5617 — Approvals and the request page
 - #6486 — Admin sets the minimum payout and the transfer fee
 
 ### Mockup (ADO comment)
-- Review case — payout settings change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0024&as=nour.hassan@shedrive.app
+- Request page — payout settings change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0024&as=nour.hassan@shedrive.app
 - Global policies, Finance tab: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=finance
 
 ---
@@ -4321,6 +4452,72 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Payouts (generate a batch here): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?lang=ar
 
+
+---
+
+## [Admin] #6570 — Financial officer chooses the payout method before generating a batch 🆕
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Payout
+
+**Description:** As a Financial officer, I want to choose the payout method first and generate a batch for that method only so that each batch has one bank file and one result to follow.
+
+### Rules
+- **Generate payout batch** opens on a method choice. The preview and the batch (#5618) then cover the chosen method only.
+- Three cards, in this order:
+
+| Card | Shows | When no driver is due |
+|---|---|---|
+| Mobile wallet / محفظة إلكترونية | Drivers due: n · amount due | "No driver due" / "لا توجد سائقة مستحقة"; the card can't be picked |
+| Bank account / حساب بنكي | Drivers due: n · amount due | Same |
+| Prepaid card / بطاقة مسبقة الدفع | Drivers due: n · amount due | Same |
+
+- A card also shows "Open batch: {ref}" / "دفعة مفتوحة: {ref}" while a batch of that method is not Completed.
+- Drivers due and amounts follow the #5618 rules (cut-off, minimum payout, drivers who owe left out), counted per driver's current payout method.
+- The preview's subtitle names the method: "Bank account — drivers in this batch: 2 — total 408.54 EGP".
+- The preview table has no Payout type column. Its columns follow that method's bank file:
+
+| Method | Columns |
+|---|---|
+| Mobile wallet | Driver, Wallet provider, Wallet number, Amount, Transfer fee, Sent to her |
+| Bank account | Driver, Bank, Account number, Amount, Transfer fee, Sent to her |
+| Prepaid card | Driver, Card number, Amount, Transfer fee, Sent to her |
+
+- **Change method** goes back to the cards; nothing is generated.
+- A batch keeps its method for life: one bank file (#5619), one result, one approval (#6559).
+- The batch page shows the method under Status.
+- The Payouts list (#6497) gets a **Payout method** column and a Payout method filter (All methods / the three methods). Export CSV adds a Payout method column after Batch ref.
+
+### Acceptance Criteria
+**Scenario 1 — Choose the method**
+- Given 1 wallet driver is due 339.94 EGP, 2 bank drivers 408.54 EGP and 1 card driver 282.67 EGP
+- When a Financial officer chooses Generate payout batch
+- Then she sees the three cards with those counts and amounts, and no batch preview yet
+
+**Scenario 2 — One method only**
+- When she picks Bank account
+- Then the preview lists only the 2 bank drivers with Bank and Account number columns, and Generate makes batch PB-… with one bank-account file
+
+**Scenario 3 — Nothing due on a method**
+- Given no prepaid-card driver is due
+- Then the Prepaid card card reads "No driver due" and can't be picked
+
+**Scenario 4 — Filter the history by method**
+- When she filters Payouts by Mobile wallet
+- Then only mobile wallet batches are listed, and Export CSV downloads only those
+
+### Out of Scope
+- One batch for several methods
+- Moving a driver's line to another method's batch
+
+### Dependencies
+- #5618 Admin generates a payout batch (built — this story changes its preview)
+- #6497 Admin views the payout history (built — this story adds the method column and filter)
+- #5619 Bank file and result
+- #5625 Driver payout method
+
+### Mockup (ADO comment)
+- Payouts — choose Generate payout batch: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_officer
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_officer&lang=ar
+- Payouts filtered by method: pick Payout method in the filter row on the page above
 ---
 
 ## [Admin] #6497 — Admin views the payout history 🆕
@@ -4390,23 +4587,22 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ---
 
-## [Admin] #5619 — Financial officer exports a payout batch's bank files and imports each result 🆕
+## [Admin] #5619 — Financial officer exports a payout batch's bank file and imports its result 🆕
 **Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Payout
 
-**Description:** As a Financial officer, I want to export a batch as one bulk-transfer file per payout method and import the result each channel sends back so that a driver is marked paid only when her transfer is confirmed.
+**Description:** As a Financial officer, I want to export a batch as its channel's bulk-transfer file and import the result the channel sends back so that a driver is marked paid only when her transfer is confirmed.
 
 ### Rules
-- Exporting a **Ready to export** batch downloads one CSV per payout method that has lines, and moves the batch to Sent to bank.
-- Files can be downloaded again; a copy changes nothing.
+- A batch pays one payout method (#6570), so it has **one bank file** and **one result file**.
+- Exporting a **Ready to export** batch downloads its file and moves the batch to Sent to bank.
+- The file can be downloaded again; a copy changes nothing.
 - earnings_egp leaves her balance; transfer_fee_egp and fee_paid_by come from the batch's payout settings (#6486); amount_egp is what the channel sends. Account and card numbers are in full.
-- Each bank file gets its own result file, matched on line_ref.
-- An imported result goes to approval for that file only (#6559 Approval cycle — Payout result).
-- File status: Waiting for the result → Result pending approval → Done (paid and failed counts).
-- The batch is Result pending approval once every result is imported.
+- The result file is matched on line_ref. An imported result goes to approval (#6559 Approval cycle — Payout result).
+- Batch status: Ready to export → Sent to bank → Result pending approval → Completed.
 - A line_ref can never be paid twice.
 
 ### File templates
-The three templates are attached to this story and to #5618: `payout-template-mobile-wallet.csv`, `payout-template-bank-account.csv`, `payout-template-prepaid-card.csv` (header row plus one example line each). Source: `docs/backlog/payout-templates/`.
+The three templates are attached to this story and to #5618: `payout-template-mobile-wallet.csv`, `payout-template-bank-account.csv`, `payout-template-prepaid-card.csv` (header row plus one example line each). Source: `docs/backlog/payout-templates/`. A batch uses the template of its method.
 
 **Mobile wallet** — `<batch ref>-mobile-wallet.csv`
 
@@ -4469,43 +4665,39 @@ The three templates are attached to this story and to #5618: `payout-template-mo
 ### Field Validation
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
 |---|---|---|---|---|---|---|---|---|---|
-| Result file | Yes | File (.csv) | Columns `line_ref` and `status` present; every line of one bank file exactly once; status `SUCCESS` or `FAILED` | — | — | none | Choose the result file / اختر ملف النتيجة | Missing column: {column} / عمود ناقص: {column} · Line {line} belongs to another payout method's file / البند {line} يخص ملف طريقة دفع أخرى | Line {line} is missing, repeated or not in this batch / البند {line} ناقص أو مكرر أو ليس في هذه الدفعة |
+| Result file | Yes | File (.csv) | Columns `line_ref` and `status` present; every line of the batch exactly once; status `SUCCESS` or `FAILED` | — | — | none | Choose the result file / اختر ملف النتيجة | Missing column: {column} / عمود ناقص: {column} | Line {line} is missing, repeated or not in this batch / البند {line} ناقص أو مكرر أو ليس في هذه الدفعة |
 
 ### Acceptance Criteria
 **Scenario 1 — Export**
-- Given batch PB-20261029-08 is Ready to export with one mobile wallet, one bank account and one prepaid card line
+- Given a bank-account batch PB-20261104-11 is Ready to export with 3 lines
 - When a Financial officer exports it
-- Then three CSV files download, one per method, each with its driver's phone number, and the batch shows Sent to bank with who exported it and when
+- Then `PB-20261104-11-bank-account.csv` downloads with each driver's phone number, and the batch shows Sent to bank with who exported it and when
 
-**Scenario 2 — Import one file's result with a failure**
-- Given the mobile wallet result marks 3 lines SUCCESS and 1 FAILED "Wallet number not registered"
-- When a Financial officer imports it and a Financial lead approves
-- Then three drivers get a payout entry and Paid earnings, the fourth driver's earnings are Due again and her profile shows the failure; the wallet file shows Done and the batch stays Sent to bank while the other files wait
+**Scenario 2 — Import a result with a failure**
+- Given a wallet batch's result marks 3 lines SUCCESS and 1 FAILED "Wallet number not registered"
+- When a Financial officer imports it
+- Then the batch is Result pending approval with a link to its request (#6559), and nothing is paid yet
 
-**Scenario 3 — Last file approved**
-- Given the wallet and bank results are approved
-- When the prepaid card result is approved
-- Then the batch is Completed
-
-**Scenario 4 — Result doesn't match the file**
-- Given a result file lists a line from the bank file inside the wallet result and leaves one wallet line out
+**Scenario 3 — Result doesn't match the batch**
+- Given a result file leaves one line out and repeats another
 - Then the import is refused with both lines named, and nothing changes
 
-**Scenario 5 — Rejected result**
-- Given the bank result request is rejected
-- Then only the bank file returns to Waiting for the result, with the reason, and a corrected file can be imported
+**Scenario 4 — Rejected result**
+- Given the result request is rejected
+- Then the batch is Sent to bank again with the reason shown, and a corrected file can be imported
 
 ### Out of Scope
-- Sending the files to the bank or wallet channels automatically (Finance uploads them on each portal)
+- Sending the file to the bank or wallet channel automatically (Finance uploads it on the channel's portal)
 
 ### Dependencies
+- #6570 Financial officer chooses the payout method before generating a batch
 - #5618 Admin generates a payout batch
 - #6486 Payout settings
-- #5617 Maker-checker approvals
+- #6559 Approval cycle — Payout result
 - #5627 Driver sees the payout status of her earnings
 
 ### Mockup (ADO comment)
-- Payouts — open a batch marked Ready to export or Sent to bank: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
+- Payouts — open a batch marked Ready to export or Sent to bank: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_officer
 - Batch not found: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payout-batch.html?id=unknown
 
 ---
@@ -5315,8 +5507,8 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 | Finance | Settlement imports: import the settlement sheet | #5620 | Request |
 | Finance | Waive a rider's cancellation fee | #5621 | Request |
 | Finance | Payouts: the payout history and its cards | #6497 | View |
-| Finance | Payouts: generate a batch and export its bank files | #5618, #5619 | Full |
-| Finance | Payouts: import a bank file's result | #5619 | Request |
+| Finance | Payouts: choose the payout method, generate a batch and export its bank file | #5618, #6570, #5619 | Full |
+| Finance | Payouts: import a batch's result file | #5619 | Request |
 | Finance | Change a driver's payout method | #5624 | Request |
 | Finance | Approvals | #5617, #6212 | Own requests (view) |
 | Finance | Reports and reconciliation | #1833, #5668 | View |
@@ -5381,7 +5573,7 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 | Finance | Settlement imports: import the settlement sheet | #5620 | Request + approve |
 | Finance | Waive a rider's cancellation fee | #5621 | Request + approve |
 | Finance | Payouts: the payout history and its cards | #6497 | View |
-| Finance | Payouts: generate a batch and export its bank files | #5618, #5619 | Full |
+| Finance | Payouts: choose the payout method, generate a batch and export its bank file | #5618, #6570, #5619 | Full |
 | Finance | Payouts: import a bank file's result | #5619 | Request + approve |
 | Finance | Change a driver's payout method | #5624 | Request + approve |
 | Finance | Approvals | #5617, #6212 | Approve |
