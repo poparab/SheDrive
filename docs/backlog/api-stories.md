@@ -1,6 +1,6 @@
 # SheDrive — API Stories
 > Canonical backlog for all [API] stories. Organized by sprint and feature.
-> Last updated: 2026-10-18
+> Last updated: 2026-10-29
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -462,7 +462,7 @@ The App Store and Google Play reject an app that has no in-app account deletion.
 2. **Window.** When the code is verified and nothing blocks the request, the account is marked `pending_deletion` with `deletion_due_at` 30 days later. She is signed out on every device and her push tokens are removed, as on logout (#1624). A text message in her language gives the deletion date.
 3. **Status is untouched.** Pending deletion sits on top of the account's status (active, under review or suspended); it does not replace it. Admins can still act on the account during the window — decide a report, suspend or reinstate — and the due date does not move.
 4. **Restore.** Signing in during the window returns `pending_deletion`, the due date and a restore-only token instead of a session. The token expires after 5 minutes, like a sign-in code. Restoring clears the due date; the account keeps whatever status it has at that moment, including any admin decision taken during the window.
-5. **Completion.** A scheduled job completes every deletion whose due date has passed. From then on the number can never sign up to the rider app again. The driver app is not affected.
+5. **Completion.** A scheduled job completes every deletion whose due date has passed. From then on the number can never sign up to the rider app again.
 6. **Sign-in and registration.** Sign-in (#1622) and registration (#1621) are closed stories. The two changes this story makes to them — the restore response during the window (Scenario 6) and the `number_deleted` refusal after completion (Scenario 9) — are built and tested here.
 
 **What blocks a request.**
@@ -481,11 +481,10 @@ The app reads the fee from #4004 to show it on the Review step; this API only en
 |---|---|
 | Name, photo, email, saved places, emergency contacts, notifications and their settings, push tokens | Deleted. Emergency contacts stop receiving anything from SheDrive |
 | Saved payment cards (#1732) | Removed at the payment provider, so no card of hers can be charged again |
-| Phone number | Removed from the account. A one-way hash is kept so the number can never sign up to the rider app again. A hash of a phone number can be matched back to the number, so it is treated as personal data kept for that one purpose, not as anonymous data |
 | Trips, ledger entries (including any unpaid fee), ratings she gave | Kept for the legal and financial retention periods. Egypt's ride-hailing law (Law 87 of 2018) obliges operators to keep user and trip data available to the authorities, so trips stay linked to her identity for as long as that law requires, and only then are anonymised. They are hidden from everyone else straight away: drivers see "Deleted rider" |
 | Safety reports, SOS incidents and gender-mismatch reports involving her | Kept with the identity details the case needs for the safety retention period, then deleted |
 
-**A deleted number can never sign up again.** Registering in the rider app with the number of a completed deletion is refused with `number_deleted`, whatever state the account was in. This also stops a suspended or reported rider coming back under the same number. The same number can still register as a driver. Apart from that hash and the records above, nothing that identifies her is kept.
+**A deleted number can never sign up again.** Registering in the rider app with the number of a completed deletion is refused with `number_deleted`, whatever state the account was in. This also stops a suspended or reported rider coming back under the same number. Apart from that hash and the records above, nothing that identifies her is kept.
 
 Retention periods, and exactly which trip data Law 87 of 2018 requires to stay identifiable, are set by SheDrive's legal counsel.
 
@@ -553,20 +552,14 @@ Retention periods, and exactly which trip data Law 87 of 2018 requires to stay i
 - When the same number verifies a sign-in code and tries to register (#1621)
 - Then registration is refused with `number_deleted` and no account is created
 - And the refusal is only returned after the code is verified, like every other account check
-- And the same number can still register in the driver app
 
-**Scenario 10 — Deletion endpoints need a session**
-- Given a call to a deletion endpoint without a valid session
-- Then it is rejected before any deletion logic runs
-- And only restore, with a restore-only token, accepts a call without a normal session
-
-**Scenario 11 — An admin decision during the window is kept**
+**Scenario 10 — An admin decision during the window is kept**
 - Given the account is `pending_deletion`
 - When an admin suspends the account (#1740), reinstates it, or decides a report on it during the window
 - Then the status changes as it would for any account, and the due date does not move
 - And if she then restores, she keeps the new status
 
-**Scenario 12 — A suspended or under-review rider can still delete**
+**Scenario 11 — A suspended or under-review rider can still delete**
 - Given her account is suspended (#1740) or under review (#1687)
 - When she asks for a deletion code from her profile
 - Then the code is sent and the request goes ahead exactly as for an active rider
@@ -594,13 +587,24 @@ Retention periods, and exactly which trip data Law 87 of 2018 requires to stay i
 ## [API] #5037 — Driver account deletion is requested, restored and completed 🆕
 **Feature:** Feature 4 — Authentication API (Shared — Rider & Driver) | **Sprint:** Backlog (not scheduled)
 
-**Description:** As the driver app, I want the platform to take a driver's deletion request the same way it takes a rider's, taking her offline and settling money first, so that SheDrive meets the store rules without losing the financial, regulatory and safety records it must keep.
+**Description:** As the driver app, I want the platform to take a driver's deletion request the same way it takes a rider's, taking her offline and settling money first, so that SheDrive meets the store rules without losing the financial and safety records it must keep.
+
+In admin we will not see the driver in the drivers list. there will be a pending deletion in the driver profile .
 
 ### Background
 
 This story is the backend for the driver app (#5039).
 
-**Everything in the rider story (#5036) applies to drivers**: the `account_deletion` code, the 30-day `pending_deletion` window that leaves her status untouched, restore at sign-in with a 5-minute restore-only token, the scheduled completion and the field validation. This story lists only what is different.
+**How it works.**
+1. **Request.** She confirms her registered number with a one-time code whose purpose is `account_deletion`, so a sign-in code can never confirm a deletion. Length, expiry, attempts, resend and rate limits are the same as sign-in (#1622). The checks under What blocks a request run before a code is sent and again when it is submitted.
+2. **Offline first.** When the code is verified and nothing blocks the request, she is set offline first, using the same logic as logout (#1624), so she receives no further trip requests.
+3. **Window.** The account is then marked `pending_deletion` with `deletion_due_at` 30 days later. She is signed out on every device and her push tokens are removed, as on logout (#1624). A text message in her language gives the deletion date.
+4. **Status is untouched.** Pending deletion sits on top of the account's status; it does not replace it. Admins can still act on the account during the window — decide a report, suspend or reinstate — and the due date does not move.
+5. **Restore.** Signing in during the window, in Login or Register, returns `pending_deletion`, the due date and a restore-only token instead of a session. The token expires after 5 minutes, like a sign-in code. Restoring clears the due date; the account keeps whatever status it has at that moment. Restoring never sets her online; she goes online herself as usual.
+6. **Completion.** A scheduled job completes every deletion whose due date has passed, as listed under What happens at completion. From then on the number can never sign up to the driver app again.
+7. **Sign-in and registration.** The restore response and the `number_deleted` refusal are built once in #5036 (Scenarios 6 and 9) and work the same way in the driver app.
+
+The code's field validation and #5036's scenarios apply here too. The tables below list only what is different for a driver.
 
 **What blocks a request.**
 
@@ -609,21 +613,18 @@ This story is the backend for the driver app (#5039).
 | A trip she has accepted that is not yet completed or cancelled | Refused with `active_trip`; nothing changes |
 | She owes SheDrive money (#1781) | Refused with `balance_owed` and the amount, both when she asks for a code and when she submits one. Unlike a rider's fee, she has a way through: she settles, and the refusal lifts as soon as the settlement is recorded (#4379) |
 | SheDrive owes her money | Allowed. Finance can still record the payout (#4001) during the window and after completion |
-| Suspended (#1742) | Not possible while suspended: a suspended driver cannot sign in (#1742), so she cannot reach Delete account. She can delete once she is reinstated. A deletion she requested before she was suspended goes ahead on its date (#5036 Scenario 11). Accepted gap for now |
+| Suspended (#1742) | Not possible while suspended: a suspended driver cannot sign in (#1742), so she cannot reach Delete account. She can delete once she is reinstated. A deletion she requested before she was suspended goes ahead on its date (#5036 Scenario 10). Accepted gap for now |
 | Part of an open SOS incident or safety report | Allowed. Case records are kept, the number can never come back, and the national-ID block below applies |
 
 The app reads her balance from #1781 to show it on the Review step; this API only enforces the rules above.
-
-**Online status.** Confirming the request sets her offline first, using the same logic as logout (#1624), so she receives no further trip requests. Restoring never sets her online; she goes online herself as usual.
 
 **What happens at completion** — as for a rider (#5036), with these differences.
 
 | Data | Result |
 |---|---|
-| Vehicle details and vehicle photos | Deleted |
-| National ID, driving licence, vehicle registration, verification selfie | Kept for the regulatory retention period after her last trip — or after the deletion date if she never drove — then deleted |
+| Vehicle details, vehicle photos, national ID, driving licence, vehicle registration, verification selfie | Deleted |
 | Trips she drove, driver ledger (commission, settlements, payouts), ratings she gave | Kept for the legal and financial retention periods, linked to her identity for as long as Law 87 of 2018 requires, as for a rider. Hidden from everyone else straight away: riders see "Deleted driver", without name, photo or plate |
-| Phone number and payout details | Removed from the account. As for a rider, a hash keeps the number from ever signing up to the driver app again; the rider app is not affected. If SheDrive still owes her money, the number and her payout details stay on her ledger until finance records the payout (#4001), then are removed |
+| Phone number and payout details | Removed from the account. As for a rider, a hash keeps the number from ever signing up to the driver app again. If SheDrive still owes her money, the number and her payout details stay on her ledger until finance records the payout (#4001), then are removed |
 
 **National ID block.** If, at completion, she was suspended or the subject of an open safety report, a one-way hash of her national ID number is also kept. A new driver application (#1642) with that ID is then refused with `national_id_blocked`, even from a new phone number. #1642 is a closed story; this refusal is built and tested here (Scenario 7).
 
@@ -633,7 +634,7 @@ Same as the rider story (#5036).
 
 ### Acceptance Criteria
 
-Scenarios 1–12 of #5036 also apply to a driver account. The scenarios below cover only what is different.
+Scenarios 1–11 of #5036 also apply to a driver account. The scenarios below cover only what is different.
 
 **Scenario 1 — Confirming takes her offline first**
 - Given she is online and has received a deletion code
@@ -664,20 +665,15 @@ Scenarios 1–12 of #5036 also apply to a driver account. The scenarios below co
 - Then the account keeps its current status, with her vehicle, documents and history unchanged
 - And she is offline until she goes online herself
 
-**Scenario 6 — Completion keeps her official documents**
+**Scenario 6 — Completion deletes her vehicle and documents**
 - Given her deletion has completed
-- Then her vehicle details and photos are deleted, and her ID, licence, registration and selfie are kept until the regulatory period ends — counted from her last trip, or from the deletion date if she never drove
+- Then her vehicle details and photos, national ID, driving licence, vehicle registration and verification selfie are deleted
 - And a rider who opens a trip with her sees "Deleted driver", without name, photo or plate
 
 **Scenario 7 — A suspended or reported driver cannot return with a new number**
 - Given her deletion completed while she was suspended or the subject of an open safety report
 - When a new driver application (#1642) uses her national ID number from a different phone number
 - Then the application is refused with `national_id_blocked` and nothing is created
-
-**Scenario 8 — A deleted driver number can still join the rider app**
-- Given a driver's deletion has completed
-- When the same number registers in the rider app
-- Then the driver deletion does not stop it
 
 ### Out of Scope
 - An admin deleting a driver account on her behalf
@@ -1419,14 +1415,14 @@ This is the internal matching/dispatch engine, triggered immediately after a tri
 - #1629 — Rider creates trip request (triggers the engine)
 - #1645 — Driver online status and location tracking — supplies driver location/ETA inputs (must be live)
 - #1747 — Platform selects fastest traffic-aware route (supplies the ETA used for filtering and ranking)
-- #1631 — Rider polls for match status — surfaces the driver being attempted and the expired result
-
----
-
 - #1759 — Super admin configures the driver acceptance window (supplies the dispatch window duration)
 - #1648 — Driver retrieves pending trip request / dispatch to driver (must be live)
 - #1649 — Driver accepts trip — assignment removes her from all other pools (must be live)
 - #1650 — Driver rejects trip (must be live)
+- #1631 — Rider polls for match status — surfaces the driver being attempted and the expired result
+
+---
+
 ## [API] #1631 — Rider polls for match status ✏️
 **Feature:** Feature 8 — Trip Request & Matching API (#1602) | **Mobile:** #1554, #1557
 
@@ -1435,11 +1431,11 @@ This is the internal matching/dispatch engine, triggered immediately after a tri
 **Description:** As the rider app, I want to ask the platform how the search for my driver is going, so that the rider sees the search, her matched driver or the no-driver state at the right moment without doing anything.
 
 ### Rules
-- The rider app polls this endpoint from the moment the trip is created (#1629) until it reports `matched`, `expired` or `cancelled`. From `matched` on, it polls #1633 instead.
-- It returns one of `searching`, `matched`, `expired` or `cancelled`. A status never goes back to an earlier one.
-- `matched` includes the driver card: full name, photo URL (or null), vehicle make, model, colour and plate number, average rating, and ETA to the pickup (or null when it cannot be computed). This feeds #1555.
-- `expired` is set by the matching engine when its candidate list ends with no acceptance or was empty (#1630). There is no time-based window. This feeds #1557.
-- `cancelled` is set when the rider cancels the search (#1715).
+- Polled from trip creation (#1629) until matched, expired or cancelled; after matched, #1633.
+- Statuses: searching, matched, expired, cancelled. Never goes back.
+- matched carries the driver card (#1555): full name, photo URL, vehicle make, model, colour, plate, average rating, ETA to pickup.
+- expired: candidate list ended with no acceptance or was empty (#1630); no time window. Feeds #1557.
+- cancelled: the rider cancels the search (#1715).
 
 ### Acceptance Criteria
 **Scenario 1 — Still searching**
@@ -1489,19 +1485,19 @@ This is the internal matching/dispatch engine, triggered immediately after a tri
 ### Mockup (ADO comment)
 - Searching: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/matching
 - Driver found: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/matching?state=confirmed
-## [API] #1785 — Booking is open only inside operating hours ✏️
-**Feature:** Feature 8 — Trip Request & Matching API (#1602) | **Mobile:** #1791
 - No driver available: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/matching?state=no-driver
 
 ---
 
+## [API] #1785 — Booking is open only inside operating hours ✏️
+**Feature:** Feature 8 — Trip Request & Matching API (#1602) | **Mobile:** #1791
 
 > Restored 2026-10-19 as the counterpart of [Mobile] #1791. Now also returns the open/closed status so the app can show the closed state before a request. #1629 Scenarios 9–13 describe the same refusal; this story owns it.
 
 **Description:** As the rider app, I want to know whether booking is open now and when it next opens, and to have requests outside the operating window refused, so that riders only book while SheDrive is serving.
 
 ### Rules
-- There is one daily operating window in Africa/Cairo time, set in platform configuration by operations (the hours are open decision OD-001). A change applies without a release.
+- There is one daily operating window in Africa/Cairo time, set by the Operations lead on Global policies (#6268). A change applies without a release.
 - A status read returns `open` or `closed` and, when closed, the next opening date and time. The rider app reads it when the home screen opens or returns to the foreground (#1791).
 - Trip creation (#1629) outside the window is refused with `service_closed` and the next opening time; no trip is created.
 - The window includes its opening minute and excludes its closing minute.
@@ -1542,18 +1538,18 @@ This is the internal matching/dispatch engine, triggered immediately after a tri
 
 ### Out of Scope
 - Different hours per zone
-- An admin screen to edit the hours
 - Holidays and one-off closures
 
 ### Dependencies
 - #1629 — Rider creates trip request
 - #1630 — Driver-matching engine
 - Mobile: #1791 — Rider cannot book outside operating hours
-
-
-- Open decision OD-001 — the operating hours
+- #6268 — Operations lead sets the daily operating hours (admin screen)
+- Open decision OD-001 — the starting hours
 
 ---
+
+
 
 ### Feature 9 — Driver Trip Acceptance API
 
@@ -2957,6 +2953,8 @@ This is the driver-facing read over the balance ledger (#4378). It returns one s
 - When she requests her statement with that from/to range
 - Then every returned row has a timestamp within the range and no row outside it is returned
 - And the balance, outstanding and available amounts returned alongside are identical to those returned by the same request with no date range
+- And the app's Today, This week and This month statement filter (#1788) is served by this range
+- And when the range holds more entries than one page, the pages are continued within the range exactly as in Scenario 8
 
 **Scenario 10 — New driver with no activity**
 - Given an approved driver who has completed no trips and has no ledger entries
@@ -3946,7 +3944,7 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 ---
 
 ## [API] #5629 — Driver payout method is captured at onboarding 🆕
-**Feature:** #1776 Earnings — Driver API | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1776 Earnings — Driver API | **Sprint:** — | **Tag:** Payout
 
 **Description:** As a driver applicant, I want my payout method saved with my application so that SheDrive knows where to send my earnings from day one.
 
@@ -3997,7 +3995,7 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 ---
 
 ## [API] #5630 — Driver views and changes her payout method 🆕
-**Feature:** #1776 Earnings — Driver API | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1776 Earnings — Driver API | **Sprint:** — | **Tag:** Payout
 
 **Description:** As a driver, I want to read and replace my payout method so that my next payout goes where I choose.
 
@@ -4025,7 +4023,7 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 ---
 
 ## [API] #5631 — Driver retrieves the payout status of her earnings 🆕
-**Feature:** #1776 Earnings — Driver API | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1776 Earnings — Driver API | **Sprint:** — | **Tag:** Payout
 
 **Description:** As a driver, I want my statement to tell me each earning's payout status so that I can see what is on hold, due and paid.
 
@@ -4033,12 +4031,18 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 - Each payable entry (trip earnings, rider fee credit) returns its status — on hold, due, being transferred, paid — and its due date (entry date + 7 calendar days).
 - Totals: on hold, due, being transferred.
 - A paid entry returns the payout's bank reference; a failed payout returns its reason.
+- A payout returns its amount, the transfer fee when she paid it, and the amount sent to her.
+- Returns the current minimum payout, so the app can say when due earnings below it will be paid.
 - A payout sent or failed triggers the driver notification.
 
 ### Acceptance Criteria
 **Scenario 1 — Statuses**
 - Given an earning from 3 days ago and one paid in last week's batch
 - Then the first returns on hold with its due date and the second paid with its reference
+
+**Scenario 2 — Transfer fee**
+- Given a 250.50 EGP payout with a 3.76 EGP fee (1.5%) she paid
+- Then it returns amount 250.50, transfer fee 3.76 and sent 246.74
 
 ### Out of Scope
 - Changing the 7-day hold per driver
@@ -4053,7 +4057,7 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 ---
 
 ## [API] #5632 — Rider retrieves her credit 🆕
-**Feature:** #1775 Payments — Rider API | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1775 Payments — Rider API | **Sprint:** — | **Tag:** Fee waiver
 
 **Description:** As a rider, I want my account to report any credit I have so that the app can show it to me.
 
@@ -4081,12 +4085,12 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 
 # No masking of phone numbers or national IDs (2026-10-14)
 
-> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change. ADO tag "No masking".
+> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change.
 
 ---
 
 ## [API] #5654 — Driver profile returns her full national ID 🆕
-**Feature:** #1600 Authentication API — Shared | **Sprint:** — | **Tag:** No masking
+**Feature:** #1600 Authentication API — Shared | **Sprint:** —
 
 **Description:** As a driver, I want my profile to return my full national ID so that the app can show it to me.
 
@@ -4109,7 +4113,7 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 ---
 
 ## [API] #5657 — Rider account deletion returns the full phone number for the code step 🆕
-**Feature:** #1600 Authentication API — Shared | **Sprint:** — | **Tag:** No masking
+**Feature:** #1600 Authentication API — Shared | **Sprint:** —
 
 **Description:** As a rider, I want the deletion code step to tell the app my full phone number so that it can show me where the code went.
 
@@ -4131,7 +4135,7 @@ Each SOS case gets exactly one live location link. The link is deliberately narr
 ---
 
 ## [API] #5658 — Driver account deletion returns the full phone number for the code step 🆕
-**Feature:** #1600 Authentication API — Shared | **Sprint:** — | **Tag:** No masking
+**Feature:** #1600 Authentication API — Shared | **Sprint:** —
 
 **Description:** As a driver, I want the deletion code step to tell the app my full phone number so that it can show me where the code went.
 

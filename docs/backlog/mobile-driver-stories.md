@@ -1,6 +1,6 @@
 # SheDrive — Mobile Driver Stories
 > Canonical backlog for all [Mobile] Driver stories. Organized by sprint and feature.
-> Last updated: 2026-10-18
+> Last updated: 2026-10-29
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -284,9 +284,9 @@ After a successful login or registration the session token is stored in the devi
 
 ### Background
 
-The App Store and Google Play both require in-app account deletion, so this story must ship before the driver app is submitted. It follows the rider flow (#5038) step for step, with what a driver additionally needs to know: she is taken offline, her official documents are kept for a regulatory period, and money between her and SheDrive is handled first.
+The App Store and Google Play both require in-app account deletion, so this story must ship before the driver app is submitted. It follows the rider flow (#5038) step for step, with what a driver additionally needs to know: she is taken offline, and money between her and SheDrive is handled first.
 
-She opens the Delete Account screen from a **Delete account** link under the Log out button on her profile (#1801). The screen is one short confirmation, not a list. She re-confirms her number with a one-time code, and the request is made (#5037). She is taken offline and signed out at once, and has **30 days to change her mind** by signing in again. After that her **number can never sign up again**.
+She opens the Delete Account screen from a **Delete account** link at the bottom of her profile (#1801). The screen is one short confirmation, not a list. She re-confirms her number with a one-time code, and the request is made (#5037). She is taken offline and signed out at once, and has **30 days to change her mind** by signing in again. After that her **number can never sign up again**.
 
 **Two things block the request: a trip in progress, and money she owes SheDrive.** The second has a way through — she settles (#3989), and can ask again as soon as the settlement is recorded. Money SheDrive owes her never blocks her.
 
@@ -296,7 +296,7 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 
 | Step | Shows | Behaviour |
 |---|---|---|
-| Review | Title, one sentence that she goes offline and the account closes at once and is deleted after 30 days, an amber warning that she can't sign up again with this number, and a one-line note on the records and documents SheDrive keeps | Continue opens Confirm it's you |
+| Review | Title, one sentence that she goes offline and the account closes at once and is deleted after 30 days, an amber warning that she can't sign up again with this number, and a one-line note on the records SheDrive keeps | Continue opens Confirm it's you |
 | Owed-to-her note | A blue note with the amount SheDrive owes her and that finance will contact her on this number to transfer it, even after the account is deleted | Information only |
 | Blocked — balance owed | Settle your balance first, with the amount and How to settle | Replaces Review. How to settle opens the settle screen (#3989) |
 | Blocked — trip in progress | Finish your trip first, with Back to my trip | Replaces Review |
@@ -312,14 +312,14 @@ Same as the rider flow (#5038): a six-digit code with the sign-in error messages
 
 **Scenario 1 — Driver opens Delete Account from her profile**
 - Given an authenticated driver on her profile
-- When she taps Delete account under Log out
+- When she taps Delete account at the bottom of her profile
 - Then the Review step opens with a note that confirming takes her offline straight away
 
 **Scenario 2 — Review is one short confirmation**
 - Given the Review step is open
 - Then it says she goes offline and the account closes straight away, and it is deleted after 30 days unless she signs in before then
 - And an amber warning says she won't be able to sign up again with this number
-- And one line says trip, earnings and safety records and her official documents are kept only as long as the law requires
+- And one line says trip, earnings and safety records are kept only as long as the law requires
 - And Continue is enabled straight away; there is no list, no reason to choose and no checkbox
 
 **Scenario 3 — Money she owes blocks the request**
@@ -380,7 +380,6 @@ Same as the rider flow (#5038): a six-digit code with the sign-in error messages
 - Given her deletion has completed
 - When the same number enters a correct code, in Login or Register
 - Then she stays on the phone step with "This number belonged to a deleted SheDrive Driver account and can't be used to sign up again"
-- And the same number can still sign up in the rider app
 - And no account or application is created
 
 **Scenario 14 — Network error while requesting**
@@ -422,11 +421,19 @@ Same as the rider flow (#5038): a six-digit code with the sign-in error messages
 **Description:** As a driver, I want one list of everything SheDrive has told me about my earnings, balance, documents and trips, where tapping a notification opens what it is about, so that I never miss a settlement, a limit warning or an expiring document.
 
 ### Rules
-- The inbox works as in #5720 (push is a copy of an item, list and grouping, filter, mark all as read, language, states, no settings screen). Only the differences are listed here.
-- **Entry points:** a bell with an unread badge in the home screen's bottom bar next to her avatar, **Notifications** on her profile menu, and tapping any push.
-- **Trip requests are not inbox items.** A request lives on its acceptance screen and expires; what reaches the inbox is what follows a trip (rating, cancellation, fee).
+- The inbox works as in #5720; only the differences are listed here.
+- Entry points: a bell with an unread badge in the home bottom bar next to her avatar, Notifications on her profile menu, any push.
 - Categories: trips, safety, earnings, documents & account, announcements.
-- **Tap to open:** a settlement or payout sent opens Balance; a failed payout opens Payout method; nearing the balance limit opens Settle; an expiring licence or registration opens My Profile; a rating, a cancelled trip or a cancellation fee opens that trip in Trip history; the approval message and announcements open Home.
+
+| Notification | Opens |
+|---|---|
+| Settlement or payout sent | Balance |
+| Failed payout | Payout method |
+| Nearing the balance limit | Settle |
+| Expiring licence or registration | My Profile |
+| Rating, cancelled trip, cancellation fee | That trip in Trip history |
+| Approval message, announcements | Home |
+
 - Empty state hint: "Updates on your earnings, documents and SheDrive announcements will show up here."
 
 ### Acceptance Criteria
@@ -1062,7 +1069,7 @@ The driver's home/profile shows her aggregate star rating to one decimal and her
 
 When the driver taps the online toggle on her home screen and the availability service refuses her because her outstanding balance is at or above the configured limit (#3996), the app must explain the block rather than silently snapping the toggle back.
 
-The toggle returns to offline and a sheet explains that she owes more than the limit, states the amount owed and the limit, and offers a direct "Settle now" action that opens her settlement screen (#3989) with the channels, office address and hours she needs — after Finance records the settlement, her balance clears and she can go online again. From the sheet she can also open her balance screen (#1788) to see the transactions behind the figure.
+The toggle returns to offline and a sheet explains that she owes more than the limit, states the amount owed and the limit, and offers a direct "Settle now" action that opens her settlement screen (#3989) with the channels, office address and hours she needs — after Finance records the settlement, her balance clears and she can go online again. Settle now is the sheet's only action; she dismisses the sheet by swiping it down.
 
 **Warned before she is blocked.** From the configured warning threshold (default 80% of the limit, set via #3994), her home screen carries a persistent warning band so the block never arrives as a surprise. The band states what she owes and the limit.
 
@@ -1082,7 +1089,7 @@ All strings flow through data-i18n keys with Arabic fallback, and all amounts ar
 **Scenario 2 — Sheet offers a direct path to settle**
 - Given the blocked sheet is displayed
 - Then a "سدّدي الآن" / "Settle now" action opens the settlement screen (#3989) with the channels, office address and hours
-- And a "عرض الرصيد" / "View balance" action opens the balance screen (#1788)
+- And it is the sheet's only action — there is no View balance or Close button; she dismisses the sheet by swiping it down
 
 **Scenario 3 — Warning band before the limit**
 - Given the limit is 500 EGP and she owes 400 EGP
@@ -1131,7 +1138,6 @@ All strings flow through data-i18n keys with Arabic fallback, and all amounts ar
 ### Dependencies
 - #3996 — Driver go-online is blocked while her outstanding balance is over the limit (API — must be live)
 - #3994 — Super admin configures balance and fee policy (supplies the limit and the warning threshold)
-- #1788 — Driver views her balance and statement (opened from the sheet)
 - #3989 — Driver settles what she owes and sees her settlement history (opened from the sheet's "Settle now" action)
 - #1578 — Driver sees home screen with map (hosts the toggle and the warning band)
 
@@ -1800,7 +1806,7 @@ When the driver arrives at the destination, she taps "End Trip" on the active tr
 - Given the trip state has advanced to trip_ended
 - When the driver's screen updates
 - Then the driver sees the cash fare to collect from the rider
-- And a "Done" button is available to dismiss the screen
+- And a "استقبلي رحلة جديدة" / "Get a New Ride" button is available to dismiss the screen
 
 ### Out of Scope
 - Automatic trip ending via geofence
@@ -1820,7 +1826,7 @@ When the driver arrives at the destination, she taps "End Trip" on the active tr
 
 ### Background
 
-Immediately after the driver taps "End Trip" and the trip state advances to trip_ended, the driver's screen shows a full-screen prompt displaying the cash amount to collect from the rider in EGP. A single "Done" button is shown. When the driver taps "Done", this screen is dismissed and the driver is returned to her home screen in the online/available state, ready to receive the next trip request.
+Immediately after the driver taps "End Trip" and the trip state advances to trip_ended, the driver's screen shows a full-screen prompt displaying the cash amount to collect from the rider in EGP. A single "استقبلي رحلة جديدة" / "Get a New Ride" button is shown. When the driver taps "Get a New Ride", this screen is dismissed and the driver is returned to her home screen in the online/available state, ready to receive the next trip request.
 
 ### Acceptance Criteria
 
@@ -1830,9 +1836,9 @@ Immediately after the driver taps "End Trip" and the trip state advances to trip
 - Then a full-screen cash collection prompt is displayed
 - And the final fare amount in EGP is shown prominently
 
-**Scenario 2 — "Done" dismisses the screen and returns driver to available**
+**Scenario 2 — "Get a New Ride" dismisses the screen and returns driver to available**
 - Given the driver is viewing the cash collection screen
-- When she taps "Done"
+- When she taps "Get a New Ride"
 - Then the screen is dismissed
 - And the driver is returned to her home screen in the available state
 
@@ -1902,9 +1908,9 @@ All strings flow through data-i18n keys with Arabic fallback, and all amounts ar
 - When the driver views her net earnings for this trip (#1766)
 - Then net earnings are calculated on the 100.00 EGP fare only (80.00 EGP), with no change from the recovered balance
 
-**Scenario 7 — "Done" behaves exactly as before**
+**Scenario 7 — "Get a New Ride" returns her to available**
 - Given the itemised screen is displayed
-- When she taps "Done"
+- When she taps "استقبلي رحلة جديدة" / "Get a New Ride"
 - Then she is returned to her home screen in the available state, as in #1592
 
 **Scenario 8 — Arabic and English**
@@ -2045,11 +2051,16 @@ This mirrors the rider side of the same flow (#1565 rider rates driver / #1639 A
 **Description:** As a driver, I want to message my rider from accepting her trip until it ends so that I can find her at pickup without calling her or sharing my number.
 
 ### Rules
-- Same chat as the rider's (#5678): one chat per trip, open from acceptance until the trip is completed or cancelled, nothing kept afterwards, phone numbers hidden, the 300-character message field, message statuses, unread badge and push all follow the rules listed there once.
-- A **Message** button with the unread count is on the En Route and Arrived cards, and the Message button in the in-ride action row opens the same chat.
-- Quick replies before the rider boards: *I'm on my way*, *Running 5 minutes late*, *I've arrived at the pickup point*, *Where are you exactly?*, *OK*. During the ride: *OK*, *Thank you*, *We're almost there*.
-- **No typing while driving.** Once the trip has started she can send quick replies only; the text box is replaced by "While you drive, you can send quick replies only." She can still read every message.
-- The push shows the rider's name; it also arrives while she is in Google Maps or Waze.
+- Same chat as the rider's (#5678).
+- A **Message** button with the unread count: En Route and Arrived cards, in-ride action row.
+
+| When | Quick replies |
+|---|---|
+| Before the rider boards | I'm on my way, Running 5 minutes late, I've arrived at the pickup point, Where are you exactly?, OK |
+| During the ride | OK, Thank you, We're almost there |
+
+- After the trip starts, quick replies only; the text box is replaced by "While you drive, you can send quick replies only." Messages stay readable.
+- The push shows the rider's name, also over Google Maps or Waze.
 
 ### Acceptance Criteria
 **Scenario 1 — Driving mode**
@@ -2232,7 +2243,7 @@ The language preference toggle is available on the driver profile screen. The dr
 
 ### Background
 
-The driver profile screen is accessible from the driver app's drawer/menu. It displays, in read-only form, the details captured and verified during onboarding: profile photo, full name, phone number, date of birth, masked National ID (last 4 digits only), and vehicle details (make, model, year, color, plate number, vehicle type). It also shows her account/onboarding status (Approved), her aggregate star rating (linking to #1792), and her current language preference (with a link to change it via #1731). Because all profile and vehicle data is verified during onboarding, none of it can be edited in the app in this phase; a bilingual note explains that to correct any detail she should contact support. In-app editing and document re-submission will be introduced later alongside the onboarding-maturity and resubmission work. Profile data is retrieved via #1800. All strings flow through data-i18n keys with Arabic fallback.
+The driver profile screen opens when she taps her name at the top of the driver app's menu. It displays, in read-only form, the details captured and verified during onboarding: profile photo, full name, phone number, date of birth, masked National ID (last 4 digits only), and vehicle details (make, model, year, color, plate number, vehicle type). It also shows her account/onboarding status (Approved), her aggregate star rating (linking to #1792), and her current language preference (with a link to change it via #1731). Because all profile and vehicle data is verified during onboarding, none of it can be edited in the app in this phase; a bilingual note explains that to correct any detail she should contact support. In-app editing and document re-submission will be introduced later alongside the onboarding-maturity and resubmission work. A red **Delete account** link at the bottom of the screen opens account deletion (#5039). Profile data is retrieved via #1800. All strings flow through data-i18n keys with Arabic fallback.
 
 ### Acceptance Criteria
 
@@ -2258,17 +2269,23 @@ The driver profile screen is accessible from the driver app's drawer/menu. It di
 - Then a bilingual toast error is shown
 - And a retry option is available
 
+**Scenario 5 — Delete account entry point**
+- Given the driver is on her profile screen
+- Then a red "حذف الحساب" / "Delete account" link is shown at the bottom of the screen
+- When she taps it
+- Then the Delete account screen opens (#5039)
+
 ### Out of Scope
 - Editing any profile or vehicle field (deferred to onboarding-maturity work)
 - Profile photo change / document re-upload (deferred with resubmission)
 - Phone number change
-- Account deletion
 - SOS functionality
 
 ### Dependencies
 - #1800 — Driver retrieves her profile (API — must be live)
 - #1792 — Driver views her overall rating (rating display)
 - #1731 — Driver changes language preference from profile screen
+- #5039 — Driver deletes her account (the screen the Delete account link opens)
 
 ---
 
@@ -2283,14 +2300,14 @@ The driver profile screen is accessible from the driver app's drawer/menu. It di
 
 ### Background
 
-The earnings dashboard is accessible from the driver home screen menu or profile screen. It shows earnings summary cards for today, this week, and this month. Each card shows total earnings in EGP and number of trips completed. Below the summary cards, a list of recent trips shows each trip's date, route summary, and fare. Data is fetched from #1735 on screen load. Pull-to-refresh updates all figures.
+The earnings dashboard is accessible from the driver home screen menu or profile screen. Period tabs — “اليوم” / “Today” (the default), “هذا الأسبوع” / “This week” and “هذا الشهر” / “This month” — sit above one summary card. The card's label names the selected period: “أرباح اليوم” / “Today's earnings”, “أرباح هذا الأسبوع” / “This week's earnings” or “أرباح هذا الشهر” / “This month's earnings”, and it shows total earnings in EGP and the number of trips completed in that period. Below the card, the trips of the same period are listed with each trip's date, route summary, and fare. Data is fetched from #1735 on screen load. Pull-to-refresh updates all figures.
 
 ### Acceptance Criteria
 
 **Scenario 1 — Driver sees earnings summary on load**
 - Given an authenticated driver navigates to the earnings dashboard
 - When the screen loads
-- Then summary cards show total EGP and trip count for today, this week, and this month
+- Then the “Today” tab is selected and the card is labelled “أرباح اليوم” / “Today's earnings” with today's total in EGP and trip count
 - And figures are fetched from #1735
 
 **Scenario 2 — Zero earnings displayed correctly**
@@ -2302,7 +2319,7 @@ The earnings dashboard is accessible from the driver home screen menu or profile
 **Scenario 3 — Recent trip list is shown below summary**
 - Given the driver has completed at least one trip
 - When the earnings dashboard loads
-- Then a list of recent trips is shown below the summary cards
+- Then the trips of the selected period are listed below the summary card
 - And each item shows the trip date, pickup area to destination area, and fare in EGP
 
 **Scenario 4 — Pull-to-refresh updates figures**
@@ -2315,6 +2332,12 @@ The earnings dashboard is accessible from the driver home screen menu or profile
 - Given the device has no connectivity when the screen loads
 - Then an error state is shown: "تعذر تحميل الأرباح. تحقق من اتصالك" / "Unable to load earnings. Check your connection."
 - And a retry button is visible
+
+**Scenario 6 — Switching the period**
+- Given the driver is on the earnings dashboard
+- When she selects “This week”
+- Then the card label reads “أرباح هذا الأسبوع” / “This week's earnings”
+- And the total, the trip count and the trip list show this week's figures
 
 ### Out of Scope
 - Earnings breakdown by individual day within a week
@@ -2338,6 +2361,8 @@ A balance screen reachable from the earnings screen and the profile menu shows t
 **The headline states the direction in words, not a sign.** When the driver owes the platform, the screen reads "مستحق عليكِ" / "You owe" with the amount and a short explanation that on cash trips she keeps the fare and the platform's commission is settled later. When the platform owes her, it reads "رصيدك المتاح" / "Your available balance" — explained as what SheDrive owes her, not a button she can act on. A driver never requests a payout: Finance transfers it on its own cycle, and it appears here, in her statement, once sent. A driver never sees a minus sign in front of her own money.
 
 **Below the headline is the statement** — a newest-first list of transactions, each with its date, a localised description, and the signed amount coloured as a credit or a debit. Credits and debits are visually distinct and each row states its type in plain language: commission on a trip, a cancellation fee charged, a cancellation fee credit earned, a settlement received, or a payout sent by Finance. Tapping a trip-linked row opens that trip's detail (#1594).
+
+**The statement can be narrowed by period.** A filter above the list offers "اليوم" / "Today" (the default), "هذا الأسبوع" / "This week" and "هذا الشهر" / "This month". Rows in the selected period are grouped under a day heading — "اليوم" / "Today", "أمس" / "Yesterday", then the date — newest first. The filter only narrows the list: the headline always shows her whole balance, and the limit band does not change with the period.
 
 **A warning band appears as she approaches the limit.** When her outstanding amount reaches the configured warning threshold (default 80% of the balance limit, both set via #3994, returned by #1781), a warning band explains that she will not be able to go online once she reaches the limit. At or above the limit the band becomes a blocking notice consistent with #3988, with a link to settle (#3989).
 
@@ -2386,7 +2411,7 @@ The screen is read-only. Settling is an operational process handled by Finance (
 - And her available balance reduces by 200 EGP accordingly
 
 **Scenario 8 — Statement paginates**
-- Given the driver has more transactions than one page
+- Given the driver has more transactions in the selected period than one page
 - When she scrolls to the end of the list
 - Then the next page loads and appends, with no duplicated rows
 
@@ -2416,12 +2441,27 @@ The screen is read-only. Settling is an operational process handled by Finance (
 - Given the driver switches language
 - Then every label, transaction description, and state message is displayed in the selected language
 
+**Scenario 15 — Statement filtered by period**
+- Given the driver has transactions today, yesterday and earlier this month
+- When she opens the balance screen
+- Then the filter shows "Today" selected and only today's rows are listed
+- When she selects "This week"
+- Then every row from this week is listed, grouped under "Today", "Yesterday" and each earlier date, newest first
+- And the headline amount and the limit band are unchanged
+
+**Scenario 16 — No transactions in the selected period**
+- Given the driver has no transactions today
+- When the "Today" filter is selected
+- Then an empty state reads "لا توجد حركات في هذه الفترة" / "No transactions in this period"
+- And the headline still shows her whole balance
+
 ### Out of Scope
 - A driver-initiated payout request — there is no such action anywhere in the system; Finance transfers the money and records it (#4001)
 - In-app settlement payment by the driver
 - Statement export or PDF receipts
 - Disputing a transaction (Phase 2)
 - Earnings totals by period (#1736)
+- Custom date ranges on the statement filter — Today, This week and This month only
 
 ### Dependencies
 - #1781 — Driver retrieves her balance and statement (API — must be live)
@@ -2442,7 +2482,7 @@ The screen is read-only. Settling is an operational process handled by Finance (
 
 ### Background
 
-Reached from the balance screen (#1788), the blocked go-online sheet (#3988), and the profile menu. The screen opens with her current outstanding amount in EGP — or a zero state if she owes nothing — followed by the settlement channels she can use, drawn from the configured list (#3994): handing cash to the SheDrive office, a bank deposit, a mobile wallet transfer, or a field agent collection, whichever the platform has enabled. The office channel is shown with its address and opening hours, since it is the default path for a cash-collecting driver.
+Reached from the balance screen (#1788), the blocked go-online sheet (#3988), and the profile menu. The screen opens with her current outstanding amount in EGP — or a zero state if she owes nothing — followed by the four settlement channels: handing cash to the SheDrive office, a bank deposit, a mobile wallet transfer, or a field agent collection. For Phase 1 the channel details — the office address and opening hours, the SheDrive bank account, the wallet number and the field agent's contact — are fixed in the app, not configured by an admin, and change only with an app release. The office channel is shown with its address and opening hours, since it is the default path for a cash-collecting driver.
 
 **She never pays inside the app.** This screen is informational, not a payment form: a SheDrive team member or the office records the settlement once she has physically handed back the cash or made the transfer. As soon as that is recorded, her balance updates and — if it brought her below the outstanding limit — she can go online again immediately, with no further action and no need to restart the app (#3988).
 
@@ -2456,7 +2496,7 @@ All strings flow through data-i18n keys with Arabic fallback, and all amounts ar
 - Given a driver who owes the platform 320 EGP
 - When she opens the settlement screen
 - Then the amount she owes is shown at the top
-- And the enabled settlement channels are listed below it
+- And the four settlement channels are listed below it
 
 **Scenario 2 — Office channel shows address and hours**
 - Given the office cash channel is enabled
@@ -2510,7 +2550,7 @@ All strings flow through data-i18n keys with Arabic fallback, and all amounts ar
 
 ### Dependencies
 - #1781 — Driver retrieves her balance and statement (API — must be live; settlement entries are part of the same ledger)
-- #3994 — Super admin configures balance and fee policy (supplies the settlement channels and the outstanding limit)
+- #3994 — Super admin configures balance and fee policy (supplies the outstanding limit; the channel details are fixed in the app for Phase 1)
 - #1813 — Super admin reconciles driver balances and records settlements (Admin — where a settlement is actually recorded)
 - #1788 — Driver views her balance and statement (entry point)
 - #3988 — Driver is blocked from going online while her balance is over the limit (entry point when blocked)
@@ -2765,7 +2805,7 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 ---
 
 ## [Mobile] #5625 — Driver adds a payout method during onboarding 🆕
-**Feature:** #1539 Driver Onboarding | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1539 Driver Onboarding | **Sprint:** — | **Tag:** Payout
 
 **Description:** As a driver applicant, I want to choose how SheDrive pays me while I apply so that my earnings can be sent to me from my first payout.
 
@@ -2812,7 +2852,7 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 ---
 
 ## [Mobile] #5626 — Driver views and changes her payout method 🆕
-**Feature:** #1769 Earnings — Driver | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1769 Earnings — Driver | **Sprint:** — | **Tag:** Payout
 
 **Description:** As a driver, I want to see and change where SheDrive sends my earnings so that my payouts keep reaching me when my account changes.
 
@@ -2847,16 +2887,17 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 ---
 
 ## [Mobile] #5627 — Driver sees the payout status of her earnings 🆕
-**Feature:** #1769 Earnings — Driver | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1769 Earnings — Driver | **Sprint:** — | **Tag:** Payout
 
 **Description:** As a driver, I want to see when each earning will be paid and whether it was paid so that I know what money is coming to me.
 
 ### Rules
-- Each earning in her statement (#1788) shows one status: **On hold until <date>**, **Due**, **Being transferred**, **Paid**, or **Failed**.
-- The balance screen shows *On hold: X EGP · Due for payout: Y EGP* and links to her payout method.
-- She gets a notification when a payout is sent ("245.50 EGP was sent to your Vodafone Cash wallet") and when one fails ("Payout failed — check your payout method").
-- An earning is paid 7 calendar days after it happens, in the next payout Finance runs.
-- The settle screen (#3989) tells her Finance matches her payment to her by her national ID, and to keep her transfer reference.
+- Each earning in her statement (#1788) shows one status: On hold until <date>, Due, Being transferred, Paid, or Failed.
+- The balance screen shows On hold: X EGP · Due for payout: Y EGP and links to her payout method.
+- An earning is paid in the next payout after its 7-calendar-day hold, once her due amount reaches the minimum.
+- A paid payout shows the amount (plus fee and amount sent when she pays the fee).
+- Notifications: "245.50 EGP was sent to your Vodafone Cash wallet" and "Payout failed — check your payout method".
+- Settle screen (#3989): matched by national ID; keep the transfer reference.
 
 ### Acceptance Criteria
 **Scenario 1 — On hold**
@@ -2866,6 +2907,14 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 **Scenario 2 — Failed**
 - Given her last payout failed
 - Then the balance screen shows a failed-payout banner linking to her payout method
+
+**Scenario 3 — Below the minimum**
+- Given the minimum payout is 100.00 EGP and she is due 60.00 EGP
+- Then her 60.00 EGP stays Due with "Paid once your due amount reaches 100.00 EGP"
+
+**Scenario 4 — She pays the transfer fee**
+- Given a 250.50 EGP payout with a 3.76 EGP fee (1.5%) she pays
+- Then the payout reads 250.50 EGP, transfer fee 3.76 EGP, 246.74 EGP sent
 
 ### Out of Scope
 - Choosing when to be paid
@@ -2886,12 +2935,12 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 
 # No masking of phone numbers or national IDs (2026-10-14)
 
-> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change. ADO tag "No masking".
+> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change.
 
 ---
 
 ## [Mobile] #5653 — Driver sees her full national ID on her profile 🆕
-**Feature:** #1538 Driver Authentication | **Sprint:** — | **Tag:** No masking
+**Feature:** #1538 Driver Authentication | **Sprint:** —
 
 **Description:** As a driver, I want to see my full national ID on my profile so that I can check it is the one SheDrive verified.
 
@@ -2914,7 +2963,7 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 ---
 
 ## [Mobile] #5656 — Driver sees her full phone number when confirming account deletion 🆕
-**Feature:** #1538 Driver Authentication | **Sprint:** — | **Tag:** No masking
+**Feature:** #1538 Driver Authentication | **Sprint:** —
 
 **Description:** As a driver, I want to see my full phone number on the deletion code step so that I know exactly which number the code went to.
 

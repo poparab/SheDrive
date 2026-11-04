@@ -1,11 +1,12 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-10-22
+> Last updated: 2026-10-29
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
-> **Role model:** Two admin roles — **Super admin** and **Admin** — with the same access to
-> every screen. The only extra a Super admin has is suspending, unsuspending (#1821) and
-> deleting (#4122) other admin accounts. Finer-grained roles are a planned future addition.
+> **Role model (2026-10-27):** Five admin roles — **Admin (users & IT)**, **Operations officer**,
+> **Operations lead**, **Financial officer**, **Financial lead** — replace Super admin / Admin.
+> One story per role, each with its own column of the access matrix: #6480 Admin (users & IT, also the rules every role shares), #6481 Operations officer, #6482 Operations lead, #6483 Financial officer, #6484 Financial lead. Setting and changing a role: #6485. Financial-lead-only approvals: #6212. (#6210 and #6211 Removed 2026-10-29.)
+> Built stories that still say "Super admin" or "any other admin" are left as they are; these stories carry the change.
 > **Portal UI:** English only. **Safety/SOS:** the SOS queue + escalation workflow
 > is deferred to a later phase; the women-only gender-mismatch report triage is in scope.
 
@@ -3768,23 +3769,30 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ---
 
 ## [Admin] #5617 — Admin approves or rejects finance requests (maker-checker) 🆕
-**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Approval
 
 **Description:** As an admin, I want every finance action to wait for a second admin's decision so that no single person can move money or change prices alone.
 
 ### Rules
-- A finance action creates a **request**; nothing changes and nothing is posted to a ledger until another admin approves it.
-- Request types: payout batch, payout result, manual payout, manual settlement, settlement import, rider fee waiver, admin edit of a driver's payout method, rate card change, commission change.
-- The admin who made a request cannot approve or reject it. Any other admin can (finer roles come later).
-- Requests never expire. A rejection needs a reason; a rejected request changes nothing.
-- Only one pending request per subject (one zone, one driver's settlement, one fee, one batch).
-- Requested, approved and rejected are each written to the audit log (#1816).
-- The review opens from the Approvals queue and also **in place**, over the screen the request is about, from that screen's pending notice or request link (driver and rider balance, driver profile, payout batch, pricing zones and policies, settlement imports). It is the same review with the same rules; after a decision that screen refreshes.
-- When the queue is opened from a link on another screen, the admin goes back to that screen after the decision.
-- Every request type opens in the **same review layout**, in this order: **Request** (subject, amount, made by, status; checked by, decided on and rejection reason once decided) → **Before → after** (every field the request changes; a payout method change shows type, provider, number and holder) → **Details**, only when the type has facts of its own (batch and its status, file, trip and reason, method, reference, payment date, note) → **Lines**, only for a payout batch, a payout result and a settlement import.
-- Lines: a summary with one row per payout type (batch), result (payout result) or channel (import), each with its count and amount, and a Total row; then a search by driver, national ID, account or reference over a list paged 10 / 20 / 50 (default 10). A payout result lists failed lines first and filters Success / Failed. National IDs and account numbers are shown in full.
-- The sidebar shows the number of pending requests next to **Approvals**.
-- Above the queue: the number of pending requests, how long the oldest pending request has waited ("5 hours", "2 days"), and how many were decided today.
+- A finance action creates a request. Nothing changes or posts to a ledger until another admin approves it.
+- Generating a payout batch is not a request (#5618).
+- The maker cannot decide her own request. Who may make and decide each type: #6212.
+- Requests never expire.
+- One pending request per subject (zone, driver's settlement, fee, bank file's result).
+- The review opens from the **Approvals** queue, or in place from the pending notice or request link on the screen it is about: driver and rider balance, driver profile, payout batch, pricing zones and policies, settlement imports.
+- When the queue was opened from another screen's link, the admin returns there after the decision.
+- One review layout for every type, in this order:
+
+| Section | Shows |
+|---|---|
+| Request | Subject, amount, made by, status; once decided: checked by, decided on, rejection reason |
+| Before → after | Every changed field; a payout method change shows type, provider, number, holder |
+| Details | Type-specific facts only: batch, its status and method's file, file, trip and reason, method, reference, payment date, note |
+| Lines | Payout result and settlement import only |
+
+- Lines: a summary per result (payout result — one bank file) or per channel (import), with count, amount and Total; then a search by driver, national ID, account or reference, paged 10 / 20 / 50. A payout result filters Success / Failed.
+- National IDs and account numbers are shown in full.
+- The sidebar shows the pending count next to **Approvals**. Above the queue: pending count, oldest wait ("5 hours", "2 days"), decided today.
 
 ### Field Validation
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
@@ -3792,12 +3800,12 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Rejection reason | Yes (reject only) | Free text (textarea) | Any characters | 10 chars | 500 chars | empty | Give a reason for rejecting / اذكر سبب الرفض | — | Reason must be 10–500 characters / يجب أن يكون السبب بين 10 و500 حرف |
 
 ### List / Grid Specification
-**Tabs:** Pending (default) · Decided · **Area filter:** All / Payouts & settlements (payout batch, payout result, manual payout, manual settlement, settlement import) / Rider fees (fee waiver) / Pricing (rate card, commission) / Driver details (payout method edit) — a filter only, every admin still sees and can decide every area · **Page size:** 20 · **Default sort:** Pending — newest made first; Decided — newest decided first
+**Tabs:** Pending (default) · Decided · **Area filter:** All / Payouts & settlements (payout result, manual payout, manual settlement, settlement import, payout settings) / Rider fees (fee waiver) / Pricing (rate card, commission, cancellation policy, balance limit) / Driver details (payout method edit) — a filter only · **Page size:** 20 · **Default sort:** Pending — newest made first; Decided — newest decided first
 
 | Column | Sortable | Filterable | Filter type |
 |---|---|---|---|
 | Request ID | No | No | — |
-| Type | No | Yes | Dropdown (All / the nine types) |
+| Type | No | Yes | Dropdown (All / the eleven types) |
 | Subject (driver, rider, zone, batch, import or policy — links to it) | No | No | — |
 | Amount (EGP) | Yes | No | — |
 | Made by / at | Yes | Yes | Dropdown (Anyone / Other admins — mine to decide / Me — waiting for others) |
@@ -3824,56 +3832,138 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - When an admin tries to change Zamalek's rate card again
 - Then she is told a change is already awaiting approval and nothing is created
 
-**Scenario 5 — A 1,000-line batch**
-- Given a payout batch of 1,000 lines totalling 760,089.39 EGP
-- When the checker opens it
-- Then the summary reads Bank account 333, Mobile wallet 338, Prepaid card 329, Total 1,000 · 760,089.39 EGP, the list shows lines 1–10 of 1,000, and typing a driver's national ID narrows it to her line
+**Scenario 5 — One file of a 1,000-line batch**
+- Given a 1,000-line batch whose mobile wallet file has 338 lines, and its result marks 332 SUCCESS and 6 FAILED
+- When the checker opens that result
+- Then the summary reads Failed 6 · 5,980.56 EGP, Success 332 · 259,141.54 EGP, Total 338 · 265,122.10 EGP, the list shows lines 1–10 of 338 with the failed lines first, and typing a driver's national ID narrows it to her line
 
 **Scenario 6 — Decide on the screen she is on**
-- Given Yasmin Bakr's ledger shows a settlement awaiting approval (APR-0010)
+- Given Yasmin Bakr's ledger shows a settlement awaiting approval (APR-0011)
 - When another admin clicks the notice and approves in the review that opens over the ledger
-- Then she stays on the ledger, the notice gives way to Record settlement again, and APR-0010 leaves the Pending queue
+- Then she stays on the ledger, the notice gives way to Record settlement again, and APR-0011 leaves the Pending queue
 
 ### Out of Scope
-- Role-based approval limits (who may approve which type or amount)
+- Approval limits by amount
 - Notifying admins by email when a request is waiting
 - Bulk approve
 
 ### Dependencies
 - #1816 — Audit log
-- Used by: payout batch, payout result, settlement import, fee waiver, payout method edit, manual settlement/payout, rate card and commission stories in this set
+- Used by: payout result, settlement import, fee waiver, payout method edit, manual settlement/payout, rate card, commission and payout settings stories in this set
 
 ### Mockup (ADO comment)
 - Approvals (pending): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?lang=ar
 
 **Review cases** — one pending request of every type, each opens straight into the review:
-- Rate card change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0008
-- Fee waiver: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
-- Manual settlement: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0010
-- Payout batch, 12 lines: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0011
-- Payout batch, 100 lines: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0012
-- Payout batch, 1,000 lines: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0013
-- Payout result, 100 lines with 6 failed: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0014
-- Settlement import, 13 rows: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0015
-- Manual payout: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0016
-- Payout method change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0017
-- Commission change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0018
+- Rate card change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
+- Fee waiver: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0010
+- Manual settlement: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0011
+- Payout result, mobile wallet file of a 1,000-line batch (338 lines, 6 failed): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0012
+- Payout result, bank account file of the same batch (333 lines): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0013
+- Payout result, prepaid card file of the same batch (329 lines): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0014
+- Payout result, mobile wallet file of a 100-line batch (38 lines, 3 failed): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0015
+- Settlement import, 13 rows: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0018
+- Manual payout: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0019
+- Payout method change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0020
+- Commission change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0021
+- Cancellation policy change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0022
+- Balance limit change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0023
+- Payout settings change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0024
 
 ---
 
 ## [Admin] #5618 — Admin generates a payout batch 🆕
-**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Payout
 
-**Description:** As an admin, I want to generate a payout batch from the earnings that are due so that Finance pays every driver what she is owed in one bank transfer.
+**Description:** As an admin, I want to generate a payout batch from the earnings that are due so that Finance pays every driver what she is owed in one run.
 
 ### Rules
-- A payable earning (trip earnings, rider cancellation-fee credit) becomes **due 7 calendar days** after it happens. Until then it is **on hold**.
-- An admin generates a batch by hand on working days. There is no automatic run.
-- One line per driver whose due earnings net above 0 and whose whole balance is positive. A driver who owes SheDrive isn't in the batch — she settles instead.
-- **Line amount = the smaller of her due net and her whole balance.** No minimum amount. Transfer fees are ignored.
-- A generated batch is **Pending approval** (maker-checker). Its earnings are *in a batch* and can't be picked up by another batch.
-- Batch reference format: `PB-YYYYMMDD-nn`.
+- A payable earning (trip earnings, rider cancellation-fee credit) is on hold for 7 calendar days, then due.
+- Cut-off line: a batch takes earnings up to the end of the day 7 days before it is generated (generated 29 Oct → up to the end of 22 Oct). Later earnings stay on hold. The preview and the batch show it.
+- An admin generates a batch by hand on working days. No automatic run.
+- One line per driver whose due earnings net above 0 and whose whole balance is positive.
+- Line amount = her due net up to the cut-off, not capped by her balance. This leaves her balance.
+- A driver due less than the minimum payout isn't in the batch or the preview at all; her earnings stay Due for a later batch.
+- Every line carries a transfer fee: a percentage of the line, never below the fee minimum or above the fee maximum, paid by the driver or by SheDrive.
+- Minimum, fee and payer come from the payout settings (#6486). A batch keeps the settings it was generated with.
+- Earnings in a batch can't be picked up by another batch.
+- Statuses: Ready to export → Sent to bank → Result pending approval → Completed (#5619).
+- Reference: PB-YYYYMMDD-nn.
+- Generate payout batch is on the Payouts page; the page itself — its cards and the list of batches — is #6497.
+
+### Acceptance Criteria
+**Scenario 1 — Preview before generating**
+- Given three drivers have due earnings and one of them owes SheDrive 40.00 EGP overall
+- When the admin chooses Generate payout batch
+- Then the preview lists two lines with their amount, transfer fee and the amount sent to her, the totals, and how many files the batch makes per payout method; the third driver isn't listed
+
+**Scenario 2 — The cut-off line**
+- Given today is 29 Oct and a driver earned 120.00 EGP on 22 Oct and 80.00 EGP on 23 Oct
+- Then the preview reads "Cut-off: earnings up to the end of 22 Oct 2026 (7 days ago)", her line is 120.00 EGP, and the 80.00 EGP stays on hold
+
+**Scenario 3 — Not capped by her balance**
+- Given a driver is due 300.00 EGP up to the cut-off and her whole balance is 180.00 EGP
+- Then her line is 300.00 EGP
+
+**Scenario 4 — Below the minimum**
+- Given the minimum payout is 100.00 EGP and a driver's line would be 60.00 EGP
+- Then she isn't in the batch or the preview at all — no count or note — and her earnings stay Due
+
+**Scenario 5 — Transfer fee paid by the driver**
+- Given the transfer fee is 1.5% (minimum 3.00 EGP, maximum 20.00 EGP), paid by the driver
+- And a driver's line is 250.50 EGP
+- Then her line shows 250.50 EGP, fee −3.76 EGP, sent to her 246.74 EGP
+- And a 140.00 EGP line pays the 3.00 EGP minimum fee, and a 2,000.00 EGP line the 20.00 EGP maximum
+
+**Scenario 6 — Transfer fee paid by SheDrive**
+- Given the same fee, paid by SheDrive
+- Then the same driver is sent 250.50 EGP
+
+**Scenario 7 — Generate**
+- When the admin confirms
+- Then the batch is created as Ready to export, no approval request is made, and the admin lands on the batch
+
+**Scenario 8 — Nothing due**
+- Given no driver has a due amount at or above the minimum
+- Then the preview says so and Generate is disabled
+
+### Out of Scope
+- Excluding a single driver from a batch by hand
+- Holiday calendars
+- A different fee per payout method
+
+### Dependencies
+- #6486 Admin sets the minimum payout and the transfer fee
+- #6497 Admin views the payout history
+- #5619 Bank files and results
+- #5625 Driver payout method
+- #4378 — Driver ledger (payable entries)
+
+### Mockup (ADO comment)
+- Payouts (generate a batch here): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?lang=ar
+
+---
+
+## [Admin] #6497 — Admin views the payout history 🆕
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Payouts & settlement
+
+**Description:** As a Financial officer or lead, I want to see every payout batch and where the money stands so that I know what is due, what is with the bank and what was paid.
+
+### Rules
+- **Payouts** (Finance in the sidebar) shows three cards on top, then the list of batches. Generate payout batch sits on the title row (#5618).
+- Financial officer and Financial lead only (#6483, #6484). Nothing on this page moves money.
+
+| Card | Shows | Sub-line |
+|---|---|---|
+| Due now / مستحق الآن | What a batch generated now would pay, by the same rules as #5618 (cut-off, minimum, drivers who owe left out) | Drivers due: n / السائقات المستحقات: n |
+| In open batches / في دفعات مفتوحة | Total of the batches Sent to bank or Result pending approval | Sent to bank, awaiting the result / أُرسلت إلى البنك وبانتظار النتيجة |
+| Paid this month / مدفوع هذا الشهر | Paid lines of the batches completed this calendar month (Cairo time) | Lines paid: n / البنود المدفوعة: n |
+
+- The batch ref and the View action open the batch (#5619).
+- Export CSV downloads the filtered list: Batch ref, Created, Created by, Lines, Total (EGP), Paid lines, Failed lines, Status. File name `shedrive-payout-batches-YYYY-MM-DD.csv`.
+- No batches: "No payout batches" / "لا توجد دفعات مدفوعات" — "Generate a batch when drivers have earnings past their 7-day hold." / "أنشئ دفعة عندما تكون لدى السائقات أرباح تجاوزت فترة الانتظار ٧ أيام."
 
 ### List / Grid Specification
 **Page size:** 20 · **Default sort:** Created — newest first
@@ -3884,179 +3974,453 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Created at / by | Yes | No | — |
 | Lines | Yes | No | — |
 | Total (EGP) | Yes | No | — |
-| Paid / Failed | No | No | — |
-| Status | No | Yes | Dropdown (All / Pending approval / Ready to export / Sent to bank / Result pending approval / Completed / Rejected) |
+| Paid / Failed (paid in green, failed in red) | No | No | — |
+| Status | No | Yes | Dropdown (All / Ready to export / Sent to bank / Result pending approval / Completed) |
+| Actions (View — approved files only) | No | No | — |
 
 ### Acceptance Criteria
-**Scenario 1 — Preview before generating**
-- Given three drivers have due earnings and one of them owes SheDrive 40.00 EGP overall
-- When the admin chooses Generate payout batch
-- Then the preview lists two lines with their amounts and total; the third driver isn't listed
+**Scenario 1 — The cards**
+- Given four drivers are due 1,031.15 EGP up to the cut-off, one batch is Sent to bank with 912.40 EGP, and a batch completed this month paid 9 lines totalling 2,140.00 EGP
+- When the admin opens Payouts
+- Then the cards read Due now 1,031.15 EGP (Drivers due: 4), In open batches 912.40 EGP, Paid this month 2,140.00 EGP (Lines paid: 9)
 
-**Scenario 2 — Amount is capped by her balance**
-- Given a driver's due earnings are 300.00 EGP but her whole balance is 180.00 EGP (commission from this week)
-- Then her line is 180.00 EGP
+**Scenario 2 — Filter by status**
+- When she picks Sent to bank
+- Then only batches Sent to bank are listed, and Export CSV downloads only those
 
-**Scenario 3 — Generate**
-- When the admin confirms
-- Then a batch is created as Pending approval, a request appears in Approvals, and the admin lands on the batch
+**Scenario 3 — Open a batch**
+- When she clicks a batch ref or View
+- Then the batch opens with its bank files and results (#5619)
 
-**Scenario 4 — Nothing due**
-- Given no driver has a due net above 0
-- Then the preview says so and Generate is disabled
-
-**Scenario 5 — Rejected batch releases its earnings**
-- Given the batch request is rejected
-- Then the batch shows Rejected and its earnings are due again for the next batch
+**Scenario 4 — No batches yet**
+- Given no batch was ever generated
+- Then the list shows "No payout batches" and the cards still show what is due
 
 ### Out of Scope
-- Excluding a single driver from a batch by hand
-- Holiday calendars
+- Charts or trends over time
+- Filtering by date or by driver
 
 ### Dependencies
-- #5617 Maker-checker approvals
-- #5625 Driver payout method
-- #4378 — Driver ledger (payable entries)
+- #5618 Admin generates a payout batch
+- #5619 Bank files and results
+- #6483, #6484 — Financial officer and Financial lead
 
 ### Mockup (ADO comment)
-- Payouts (generate a batch here): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?lang=ar
+- Payouts: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_lead
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_lead&lang=ar
+- No batches: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_lead&state=empty
+- Error: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_lead&state=error
 
 ---
 
-## [Admin] #5619 — Admin exports a payout batch and imports the bank result 🆕
-**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+## [Admin] #5619 — Admin exports a payout batch's bank files and imports each result 🆕
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Payout
 
-**Description:** As an admin, I want to export an approved batch as the bank's bulk-transfer file and import the result Finance sends back so that a driver is marked paid only when the bank confirms it.
+**Description:** As an admin, I want to export a batch as one bulk-transfer file per payout method and import the result each channel sends back so that a driver is marked paid only when her transfer is confirmed.
 
 ### Rules
-- Only an approved batch (**Ready to export**) can be exported. Exporting moves it to **Sent to bank**; it can be downloaded again afterwards.
-- One CSV holds every payout method, told apart by `payout_type` (`MOBILE_WALLET`, `BANK_ACCOUNT`, `PREPAID_CARD`).
-- Export columns: `batch_ref, line_ref, national_id, driver_name, payout_type, provider_or_bank, account_number, account_holder, amount_egp`. The full account number appears only in this file.
-- Result file: the same columns plus `status` (`SUCCESS` / `FAILED`), `bank_reference`, `failure_reason`, matched on `line_ref`.
-- An imported result is **Result pending approval** (maker-checker). On approval: SUCCESS posts a `payout` entry (−amount, reference = bank reference) and marks its earnings **Paid**; FAILED puts its earnings back to **Due** and flags the driver *Last payout failed* with the reason. The batch becomes **Completed**.
-- The driver is notified of a paid or a failed payout.
-- A payout is keyed on `line_ref`, so the same result can never pay twice.
+- Exporting a **Ready to export** batch downloads one CSV per payout method that has lines, and moves the batch to Sent to bank.
+- Files can be downloaded again; a copy changes nothing.
+- earnings_egp leaves her balance; transfer_fee_egp and fee_paid_by come from the batch's payout settings (#6486); amount_egp is what the channel sends. Account and card numbers are in full.
+- Each bank file gets its own result file, matched on line_ref.
+- An imported result goes to approval (#5617) for that file only.
+- On approval, SUCCESS posts a payout entry (−line amount, reference = bank reference, showing the fee when she pays it). FAILED flags her Last payout failed with the reason.
+- File status: Waiting for the result → Result pending approval → Done (paid and failed counts).
+- The batch is Result pending approval once every result is imported.
+- The driver is notified of a paid or failed payout.
+- A line_ref can never be paid twice.
+
+### File templates
+The three templates are attached to this story and to #5618: `payout-template-mobile-wallet.csv`, `payout-template-bank-account.csv`, `payout-template-prepaid-card.csv` (header row plus one example line each). Source: `docs/backlog/payout-templates/`.
+
+**Mobile wallet** — `<batch ref>-mobile-wallet.csv`
+
+| Column | Content | Example |
+|---|---|---|
+| batch_ref | Batch reference | PB-20261029-08 |
+| line_ref | Line reference, unique | PB-20261029-08-0003 |
+| national_id | 14 digits | 28291037053102 |
+| driver_name | Full name | Laila Fathy |
+| phone | Her mobile number | 01262626151 |
+| wallet_provider | Vodafone Cash / Orange Cash / e& money / WE Pay | Vodafone Cash |
+| wallet_number | 01 + 9 digits | 01262626151 |
+| account_holder | Name on the wallet | Laila Fathy |
+| earnings_egp | What leaves her balance | 250.50 |
+| transfer_fee_egp | The fee for this transfer: its percentage, held between the fee minimum and maximum | 3.76 |
+| fee_paid_by | DRIVER or SHEDRIVE | DRIVER |
+| amount_egp | What is sent to her | 246.74 |
+
+**Bank account** — `<batch ref>-bank-account.csv`
+
+| Column | Content | Example |
+|---|---|---|
+| batch_ref | Batch reference | PB-20261029-08 |
+| line_ref | Line reference, unique | PB-20261029-08-0001 |
+| national_id | 14 digits | 28897381418151 |
+| driver_name | Full name | Nada El-Sayed |
+| phone | Her mobile number | 01149222929 |
+| bank_name | From the bank list | National Bank of Egypt |
+| account_number | 10–20 digits, or IBAN EG + 27 digits | EG248392193762161230469282293 |
+| account_holder | Account holder name | Nada El-Sayed |
+| earnings_egp | What leaves her balance | 140.00 |
+| transfer_fee_egp | The fee for this transfer: its percentage, held between the fee minimum and maximum | 3.00 |
+| fee_paid_by | DRIVER or SHEDRIVE | DRIVER |
+| amount_egp | What is sent to her | 137.00 |
+
+**Prepaid card** — `<batch ref>-prepaid-card.csv`
+
+| Column | Content | Example |
+|---|---|---|
+| batch_ref | Batch reference | PB-20261029-08 |
+| line_ref | Line reference, unique | PB-20261029-08-0002 |
+| national_id | 14 digits | 30094955329783 |
+| driver_name | Full name | Jana Adel |
+| phone | Her mobile number | 01064090123 |
+| card_number | 16 digits | 5078589101662031 |
+| card_holder | Name on the card | Jana Adel |
+| earnings_egp | What leaves her balance | 195.25 |
+| transfer_fee_egp | The fee for this transfer: its percentage, held between the fee minimum and maximum | 3.00 |
+| fee_paid_by | DRIVER or SHEDRIVE | DRIVER |
+| amount_egp | What is sent to her | 192.25 |
+
+**Result file** — the same columns as the file it answers, plus:
+
+| Column | Content | Example |
+|---|---|---|
+| status | SUCCESS or FAILED | FAILED |
+| bank_reference | The channel's reference for a SUCCESS line | BNK48213377 |
+| failure_reason | Why a FAILED line failed | Wallet number not registered |
 
 ### Field Validation
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
 |---|---|---|---|---|---|---|---|---|---|
-| Result file | Yes | File (.csv) | Columns `line_ref` and `status` present; every batch line exactly once; status `SUCCESS` or `FAILED` | — | — | none | Choose the result file / اختر ملف النتيجة | Missing column: {column} / عمود ناقص: {column} | Line {line} is missing, repeated or not in this batch / البند {line} ناقص أو مكرر أو ليس في هذه الدفعة |
+| Result file | Yes | File (.csv) | Columns `line_ref` and `status` present; every line of one bank file exactly once; status `SUCCESS` or `FAILED` | — | — | none | Choose the result file / اختر ملف النتيجة | Missing column: {column} / عمود ناقص: {column} · Line {line} belongs to another payout method's file / البند {line} يخص ملف طريقة دفع أخرى | Line {line} is missing, repeated or not in this batch / البند {line} ناقص أو مكرر أو ليس في هذه الدفعة |
 
 ### Acceptance Criteria
 **Scenario 1 — Export**
-- Given batch PB-20261014-01 is Ready to export with 4 lines totalling 912.40 EGP
+- Given batch PB-20261029-08 is Ready to export with one mobile wallet, one bank account and one prepaid card line
 - When the admin exports it
-- Then the CSV downloads with 4 rows and the batch shows Sent to bank with who exported it and when
+- Then three CSV files download, one per method, each with its driver's phone number, and the batch shows Sent to bank with who exported it and when
 
-**Scenario 2 — Import a result with one failure**
-- Given the result marks 3 lines SUCCESS and 1 FAILED "Wallet number not registered"
-- When the admin imports it and another admin approves
-- Then three drivers get a payout entry and Paid earnings, the fourth driver's earnings are Due again, her profile shows the failure, and the batch is Completed
+**Scenario 2 — Import one file's result with a failure**
+- Given the mobile wallet result marks 3 lines SUCCESS and 1 FAILED "Wallet number not registered"
+- When the admin imports it and a Financial lead approves
+- Then three drivers get a payout entry and Paid earnings, the fourth driver's earnings are Due again and her profile shows the failure; the wallet file shows Done and the batch stays Sent to bank while the other files wait
 
-**Scenario 3 — Result doesn't match the batch**
-- Given the file lists a line that isn't in the batch and leaves one out
+**Scenario 3 — Last file approved**
+- Given the wallet and bank results are approved
+- When the prepaid card result is approved
+- Then the batch is Completed
+
+**Scenario 4 — Result doesn't match the file**
+- Given a result file lists a line from the bank file inside the wallet result and leaves one wallet line out
 - Then the import is refused with both lines named, and nothing changes
 
-**Scenario 4 — Rejected result**
-- Given the result request is rejected
-- Then the batch returns to Sent to bank and a corrected file can be imported
+**Scenario 5 — Rejected result**
+- Given the bank result request is rejected
+- Then only the bank file returns to Waiting for the result, with the reason, and a corrected file can be imported
 
 ### Out of Scope
-- Sending the file to the bank automatically (Finance uploads it on the bank portal)
+- Sending the files to the bank or wallet channels automatically (Finance uploads them on each portal)
 
 ### Dependencies
 - #5618 Admin generates a payout batch
+- #6486 Payout settings
 - #5617 Maker-checker approvals
 - #5627 Driver sees the payout status of her earnings
 
 ### Mockup (ADO comment)
-- Payouts — open the batch marked Sent to bank to import a result: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
+- Payouts — open a batch marked Ready to export or Sent to bank: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
 - Batch not found: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payout-batch.html?id=unknown
 
 ---
 
-## [Admin] #5620 — Admin imports Finance's settlement sheet 🆕
-**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+## [Admin] #6486 — Admin sets the minimum payout and the transfer fee 🆕
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Payout
 
-**Description:** As an admin, I want to import the sheet of drivers who paid SheDrive so that their balances are settled in one go instead of one at a time.
+**Description:** As a Financial lead, I want to set the minimum payout, the transfer fee as a percentage with a minimum and a maximum, and who pays it so that small payouts wait and the transfer cost lands where we decide.
 
 ### Rules
-- SheDrive provides the sheet template (CSV): `national_id, driver_name, amount_egp, payment_date, payment_channel, payment_reference`.
-- The sheet lists only payments that already went through. A row matches a driver by **national ID**; the name is for Finance's reference only.
-- **Any amount is applied.** Less than she owes settles part of it. More than she owes adds the extra to her balance, so SheDrive then owes her that amount.
-- A row can't be applied only when its national ID matches no driver, or its payment reference was already imported (the same payment never posts twice). Those rows are not stored; Finance fixes them and sends them again.
-- Each row shows her balance now, her balance after, and the outcome: *Settled in full*, *Part paid — still owes X*, or *Paid more — X added to her balance*. Two rows for the same driver apply one after the other.
-- The rows that can be applied go as one request (maker-checker). On approval each posts a `settlement` entry with a receipt number (`S-nnnnn`), and her go-online block lifts once she is under the limit.
+- Global policies has three tabs, one per owner, each with its own Save and Revert:
+
+| Tab | Cards | Who changes it | When a change applies |
+|---|---|---|---|
+| Pricing | Cancellation policy, platform commission (#1759) | Financial lead | After another Financial lead approves |
+| Finance | Driver balance limit (#3994), Payouts | Financial lead | After another Financial lead approves |
+| Operations | Operating hours (#6268) | Operations lead | On save |
+
+- Save and Revert act on the open tab only; unsaved edits on another tab stay. A tab a role can't change is read-only, with no Save. The page opens on the first tab the role can change; `?tab=pricing|finance|operations` opens a tab, and a request's link opens the tab its setting is on.
+- The Finance tab gets a **Payouts** card:
+
+| Setting | Default |
+|---|---|
+| Minimum payout (EGP) | 100.00 |
+| Transfer fee (% of each payout), same for every payout method | 1.5% |
+| Transfer fee — minimum (EGP) | 3.00 |
+| Transfer fee — maximum (EGP) | 20.00 |
+| Who pays the fee: the driver or SheDrive | The driver |
+
+- Fee on a payout = its percentage of the payout, raised to the minimum when below it and cut to the maximum when above it, to 2 decimals (1.5%: 250.50 → 3.76; 140.00 → 3.00; 2,000.00 → 20.00).
+- Driver pays: the fee comes off what she is sent. SheDrive pays: she gets her full amount.
+- A change is a payout settings change request, approved by another Financial lead (#5617, #6212), in the Payouts & settlements area filter.
+- The card shows a worked example for a 500.00 EGP payout and when it was last changed and by whom.
 
 ### Field Validation
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
 |---|---|---|---|---|---|---|---|---|---|
-| Settlement sheet | Yes | File (.csv) | All six template columns present; at least one row | 1 row | — | none | Choose the settlement sheet / اختر ملف التسويات | Missing column: {column} / عمود ناقص: {column} | The sheet has no rows / الملف لا يحتوي على صفوف |
-| national_id | Yes | 14 digits | A registered driver's national ID | 14 | 14 | — | Not applied — no driver with this national ID / لم يُطبَّق — لا توجد سائقة بهذا الرقم القومي | Not applied — no driver with this national ID / لم يُطبَّق — لا توجد سائقة بهذا الرقم القومي | — |
-| amount_egp | Yes | Decimal (EGP), 2 decimals | Any positive amount she paid | 0.01 | — | — | — | — | — |
-| payment_date | Yes | Date (YYYY-MM-DD) | Not in the future | — | today | — | — | — | — |
-| payment_channel | Yes | Text | Bank transfer, Fawry, Mobile wallet, Field agent | — | — | — | — | — | — |
-| payment_reference | Yes | Text | Not imported before | 1 | 60 | — | Not applied — already imported / لم يُطبَّق — تم استيراده من قبل | Not applied — already imported / لم يُطبَّق — تم استيراده من قبل | — |
-
-### List / Grid Specification (import history)
-**Page size:** 20 · **Default sort:** Uploaded — newest first
-
-| Column | Sortable | Filterable | Filter type |
-|---|---|---|---|
-| Import ID | No | No | — |
-| File name | No | No | — |
-| Uploaded at / by | Yes | No | — |
-| Applied / total rows | No | No | — |
-| Amount (EGP) | Yes | No | — |
-| Status (Pending approval / Approved / Rejected) | No | No | — |
-| Decided at / by | Yes | No | — |
+| Minimum payout | Yes | Number, 2 decimals (EGP) | 0–100,000; more than the fee on it when the driver pays the fee | 0 | 100,000 | 100.00 | Enter the minimum payout / أدخل الحد الأدنى للصرف | Enter a valid amount / أدخلي مبلغًا صحيحًا | Must be between 0 and 100,000 EGP / يجب أن تكون القيمة بين 0 و100,000 جنيه · When the driver pays the fee, the minimum payout must be more than the fee on it / عندما تدفع السائقة الرسوم، يجب أن يكون الحد الأدنى للصرف أكبر من الرسوم عليه |
+| Transfer fee (%) | Yes | Number, 2 decimals (%) | 0–100 | 0 | 100 | 1.5 | Enter the transfer fee percentage / أدخل نسبة رسوم التحويل | Enter a valid amount / أدخلي مبلغًا صحيحًا | Must be between 0% and 100% / يجب أن تكون النسبة بين 0% و100% |
+| Transfer fee — minimum | Yes | Number, 2 decimals (EGP) | 0–1,000 | 0 | 1,000 | 3.00 | Enter the minimum fee / أدخل الحد الأدنى للرسوم | Enter a valid amount / أدخلي مبلغًا صحيحًا | Must be between 0 and 1,000 EGP / يجب أن تكون القيمة بين 0 و1,000 جنيه |
+| Transfer fee — maximum | Yes | Number, 2 decimals (EGP) | 0–1,000; not below the fee minimum | 0 | 1,000 | 20.00 | Enter the maximum fee / أدخل الحد الأقصى للرسوم | Enter a valid amount / أدخلي مبلغًا صحيحًا | Must be between 0 and 1,000 EGP / يجب أن تكون القيمة بين 0 و1,000 جنيه · The maximum fee can’t be below the minimum fee / لا يمكن أن يكون الحد الأقصى للرسوم أقل من الحد الأدنى |
+| Transfer fee paid by | Yes | Dropdown | The driver / السائقة · SheDrive / شي درايف | — | — | The driver | — | — | — |
 
 ### Acceptance Criteria
-**Scenario 1 — Check a sheet**
-- Given a sheet where one driver pays exactly the 102.08 EGP she owes, one pays 42.00 of 84.22, one pays 50.00 more than she owes, one pays 75.00 while owing nothing, one row has an unknown national ID and one repeats a reference imported last week
+**Scenario 1 — SheDrive takes over the fee**
+- Given the fee is 1.5% (minimum 3.00, maximum 20.00 EGP), paid by the driver
+- When Hala sets SheDrive as the payer and saves
+- Then a payout settings change is pending, the card is locked, and batches still take the fee from the driver until another Financial lead approves
+
+**Scenario 2 — Approved**
+- When Nour approves it
+- Then the next batch sends a driver due 250.50 EGP the full 250.50 EGP, and a batch generated before stays as it was
+
+**Scenario 3 — Minimum not above the fee**
+- Given the driver pays the fee and its minimum is 3.00 EGP
+- When the minimum payout is set to 3.00 EGP
+- Then the minimum payout shows "When the driver pays the fee, the minimum payout must be more than the fee on it" and nothing is sent
+
+**Scenario 4 — Maximum below minimum**
+- When the fee minimum is 10.00 EGP and the maximum 8.00 EGP
+- Then the maximum shows "The maximum fee can’t be below the minimum fee" and nothing is sent
+
+**Scenario 5 — Not a Financial lead**
+- When a Financial officer opens Global policies
+- Then the Payouts card is read-only
+
+**Scenario 6 — One tab saves alone**
+- Given Hala changed the commission on Pricing and the minimum payout on Finance, and is on Finance
+- When she saves
+- Then only a payout settings change is sent for approval, and her commission edit stays on Pricing unsaved
+
+**Scenario 7 — Opens on her tab**
+- When the Operations lead opens Global policies
+- Then the Operations tab is open with Save; Pricing and Finance are read-only
+
+### Out of Scope
+- A different fee or minimum per payout method
+- A flat fee plus a percentage
+
+### Dependencies
+- #5618 Admin generates a payout batch
+- #5619 Bank files and results
+- #5617 Maker-checker approvals
+- #6212 Only Financial leads approve finance requests
+
+### Mockup (ADO comment)
+- Global policies — Finance tab, Payouts card: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=finance
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=finance&lang=ar
+- Review a payout settings change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0024
+
+---
+
+## [Admin] #5620 — Admin imports Finance's settlement sheet 🆕
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Settlement
+
+**Description:** As an admin, I want to import the sheet of drivers who paid SheDrive so that their balances are settled in one go instead of one at a time.
+
+### Rules
+- **Import settlement** on the settlements history (#6492) opens a wizard: 1 Download template → 2 Upload sheet → 3 Review result. Back returns one step; no step can be skipped.
+- Step 1 offers the CSV template and shows how each of its seven columns is written (Field Validation).
+- Step 2 checks only the template and format (Field Validation).
+- Step 2 never lists cell errors on screen. **Download the file with errors** returns her sheet with an `errors` column naming every cell to fix on each wrong row (`column: what is wrong`, joined by ` | `). She fixes it and uploads it again; the `errors` column is ignored.
+- Problems with the file itself (type, size, columns, row count) belong to no row, so the step 2 alert names them and no errors file is offered.
+- Step 3 checks each row against SheDrive's data (Business Rules) and shows Passed or why it failed.
+- One failed row rejects the whole file. **Download the file with errors** returns her sheet with an `errors` column holding each failed row's reason (passed rows left blank). She fixes those rows or deletes them, then uploads the file again from step 2; the `errors` column is ignored.
+- The sheet lists only payments already made. Rows match drivers by national ID, and the phone number must be the one registered to that driver (Business Rules). The name is for reference only.
+- Any amount is applied. Paying more adds the extra to her balance, so SheDrive owes her.
+- Each passed row shows her balance now and after, and the outcome: Settled in full, Part paid — still owes X, or Paid more — X added to her balance.
+- **Send file for approval** sends the whole file as one request; a Financial lead approves (#5617, #6212). It then appears in the history (#6492).
+- On approval each row posts a settlement entry with a receipt number (S-nnnnn). Her go-online block lifts once she is under the limit.
+
+### Field Validation (step 2 — template and format)
+| Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
+|---|---|---|---|---|---|---|---|---|---|
+| Settlement sheet | Yes | File (.csv) | A .csv file | — | 5 MB | none | Choose the settlement sheet / اختر ملف التسويات | The file must be a .csv file / يجب أن يكون الملف بصيغة ‎.csv | The file is larger than 5 MB / حجم الملف أكبر من ٥ ميجابايت |
+| Template columns | Yes | Header row | Exactly the seven template columns, each once; an `errors` column from an errors file is ignored | 7 | 7 | — | Missing column: {column} / عمود ناقص: {column} | Column not in the template: {column} / عمود غير موجود في النموذج: {column} · Column appears twice: {column} / عمود مكرر: {column} | — |
+| Rows | Yes | CSV rows, seven cells each | — | 1 | 1,000 | — | The sheet has no rows / الملف لا يحتوي على صفوف | The row does not have seven cells / الصف لا يحتوي على سبع خلايا | The sheet has {n} rows; a sheet can have up to 1,000 / الملف به {n} صفًا؛ الحد الأقصى ١٬٠٠٠ صف |
+| national_id | Yes | Digits only | 14 digits | 14 | 14 | — | Required — the cell is empty / مطلوب — الخلية فارغة | Must be 14 digits / يجب أن يكون ١٤ رقمًا | Must be 14 digits / يجب أن يكون ١٤ رقمًا |
+| phone_number | Yes | Digits only | Egyptian mobile: 11 digits starting 010, 011, 012 or 015 (matched against the driver in step 3) | 11 | 11 | — | Required — the cell is empty / مطلوب — الخلية فارغة | Must be an Egyptian mobile number: 11 digits starting 010, 011, 012 or 015 / يجب أن يكون رقم موبايل مصري: ١١ رقمًا يبدأ بـ 010 أو 011 أو 012 أو 015 | Must be an Egyptian mobile number: 11 digits starting 010, 011, 012 or 015 / يجب أن يكون رقم موبايل مصري: ١١ رقمًا يبدأ بـ 010 أو 011 أو 012 أو 015 |
+| driver_name | No | Free text | Any characters (reference only) | — | 100 chars | empty | — | — | Must be 100 characters or fewer / يجب ألا يزيد عن ١٠٠ حرف |
+| amount_egp | Yes | Decimal (EGP), up to 2 decimals | A plain number, no currency or thousands separator (245.50) | 0.01 | — | — | Required — the cell is empty / مطلوب — الخلية فارغة | Must be a number with up to 2 decimals, no currency or commas / يجب أن يكون رقمًا بحد أقصى خانتين عشريتين، بدون عملة أو فواصل | Must be more than 0 / يجب أن يكون أكبر من صفر |
+| payment_date | Yes | Date (YYYY-MM-DD) | A real calendar date | — | — | — | Required — the cell is empty / مطلوب — الخلية فارغة | Must be a real date written YYYY-MM-DD / يجب أن يكون تاريخًا صحيحًا بصيغة YYYY-MM-DD | — |
+| payment_channel | Yes | Text, exact spelling | Bank transfer, Fawry, Mobile wallet, Field agent | — | — | — | Required — the cell is empty / مطلوب — الخلية فارغة | Must be Bank transfer, Fawry, Mobile wallet or Field agent / يجب أن يكون Bank transfer أو Fawry أو Mobile wallet أو Field agent | — |
+| payment_reference | Yes | Letters, digits, hyphen | — | 1 char | 60 chars | — | Required — the cell is empty / مطلوب — الخلية فارغة | Must be 1–60 letters, digits or hyphens / يجب أن يكون من ١ إلى ٦٠ حرفًا أو رقمًا أو شرطة | Must be 1–60 letters, digits or hyphens / يجب أن يكون من ١ إلى ٦٠ حرفًا أو رقمًا أو شرطة |
+
+### Business Rules (step 3 — any failure rejects the whole file)
+| Rule | Row fails when | Row result |
+|---|---|---|
+| Registered driver | `national_id` matches no driver | No driver with this national ID / لا توجد سائقة بهذا الرقم القومي |
+| Phone matches the driver | `phone_number` is not the registered phone of the driver found by `national_id` | Phone number doesn't match this driver / رقم الموبايل لا يطابق هذه السائقة |
+| Payment not imported before | `payment_reference` is on an approved import or a file awaiting approval | Already imported / تم استيراده من قبل |
+| Reference unique in the file | `payment_reference` appeared on an earlier row of the same file | Payment reference repeated in this file / مرجع السداد مكرر في هذا الملف |
+| Payment already made | `payment_date` is after today | Payment date is in the future / تاريخ السداد في المستقبل |
+
+File result when any row fails: *File rejected — {n} rows failed the business check* / *الملف مرفوض — فشل {n} صفوف في فحص قواعد العمل*.
+
+### Acceptance Criteria
+**Scenario 1 — Format errors come back in the file**
+- Given a file of four rows with `102.08 EGP` as an amount and `1596961055` as a phone on row 1, `29/10/2026` as a date on row 2, a 12-digit national ID on row 3 and `Cash` as the channel on row 4
 - When the admin uploads it
-- Then four rows show *Settled in full*, *Part paid — still owes 42.22*, *Paid more — 50.00 added*, *Paid more — 75.00 added*, and the last two say why they can't be applied
+- Then step 2 says *The file has errors in 4 rows*, lists no cell errors on screen, Next is unavailable and nothing is checked against drivers
+- When she downloads the file with errors
+- Then it is her sheet with an `errors` column: row 1 reads `phone_number: Must be an Egyptian mobile number… | amount_egp: Must be a number with up to 2 decimals…`, and rows 2–4 each name their one cell
 
-**Scenario 2 — Send for approval and approve**
-- When the admin sends the four rows and another admin approves
-- Then four settlement entries are posted with receipt numbers: the first driver's balance is 0.00, the second still owes 42.22, and the other two show the extra on their balance
+**Scenario 2 — Re-upload the corrected errors file**
+- Given she fixes those cells and leaves the `errors` column in the file
+- When she uploads it again
+- Then step 2 passes and Next opens step 3
 
-**Scenario 3 — Same driver twice**
+**Scenario 3 — Wrong template**
+- Given the file has no `payment_reference` column, or an extra `notes` column
+- Then the step 2 alert names the column, no errors file is offered and no row is checked
+
+**Scenario 4 — One business error rejects the whole file**
+- Given a well-formed file of eight rows where four pass, one has an unknown national ID, one repeats a reference imported last week, one is dated tomorrow and one has a phone that isn't the driver's
+- When the admin reaches step 3
+- Then each row shows *Passed* or its reason, the file shows *File rejected — 4 rows failed*, it can't be sent, and nothing is stored
+- When she downloads the file with errors
+- Then it is her eight-row sheet with an `errors` column: rows 5–8 read *No driver with this national ID*, *Already imported*, *Payment date is in the future* and *Phone number doesn't match this driver*; rows 1–4 are blank
+
+**Scenario 5 — Fix or delete the failed rows and upload again**
+- Given she deletes the unknown-driver and already-imported rows, fixes the date and the phone, and leaves the `errors` column in the file
+- When she uploads it again
+- Then step 2 passes and step 3 accepts the six-row file
+
+**Scenario 6 — Send an accepted file and approve**
+- Given a file where one driver pays exactly the 102.08 EGP she owes, one pays 42.00 of 84.22, one pays 50.00 more than she owes and one pays 75.00 while owing nothing
+- Then step 3 shows *Settled in full*, *Part paid — still owes 42.22*, *Paid more — 50.00 added*, *Paid more — 75.00 added*
+- When the admin sends the file and a Financial lead approves
+- Then four settlement entries are posted with receipt numbers
+
+**Scenario 7 — Same driver twice**
 - Given two rows for the same driver, 40.00 and 60.00, and she owes 100.00
 - Then the first shows *Part paid — still owes 60.00* and the second *Settled in full*
-
-**Scenario 4 — Wrong file**
-- Given the file has no `payment_reference` column
-- Then nothing is checked and the missing column is named
 
 ### Out of Scope
 - Reading bank statements directly
 - Editing a row on screen (Finance corrects the sheet)
+- Sending only the rows that passed
+- The settlements history and an import's detail (#6492)
 
 ### Dependencies
+- #6492 — Admin views the settlements history (where the wizard opens and the sent file appears)
 - #4379 — Admin records a driver settlement (same ledger entry and receipt)
 - #3996 — Go-online block lifts on settlement
 - #5617 Maker-checker approvals
+- #6212 — Financial lead approves
 
 ### Mockup (ADO comment)
-- Settlement imports: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html
-- An approved import with receipts: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?id=IMP-0001
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?lang=ar
+- Step 1: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?step=1&as=fin_officer
+- Step 2, file with errors (download it from the alert): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?step=2&sample=format&as=fin_officer
+- Step 3, file rejected (download it from the alert): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?step=3&sample=business&as=fin_officer
+- Step 3, ready to send: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?step=3&sample=clean&as=fin_officer
+- Pending import review: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0015
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?step=3&sample=business&lang=ar&as=fin_officer
+
+---
+
+## [Admin] #6492 — Admin views the settlements history 🆕
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Settlement
+
+**Description:** As a Financial officer, I want to see every settlement file sent for approval and what each one settled so that I can follow a file from upload to receipt numbers.
+
+### Rules
+- The Settlement imports screen opens on the **settlements history**: every file sent for approval (#5620), newest first. Financial officers and Financial leads open it (#6210).
+- Each file shows its ID, file name, who uploaded it and when, its rows, its amount, its status (*Pending approval*, *Approved*, *Rejected*) and who decided and when. A file is always sent whole (#5620), so its rows are all the rows in the file.
+- **Import settlement** opens the import wizard (#5620).
+- **View** is offered on approved files only. A pending file is read in its approval request (#5617); a rejected file has nothing to view. Another import is a new one, started with **Import settlement**.
+- **View** opens the file's own page: file ID, file name, status, uploaded by / at, approved by / at, rows, amount and its approval request; the counts of rows settled in full, part paid and paid more; and every row — row, driver (name in the system, phone, national ID), amount, balance before, balance after, payment reference with date and channel, and what the row does to her balance (as step 3 of #5620 showed it).
+- The rows can be searched by driver, national ID, phone, payment reference or receipt, and filtered by result. They are paged 10 / 20 / 50.
+- The page says who approved it and when, and each row shows its receipt number (`S-nnnnn`).
+- **Download the file** gives the rows as sent, in the template's seven columns.
+- The page has its own link (`?id=IMP-nnnn`). An ID that matches no file, or a file that is not approved, shows *Settlement import not found*.
+- Nothing in the history or on the page can be edited or deleted.
+
+### List / Grid Specification
+**Page size:** 20 · **Default sort:** Uploaded — newest first
+
+| Column | Sortable | Filterable | Filter type |
+|---|---|---|---|
+| File ID | No | No | — |
+| File name | No | No | — |
+| Uploaded at / by | Yes | No | — |
+| Rows | No | No | — |
+| Amount (EGP) | Yes | No | — |
+| Status (Pending approval / Approved / Rejected) | No | No | — |
+| Decided at / by | Yes | No | — |
+| Actions (View — approved files only) | No | No | — |
+
+### Acceptance Criteria
+**Scenario 1 — Newest first**
+- Given IMP-0003 sent today and awaiting approval, IMP-0002 rejected this week and IMP-0001 approved last week
+- When the admin opens Settlement imports
+- Then IMP-0003 is first with *Pending approval* and no decision, and the others show their status with who decided and when
+
+**Scenario 2 — An approved file's receipts**
+- When the admin views IMP-0001
+- Then each of its rows shows its receipt number and what it did to her balance
+
+**Scenario 3 — Pending and rejected files have no View**
+- Given IMP-0003 pending approval and IMP-0002 rejected
+- When the admin opens Settlement imports
+- Then neither row offers *View*, and IMP-0001 (approved) does
+
+**Scenario 4 — A link to a file that is not approved**
+- Given the link `?id=IMP-0002` or `?id=IMP-0003`
+- Then the page shows *Settlement import not found*
+
+**Scenario 5 — Finding a row**
+- Given a file of 13 rows
+- When the admin searches a payment reference, or filters the result to *Part paid*
+- Then only the matching rows show, or *No rows match*
+
+**Scenario 6 — Unknown link**
+- Given the link `?id=IMP-9999`
+- Then the page shows *Settlement import not found*
+
+**Scenario 7 — Nothing yet**
+- Given no file was ever sent
+- Then the history shows *No settlement imports yet*
+
+### Out of Scope
+- Searching or filtering the history itself
+- Editing, deleting or re-sending a file
+
+### Dependencies
+- #5620 — Admin imports Finance's settlement sheet (the wizard that sends a file here)
+- #5617 Maker-checker approvals
+- #6210 — Admin roles (who opens the screen)
+
+### Mockup (ADO comment, updated 2026-11-04 — View on approved files only, design #6552)
+- Settlements history: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?as=fin_officer
+- Approved import with receipts: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-import.html?id=IMP-0001&as=fin_officer
+- Import not found (also a pending or rejected file): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-import.html?id=IMP-0002&as=fin_officer
+- Empty: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?state=empty&as=fin_officer
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-import.html?id=IMP-0001&lang=ar&as=fin_officer
 
 ---
 
 ## [Admin] #5621 — Admin waives a rider's cancellation fee 🆕
-**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Fee waiver
 
-**Description:** As an admin, I want to waive one specific cancellation fee so that a rider isn't charged for a cancellation that wasn't her fault.
+**Description:** As a Financial officer, I want to waive one specific cancellation fee so that a rider isn't charged for a cancellation that wasn't her fault.
 
 ### Rules
-- A waiver applies to **one** cancellation fee, from the rider's ledger, with a reason. No limit on amount or count.
-- **A waiver never edits or deletes the fee.** It is a request (maker-checker); on approval it adds two new entries that cancel it: `fee_waived` (+fee) on the rider's ledger and `fee_credit_reversed` (−fee) on the ledger of the driver who was credited that fee. Both point to the original entry, which stays in both ledgers with its amount, marked *Waived*.
-- If the rider had already paid the fee, the waiver leaves her a **credit** on her balance. The credit is shown, not spent, in this phase.
-- A waived fee shows **Waived**. A fee with a waiver awaiting approval can't be waived again.
-- Rider balances gains a **Has a credit** filter and a Credit column.
+- A waiver covers one cancellation fee, with a reason. No limit on amount or count.
+- Maker-checker: a Financial officer or lead requests it, a Financial lead decides it (#6212).
+- The fee is never edited or deleted. Approval adds fee_waived (+fee) on the rider's ledger and fee_credit_reversed (−fee) on the credited driver's. Both point to the original, which stays, marked Waived.
+- Already paid: she gets a credit, shown not spent in this phase.
+- **Rider balances** gains a Has a credit filter and a Credit column.
 
 ### Field Validation
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
@@ -4066,7 +4430,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ### Acceptance Criteria
 **Scenario 1 — Waive an unpaid fee**
 - Given a rider owes a 20.00 EGP fee for trip T-1042, credited to driver Sara
-- When an admin waives it and another admin approves
+- When a Financial officer waives it and a Financial lead approves
 - Then the rider's ledger still shows the −20.00 fee, now marked Waived, plus a new +20.00 *Fee waived* entry; Sara's ledger keeps her +20.00 credit and gains a −20.00 reversal; the rider owes 0.00
 
 **Scenario 2 — Waive a fee she already paid**
@@ -4092,25 +4456,25 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ---
 
-## [Admin] #5622 — Manual settlement and payout need another admin's approval 🆕
-**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+## [Admin] #5622 — Manual settlement and payout need a Financial lead's approval 🆕
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Settlement, Payout, Approval
 
-**Description:** As an admin, I want a settlement or payout I record by hand to wait for another admin's approval so that a single admin can't change a driver's balance alone.
+**Description:** As a Financial officer, I want a settlement or payout I record by hand to wait for a Financial lead's approval so that no single person can change a driver's balance alone.
 
 ### Rules
-- Record settlement (#4379) and Record payout (#4001) keep their fields and validation, but now create a request instead of posting.
-- While a driver has a settlement or a payout awaiting approval, that action is replaced by a notice with a link to the request, and her row in Driver balances shows **Awaiting approval**.
-- An approved manual payout marks her oldest due earnings **Paid**, up to its amount.
-- The driver ledger (#4378) shows her payout method with the full number, a *Last payout failed* warning when it applies, her totals **On hold / Due / In a batch / Sent to bank**, and a payout status on each earning.
+- Record settlement (#4379) and Record payout (#4001) now create a request instead of posting.
+- The pending notice links to the request; her Driver balances row shows Awaiting approval.
+- An approved payout marks her oldest due earnings Paid, up to its amount.
+- Driver ledger (#4378) adds payout method (full number), Last payout failed warning, On hold / Due / In a batch / Sent to bank totals.
 
 ### Acceptance Criteria
 **Scenario 1 — Balance doesn't move until approved**
 - Given a driver owes 300.00 EGP
-- When an admin records a 300.00 settlement
+- When a Financial officer records a 300.00 settlement
 - Then she is told it was sent for approval, the balance still reads −300.00, and Record settlement is replaced by the pending notice
 
 **Scenario 2 — Approved**
-- When another admin approves it
+- When a Financial lead approves it
 - Then the settlement posts with its receipt number exactly as #4379 describes
 
 **Scenario 3 — Earning statuses**
@@ -4130,31 +4494,32 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ---
 
-## [Admin] #5623 — Rate card and commission changes need another admin's approval 🆕
-**Feature:** #1755 Admin — Pricing & Rate Management | **Sprint:** — | **Tag:** Payouts & settlement
+## [Admin] #5623 — Rate card and commission changes need another Financial lead's approval 🆕
+**Feature:** #1755 Admin — Pricing & Rate Management | **Sprint:** Sprint 6 | **Tag:** Approval
 
-**Description:** As an admin, I want a rate card or commission change to wait for another admin's approval so that prices never change on one person's say.
+**Description:** As a Financial lead, I want a rate card or commission change to wait for another Financial lead's approval so that prices never change on one person's say.
 
 ### Rules
-- Saving or removing a zone's rate card (#1757) and changing the platform commission (#1759) create a request; the current values stay in force until approval.
-- Other global policies (cancellation policy, balance limit) still save immediately.
-- A zone with a pending change shows **Rate card change awaiting approval** with the proposed values; its rate card can't be edited again until the request is decided. Zone status still reflects the current card.
-- A pending commission change shows on the policies screen and locks the commission field.
-- On approval the change applies to new trips and is recorded in the pricing audit log (#1760).
+- Saving or removing a zone's rate card (#1757) or changing commission (#1759) creates a request.
+- Cancellation policy and balance limit wait too (#6212).
+- A pending zone shows Rate card change awaiting approval and the proposed values; its card is locked until decided.
+- Zone status follows the current card.
+- Pending commission locks its field on the policies screen.
+- Approved changes are logged in #1760.
 
 ### Acceptance Criteria
 **Scenario 1 — Rate card waits**
 - Given Zamalek's per-km rate is 6.50 EGP
-- When an admin saves 7.00
+- When a Financial lead saves 7.00
 - Then trips still price at 6.50, the zone shows the pending change, and Approvals has the request
 
 **Scenario 2 — Approved**
-- When another admin approves
+- When another Financial lead approves
 - Then new trips in Zamalek price at 7.00
 
 **Scenario 3 — Mixed save on policies**
-- When an admin changes the balance limit and the commission in one save
-- Then the balance limit applies now and the commission change waits for approval
+- When a Financial lead changes the commission and the driver cancellation fee in one save
+- Then both keep their current values until another Financial lead approves
 
 ### Out of Scope
 - Scheduling a price change for a future date
@@ -4170,12 +4535,12 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ---
 
 ## [Admin] #5624 — Admin views and edits a driver's payout method 🆕
-**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Payout
 
-**Description:** As an admin, I want to see a driver's payout method and correct it on her behalf so that payouts reach her when she can't fix it herself.
+**Description:** As a Financial officer, I want to see a driver's payout method and correct it on her behalf so that payouts reach her when she can't fix it herself.
 
 ### Rules
-- The driver profile and the driver application show the payout method: type, provider or bank, holder name, the full number, and who changed it last (the driver or an admin).
+- The driver profile and the driver application show the payout method to Finance roles only (#6483, #6484): type, provider or bank, holder name, the full number, and who changed it last (the driver or an admin).
 - *Last payout failed* shows with the reason and a link to the batch.
 - An admin edit uses the same fields and rules as the driver's own form, and is a request (maker-checker). The current method stays until approval.
 
@@ -4193,7 +4558,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ### Acceptance Criteria
 **Scenario 1 — Correct a failed method**
 - Given a driver's last payout failed "Account closed"
-- When an admin enters a new bank account and another admin approves
+- When a Financial officer enters a new bank account and a Financial lead approves
 - Then the profile shows the new number, updated by an admin, and her next due earnings go into the next batch
 
 **Scenario 2 — Pending edit**
@@ -4218,12 +4583,12 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 # No masking of phone numbers or national IDs (2026-10-14)
 
-> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change. ADO tag "No masking".
+> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change.
 
 ---
 
 ## [Admin] #5652 — Admin sees a driver's full national ID 🆕
-**Feature:** #1614 Admin — Driver Management | **Sprint:** — | **Tag:** No masking
+**Feature:** #1614 Admin — Driver Management | **Sprint:** —
 
 **Description:** As an admin, I want to see a driver's full national ID so that I can match her to her documents and to Finance's settlement sheet without asking for it.
 
@@ -4253,21 +4618,24 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ---
 
 ## [Admin] #5663 — Sidebar groups Finance, Pricing and Reporting 🆕
-**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6
 
 **Description:** As an admin, I want the sidebar grouped by the job I'm doing so that the daily finance screens aren't mixed with pricing settings and reports.
 
 ### Rules
-- Sidebar groups, in this order:
-- **Operations**: Dashboard · Trips · SOS requests · Safety reports
-- **People**: Driver applications · Drivers · Riders
-- **Finance**: Approvals · Driver balances · Payouts · Settlement imports · Rider balances
-- **Pricing**: Pricing & zones · Global policies
-- **Reporting**: Reports · Reconciliation
-- **Administration**: Audit log · Admin users
-- Item names, pages and links don't change; only the group headings and the order.
-- No two items share an icon. Payouts and Settlement imports use the withdrawal and deposit wallet icons.
-- Approvals keeps its pending-request count.
+- Sidebar order:
+
+| Group | Items |
+|---|---|
+| Operations | Dashboard · Trips · SOS requests · Safety reports |
+| People | Driver applications · Drivers · Riders |
+| Finance | Approvals · Driver balances · Payouts · Settlement imports · Rider balances |
+| Pricing | Pricing & zones · Global policies |
+| Reporting | Reports · Driver earnings |
+| Administration | Audit log · Admin users |
+
+- Only headings and order change.
+- No shared icons; Payouts / Settlement imports use withdrawal / deposit wallet.
 
 ### Acceptance Criteria
 **Scenario 1 — Arabic**
@@ -4278,6 +4646,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - #5617 — Approvals
 - #5618 — Payouts
 - #5620 — Settlement imports
+- #5668 — Driver earnings (renamed from Reconciliation)
 
 ### Mockup (ADO comment)
 - Sidebar on any screen: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
@@ -4287,18 +4656,23 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ---
 
 ## [Admin] #5668 — Driver earnings statement — who holds the fare and her balance for the period 🆕
-**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Settlement
 
 **Description:** As an admin, I want a driver's earnings statement to show who holds each fare and how her balance moved over the period so that I can explain exactly why she owes SheDrive, or is owed, a given amount.
 
 ### Rules
-- The screen is renamed **Driver earnings** in the sidebar (Reporting group) and **Driver earnings statement** as the page title (AR: أرباح السائقات / كشف أرباح السائقة). Its trip figures and trip table stay as #1833 describes.
-- **Who holds the fare** card, for the selected driver and period:
-- *Driver holds the fare* — number of trips, their fares, and the commission she owes SheDrive.
-- *SheDrive holds the fare* — number of trips, their fares, the net SheDrive owes her, and that net split by payout status (on hold, due, in a batch, sent to bank, paid).
-- **Balance for the period** card, from her ledger: opening balance (her balance at the start of the period, or 0 with no start date), one line per movement type with its count and signed total (trip commission, trip earnings, cancellation fees, rider fee credits and hand-backs, waiver reversals, settlements, payouts), and the closing balance. Opening plus movements always equals closing, and with no end date the closing balance equals her current ledger balance. Negative means she owes SheDrive.
-- Each trip row shows **Held by** (Driver / SheDrive) and, for SheDrive-held trips, its **Payout** status, in place of the payment method.
-- The live "Outstanding cash balance" figure is removed; the balance card replaces it. The CSV export follows the new columns.
+- Sidebar: **Driver earnings** (Reporting). Page title: **Driver earnings statement** / أرباح السائقات · كشف أرباح السائقة. Trip figures and table as in #1833.
+- Cards for the chosen driver and period:
+
+| Card | Shows |
+|---|---|
+| Driver holds the fare | Trips, fares, commission she owes |
+| SheDrive holds the fare | Trips, fares, net owed to her by payout status: on hold, due, in a batch, sent to bank, paid |
+| Balance for the period | Opening, then count and total per movement (trip commission, trip earnings, cancellation fees, rider fee credits and hand-backs, waiver reversals, settlements, payouts), closing |
+
+- Negative balance means she owes SheDrive.
+- Trip rows: **Held by** replaces the payment method; SheDrive-held rows add **Payout status**.
+- "Outstanding cash balance" is removed. The CSV follows the new columns.
 
 ### Acceptance Criteria
 **Scenario 1 — Balance ties to the ledger**
@@ -4325,5 +4699,494 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ### Mockup (ADO comment)
 - Driver earnings (choose a driver, e.g. Laila Fathy): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html?lang=ar
+
+---
+
+
+# Admin roles and access (2026-10-27)
+
+> Approved access matrix: `docs/admin-roles/SheDrive-Admin-Access-Matrix.xlsx`. Created in ADO 2026-10-27 with tag "Admin roles".
+
+---
+
+## [Admin] #6480 — Admin (users & IT) sees only admin accounts and the audit log 🆕
+**Feature:** Feature 1 — Platform & Integration Foundation (ADO Feature #1611) | **Sprint:** Sprint 6 | **Tag:** Admin roles
+
+**Description:** As the Admin (users & IT), I want the portal to show me only admin accounts and the whole audit log so that I can run access and security without seeing riders', drivers' or financial data.
+
+### Rules
+- One role per admin account: Admin (users & IT), Operations officer, Operations lead, Financial officer, Financial lead. They replace Super admin and Admin (#1821, #4122). Setting a role: #6485.
+- A lead has everything their officer has.
+- The sidebar shows only the role's pages. Other pages show "You don't have access to this page" / "ليس لديك صلاحية لفتح هذه الصفحة" with a link to the role's start page.
+- Read-only pages hide action buttons (not disable). The server refuses an action sent anyway.
+- Role changes apply from the next page load.
+- Operations and Finance alike see riders' and drivers' phone numbers.
+- No role can edit or delete an audit log entry (#1816).
+
+### Access Matrix
+**Full** can see and do it · **View** read only · **Request** makes a request another person approves · **Approve** decides other people's requests · **Request + approve** both, never on their own request
+
+| Area | Page / action | Stories | Admin (users & IT) |
+|---|---|---|---|
+| Account & security | Sign in, own profile, own password and two-factor | #1656, #1806, #1822 | Full |
+| Account & security | Admin users: add, set or change a role, suspend, unsuspend, delete, reset password or two-factor | #1820, #4121, #1807, #1821, #4122, #1822, #6485 | Full |
+| Account & security | Audit log | #1816 | View (all) |
+
+### Acceptance Criteria
+**Scenario 1 — Sign in**
+- When the Admin (users & IT) signs in she lands on Admin users
+- And a link to driver 1069's profile shows "You don't have access to this page" with a link to Admin users
+
+**Scenario 2 — The whole audit log**
+- Given today Sara approved a driver application and Hala approved a settlement
+- When the Admin (users & IT) opens the audit log
+- Then she sees both
+
+### Out of Scope
+- Custom permissions for a single account
+- More than one role on one account
+- A read-only Support role (added when support staff are hired)
+- Approval limits by amount
+
+### Dependencies
+- #6485 — Setting and changing a role
+- #6481, #6482, #6483, #6484 — the other four roles
+- #1816 — Audit log
+
+### Mockup (ADO comment)
+- Audit log, every entry: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/audit-log.html?as=admin_it
+- No access page (driver profile): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069&as=admin_it
+
+---
+
+## [Admin] #6485 — Admin (users & IT) sets and changes an admin user's role 🆕
+**Feature:** Feature 1 — Platform & Integration Foundation (ADO Feature #1611) | **Sprint:** Sprint 6 | **Tag:** Admin roles
+
+**Description:** As the Admin (users & IT), I want to choose each admin account's role when I add it and change it later so that a colleague's access always matches their job.
+
+### Rules
+- On **Admin users** she sets and changes roles and resets two-factor.
+- **Add admin user** gets a **Role** field. The list (#1820) gets a **Role** column, sortable and filterable.
+- Change role: row action → new role → confirm. Finance requests she already made stay pending.
+- Reset two-factor removes the authenticator and recovery codes and ends the account's sessions.
+- When a role change, suspension or deletion leaves fewer than two active Financial leads, the confirmation warns:
+
+| Leads left | Warning |
+|---|---|
+| One | "Only one Financial lead will be left. Their own finance requests can't be approved until another is added." / "سيتبقى رئيس فريق مالي واحد فقط. لا يمكن اعتماد طلباته المالية حتى تتم إضافة آخر." |
+| None | "No Financial lead will be left. Finance requests can't be approved until one is added." / "لن يتبقى رئيس فريق مالي. لا يمكن اعتماد أي طلب مالي حتى تتم إضافة واحد." |
+
+- An account with no role signs in to a page that says "Your account has no role yet. Ask your administrator." / "لم تُحدَّد صلاحية لحسابك بعد. تواصل مع مسؤول النظام."
+
+### Field Validation
+| Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
+|---|---|---|---|---|---|---|---|---|---|
+| Role | Yes | Dropdown (single-select) | Admin (users & IT) / Operations officer / Operations lead / Financial officer / Financial lead | — | — | none | Choose a role / اختر الصلاحية | Choose a role different from the current one / اختر صلاحية مختلفة عن الحالية | — |
+
+### Acceptance Criteria
+**Scenario 1 — Change a role**
+- Given Mona is a Financial officer
+- When the Admin changes her to Financial lead and confirms
+- Then from her next page load Mona can approve other people's finance requests
+- And the audit log reads Financial officer → Financial lead
+
+**Scenario 2 — Own account**
+- Given the Admin is looking at her own row
+- Then it has no Change role, Suspend, Delete, Reset password or Reset two-factor action
+
+**Scenario 3 — Last Financial lead**
+- Given Hala and Nour are the only active Financial leads
+- When the Admin suspends Nour
+- Then the "Only one Financial lead will be left" warning shows, and on confirm Nour is suspended
+
+**Scenario 4 — Lost phone**
+- Given Sara has lost her phone and her recovery codes
+- When the Admin resets her two-factor
+- Then at her next sign-in Sara scans a new QR code
+
+### Out of Scope
+- A second admin approving a role change
+- Time-limited roles
+
+### Dependencies
+- #6480 — Roles, and what the Admin (users & IT) sees
+- #1807, #1820, #1821, #4122 — Admin accounts
+- #1822 — Password reset
+- #1806 — Two-factor
+- #1816 — Audit log
+
+### Mockup (ADO comment)
+- Admin users with roles: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/admin-users.html?as=admin_it
+- Admin users (Arabic): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/admin-users.html?as=admin_it&lang=ar
+
+---
+
+## [Admin] #6481 — Operations officer reviews applications and safety reports and looks up riders, drivers and trips 🆕
+**Feature:** Feature 1 — Platform & Integration Foundation (ADO Feature #1611) | **Sprint:** Sprint 6 | **Tag:** Admin roles
+
+**Description:** As an Operations officer, I want to review driver applications and safety reports and look up riders, drivers and trips so that I can run daily operations without suspending anyone or touching money.
+
+### Rules
+- Start page after sign-in: Dashboard.
+- On the driver profile and the driver application she sees the full national ID (#5652) and no payout method section. The dashboard shows her the live operations map (#1823–#1826).
+- Hidden pages and actions behave as #6480 says.
+
+### Access Matrix
+**Full** can see and do it · **View** read only · **Request** makes a request another person approves · **Approve** decides other people's requests · **Request + approve** both, never on their own request
+
+| Area | Page / action | Stories | Operations officer |
+|---|---|---|---|
+| Account & security | Sign in, own profile, own password and two-factor | #1656, #1806, #1822 | Full |
+| Operations | Dashboard | #1669 | View |
+| Operations | Driver applications: open, approve or reject | #1657, #4008, #1658, #1659, #1660 | Full |
+| Operations | Drivers | #1665, #4009, #1666 | View |
+| Operations | Riders | #1661, #4010, #1662 | View |
+| Operations | Trips | #1670–#1672, #4007 | View |
+| Operations | Safety reports: open, dismiss | #1810, #4120, #1811 | Full |
+| Operations | SOS requests and their actions (when it goes live) | #3945, #3946 | Full |
+| Pricing & settings | Zones and pricing policies | #1831, #1759 | View |
+
+### Acceptance Criteria
+**Scenario 1 — Approve an application**
+- Given Sara is an Operations officer
+- When she opens driver application 1061 and approves it
+- Then the application is Approved (#1659)
+
+**Scenario 2 — An Active driver's profile**
+- Given an Active driver with national ID 29805120104821 and payout wallet 01012345678
+- When Sara opens her profile
+- Then she sees 29805120104821, no payout method section and no Suspend action
+
+**Scenario 3 — A request sent around the screen**
+- Given Sara's session sends a suspend request for that driver directly
+- Then it is refused and the driver stays Active
+
+**Scenario 4 — A gender-mismatch report**
+- When Sara opens an open report
+- Then she can Dismiss it, with an optional note, and there is no Suspend action
+
+**Scenario 5 — A finance link**
+- When Sara opens a link to Driver balances
+- Then she sees "You don't have access to this page" with a link to the Dashboard
+
+### Dependencies
+- #6480 — Roles, and how hidden pages and actions behave
+- #1657, #1658, #1659, #1660 — Driver applications
+- #1810, #1811 — Safety reports
+- #5652 — Full national ID
+
+### Mockup (ADO comment)
+- Driver application 1061: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-application.html?id=1061&as=ops_officer
+- Driver profile — national ID, no payout method, no Suspend: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069&as=ops_officer
+- Safety reports: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/safety-reports.html?as=ops_officer
+- No access page (Driver balances): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html?as=ops_officer
+
+---
+
+## [Admin] #6482 — Operations lead suspends riders and drivers, acts on safety reports and runs zones and operating hours 🆕
+**Feature:** Feature 1 — Platform & Integration Foundation (ADO Feature #1611) | **Sprint:** Sprint 6 | **Tag:** Admin roles
+
+**Description:** As an Operations lead, I want everything an Operations officer has plus suspensions, safety-report actions, live-trip intervention, zones and operating hours so that decisions that remove someone's access or change how the service runs stay with one accountable person.
+
+### Rules
+- She has every page, action and piece of data the Operations officer has (#6481).
+- Her actions apply at once, with no approval.
+- The audit log (#1816) shows her operations entries only: driver applications, rider and driver suspensions, safety reports, zones and operating hours.
+
+### Access Matrix
+**Full** can see and do it · **View** read only · **Request** makes a request another person approves · **Approve** decides other people's requests · **Request + approve** both, never on their own request
+
+| Area | Page / action | Stories | Operations lead |
+|---|---|---|---|
+| Account & security | Sign in, own profile, own password and two-factor | #1656, #1806, #1822 | Full |
+| Account & security | Audit log | #1816 | View (operations) |
+| Operations | Dashboard | #1669 | View |
+| Operations | Driver applications: open, approve or reject | #1657, #4008, #1658, #1659, #1660 | Full |
+| Operations | Drivers | #1665, #4009, #1666 | View |
+| Operations | Suspend or reinstate a driver | #1742, #1743 | Full |
+| Operations | Riders | #1661, #4010, #1662 | View |
+| Operations | Suspend or reinstate a rider | #1740, #1741 | Full |
+| Operations | Trips | #1670–#1672, #4007 | View |
+| Operations | Cancel or reassign a trip still in progress | #1671 | Full |
+| Operations | Safety reports: open, dismiss | #1810, #4120, #1811 | Full |
+| Operations | Safety report: act against a driver or rider | #1811 | Full |
+| Operations | SOS requests and their actions (when it goes live) | #3945, #3946 | Full |
+| Pricing & settings | Zones and pricing policies | #1831, #1759 | View |
+| Pricing & settings | Create, edit or delete a service zone | #1756, #1830 | Full |
+| Pricing & settings | Change the operating hours | #6268 | Full |
+| Finance | Driver balances | #1813, #4378 | View |
+| Finance | Rider outstanding fees | #4005 | View |
+| Finance | Reports and reconciliation | #1833, #5668 | View |
+
+### Acceptance Criteria
+**Scenario 1 — Suspend a driver**
+- Given an Active driver
+- When the Operations lead suspends her (#1742)
+- Then she is Suspended
+
+**Scenario 2 — Pricing policies**
+- When the Operations lead opens Pricing policies
+- Then the operating hours have Edit, and the cancellation policy has none
+
+**Scenario 3 — The audit log by role**
+- Given today Sara approved a driver application and Hala approved a settlement
+- When the Operations lead opens the audit log
+- Then she sees only the application approval
+
+**Scenario 4 — A driver who owes money**
+- When she opens Driver balances
+- Then she sees a driver owing 350 EGP and no Record settlement action
+
+### Dependencies
+- #6480 — Roles, and how hidden pages and actions behave
+- #6481 — Operations officer
+- #1740–#1743 — Suspensions
+- #1811 — Safety report actions
+- #1671 — Trip in progress
+- #1756, #1830, #6268 — Zones and operating hours
+- #1816 — Audit log
+
+### Mockup (ADO comment)
+- Driver profile with Suspend: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069&as=ops_lead
+- Pricing policies — operating hours editable: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=ops_lead
+- Audit log, operations entries: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/audit-log.html?as=ops_lead
+- Driver balances, read only: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html?as=ops_lead
+
+---
+
+## [Admin] #6483 — Financial officer reads balances and reports and makes finance requests 🆕
+**Feature:** Feature 1 — Platform & Integration Foundation (ADO Feature #1611) | **Sprint:** Sprint 6 | **Tag:** Admin roles
+
+**Description:** As a Financial officer, I want to see balances, fees and reports and make settlement, payout, waiver and payout-method requests so that money moves only after a Financial lead approves it.
+
+### Rules
+- Start page after sign-in: Dashboard.
+- Each of her requests waits for a Financial lead (#6212). Approvals shows her own requests and their decisions. Generating a payout batch and exporting its bank files need no approval (#5618).
+- On the driver profile she sees the payout method section in full (#5624) and no national ID. Payout batch lines and settlement import lines keep the national ID, because the bank file and Finance's sheet identify a driver by it. The dashboard has no live operations map.
+- Hidden pages and actions behave as #6480 says.
+
+### Access Matrix
+**Full** can see and do it · **View** read only · **Request** makes a request another person approves · **Approve** decides other people's requests · **Request + approve** both, never on their own request
+
+| Area | Page / action | Stories | Financial officer |
+|---|---|---|---|
+| Account & security | Sign in, own profile, own password and two-factor | #1656, #1806, #1822 | Full |
+| Operations | Dashboard | #1669 | View |
+| Operations | Drivers | #1665, #4009, #1666 | View |
+| Operations | Riders | #1661, #4010, #1662 | View |
+| Operations | Trips | #1670–#1672, #4007 | View |
+| Pricing & settings | Zones and pricing policies | #1831, #1759 | View |
+| Finance | Driver balances | #1813, #4378 | View |
+| Finance | Rider outstanding fees | #4005 | View |
+| Finance | Record a manual settlement or payout | #4379, #4001, #5622 | Request |
+| Finance | Settlement imports: import the settlement sheet | #5620 | Request |
+| Finance | Waive a rider's cancellation fee | #5621 | Request |
+| Finance | Payouts: the payout history and its cards | #6497 | View |
+| Finance | Payouts: generate a batch and export its bank files | #5618, #5619 | Full |
+| Finance | Payouts: import a bank file's result | #5619 | Request |
+| Finance | Change a driver's payout method | #5624 | Request |
+| Finance | Approvals | #5617, #6212 | Own requests (view) |
+| Finance | Reports and reconciliation | #1833, #5668 | View |
+
+### Acceptance Criteria
+**Scenario 1 — A settlement waits for a lead**
+- Given a driver owes 350 EGP
+- When Mona records a 350 EGP cash settlement
+- Then Approvals shows it Pending with no Approve action for her, and the balance stays −350 EGP until a Financial lead approves
+
+**Scenario 2 — A link to an application**
+- When Mona opens a link to driver application 1061
+- Then she sees "You don't have access to this page" and her sidebar has no Driver applications item
+
+**Scenario 3 — Payout method**
+- When Mona changes a driver's wallet to 01098765432
+- Then the profile keeps showing the old wallet until a Financial lead approves the change
+
+### Dependencies
+- #6480 — Roles, and how hidden pages and actions behave
+- #6212 — Only Financial leads approve finance requests
+- #5617 — Maker-checker approvals
+- #4379, #4001, #5622, #5620, #5621, #5618, #5619, #5624 — Finance requests
+- #6497 — Payout history
+
+### Mockup (ADO comment)
+- Driver balances: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html?as=fin_officer
+- Approvals — own requests only: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?as=fin_officer
+- Driver profile — payout method, no national ID: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069&as=fin_officer
+- No access page (driver application): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-application.html?id=1061&as=fin_officer
+
+---
+
+## [Admin] #6484 — Financial lead approves finance requests and proposes pricing and balance-limit changes 🆕
+**Feature:** Feature 1 — Platform & Integration Foundation (ADO Feature #1611) | **Sprint:** Sprint 6 | **Tag:** Admin roles
+
+**Description:** As a Financial lead, I want everything a Financial officer has plus deciding other people's finance requests and proposing pricing and balance-limit changes so that every money and pricing change is checked by a second person.
+
+### Rules
+- She has every page, request and piece of data the Financial officer has (#6483).
+- Her own request, including a pricing or balance-limit change she proposes, goes to a different Financial lead (#6212).
+- The audit log (#1816) shows her finance entries only: finance requests and their decisions, settlements, payouts, settlement imports, fee waivers, payout methods and pricing.
+
+### Access Matrix
+**Full** can see and do it · **View** read only · **Request** makes a request another person approves · **Approve** decides other people's requests · **Request + approve** both, never on their own request
+
+| Area | Page / action | Stories | Financial lead |
+|---|---|---|---|
+| Account & security | Sign in, own profile, own password and two-factor | #1656, #1806, #1822 | Full |
+| Account & security | Audit log | #1816 | View (finance) |
+| Operations | Dashboard | #1669 | View |
+| Operations | Drivers | #1665, #4009, #1666 | View |
+| Operations | Riders | #1661, #4010, #1662 | View |
+| Operations | Trips | #1670–#1672, #4007 | View |
+| Pricing & settings | Zones and pricing policies | #1831, #1759 | View |
+| Pricing & settings | Change the rate card, commission or cancellation policy | #1757, #1759, #5623, #6212 | Request + approve |
+| Pricing & settings | Change the driver balance limit | #3994, #6212 | Request + approve |
+| Pricing & settings | Change the payout settings (minimum payout, transfer fee) | #6486, #6212 | Request + approve |
+| Finance | Driver balances | #1813, #4378 | View |
+| Finance | Rider outstanding fees | #4005 | View |
+| Finance | Record a manual settlement or payout | #4379, #4001, #5622 | Request + approve |
+| Finance | Settlement imports: import the settlement sheet | #5620 | Request + approve |
+| Finance | Waive a rider's cancellation fee | #5621 | Request + approve |
+| Finance | Payouts: the payout history and its cards | #6497 | View |
+| Finance | Payouts: generate a batch and export its bank files | #5618, #5619 | Full |
+| Finance | Payouts: import a bank file's result | #5619 | Request + approve |
+| Finance | Change a driver's payout method | #5624 | Request + approve |
+| Finance | Approvals | #5617, #6212 | Approve |
+| Finance | Reports and reconciliation | #1833, #5668 | View |
+
+### Acceptance Criteria
+**Scenario 1 — Approve an officer's settlement**
+- Given Mona recorded a 350 EGP settlement for a driver who owes 350 EGP
+- When Hala approves it
+- Then the driver's balance goes from −350 EGP to 0
+
+**Scenario 2 — Her own pricing change**
+- When Hala proposes commission 15% → 18%
+- Then her row in Approvals has no Approve action
+- And when Nour approves it, the new commission applies
+
+**Scenario 3 — The audit log by role**
+- Given today Sara approved a driver application and Hala approved a settlement
+- When Nour opens the audit log
+- Then she sees only the settlement approval
+
+### Dependencies
+- #6480 — Roles, and how hidden pages and actions behave
+- #6483 — Financial officer
+- #6212 — Only Financial leads approve finance requests
+- #5617 — Maker-checker approvals
+- #1757, #1759, #5623, #3994 — Pricing and balance limit
+- #1816 — Audit log
+
+### Mockup (ADO comment)
+- Approvals — approve or reject: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?as=fin_lead
+- Pricing policies — propose a change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead
+- Audit log, finance entries: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/audit-log.html?as=fin_lead
+
+---
+
+## [Admin] #6212 — Only Financial leads approve finance requests 🆕
+**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Admin roles
+
+**Description:** As a Financial lead, I want finance requests to be decided only by Financial leads so that money and prices move only with the approval of someone accountable for them.
+
+### Rules
+- Officers and leads make #5617 requests; only a lead changes rate card, commission, cancellation policy, balance limit or payout settings (#6486).
+- Only a Financial lead decides, never on her own request.
+- Cancellation policy (#1759) and balance limit (#3994) changes now wait for approval: two new Pricing request types.
+- An officer's queue has no Made by filter; her sidebar counts her own pending requests.
+- With no other active lead, a lead's own request shows "Waiting for another Financial lead" / "في انتظار رئيس فريق مالي آخر" and stays pending.
+
+### Acceptance Criteria
+**Scenario 1 — Officer's request**
+- Given Mona (Financial officer) records a 300.00 EGP settlement
+- When Hala (Financial lead) approves it
+- Then the settlement posts as #5622 describes
+
+**Scenario 2 — Lead's own request**
+- Given Hala requests commission 18% → 20%
+- Then Approve and Reject are disabled for Hala and the screen says another Financial lead must decide it
+- And Nour (Financial lead) can approve it
+
+**Scenario 3 — Officer's queue**
+- Given Mona has two pending requests and Hala has one
+- When Mona opens Approvals
+- Then she sees her two requests without Approve or Reject, and not Hala's
+
+**Scenario 4 — Cancellation fee waits**
+- Given the driver cancellation fee is 20 EGP
+- When Hala saves 25
+- Then drivers are still charged 20 until another Financial lead approves
+
+### Out of Scope
+- Approval limits by amount
+- Delegating approvals while a lead is on leave
+- Email when a request is waiting
+
+### Dependencies
+- #6483, #6484 — Financial officer and Financial lead
+- #5617 — Maker-checker approvals
+- #5622 — Manual settlement and payout
+- #5623 — Rate card and commission
+- #1759 — Global policies
+- #3994 — Driver balance limit
+- #6486 — Payout settings
+
+---
+
+
+# Operating hours (2026-10-27)
+
+> Admin side of [Mobile] #1791 / [API] #1785. Design story #6269.
+
+---
+
+## [Admin] #6268 — Operations lead sets the daily operating hours 🆕
+**Feature:** #1755 Admin — Pricing & Rate Management | **Sprint:** Sprint 6 | **Tag:** Operating hours
+
+**Description:** As the Operations lead, I want to set the hours when riders can book so that SheDrive only takes ride requests while we are serving.
+
+### Rules
+- **Global policies** (#1759) gets an **Operating hours** section on its own **Operations** tab (tabs: #6486): **Opens at** / **Closes at**, Cairo time.
+- Operations lead only (#6482); other roles read-only. Saves immediately, no approval.
+- Applies to the next ride request and the rider app's open/closed status (#1785), not to trips already requested.
+- Status line: "Open now · closes at 23:00" / "مفتوح الآن · يغلق الساعة 23:00", "Closed now · opens today at 07:00" / "مغلق الآن · يفتح اليوم الساعة 07:00", "Closed now · opens tomorrow at 07:00" / "مغلق الآن · يفتح غدًا الساعة 07:00".
+- Shows "Last changed <date> by <admin>".
+
+### Field Validation
+| Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
+|---|---|---|---|---|---|---|---|---|---|
+| Opens at | Yes | Time (HH:MM, 24-hour, Cairo time) | 00:00–23:59 | 00:00 | 23:59 | 07:00 | Enter the opening time / أدخل وقت الفتح | Enter a valid time / أدخل وقتًا صحيحًا | — |
+| Closes at | Yes | Time (HH:MM, 24-hour, Cairo time) | 00:01–23:59, later than Opens at | — | 23:59 | 23:00 | Enter the closing time / أدخل وقت الإغلاق | Enter a valid time / أدخل وقتًا صحيحًا | Closing time must be after opening time / يجب أن يكون وقت الإغلاق بعد وقت الفتح |
+
+### Acceptance Criteria
+**Scenario 1 — Closing earlier tonight**
+- Given the hours are 07:00–23:00 and it is 22:30
+- When the Operations lead changes Closes at to 22:00 and saves
+- Then the section reads "Closed now · opens tomorrow at 07:00"
+- And a rider who requests a trip at 22:31 is refused (#1785)
+
+**Scenario 2 — Closing before opening**
+- Given Opens at is 07:00
+- When she enters 06:00 as Closes at and saves
+- Then "Closing time must be after opening time" shows under Closes at and nothing is saved
+
+### Out of Scope
+- Different hours per zone
+- Different hours per weekday
+- Holidays and one-off closures
+- A window that runs past midnight
+
+### Dependencies
+- #1759 — Global policies (the screen)
+- #1785 — [API] Booking is open only inside operating hours
+- #1791 — [Mobile] Rider cannot book outside operating hours
+- #6482 — Operations lead
+- #1816 — Audit log
+
+### Mockup (ADO comment)
+- Global policies — Operations tab: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=ops_lead&tab=operations
+- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=ops_lead&tab=operations&lang=ar
+- Design story: #6269
 
 ---

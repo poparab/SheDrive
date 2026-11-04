@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-10-19
+> Last updated: 2026-10-29
 > Stories with changes from original are marked ✏️
 
 ---
@@ -370,14 +370,15 @@ All strings flow through `data-i18n` keys with Arabic fallback text in the HTML,
 **Description:** As a rider, I want one list of everything SheDrive has told me, where tapping a notification opens what it is about, so that I never lose a trip update, fee or safety message I missed on the lock screen.
 
 ### Rules
-- **Entry points:** a bell with an unread badge in the Book a ride header (caps at 9+, hidden at zero, its screen-reader label includes the count), **Notifications** in the side menu, and tapping any push.
-- **A push is a copy of an inbox item.** Whatever she gets as a push is also in the inbox, even if she never saw the push or notifications are off on her phone. Trip chat messages are not inbox items (#5678).
-- **List:** newest first, grouped under **New** (today), **Yesterday**, then one heading per older date (e.g. "Oct 2, 2026"). Each row: category icon (trip, safety, payments, account, news), title, body cut to two lines, and the time — "6 min ago" today, "1 d ago · 09:33 am" on older rows. Unread rows are tinted with a bold title and a dot. More rows load as she scrolls.
-- **Filter:** two pills, **All** and **Unread**; Unread shows the unread count. **Mark all as read** sits at the end of the row and is disabled when nothing is unread; using it shows "All notifications marked as read".
-- **Tap to open:** tapping a row marks it read and opens what it is about — a trip update opens that trip in My Rides (or the live trip screen while the trip is still running), a fee opens Payments, an emergency-contact change opens Emergency Contacts, announcements and the welcome message open Book a ride.
-- Text shows in her current app language, older notifications included.
-- **States:** empty — "No notifications yet" with "Trip updates and safety alerts will show up here."; Unread with nothing unread — "You're all caught up"; loading — skeleton rows; error — message plus **Try again**.
-- There is no notification settings screen: every type is delivered and none can be switched off in the app.
+- Entry points: the bell in the Book a ride header, Notifications in the side menu, and any push.
+- The bell's unread badge is hidden at zero. Its screen-reader label includes the count.
+- Every push is also an inbox item, even if notifications are off on her phone.
+- List: newest first, grouped under New (today), Yesterday, then one heading per date ("Oct 2, 2026"). More rows load on scroll.
+- Row: category icon (trip, safety, payments, account, news), title, two-line body, time ("6 min ago" today, "1 d ago · 09:33 am" older).
+- Unread rows are tinted, with a bold title and a dot.
+- Pills: All and Unread. **Mark all as read** sits at the end of the row, is disabled when nothing is unread, and shows "All notifications marked as read".
+- Tapping a row marks it read and opens its subject: a fee → Payments; an emergency-contact change → Emergency Contacts; announcements and the welcome message → Book a ride.
+- Empty: "No notifications yet" with "Trip updates and safety alerts will show up here." Unread with nothing unread: "You're all caught up". Loading: skeleton rows.
 
 ### Acceptance Criteria
 **Scenario 1 — A push she missed is waiting**
@@ -1468,14 +1469,13 @@ Throughout the active trip — from en_route_pickup through trip_ended — the r
 **Description:** As a rider, I want to message my driver from the moment she accepts my trip until it ends so that we can find each other at pickup without sharing our phone numbers.
 
 ### Rules
-- The chat opens when the driver accepts the trip and closes when the trip is completed or cancelled. There is one chat per trip, between the rider and her assigned driver only, and nothing is kept after the trip: no chat history.
-- **Message your driver** on the live trip screen opens it in every trip state until the trip ends, and shows the unread count (caps at 9+).
-- She sends typed text or a quick reply. Before boarding: *Coming now*, *Please wait 2 minutes*, *I'm at the entrance*, *OK*. After boarding: *OK*, *Thank you*.
-- A quick reply shows in each reader's own language; typed text shows as written.
-- **Phone numbers are hidden.** A number she types is replaced by ••••• before it is sent, and she is told it was hidden.
-- Her latest message shows *Sending…*, *Sent* or *Seen*. A message that could not be sent shows *Not sent. Tap to retry*.
-- **Push:** a new message while the app is closed, or while she is on another screen, arrives as a push with the driver's name and the message text; tapping it opens the chat. No push while the chat is open. Chat messages are not added to the notification inbox.
-- Opening the chat marks every message as read and clears the badge.
+- One chat per trip, between the rider and her assigned driver only. It opens when the driver accepts and closes when the trip is completed or cancelled. No chat history.
+- **Message your driver** on the live trip screen opens it in every trip state and shows the unread count (caps at 9+).
+- Quick replies before boarding: Coming now, Please wait 2 minutes, I'm at the entrance, OK. After boarding: OK, Thank you.
+- Typed text shows as written.
+- Her latest message shows Sending…, Sent or Seen.
+- A push also comes while she is on another screen; tapping it opens the chat. No push while the chat is open. Not added to the notification inbox.
+- Opening the chat marks all messages read and clears the badge.
 
 ### Field Validation
 | Field | Required | Accepted values | Min | Max | Placeholder | Behaviour |
@@ -2384,13 +2384,11 @@ The payment-method section is static — it is not fetched, so it has no loading
 **Description:** As a rider, I want to see what I owe and every fee I have been charged on my payment screen, so that I understand each fee and know when it will be paid.
 
 ### Rules
-- The Payment Method screen shows two sections under Payment Methods (#3992): **Outstanding Fees** and **Fee History**, both from one read (the paired API story).
-- Outstanding Fees shows the total, e.g. “EGP 20.00”, the badge “Pending next ride” / “تُضاف لرحلتكِ القادمة” and “This will be added to your next ride” / “سيُضاف هذا المبلغ إلى رحلتك القادمة”.
-- When she owes nothing, Outstanding Fees shows “You don't owe any fees” / “لا توجد رسوم مستحقة عليكِ” with “Great! Your account is clear.” / “رائع! حسابكِ خالٍ من أي رسوم مستحقة.” Fee History still lists her past fees.
-- Each Fee History row shows the fee name, amount, the trip's pickup → destination, the date and time, and a status badge (Unsettled, Settled or Waived). Tapping the route opens that trip's detail (#1568).
-- More fees load as she scrolls to the end of the list.
-- If the fees cannot be loaded, both sections are replaced by “Couldn't load your payment details. Check your connection.” / “تعذّر تحميل بيانات المدفوعات. تحقّقي من اتصالك.” with “Try again” / “حاولي مجدداً”. Payment Methods still shows.
-- All strings are available in Arabic and English, and the screen lays out correctly in RTL and LTR.
+- Under Payment Methods (#3992): **Outstanding Fees** and **Fee History**, from one read.
+- Owing: the total, the badge “Pending next ride” / “تُضاف لرحلتكِ القادمة” and “This will be added to your next ride” / “سيُضاف هذا المبلغ إلى رحلتك القادمة”.
+- Nothing owed: “You don't owe any fees” / “لا توجد رسوم مستحقة عليكِ” with “Great! Your account is clear.” / “رائع! حسابكِ خالٍ من أي رسوم مستحقة.”
+- Fee row: name, amount, pickup → destination, date and time, status (Unsettled, Settled, Waived). More load on scroll.
+- Load fails: both sections show “Couldn't load your payment details. Check your connection.” / “تعذّر تحميل بيانات المدفوعات. تحقّقي من اتصالك.” with “Try again” / “حاولي مجدداً”. Payment Methods still shows.
 
 ### Acceptance Criteria
 **Scenario 1 — She owes a fee**
@@ -2543,7 +2541,7 @@ When the trip's payment method is Card, the trip-complete screen shows a payment
 ---
 
 ## [Mobile] #5628 — Rider sees a credit from a waived fee 🆕
-**Feature:** #1768 Payments — Rider | **Sprint:** — | **Tag:** Payouts & settlement
+**Feature:** #1768 Payments — Rider | **Sprint:** — | **Tag:** Fee waiver
 
 **Description:** As a rider, I want to see a credit when SheDrive waives a fee I already paid so that I know the money is on my account.
 
@@ -2572,12 +2570,12 @@ When the trip's payment method is Card, the trip-complete screen shows a payment
 
 # No masking of phone numbers or national IDs (2026-10-14)
 
-> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change. ADO tag "No masking".
+> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change.
 
 ---
 
 ## [Mobile] #5655 — Rider sees her full phone number when confirming account deletion 🆕
-**Feature:** #1532 Rider Authentication | **Sprint:** 1 | **Tag:** No masking
+**Feature:** #1532 Rider Authentication | **Sprint:** 1
 
 **Description:** As a rider, I want to see my full phone number on the deletion code step so that I know exactly which number the code went to.
 
