@@ -3774,13 +3774,12 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 **Description:** As a Financial lead, I want every finance request in one queue with one review so that I can check each one and decide it before money or prices move.
 
 ### Rules
-- A finance action made on its own screen creates a request. Nothing changes and nothing posts to a ledger until a Financial lead approves it. What each request type does is in its own approval cycle story (Dependencies).
+- Approvals lists every finance request. What creates each type and what deciding it does is in that type's approval cycle story (Dependencies).
 - Financial officers and Financial leads make requests; only a Financial lead decides, and never her own request (#6484).
 - With no other active Financial lead, a lead's own request shows "Waiting for another Financial lead" / "في انتظار رئيس فريق مالي آخر" and stays pending.
 - Requests never expire.
-- One pending request per subject (zone, policy card, driver's settlement, payout or payout method, rider's fee, bank file's result, settlement file). A second is refused: "A change is already awaiting approval".
 - Approve asks for a confirmation that says what the approval does. Reject asks for a reason.
-- The review opens from the queue, from a request link (`approvals.html?id=APR-nnnn`), or in place from the pending notice on the screen it is about. Deciding in place leaves her on that screen; a queue opened from another screen's link returns her there.
+- A row opens its review; so does a request link (`approvals.html?id=APR-nnnn`). A queue opened from another screen's link returns her there after the decision.
 - One review layout for every type, in this order:
 
 | Section | Shows |
@@ -3834,17 +3833,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Given Hala is the only active Financial lead
 - Then her own request shows "Waiting for another Financial lead" and stays pending
 
-**Scenario 5 — Second request on the same subject**
-- Given a rate card change for Zamalek is pending
-- When an admin changes Zamalek's rate card again
-- Then she is told a change is already awaiting approval and nothing is created
-
-**Scenario 6 — Decide in place**
-- Given Yasmin Bakr's ledger shows a settlement awaiting approval (APR-0011)
-- When a Financial lead clicks the notice and approves in the review that opens over the ledger
-- Then she stays on the ledger, the notice gives way to Record settlement, and APR-0011 leaves the Pending queue
-
-**Scenario 7 — Financial officer's queue**
+**Scenario 5 — Financial officer's queue**
 - Given Mona (Financial officer) has two pending requests and Hala has one
 - When Mona opens Approvals
 - Then she sees her two, without Approve or Reject, and not Hala's
@@ -3876,17 +3865,9 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - As a Financial officer: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?as=fin_officer
 - Own request, another lead must decide: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0021&as=fin_lead
 - Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?as=fin_lead&lang=ar
-- Review case — Payout result (#6559): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0012
-- Review case — Settlement import (#6560): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0018
-- Review case — Manual settlement (#6561): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0011
-- Review case — Manual payout (#6562): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0019
-- Review case — Fee waiver (#6563): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0010
-- Review case — Payout method change (#6564): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0020
-- Review case — Rate card change (#5623): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
-- Review case — Commission change (#6565): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0021
-- Review case — Cancellation policy change (#6566): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0022
-- Review case — Balance limit change (#6567): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0023
-- Review case — Payout settings change (#6568): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0024
+- Review with Lines (payout result, 338 lines): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0012
+- Review without Lines (rate card change): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0009
+- Every other review case is in its approval cycle story (#6559–#6568, #5623).
 
 ---
 
@@ -3897,7 +3878,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Made when an admin imports the result of one bank file (#5619): one request per payout-method file. Subject: the batch.
-- Pending notice: on the batch, that file reads Result pending approval with a link to its request.
+- Pending notice: on the batch, that file reads Result pending approval with a link to its request. Clicking it opens the review over this screen; she stays here after deciding.
 - Before → after: successful lines, failed lines. Details: the batch, its status and the method's file.
 - Lines: a summary by result (Failed, Success: count and amount, then Total), then every line, failed first — line ref, driver, national ID, method, account number, amount, result with the bank reference or the failure reason. Search by driver, national ID, account or reference; filter All / Success / Failed.
 - Approve: each SUCCESS line posts a payout entry (−line amount, bank reference) and the driver is notified she was paid. Each FAILED line goes back to Due, flags her Last payout failed with the reason, and she is notified. The file is Done; the batch is Completed once every file is.
@@ -3940,7 +3921,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Made when an admin sends a checked file (#5620): one request for the whole file. Subject: the file. Amount: the file's total.
-- Pending notice: the settlements history (#6492) shows the file as Pending approval.
+- Pending notice: the settlements history (#6492) shows the file as Pending approval. Clicking it opens the review over this screen; she stays here after deciding.
 - Before → after: rows. Details: the file.
 - Lines: a summary by payment channel (count and amount, then Total), then every row — driver, national ID, phone, amount, balance now and after, payment reference with date and channel, result (Settled in full, Part paid — still owes X, Paid more — X added to her balance). Search by driver, national ID, phone or reference.
 - Approve: each row posts a settlement entry with a receipt number (S-nnnnn); a driver's go-online block lifts once she is under the limit. The file is Approved and gets its View page (#6492).
@@ -3974,7 +3955,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Record settlement (#4379) on the driver's ledger creates a request instead of posting. Subject: the driver. Amount: the settlement.
-- Pending notice: Record settlement gives way to the notice with a link to the request; her Driver balances row shows Awaiting approval.
+- Pending notice: Record settlement gives way to the notice with a link to the request; her Driver balances row shows Awaiting approval. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for her settlement; another is refused: "A change is already awaiting approval".
 - Before → after: balance. Details: method, payment date, reference, note.
 - Approve: the settlement posts with its receipt number as #4379 describes; her go-online block lifts once she is under the limit.
 - Reject: her balance stays; Record settlement is offered again.
@@ -4010,7 +3991,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Record payout (#4001) on the driver's ledger creates a request instead of posting. Subject: the driver. Amount: the payout.
-- Pending notice: Record payout gives way to the notice with a link to the request; her Driver balances row shows Awaiting approval.
+- Pending notice: Record payout gives way to the notice with a link to the request; her Driver balances row shows Awaiting approval. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for her payout; another is refused: "A change is already awaiting approval".
 - Before → after: balance. Details: reference, payment date.
 - Approve: the payout posts to her ledger and marks her oldest Due earnings Paid, up to its amount.
 - Reject: her balance and earnings stay; Record payout is offered again.
@@ -4042,7 +4023,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Waive fee on the rider's ledger (#5621) creates a request. Subject: the rider. Amount: the fee.
-- Pending notice: the fee reads "Waiver awaiting approval" and offers no Waive action.
+- Pending notice: the fee reads "Waiver awaiting approval" and offers no Waive action. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for the fee; another is refused: "A change is already awaiting approval".
 - Before → after: fee owed. Details: the trip and the reason.
 - Approve: the fee is waived on her ledger and the driver's credit for it is reversed, as #5621 describes.
 - Reject: the fee stays owed; Waive is offered again.
@@ -4074,7 +4055,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - An admin's edit on the driver profile (#5624) creates a request. The driver's own change in the app does not. Subject: the driver.
-- Pending notice: the profile reads "Change awaiting approval" and Edit is disabled.
+- Pending notice: the profile reads "Change awaiting approval" and Edit is disabled. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for her payout method; another is refused: "A change is already awaiting approval".
 - Before → after: payout type, provider or bank, account number, account holder — all in full.
 - Approve: her payout method is replaced and shows it was updated by an admin.
 - Reject: her current method stays; Edit is offered again.
@@ -4106,7 +4087,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Saving or removing a zone's rate card (#1757) creates a request. Only a Financial lead makes it. Subject: the zone.
-- Pending notice: the zone reads "Rate card change awaiting approval" with the proposed values; its card is locked.
+- Pending notice: the zone reads "Rate card change awaiting approval" with the proposed values; its card is locked. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for the zone; another is refused: "A change is already awaiting approval".
 - Before → after: base fare, per-km rate, per-minute rate, minimum fare, cancellation fee; a removal shows Rate card → Removed.
 - Approve: new trips in the zone price on the new card; the zone status follows the card. Logged in #1760.
 - Reject: the card stays and is unlocked.
@@ -4146,7 +4127,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Saving the commission on Global policies, Pricing tab (#1759, #6486) creates a request. Only a Financial lead makes it. Subject: platform commission.
-- Pending notice: "Commission change to {pct} awaiting approval" / "تغيير العمولة إلى {pct} بانتظار الموافقة"; the field is locked and the current rate stays in force.
+- Pending notice: "Commission change to {pct} awaiting approval" / "تغيير العمولة إلى {pct} بانتظار الموافقة"; the field is locked and the current rate stays in force. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for the commission; another is refused: "A change is already awaiting approval".
 - Saving the Pricing tab with both commission and cancellation policy changed sends two requests, one per card.
 - Before → after: commission (%).
 - Approve: the new commission is saved and applies from then on.
@@ -4180,7 +4161,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Saving the Cancellation policy card on Global policies, Pricing tab (#1759, #6486) creates one request for the whole card. Only a Financial lead makes it. Subject: cancellation policy.
-- Pending notice: "Cancellation policy change awaiting approval" / "تغيير سياسة الإلغاء بانتظار الموافقة"; the card is locked.
+- Pending notice: "Cancellation policy change awaiting approval" / "تغيير سياسة الإلغاء بانتظار الموافقة"; the card is locked. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for the cancellation policy; another is refused: "A change is already awaiting approval".
 - Before → after: rider grace period, cancellation fee, driver cancellation fee, driver grace period, rider no-show wait — the changed ones.
 - Approve: the policy is saved and applies to new trips.
 - Reject: the policy stays; the card is unlocked.
@@ -4212,7 +4193,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Saving the driver balance limit on Global policies, Finance tab (#3994, #6486) creates a request. Only a Financial lead makes it. Subject: driver balance limit.
-- Pending notice: "Balance limit change to {limit} awaiting approval" / "تغيير حد الرصيد إلى {limit} بانتظار الموافقة"; the field is locked.
+- Pending notice: "Balance limit change to {limit} awaiting approval" / "تغيير حد الرصيد إلى {limit} بانتظار الموافقة"; the field is locked. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for the balance limit; another is refused: "A change is already awaiting approval".
 - Before → after: balance limit (EGP).
 - Approve: the new limit is saved; go-online blocks follow it (#3994).
 - Reject: the limit stays; the field is unlocked.
@@ -4244,7 +4225,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Rules
 - Saving the Payouts card on Global policies, Finance tab (#6486) creates a request. Only a Financial lead makes it. Subject: payout settings.
-- Pending notice: "Payout settings change awaiting approval" / "تغيير إعدادات المدفوعات بانتظار الموافقة"; the card is locked.
+- Pending notice: "Payout settings change awaiting approval" / "تغيير إعدادات المدفوعات بانتظار الموافقة"; the card is locked. Clicking it opens the review over this screen; she stays here after deciding. Only one request can be pending for the payout settings; another is refused: "A change is already awaiting approval".
 - Before → after: minimum payout, transfer fee (%), its minimum and maximum, who pays it — the changed ones.
 - Approve: the settings apply to the next batch generated; a batch generated before keeps its own.
 - Reject: the settings stay; the card is unlocked.
@@ -5106,53 +5087,58 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 
 ---
 
-## [Admin] #6485 — Admin (users & IT) sets and changes an admin user's role 🆕
+## [Admin] #6485 — Admin (users & IT) chooses the role when adding an admin user 🆕
 **Feature:** Feature 1 — Platform & Integration Foundation (ADO Feature #1611) | **Sprint:** Sprint 6 | **Tag:** Admin roles
 
-**Description:** As the Admin (users & IT), I want to choose each admin account's role when I add it and change it later so that a colleague's access always matches their job.
+**Description:** As the Admin (users & IT), I want to choose a colleague's role when I add their admin account so that their access matches their job from their first sign-in.
 
 ### Rules
-- On **Admin users** she sets and changes roles and resets two-factor.
-- **Add admin user** gets a **Role** field. The list (#1820) gets a **Role** column, sortable and filterable.
-- Change role: row action → new role → confirm. Finance requests she already made stay pending.
-- Reset two-factor removes the authenticator and recovery codes and ends the account's sessions.
-- When a role change, suspension or deletion leaves fewer than two active Financial leads, the confirmation warns:
+- **Add admin user** has a required **Role** field. The role is set once, when the account is added. There is no Change role action.
+- The **Admin users** list (#1820) gets a **Role** column, sortable and filterable.
+- The list shows Operations and Financial accounts only. Admin (users & IT) accounts, her own included, never show in the list, and the Role filter doesn't offer that role.
+- On Admin users she also resets two-factor: this removes the authenticator and recovery codes and ends the account's sessions.
+- When a suspension or deletion leaves fewer than two active Financial leads, the confirmation warns:
 
 | Leads left | Warning |
 |---|---|
 | One | "Only one Financial lead will be left. Their own finance requests can't be approved until another is added." / "سيتبقى رئيس فريق مالي واحد فقط. لا يمكن اعتماد طلباته المالية حتى تتم إضافة آخر." |
 | None | "No Financial lead will be left. Finance requests can't be approved until one is added." / "لن يتبقى رئيس فريق مالي. لا يمكن اعتماد أي طلب مالي حتى تتم إضافة واحد." |
 
-- An account with no role signs in to a page that says "Your account has no role yet. Ask your administrator." / "لم تُحدَّد صلاحية لحسابك بعد. تواصل مع مسؤول النظام."
-
 ### Field Validation
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
 |---|---|---|---|---|---|---|---|---|---|
-| Role | Yes | Dropdown (single-select) | Admin (users & IT) / Operations officer / Operations lead / Financial officer / Financial lead | — | — | none | Choose a role / اختر الصلاحية | Choose a role different from the current one / اختر صلاحية مختلفة عن الحالية | — |
+| Role | Yes | Dropdown (single-select) | Admin (users & IT) / Operations officer / Operations lead / Financial officer / Financial lead | — | — | none | Choose a role / اختر الصلاحية | — | — |
 
 ### Acceptance Criteria
-**Scenario 1 — Change a role**
-- Given Mona is a Financial officer
-- When the Admin (users & IT) changes her to Financial lead and confirms
-- Then from her next page load Mona can approve other people's finance requests
-- And the audit log reads Financial officer → Financial lead
+**Scenario 1 — Add with a role**
+- When the Admin (users & IT) adds Mona with the role Financial officer and saves
+- Then Mona's row shows Financial officer
+- And at her first sign-in Mona sees the Financial officer pages
+- And the audit log records the account added with that role
 
-**Scenario 2 — Own account**
-- Given the Admin (users & IT) is looking at her own row
-- Then it has no Change role, Suspend, Delete, Reset password or Reset two-factor action
+**Scenario 2 — No role chosen**
+- When the Admin (users & IT) saves a new account without a role
+- Then "Choose a role" shows and the account is not added
 
-**Scenario 3 — Last Financial lead**
+**Scenario 3 — Admin (users & IT) accounts not listed**
+- Given Reem and Dina are both Admin (users & IT)
+- When Reem opens Admin users
+- Then neither Reem's nor Dina's row shows
+- And the Role filter offers only the Operations and Financial roles
+
+**Scenario 4 — Last Financial lead**
 - Given Hala and Nour are the only active Financial leads
 - When the Admin (users & IT) suspends Nour
 - Then the "Only one Financial lead will be left" warning shows, and on confirm Nour is suspended
 
-**Scenario 4 — Lost phone**
+**Scenario 5 — Lost phone**
 - Given Sara has lost her phone and her recovery codes
 - When the Admin (users & IT) resets her two-factor
 - Then at her next sign-in Sara scans a new QR code
 
 ### Out of Scope
-- A second Admin (users & IT) approving a role change
+- Changing a role after the account is added
+- Managing Admin (users & IT) accounts from the Admin users list
 - Time-limited roles
 
 ### Dependencies
