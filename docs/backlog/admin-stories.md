@@ -3889,7 +3889,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ### Mockup (ADO comment)
 - Approvals as a Financial lead: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?as=fin_lead
 - As a Financial officer: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?as=fin_officer
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?as=fin_lead&lang=ar
 - Request page (payout result, 338 lines): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0012&as=nour.hassan@shedrive.app
 - Own request, another lead must decide: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0021&as=hala.mahmoud@shedrive.app
 - Decided request (rejected): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0008
@@ -3945,7 +3944,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - Bank account batch, 333 lines: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0013&as=nour.hassan@shedrive.app
 - Prepaid card batch, 329 lines (no provider column): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0014&as=nour.hassan@shedrive.app
 - Approved result: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0005
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0012&as=nour.hassan@shedrive.app&lang=ar
 
 ---
 
@@ -4450,7 +4448,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Mockup (ADO comment)
 - Payouts (generate a batch here): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?lang=ar
 
 
 ---
@@ -4516,7 +4513,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Mockup (ADO comment)
 - Payouts — choose Generate payout batch: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_officer
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_officer&lang=ar
 - Payouts filtered by method: pick Payout method in the filter row on the page above
 ---
 
@@ -4581,7 +4577,6 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Mockup (ADO comment)
 - Payouts: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_lead
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_lead&lang=ar
 - No batches: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_lead&state=empty
 - Error: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?as=fin_lead&state=error
 
@@ -4784,7 +4779,6 @@ The three templates are attached to this story and to #5618: `payout-template-mo
 
 ### Mockup (ADO comment)
 - Global policies — Finance tab, Payouts card: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=finance
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=finance&lang=ar
 - Review a payout settings change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0024
 
 ---
@@ -4889,7 +4883,6 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 - Step 3, file rejected (download it from the alert): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?step=3&sample=business&as=fin_officer
 - Step 3, ready to send: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?step=3&sample=clean&as=fin_officer
 - Pending import review: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?id=APR-0018
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?step=3&sample=business&lang=ar&as=fin_officer
 
 ---
 
@@ -4966,7 +4959,6 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 - Approved import with receipts: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-import.html?id=IMP-0001&as=fin_officer
 - Import not found (also a pending or rejected file): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-import.html?id=IMP-0002&as=fin_officer
 - Empty: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-imports.html?state=empty&as=fin_officer
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/settlement-import.html?id=IMP-0001&lang=ar&as=fin_officer
 
 ---
 
@@ -5012,7 +5004,6 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 
 ### Mockup (ADO comment)
 - Rider balances (Waive fee is in the rider ledger): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/rider-balances.html?lang=ar
 
 ---
 
@@ -5050,7 +5041,6 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 
 ### Mockup (ADO comment)
 - Driver balances: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/balances.html?lang=ar
 
 ---
 
@@ -5170,7 +5160,6 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 
 ### Mockup (ADO comment)
 - Sidebar on any screen: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/payouts.html?lang=ar
 - Screen index (same groups): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/screens.html
 
 ---
@@ -5218,7 +5207,6 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 
 ### Mockup (ADO comment)
 - Driver earnings (choose a driver, e.g. Laila Fathy): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/reconciliation.html?lang=ar
 
 ---
 
@@ -5342,7 +5330,6 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 
 ### Mockup (ADO comment)
 - Admin users with roles: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/admin-users.html?as=admin_it
-- Admin users (Arabic): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/admin-users.html?as=admin_it&lang=ar
 
 ---
 
@@ -5661,7 +5648,6 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 
 ### Mockup (ADO comment)
 - Global policies — Operations tab: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=ops_lead&tab=operations
-- Arabic: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=ops_lead&tab=operations&lang=ar
 - Design story: #6269
 
 ---
