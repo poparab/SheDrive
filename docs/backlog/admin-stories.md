@@ -3916,22 +3916,35 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | List columns | Line, Driver name, National ID, Wallet provider or Bank (not for prepaid card), Wallet / Account / Card number, Amount (EGP), Result, Bank reference (success) or Reason (failed) |
 
 ### What approving does
+- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
 - Each SUCCESS line posts a payout entry (−line amount, bank reference); the driver is told she was paid.
 - Each FAILED line goes back to Due, flags her Last payout failed with the reason, and she is told.
 - The batch is Completed.
 - Reject: nothing posts; the batch is Sent to bank again, so a corrected result can be imported.
 
 ### Acceptance Criteria
-**Scenario 1 — A 338-line result**
-- Given a mobile wallet batch of 338 lines whose result marks 332 SUCCESS and 6 FAILED
+All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 EGP. Its result file marks 98 lines SUCCESS (49,000 EGP) and 2 FAILED (1,000 EGP).
+
+**Scenario 1 — The checker sees the totals**
 - When the checker opens the request
-- Then the tiles read File total 265,122.10 EGP (338), Successful 259,141.54 EGP (332), Failed 5,980.56 EGP (6), the list shows lines 1–10 of 338 failed first, and typing a driver's national ID narrows it to her line
+- Then she sees three tiles:
+  - File total: 50,000 EGP, 100 lines
+  - Successful: 49,000 EGP, 98 lines
+  - Failed: 1,000 EGP, 2 lines
 
-**Scenario 2 — Approved**
+**Scenario 2 — Failed lines come first**
+- When the checker opens the request
+- Then the 2 failed lines are at the top of the list, each with its reason, followed by the successful lines
+
+**Scenario 3 — Finding one driver**
+- When the checker types a driver's national ID in the search
+- Then the list shows only that driver's line
+
+**Scenario 4 — Approved**
 - When the checker approves it
-- Then the 332 drivers are paid with their bank reference, the 6 failed lines are Due again with Last payout failed, and the batch is Completed
+- Then the 98 drivers are paid with their bank reference, the 2 failed lines are Due again with Last payout failed, and the batch is Completed
 
-**Scenario 3 — Rejected**
+**Scenario 5 — Rejected**
 - When the checker rejects it with a reason
 - Then no line is paid and the batch is Sent to bank again, showing the reason
 
@@ -3966,6 +3979,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | List columns | Row, Driver, National ID, Phone, Amount (EGP), Balance now → after, Payment (reference, date, channel), Result (Settled in full · Part paid — still owes X · Paid more — X added to her balance) |
 
 ### What approving does
+- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
 - Each row posts a settlement entry with a receipt number (S-nnnnn); a driver's go-online block lifts once she is under the limit.
 - The file is Approved and gets its View page (#6492).
 - Reject: nothing posts; the file is Rejected with the reason, and its payment references can be imported again in a corrected file.
@@ -4010,6 +4024,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Settlement details | Driver (links to her ledger), balance now, payment channel, payment date, reference, note, proof of payment |
 
 ### What approving does
+- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
 - The settlement posts with its receipt number as #4379 describes; her go-online block lifts once she is under the limit.
 - Reject: her balance stays; Record settlement is offered again.
 
@@ -4056,6 +4071,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Where her earnings stand — tiles | Due · On hold (7 days) · In an open batch |
 
 ### What approving does
+- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
 - The payout posts to her ledger and marks her oldest Due earnings Paid, up to its amount.
 - Reject: her balance and earnings stay; Record payout is offered again.
 
@@ -4097,6 +4113,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Fee details | Rider (links to her ledger), trip (links to it), trip date, route, driver, fee to waive, what the rider owes now, reason |
 
 ### What approving does
+- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
 - An unpaid fee is removed from what the rider owes; a paid one becomes a credit on her balance.
 - The driver's credit for that fee is reversed, as #5621 describes.
 - Reject: the fee stays owed; Waive is offered again.
@@ -4139,6 +4156,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Driver | Driver (links to her profile), when the current method was last updated and by whom, due now, in an open batch |
 
 ### What approving does
+- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
 - Her payout method is replaced and shows it was updated by an admin; her next batch uses the new method.
 - A line already in an open batch is paid to the method it was generated with.
 - Reject: her current method stays; Edit is offered again.
@@ -4181,6 +4199,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Where it applies | Zone (links to Pricing & zones), zone status, "To new trips in this zone, from the moment it is approved." |
 
 ### What approving does
+- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
 - New trips in the zone price on the new card; the zone status follows the card. Logged in #1760.
 - Reject: the card stays and is unlocked.
 
@@ -4231,6 +4250,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Where it applies | Setting, Global policies tab (Pricing — links to it), "To trips completed after it is approved." |
 
 ### What approving does
+- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
 - The new commission is saved and applies from then on.
 - Reject: the commission stays; the field is unlocked.
 
@@ -4274,6 +4294,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Where it applies | Setting, Global policies tab (Pricing — links to it), "To trips requested after it is approved." |
 
 ### What approving does
+- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
 - The policy is saved and applies to new trips.
 - Reject: the policy stays; the card is unlocked.
 
@@ -4315,6 +4336,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Where it applies | Setting, Global policies tab (Finance — links to it), "At once: drivers under the new limit can go online, drivers over it cannot." |
 
 ### What approving does
+- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
 - The new limit is saved; go-online blocks follow it (#3994).
 - Reject: the limit stays; the field is unlocked.
 
@@ -4356,6 +4378,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Where it applies | Setting, Global policies tab (Finance — links to it), "To the next payout batch generated. Batches already generated keep their own settings." |
 
 ### What approving does
+- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
 - The settings apply to the next batch generated, whatever its method; a batch generated before keeps its own.
 - Reject: the settings stay; the card is unlocked.
 
