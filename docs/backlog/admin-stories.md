@@ -3794,7 +3794,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Title | "{type} —" and the request ID |
 | Request details | Subject (links to it), amount, created by and when, the type's own facts, status; once decided: checked by, decided on |
 | Before → After | Every changed value, old → new |
-| The type's sections | What the checker needs for that type (in its cycle story) |
+| The type's sections | What the Financial lead needs for that type (in its cycle story) |
 | What approving does | Short bullets: what Approve does, what Reject leaves |
 | Actions | **Approve Request** · **Reject Request**, under the content |
 
@@ -3815,7 +3815,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 | Filter | Options |
 |---|---|
-| Created by | Anyone / Other admins — mine to decide / Me — waiting for others |
+| Created by | Anyone / Financial officers and other leads — mine to decide / Me — waiting for others |
 | Area | All / Payouts & settlements (payout result, manual payout, manual settlement, settlement import, payout settings) / Rider fees (fee waiver) / Pricing (rate card, commission, cancellation policy, balance limit) / Driver details (payout method change) |
 | Request type | All / the eleven types |
 
@@ -3832,7 +3832,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 
 ### Acceptance Criteria
 **Scenario 1 — Approve on the request page**
-- Given a pending request made by another admin
+- Given a pending request made by a Financial officer
 - When a Financial lead opens it with View, approves and confirms
 - Then the page shows "Approved by …", Approve and Reject are gone, the pending count drops by one, and the change applies as its cycle story says
 
@@ -3847,7 +3847,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 - When she uses the back button after deciding
 - Then she is on that batch again
 
-**Scenario 4 — Maker cannot decide her own request**
+**Scenario 4 — A Financial lead cannot decide her own request**
 - Given Hala made a commission change
 - When she opens it
 - Then Approve and Reject are disabled and the page says another Financial lead must decide it
@@ -3903,7 +3903,7 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 **Description:** As a Financial lead, I want to check a batch's result file before it is posted so that a driver is marked paid only when her transfer really went through.
 
 ### Rules
-- Made when an admin imports a batch's result file (#5619). A batch pays one method, so one request per batch. Subject: the batch. Amount: the successful lines.
+- Made when a Financial officer or Financial lead imports a batch's result file (#5619). A batch pays one method, so one request per batch. Subject: the batch. Amount: the successful lines.
 - Pending notice: the batch reads Result pending approval with a link to the request page; its back button returns to the batch.
 
 ### Request page
@@ -3925,27 +3925,27 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 ### Acceptance Criteria
 All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 EGP. Its result file marks 98 lines SUCCESS (49,000 EGP) and 2 FAILED (1,000 EGP).
 
-**Scenario 1 — The checker sees the totals**
-- When the checker opens the request
+**Scenario 1 — The Financial lead sees the totals**
+- When a Financial lead opens the request
 - Then she sees three tiles:
   - File total: 50,000 EGP, 100 lines
   - Successful: 49,000 EGP, 98 lines
   - Failed: 1,000 EGP, 2 lines
 
 **Scenario 2 — Failed lines come first**
-- When the checker opens the request
+- When a Financial lead opens the request
 - Then the 2 failed lines are at the top of the list, each with its reason, followed by the successful lines
 
 **Scenario 3 — Finding one driver**
-- When the checker types a driver's national ID in the search
+- When a Financial lead types a driver's national ID in the search
 - Then the list shows only that driver's line
 
 **Scenario 4 — Approved**
-- When the checker approves it
+- When a Financial lead approves it
 - Then the 98 drivers are paid with their bank reference, the 2 failed lines are Due again with Last payout failed, and the batch is Completed
 
 **Scenario 5 — Rejected**
-- When the checker rejects it with a reason
+- When a Financial lead rejects it with a reason
 - Then no line is paid and the batch is Sent to bank again, showing the reason
 
 ### Dependencies
@@ -3966,7 +3966,7 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 **Description:** As a Financial lead, I want to check a settlement sheet before it is applied so that no driver's balance changes on a file only one person has read.
 
 ### Rules
-- Made when an admin sends a checked file (#5620): one request for the whole file. Subject: the file. Amount: the file's total.
+- Made when a Financial officer or Financial lead sends a checked file (#5620): one request for the whole file. Subject: the file. Amount: the file's total.
 - Pending notice: the settlements history (#6492) shows the file as Pending approval with a link to the request page; its back button returns to the history.
 
 ### Request page
@@ -3987,11 +3987,11 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 ### Acceptance Criteria
 **Scenario 1 — Approved**
 - Given a 13-row file awaiting approval
-- When the checker approves it
+- When a Financial lead approves it
 - Then 13 settlement entries post with receipt numbers and the history shows the file Approved with View
 
 **Scenario 2 — Rejected**
-- When the checker rejects it with "The Fawry references do not match the Fawry statement"
+- When a Financial lead rejects it with "The Fawry references do not match the Fawry statement"
 - Then no balance changes, the history shows Rejected with that reason, and a corrected file with the same references passes step 3
 
 ### Dependencies
@@ -4012,7 +4012,7 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 **Description:** As a Financial lead, I want a settlement recorded by hand to wait for my approval so that no single person can change a driver's balance.
 
 ### Rules
-- Record settlement (#4379) on the driver's ledger creates a request instead of posting. Subject: the driver. Amount: the settlement.
+- When a Financial officer or Financial lead uses Record settlement (#4379) on the driver's ledger, it creates a request instead of posting. Subject: the driver. Amount: the settlement.
 - Pending notice: Record settlement gives way to the notice with a link to the request page; her Driver balances row shows Awaiting approval.
 - Only one request can be pending for her settlement; another is refused: "A change is already awaiting approval".
 
@@ -4058,7 +4058,7 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 **Description:** As a Financial lead, I want a payout recorded by hand to wait for my approval so that no single person can mark a driver paid.
 
 ### Rules
-- Record payout (#4001) on the driver's ledger creates a request instead of posting. Subject: the driver. Amount: the payout.
+- When a Financial officer or Financial lead uses Record payout (#4001) on the driver's ledger, it creates a request instead of posting. Subject: the driver. Amount: the payout.
 - Pending notice: Record payout gives way to the notice with a link to the request page; her Driver balances row shows Awaiting approval.
 - Only one request can be pending for her payout; another is refused: "A change is already awaiting approval".
 
@@ -4101,7 +4101,7 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 **Description:** As a Financial lead, I want a fee waiver to wait for my approval so that no rider's fee disappears on one person's say.
 
 ### Rules
-- Waive fee on the rider's ledger (#5621) creates a request. Subject: the rider. Amount: the fee.
+- When a Financial officer or Financial lead uses Waive fee on the rider's ledger (#5621), it creates a request. Subject: the rider. Amount: the fee.
 - Pending notice: the fee reads "Waiver awaiting approval" with a link to the request page and offers no Waive action.
 - Only one request can be pending for the fee; another is refused: "A change is already awaiting approval".
 
@@ -4141,10 +4141,10 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 ## [Admin] #6564 — Approval cycle — Payout method change 🆕
 **Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Approval, Payout
 
-**Description:** As a Financial lead, I want an admin's change to a driver's payout method to wait for my approval so that no one can redirect a driver's money alone.
+**Description:** As a Financial lead, I want a payout method change made by a Financial officer or another Financial lead to wait for my approval so that no one can redirect a driver's money alone.
 
 ### Rules
-- An admin's edit on the driver profile (#5624) creates a request. The driver's own change in the app does not. Subject: the driver.
+- An edit on the driver profile (#5624) by a Financial officer or Financial lead creates a request. The driver's own change in the app does not. Subject: the driver.
 - Pending notice: the profile reads "Change awaiting approval" with a link to the request page, and Edit is disabled.
 - Only one request can be pending for her payout method; another is refused: "A change is already awaiting approval".
 
@@ -4157,13 +4157,13 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 
 ### What approving does
 - **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
-- Her payout method is replaced and shows it was updated by an admin; her next batch uses the new method.
+- Her payout method is replaced and shows it was updated by the Financial officer or Financial lead who requested it; her next batch uses the new method.
 - A line already in an open batch is paid to the method it was generated with.
 - Reject: her current method stays; Edit is offered again.
 
 ### Acceptance Criteria
 **Scenario 1 — Approved**
-- Given her method is a Vodafone Cash wallet and an admin requested a CIB bank account
+- Given her method is a Vodafone Cash wallet and a Financial officer requested a CIB bank account
 - When a Financial lead approves it
 - Then her next payout goes in a bank-account batch to the CIB account
 
@@ -4257,12 +4257,12 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 ### Acceptance Criteria
 **Scenario 1 — Rejected**
 - Given a commission change from 18% to 20% is pending
-- When the checker rejects it with "Stays at 18% until the quarterly review"
+- When a Financial lead rejects it with "Stays at 18% until the quarterly review"
 - Then commission stays 18% and the reason shows on the decided request
 
 **Scenario 2 — Approved**
-- Given Hala requested 18% → 19%
-- When Nour approves it
+- Given Hala (Financial lead) requested 18% → 19%
+- When Nour (another Financial lead) approves it
 - Then commission is 19%
 
 ### Dependencies
@@ -4301,11 +4301,11 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 ### Acceptance Criteria
 **Scenario 1 — Fee waits**
 - Given the driver cancellation fee is 20 EGP
-- When Hala saves 25
+- When Hala (Financial lead) saves 25
 - Then drivers are still charged 20 until another Financial lead approves
 
 **Scenario 2 — Approved**
-- When Nour approves it
+- When Nour (another Financial lead) approves it
 - Then cancellations on new trips charge the driver 25
 
 ### Dependencies
@@ -4343,11 +4343,11 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 ### Acceptance Criteria
 **Scenario 1 — Approved**
 - Given the limit is 500 EGP and a driver owes 550 EGP
-- When a change to 600 EGP is approved
+- When a Financial lead approves a change to 600 EGP
 - Then she is under the limit and can go online
 
 **Scenario 2 — Rejected**
-- When it is rejected
+- When a Financial lead rejects it
 - Then the limit stays 500 EGP and she stays blocked
 
 ### Dependencies
@@ -4384,8 +4384,8 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 
 ### Acceptance Criteria
 **Scenario 1 — Approved**
-- Given Hala sets the minimum payout to 150.00 EGP and SheDrive as the fee payer
-- When Nour approves it
+- Given Hala (Financial lead) sets the minimum payout to 150.00 EGP and SheDrive as the fee payer
+- When Nour (another Financial lead) approves it
 - Then the next batch leaves out drivers due under 150.00 and sends each driver her full amount
 
 **Scenario 2 — Rejected**
