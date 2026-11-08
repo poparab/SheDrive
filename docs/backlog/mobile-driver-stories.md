@@ -1,6 +1,6 @@
 # SheDrive — Mobile Driver Stories
 > Canonical backlog for all [Mobile] Driver stories. Organized by sprint and feature.
-> Last updated: 2026-10-29
+> Last updated: 2026-11-08
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -1614,83 +1614,63 @@ After the driver taps "I've Arrived" and the trip state advances to arrived_pick
 ## [Mobile] #1588 — Driver verifies rider is female on first trip ✏️
 **Feature:** Feature 10 — Active Trip | **Sprint:** 2
 
-**Description:** As a driver, I want to visually verify that the rider is female on her first trip so that SheDrive's women-only service guarantee is upheld, with the option to cancel and report if the rider does not appear to be female.
+**Description:** As a driver, I want to check that the rider is female on her first trip, and cancel and report the trip if she is not, so that SheDrive stays a women-only service.
 
-### Background
-
-When is_first_trip is true, the driver sees the rider's registered full name on the arrived_pickup screen and visually checks that the person approaching the vehicle is female. If satisfied, she taps "Rider Verified — Board". If the approaching person does not appear to be female, she taps "Cancel — Rider Not Female," which opens a confirmation dialog carrying an **optional short statement** describing what happened, and then calls #1687, which ends the trip as Expired (reason gender_mismatch_report) and places the rider's account under review — she is not suspended; an admin decides that later (#1811). The statement is the reporting driver's own account of the incident and is the primary evidence the super admin reads when triaging the report queue (#1810 / #1811); it is optional so a driver is never delayed at the kerbside by a text field.
-
-The check is **mandatory and unconditional** for a first trip: the driver must **always** verify the rider on her first trip, the step cannot be skipped, dismissed or switched off, and the trip cannot start until the rider is verified. There is no exception for any passenger type. For all returning riders (is_first_trip = false) this step is skipped entirely and the driver proceeds directly to the "Start Trip" button.
-
+### Rules
+- Runs on the waiting-at-pickup screen, only on the rider's first trip. Returning riders skip it and the driver sees "Start Trip" straight away.
+- The check is mandatory: no skip or close, and the trip can't start until she taps "الراكبة مؤكدة — ابدئي" / "Rider Verified — Board".
+- The screen shows the rider's registered full name.
+- "إلغاء — الراكبة ليست أنثى" / "Cancel — Rider Not Female" opens the report sheet: "سيتم إلغاء الرحلة وإرسال تقرير أمان" / "This will cancel the trip and submit a safety report."
+- The sheet has one optional field and "تأكيد وإرسال البلاغ" / "Confirm and submit report". Submitting ends the trip as Expired (reason gender_mismatch_report), puts the rider's account under review and sends the statement to the safety team (#1687).
+- No fare is charged and the driver gets no penalty. After "تم إرسال البلاغ" / "Report submitted" → Done, she is back on home, still online.
 
 ### Field Validation
-
-| Field | Required | Format | Min | Max | Accepted characters | Error — empty | Error — invalid format | Error — length |
-|---|---|---|---|---|---|---|---|---|
-| Statement ("What happened?") | No (optional) | Free text (multi-line) | — | 500 chars | Any character | — | — | يجب ألا يتجاوز النص 500 حرف / Must be 500 characters or fewer |
+| Field | Required | Format | Max | Error |
+|---|---|---|---|---|
+| What happened? / ماذا حدث؟ | No | Free text, multi-line | 500 characters | يجب ألا يتجاوز النص 500 حرف / Must be 500 characters or fewer |
 
 ### Acceptance Criteria
+**Scenario 1 — First trip, rider is female**
+- Given Sara arrives for Nour Ahmed's first trip
+- When she taps "Rider Verified — Board"
+- Then "Start Trip" appears
 
-**Scenario 1 — Verification screen is shown for first-trip riders**
-- Given the driver has arrived at the pickup location
-- And the trip's is_first_trip flag is true
-- When the arrived_pickup screen loads
-- Then the driver sees the rider's registered full name
-- And a "Rider Verified — Board" button is displayed
-- And a "Cancel — Rider Not Female" button is also displayed
+**Scenario 2 — First trip, rider is not female**
+- Given the person at the car is not female
+- When Sara taps "Cancel — Rider Not Female", types "A man came to the car" and confirms
+- Then the report is sent with her statement, the trip ends with no fare, and she is back on home and online
 
-**Scenario 2 — Driver confirms rider is female and proceeds**
-- Given the verification screen is visible
-- When the driver taps "Rider Verified — Board"
-- Then the screen transitions to show the "Start Trip" button
-- And the driver can proceed to board the rider
-
-**Scenario 3 — Driver cancels due to gender mismatch**
-- Given the verification screen is visible
-- When the driver taps "Cancel — Rider Not Female"
-- Then a confirmation dialog is shown: "هل أنتِ متأكدة؟ سيتم إلغاء الرحلة وإرسال تقرير أمني." / "Are you sure? This will cancel the trip and submit a safety report."
-- And the dialog offers an optional free-text statement ("What happened?") of up to 500 characters
-- And on confirmation, the platform calls #1687, which ends the trip as Expired (reason gender_mismatch_report) and places the rider's account under review
-- And the statement, when entered, is submitted with the report and shown to the super admin in the report queue (#1810 / #1811)
-- And the driver is returned to her home/available screen
-- And no fare is charged
-
-**Scenario 4 — Verification step is skipped for returning riders**
-- Given the trip's is_first_trip flag is false
-- When the driver arrives and the arrived_pickup screen loads
-- Then no verification step is shown
-- And the "Start Trip" button is immediately accessible
-
-**Scenario 5 — Driver remains available after gender mismatch cancellation**
-- Given the driver has cancelled due to gender mismatch
-- When she is returned to her home screen
-- Then her online status is preserved
-- And she remains eligible for the next dispatched trip
-
-**Scenario 6 — Statement is optional**
-- Given the confirmation dialog is shown and the driver leaves the statement empty
+**Scenario 3 — Report with no statement**
+- Given the report sheet is open and the field is empty
 - When she confirms
-- Then the report is submitted with no statement and no required-field error is raised
-- And the admin report detail shows the trip snapshot as the sole evidence
+- Then the report is sent with no error
 
-**Scenario 7 — Verification cannot be bypassed on a first trip**
-- Given the trip's is_first_trip flag is true and the driver is on the arrived_pickup screen
-- Then the "Start Trip" button is not available until she taps "Rider Verified — Board"
-- And there is no skip, close or dismiss control on the verification step
-- And if she leaves the screen and returns before verifying, the verification step is shown again
+**Scenario 4 — She leaves before verifying**
+- Given a first trip she hasn't verified yet
+- When she leaves the trip screen and comes back
+- Then the verification step is shown again
+
+**Scenario 5 — Returning rider**
+- Given the rider has completed trips before
+- When the driver arrives
+- Then no verification step is shown
 
 ### Out of Scope
-- Biometric or document scanning
-- Automatic identity verification via camera
-- Any per-passenger exception to the women-only rule
-- SOS functionality
-- Penalty for drivers who cancel
+- The report option on later trips
+- Camera or document identity checks
+- Any exception to the women-only rule
 
 ### Dependencies
-- #1635 — Trip detail includes first-trip flag (must be live)
-- #1652 — Driver advances trip state machine (must be live)
-- #1687 — Rider account is placed under review after a gender mismatch report (must be live)
-- #1810 / #1811 — Admin gender-mismatch report queue and resolution (consume the statement)
+- #1687 [API] Rider account is placed under review after a gender mismatch report — Closed
+- #3768 [Mobile] Rider is told her account is under review after a gender-mismatch report
+- #1810 / #1811 [Admin] Gender-mismatch report queue and resolution — read the statement
+- #4011 [Driver] First-trip rider verification and gender-mismatch report — design
+
+### Mockup (ADO comment)
+
+- Verify the rider (first trip): https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/trip.html?state=verify-rider
+- Report sheet: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/trip.html?report=form
+- Report submitted: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/trip.html?report=sent
 
 ---
 
@@ -1857,78 +1837,52 @@ Immediately after the driver taps "End Trip" and the trip state advances to trip
 
 ---
 
-## [Mobile] #3990 — Driver collects a recovered rider fee alongside the fare 🆕
+## [Mobile] #3990 — Driver collects a recovered rider fee alongside the fare ✏️
 **Feature:** Feature 11 — Trip Completion & Cash Payment | **Sprint:** Phase 1
 
-**Description:** As a driver, I want the cash-collection screen to itemise a recovered rider fee separately from the trip fare so that I can tell my passenger exactly what she owes and why, instead of asking her for an unexplained extra amount.
+**Description:** As a driver, I want the cash-collection screen to show a rider's unpaid fee as its own line next to the fare, so that I can tell her exactly what she owes and why.
 
-### Background
-
-Extends the cash-collection screen (#1592). When a trip completes in cash and the rider is carrying an outstanding balance from earlier late cancellations, that whole balance is recovered as a surcharge on this trip (#4000) and the cash-collection screen itemises it as its own line, separate from the fare, followed by the total she must collect. Nothing about the screen changes when no balance is being recovered — it shows the fare total exactly as #1592 already does.
-
-Worked example: a 100.00 EGP fare with a 20.00 EGP outstanding balance recovered shows as "Fare: 100.00 EGP", "Outstanding fee recovered: 20.00 EGP", "Total to collect: 120.00 EGP" — the same 120.00 EGP the rider sees on her own fare summary (#3999), so the two figures always match and neither side has to take the other's word for it.
-
-**She is never left holding an unexplained number.** The fee line always carries a short reason — that the rider had an unpaid balance from one or more previous cancelled trips — so the driver can answer if the passenger asks why the total is higher than the fare shown when she booked.
-
-**Her own earnings are unaffected by the fee.** Commission is calculated on the 100.00 EGP fare only — never on the recovered balance, since the whole fee already belongs to the driver and none of it is the platform's to take a cut from. The extra cash she collects is not "extra income": it nets out against the balance on her balance screen (#1788), where the full picture — including what she is really entitled to for the trip — is visible. This screen's job is only to tell her what to collect and why, not to explain her balance.
-
-**The whole balance is always collected on this one trip, in full.** If the rider is carrying more than one outstanding fee, they are combined into a single amount and collected together on her very next completed trip — there is no drip, no oldest-fee-first ordering and nothing left outstanding afterward. The driver does nothing differently; the screen simply itemises whatever amount the platform says to collect.
-
-All strings flow through data-i18n keys with Arabic fallback, and all amounts are in EGP.
+### Rules
+- Extends the cash-collection screen (#1592). It changes only when the rider has an unpaid fee from trips she cancelled late.
+- Lines: "الأجرة" / "Fare", "رسوم مستحقة من رحلة سابقة" / "Outstanding fee from a previous trip", then "الإجمالي المطلوب تحصيله" / "Total to collect".
+- The rider's whole unpaid amount is collected on this trip, as one line, even if it comes from several cancellations.
+- The total always equals what the rider sees on her fare summary (#3999).
+- Commission and her net earnings are worked out on the fare only, never on the fee (#1766).
 
 ### Acceptance Criteria
-
-**Scenario 1 — Trip completes with a recovered fee, itemised**
-- Given a trip with a 100.00 EGP fare and a rider carrying a 20.00 EGP outstanding balance
-- When the trip ends and the cash-collection screen appears
-- Then it shows "Fare: 100.00 EGP", "Outstanding fee recovered: 20.00 EGP" and "Total to collect: 120.00 EGP"
-
-**Scenario 2 — Trip completes with no outstanding fee**
-- Given a trip with a 100.00 EGP fare and no outstanding balance on the rider
+**Scenario 1 — Fare with a fee**
+- Given an 83.60 EGP fare and a rider who owes 20.00 EGP
 - When the trip ends
-- Then the screen shows only "Total to collect: 100.00 EGP", exactly as #1592 today, with no fee line
+- Then the screen shows Fare 83.60, Outstanding fee 20.00 and Total to collect 103.60 EGP
 
-**Scenario 3 — Fee line states its reason**
-- Given the itemised screen is shown
-- Then the fee line is labelled "رسوم مستحقة من رحلة سابقة" / "Outstanding fee from a previous trip" so the driver can explain it if asked
+**Scenario 2 — Two unpaid fees**
+- Given the rider owes 20.00 and 15.00 EGP from two cancelled trips and the fare is 100.00 EGP
+- Then one fee line shows 35.00 EGP, the total is 135.00 EGP, and she owes nothing afterwards
 
-**Scenario 4 — Total matches the rider's own fare summary**
-- Given the same trip
-- Then the total shown to the driver (120.00 EGP) is identical to the total shown to the rider on her fare summary (#3999)
+**Scenario 3 — No fee**
+- Given the rider owes nothing
+- Then only Total to collect is shown, as in #1592
 
-**Scenario 5 — Several outstanding fees are combined and collected in full**
-- Given the rider has two outstanding fees, 20.00 EGP and 15.00 EGP, for a total balance of 35.00 EGP
-- When her next trip completes with a 100.00 EGP fare
-- Then the fee line reads 35.00 EGP, combining both fees
-- And the total to collect is 135.00 EGP
-- And her outstanding balance is cleared in full — nothing remains for a later trip
-
-**Scenario 6 — Commission and net earnings are unaffected**
-- Given the same 100.00 EGP fare and 20.00 EGP recovered balance, with a 20% commission
-- When the driver views her net earnings for this trip (#1766)
-- Then net earnings are calculated on the 100.00 EGP fare only (80.00 EGP), with no change from the recovered balance
-
-**Scenario 7 — "Get a New Ride" returns her to available**
-- Given the itemised screen is displayed
-- When she taps "استقبلي رحلة جديدة" / "Get a New Ride"
-- Then she is returned to her home screen in the available state, as in #1592
-
-**Scenario 8 — Arabic and English**
-- Given the driver switches language
-- Then the fare line, fee line, total and reason text are all displayed in the selected language
+**Scenario 4 — Earnings are not affected**
+- Given a 100.00 EGP fare, a 20.00 EGP fee and 20% commission
+- Then her net earnings for the trip are 80.00 EGP
 
 ### Out of Scope
-- Any ordering or partial recovery across multiple trips — the whole balance always clears on the next trip, in full
-- The rider disputing the recovered fee (Phase 2)
-- Receipt generation for the fee line
-- Waiving or editing the fee from the driver app — the only way it clears is that the rider pays it (#4000)
-- Any change to how commission or net earnings are calculated (#1766 unaffected)
+- Waiving or changing the fee from the driver app
+- The rider disputing the fee
+- Receipts for the fee
 
 ### Dependencies
-- #1592 — Driver sees cash fare to collect and returns to available (this story extends it)
-- #4000 — [API] Rider outstanding fee is recovered on her next trip (API — must be live; supplies the fee amount and reason)
-- #3058 — Cash-collection amount is served to the driver and her confirmation is recorded (extended to include the itemised fee line)
-- #3999 — [Mobile] Rider sees the recovered fee on her fare summary (parity — both sides must show the same total)
+- #1592 [Mobile] Driver sees cash fare to collect and returns to available — the screen this extends
+- #3058 [API] Completed-trip fare is served to rider and driver — Closed
+- #3997 [API] Trip completion posts to the ledger according to fare custody
+- #3999 [Mobile] Rider sees the recovered fee on her fare summary — same total
+- #3981 [Driver] Cash Collection with a Recovered Fee — design
+
+### Mockup (ADO comment)
+
+- Cash collection with a 20 EGP fee: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/cash-collection.html?riderfee=20
+- Without a fee: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/cash-collection.html
 
 ---
 
@@ -2352,122 +2306,77 @@ The earnings dashboard is accessible from the driver home screen menu or profile
 ## [Mobile] #1788 — Driver views her balance and statement ✏️
 **Feature:** Feature 18 — Driver Earnings | **Sprint:** Phase 1
 
-**Description:** As a driver, I want to see my current balance and every transaction behind it so that I know what I owe the platform, what the platform owes me, and why.
+**Description:** As a driver, I want to see my balance and every transaction behind it, so that I know what I owe SheDrive, what SheDrive owes me, and why.
 
-### Background
+### Rules
+- Reached from the earnings screen and the profile menu.
+- The card shows her balance in EGP with its sign: minus = she owes SheDrive (badge "Amount Due"), plus = SheDrive owes her. Under it: settlement limit and last settlement date.
+- "Settle Now" and "Settlement History" open the settlement screen (#3989).
+- Limit band: at 80% of the limit "اقتربتِ من حد الرصيد ({{owed}} من {{limit}} جنيه). سدّدي لتفادي إيقاف العمل." / "You are close to the balance limit ({{owed}} of {{limit}} EGP). Settle up to keep working."; at the limit "لا يمكنكِ الاتصال حتى تسدّدي رصيدك." / "You cannot go online until you settle your balance."
+- She can't ask for a payout. A payout Finance sends shows up as a statement row.
+- The screen is read-only.
 
-A balance screen reachable from the earnings screen and the profile menu shows the driver's position in EGP, retrieved via #1781. It replaces the earlier read-only "cash owed" view: the balance is now a signed figure over a real ledger (#1813), so the screen must present both directions and the movements that produced them.
-
-**The headline states the direction in words, not a sign.** When the driver owes the platform, the screen reads "مستحق عليكِ" / "You owe" with the amount and a short explanation that on cash trips she keeps the fare and the platform's commission is settled later. When the platform owes her, it reads "رصيدك المتاح" / "Your available balance" — explained as what SheDrive owes her, not a button she can act on. A driver never requests a payout: Finance transfers it on its own cycle, and it appears here, in her statement, once sent. A driver never sees a minus sign in front of her own money.
-
-**Below the headline is the statement** — a newest-first list of transactions, each with its date, a localised description, and the signed amount coloured as a credit or a debit. Credits and debits are visually distinct and each row states its type in plain language: commission on a trip, a cancellation fee charged, a cancellation fee credit earned, a settlement received, or a payout sent by Finance. Tapping a trip-linked row opens that trip's detail (#1594).
-
-**The statement can be narrowed by period.** A filter above the list offers "اليوم" / "Today" (the default), "هذا الأسبوع" / "This week" and "هذا الشهر" / "This month". Rows in the selected period are grouped under a day heading — "اليوم" / "Today", "أمس" / "Yesterday", then the date — newest first. The filter only narrows the list: the headline always shows her whole balance, and the limit band does not change with the period.
-
-**A warning band appears as she approaches the limit.** When her outstanding amount reaches the configured warning threshold (default 80% of the balance limit, both set via #3994, returned by #1781), a warning band explains that she will not be able to go online once she reaches the limit. At or above the limit the band becomes a blocking notice consistent with #3988, with a link to settle (#3989).
-
-The screen is read-only. Settling is an operational process handled by Finance (#1813), and so is a payout — she cannot request one; it is recorded once Finance has already sent it and appears here automatically. Every entry on this screen is permanent — Phase 1 has no correction mechanism (#1813), so a mis-recorded entry stands as posted. The commission percentage is never shown, only EGP amounts. All strings flow through data-i18n keys with Arabic fallback.
+### Statement
+| Item | Rule |
+|---|---|
+| Row types | Trip commission, Cancellation fee, Cancellation fee credit, Rider fee recovery, Settlement received, Payout sent |
+| Row | Type, date and time, amount in EGP; credits green, debits red |
+| Period filter | Today (default), This week, This month; grouped under Today, Yesterday, then the date, newest first |
+| Filter effect | Narrows the list only; the balance and the limit band don't change |
+| Tap | A trip row opens that trip's detail (#1594) |
+| Paging | Next page loads at the end of the list, no repeated rows |
+| Never shown | The commission percentage or the gross fare |
 
 ### Acceptance Criteria
+**Scenario 1 — She owes**
+- Given she owes 2,650 EGP against a 3,000 EGP limit
+- Then the card shows −2,650.00 EGP with "Amount Due" and the limit band warns her
 
-**Scenario 1 — Driver who owes the platform**
-- Given an authenticated approved driver with an outstanding balance of 120 EGP
-- When she opens the balance screen
-- Then the headline reads "مستحق عليكِ" / "You owe" with 120 EGP
-- And the explanation of cash-trip commission is shown
-- And no payout action is offered — there is nothing for her to request
+**Scenario 2 — SheDrive owes her**
+- Given SheDrive owes her 2,850.50 EGP
+- Then the card shows +2,850.50 EGP and no warning band
 
-**Scenario 2 — Driver with an available balance**
-- Given the platform owes the driver 340 EGP
-- When she opens the balance screen
-- Then the headline reads "رصيدك المتاح" / "Your available balance" with 340 EGP
-- And a short explanation states this is what SheDrive owes her, with no action shown to request it
+**Scenario 3 — At the limit**
+- Given she owes 3,000 EGP against a 3,000 EGP limit
+- Then the band says she cannot go online until she settles
 
-**Scenario 3 — Statement lists every movement type**
-- Given the driver has trip commission, a cancellation fee charged, a cancellation fee credit, a settlement, and a payout in her history
-- When the statement loads
-- Then each appears as its own row with date, localised description, and signed amount
-- And credits and debits are visually distinguishable
+**Scenario 4 — Switch period**
+- Given rows today, yesterday and on 23 Sep
+- When she picks This week
+- Then rows show under Today and Yesterday, and 23 Sep rows are not listed
 
-**Scenario 4 — Cancellation fee is visible to the driver**
-- Given a driver cancellation fee of 10 EGP was charged (#1764)
-- When she opens her statement
-- Then a row reads "رسوم إلغاء" / "Cancellation fee" with −10 EGP and the date
-- And tapping it opens that trip's detail
+**Scenario 5 — Nothing in the period**
+- Given no transactions today
+- Then "No transactions in this period" is shown and the card still shows her balance
 
-**Scenario 5 — Commission percentage is never shown**
-- Given any trip commission row
-- Then only the EGP amount is displayed — no percentage and no gross fare
+**Scenario 6 — Zero balance**
+- Given her balance is 0
+- Then "No Fees Due — Your balance is clear" is shown with Settlement History
 
-**Scenario 6 — Last settlement is shown**
-- Given a settlement was recorded against the driver (#1813)
-- Then the last settlement amount and date are shown above the statement
-- And a settlement row appears in the statement as a credit
-- And her full settlement history with receipt numbers is one tap away on the settlement screen (#3989)
-
-**Scenario 7 — Payout appears in the statement**
-- Given Finance has recorded a payout of 200 EGP to the driver (#4001)
-- Then a payout row of −200 EGP appears in her statement with its reference and date
-- And her available balance reduces by 200 EGP accordingly
-
-**Scenario 8 — Statement paginates**
-- Given the driver has more transactions in the selected period than one page
-- When she scrolls to the end of the list
-- Then the next page loads and appends, with no duplicated rows
-
-**Scenario 9 — Approaching the balance limit**
-- Given the configured limit is 500 EGP and she owes 400 EGP
-- When she opens the balance screen
-- Then a warning band reads "اقتربتِ من حد الرصيد. سدّدي لتفادي إيقاف العمل." / "You are close to the balance limit. Settle up to keep working."
-
-**Scenario 10 — At or above the balance limit**
-- Given she owes 500 EGP against a 500 EGP limit
-- Then the band becomes a blocking notice reading "لا يمكنكِ الاتصال حتى تسدّدي رصيدك." / "You cannot go online until you settle your balance."
-
-**Scenario 11 — Zero balance**
-- Given a driver whose balance is exactly zero
-- Then a zero state is shown reading "لا يوجد رصيد مستحق" / "No outstanding balance" and the statement shows any past transactions
-
-**Scenario 12 — New driver with no transactions**
-- Given a driver with no completed trips and no transactions
-- Then a zero balance and an empty statement state are shown, with no error
-
-**Scenario 13 — Network error**
-- Given the balance request fails
-- Then an error state is shown: "تعذّر تحميل الرصيد. تحقّقي من اتصالك." / "Unable to load your balance. Check your connection."
-- And a retry action is offered
-
-**Scenario 14 — Arabic and English**
-- Given the driver switches language
-- Then every label, transaction description, and state message is displayed in the selected language
-
-**Scenario 15 — Statement filtered by period**
-- Given the driver has transactions today, yesterday and earlier this month
-- When she opens the balance screen
-- Then the filter shows "Today" selected and only today's rows are listed
-- When she selects "This week"
-- Then every row from this week is listed, grouped under "Today", "Yesterday" and each earlier date, newest first
-- And the headline amount and the limit band are unchanged
-
-**Scenario 16 — No transactions in the selected period**
-- Given the driver has no transactions today
-- When the "Today" filter is selected
-- Then an empty state reads "لا توجد حركات في هذه الفترة" / "No transactions in this period"
-- And the headline still shows her whole balance
+**Scenario 7 — Can't load**
+- Given the request fails
+- Then "تعذّر تحميل الرصيد. تحقّقي من اتصالك." / "Unable to load balance. Check your connection." is shown with Retry
 
 ### Out of Scope
-- A driver-initiated payout request — there is no such action anywhere in the system; Finance transfers the money and records it (#4001)
-- In-app settlement payment by the driver
-- Statement export or PDF receipts
-- Disputing a transaction (Phase 2)
-- Earnings totals by period (#1736)
-- Custom date ranges on the statement filter — Today, This week and This month only
+- Asking for a payout
+- Paying from inside the app
+- Payout status of each earning — #5627
+- Export, PDF receipts, disputes
 
 ### Dependencies
-- #1781 — Driver retrieves her balance and statement (API — must be live)
-- #1813 — Super admin reconciles driver balances and records settlements (must be live — owns the driver ledger)
-- #3989 — Driver settles what she owes and sees her settlement history (full receipt history lives there)
-- #1594 — Driver views past trip detail (opened from a trip-linked row)
+- #1781 [API] Driver retrieves her balance and statement — Closed
+- #3989 [Mobile] Driver settles what she owes and sees her settlement history
+- #1594 [Mobile] Driver views past trip detail
+- #3977 [Driver] Balance & Statement — design
+
+### Mockup (ADO comment)
+
+- She owes: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?owed=2650
+- SheDrive owes her: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?available=2850
+- Near the limit: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?warn
+- At the limit: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?blocked
+- Zero: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?zero
+- Error: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?error
 
 ---
 
@@ -2475,85 +2384,67 @@ The screen is read-only. Settling is an operational process handled by Finance (
 
 ---
 
-## [Mobile] #3989 — Driver settles what she owes and sees her settlement history 🆕
+## [Mobile] #3989 — Driver settles what she owes and sees her settlement history ✏️
 **Feature:** Feature 18 — Driver Earnings | **Sprint:** Phase 1
 
-**Description:** As a driver, I want to see exactly what I owe, how and where to hand it back, and a record of everything I have already settled so that I can clear my balance with confidence and never have to wonder whether a payment reached SheDrive.
+**Description:** As a driver, I want to see what I owe, the ways to pay it back and every settlement already recorded, so that I can clear my balance and know each payment reached SheDrive.
 
-### Background
+### Rules
+- Reached from the balance screen (#1788), the blocked go-online sheet (#3988) and the profile menu.
+- Top card: "Amount You Owe" as −EGP, or "Amount to Receive" as +EGP when SheDrive owes her.
+- Ways to settle: Cash Office, Bank Deposit, Mobile Wallet, Field Agent. Each opens a sheet with its details and a copy button on each value:
+| Way | Details |
+|---|---|
+| Cash Office | Office address, working hours; bring your national ID |
+| Bank Deposit | Bank name, account number, account holder; put your driver ID in the transfer note |
+| Mobile Wallet | Wallet number, provider |
+| Field Agent | Agent name, phone number, area; call or WhatsApp before you meet |
 
-Reached from the balance screen (#1788), the blocked go-online sheet (#3988), and the profile menu. The screen opens with her current outstanding amount in EGP — or a zero state if she owes nothing — followed by the four settlement channels: handing cash to the SheDrive office, a bank deposit, a mobile wallet transfer, or a field agent collection. For Phase 1 the channel details — the office address and opening hours, the SheDrive bank account, the wallet number and the field agent's contact — are fixed in the app, not configured by an admin, and change only with an app release. The office channel is shown with its address and opening hours, since it is the default path for a cash-collecting driver.
-
-**She never pays inside the app.** This screen is informational, not a payment form: a SheDrive team member or the office records the settlement once she has physically handed back the cash or made the transfer. As soon as that is recorded, her balance updates and — if it brought her below the outstanding limit — she can go online again immediately, with no further action and no need to restart the app (#3988).
-
-**Below the channels is her settlement history** — a newest-first list of every settlement recorded against her, each with its receipt number (format S-nnnnn), amount, channel and date. The receipt number is the same one shown to the admin who recorded it, so a driver can confirm a specific handover in person.
-
-All strings flow through data-i18n keys with Arabic fallback, and all amounts are in EGP.
+- The details are set in the app, not by an admin.
+- She never pays inside the app. Finance records the settlement after she hands the money over; then her balance updates and, if she is under the limit, she can go online at once with no restart.
+- Settlement history: newest first, each with amount, date, way and receipt number (S-nnnn — the same number Finance sees). Next page loads at the end of the list.
 
 ### Acceptance Criteria
+**Scenario 1 — Settlement recorded**
+- Given she owes 1,650 EGP and pays it at the office, recorded as S-1042
+- When she opens the screen
+- Then she owes 0 and a row shows +1,650 EGP, today, Cash Office, S-1042
 
-**Scenario 1 — Outstanding amount and channels shown**
-- Given a driver who owes the platform 320 EGP
-- When she opens the settlement screen
-- Then the amount she owes is shown at the top
-- And the four settlement channels are listed below it
+**Scenario 2 — Part payment**
+- Given she owes 1,650 EGP and pays 1,000 EGP
+- Then she still owes 650 EGP and the 1,000 EGP row is in her history
 
-**Scenario 2 — Office channel shows address and hours**
-- Given the office cash channel is enabled
-- Then the screen shows the office address and opening hours alongside it
+**Scenario 3 — Unblocked**
+- Given she was blocked from going online and the settlement brings her under the limit
+- When she goes back to home
+- Then she can go online
 
-**Scenario 3 — Settlement recorded, balance and history update**
-- Given the driver hands over 320 EGP at the office and Finance records the settlement (#1813) with receipt S-00482
-- When she reopens the settlement screen
-- Then her outstanding amount reflects the payment
-- And a new row appears in her history: receipt S-00482, 320 EGP, office cash, today's date
+**Scenario 4 — Nothing owed, no history**
+- Given she owes nothing and has never settled
+- Then "لا يوجد عليكِ أي مبلغ لتسويته حالياً." / "You have nothing to settle right now." and "لا توجد تسويات مسجّلة بعد." / "No settlements recorded yet." are shown
 
-**Scenario 4 — A qualifying settlement unblocks go-online immediately**
-- Given she was blocked from going online (#3988) and the recorded settlement brings her below the limit
-- When she returns to her home screen
-- Then she can go online normally with no further action and no app restart
-
-**Scenario 5 — Partial settlement leaves a balance**
-- Given she owes 320 EGP and hands over 200 EGP, recorded as a settlement
-- Then her outstanding amount updates to 120 EGP
-- And the 200 EGP settlement still appears in her history with its own receipt number
-
-**Scenario 6 — Zero outstanding balance**
-- Given a driver with no outstanding amount
-- Then a zero state is shown reading "لا يوجد مبلغ مستحق" / "You have nothing outstanding"
-- And her settlement history, if any, is still shown below it
-
-**Scenario 7 — No settlement history yet**
-- Given a driver who has never had a settlement recorded
-- Then an empty state is shown under the channels: "لا توجد تسويات سابقة" / "No settlements yet"
-
-**Scenario 8 — History paginates**
-- Given the driver has more settlements than one page
-- When she scrolls to the end of the list
-- Then the next page loads and appends, with no duplicated rows
-
-**Scenario 9 — Network error**
-- Given the settlement data request fails
-- Then an error state is shown: "تعذّر تحميل بيانات التسوية. تحقّقي من اتصالك." / "Unable to load settlement info. Check your connection."
-- And a retry action is offered
-
-**Scenario 10 — Arabic and English**
-- Given the driver switches language
-- Then every label, channel description, receipt row and state message is displayed in the selected language
+**Scenario 5 — Can't load**
+- Given the request fails
+- Then "تعذّر تحميل بيانات التسوية. تحقّقي من اتصالك." / "Unable to load settlement details. Check your connection." is shown with Retry
 
 ### Out of Scope
-- Making a payment from inside the app — settlement is always recorded by an admin or the office (#1813)
-- Choosing or changing which channel a specific settlement used — the channel is fixed when it is recorded
-- Downloadable or PDF settlement receipts
-- Disputing a settlement entry (Phase 2)
-- Editing bank or wallet details for settlement — the channel and reference are fixed at the moment of recording; the platform holds no stored destination on her profile
+- Paying from inside the app
+- Choosing the way for a settlement already recorded
+- PDF receipts, disputes
+- Her payout method — #5626
 
 ### Dependencies
-- #1781 — Driver retrieves her balance and statement (API — must be live; settlement entries are part of the same ledger)
-- #3994 — Super admin configures balance and fee policy (supplies the outstanding limit; the channel details are fixed in the app for Phase 1)
-- #1813 — Super admin reconciles driver balances and records settlements (Admin — where a settlement is actually recorded)
-- #1788 — Driver views her balance and statement (entry point)
-- #3988 — Driver is blocked from going online while her balance is over the limit (entry point when blocked)
+- #1781 [API] Driver retrieves her balance and statement — Closed; settlements are in the same ledger
+- #5620 [Admin] Financial officer imports Finance's settlement sheet — where a settlement is recorded
+- #1788 [Mobile] Driver views her balance and statement
+- #3988 [Mobile] Driver is blocked from going online while her balance is over the limit
+- #3979 [Driver] Settle What You Owe — design
+
+### Mockup (ADO comment)
+
+- She owes: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?owed=1650
+- Nothing owed: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?zero
+- Error: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?error
 
 ---
 
@@ -2630,170 +2521,116 @@ The driver can cancel at two points: while navigating to the pickup (en_route_pi
 
 ---
 
-## [Mobile] #1951 — Driver sets up emergency contacts who receive a live location link on SOS 🆕
+## [Mobile] #1951 — Driver sets up emergency contacts who receive a live location link on SOS ✏️
 **Feature:** Feature 21 — Emergency & Safety (Driver) | **Sprint:** 2
 
-**Description:** As a driver, I want to save emergency contacts and have them alerted with a live link to my location when I trigger SOS during a trip, so that the people I trust can follow my location in real time during an emergency.
+**Description:** As a driver, I want to save emergency contacts who get a live link to my location when I raise SOS during a trip, so that the people I trust can follow me in an emergency.
 
-### Background
+### Rules
+- Reached from the side menu (Safety & Emergency).
+- She can add, edit and remove contacts. Removing asks for confirmation.
+- Up to 5 contacts. At 5, Add is disabled with "لقد حفظتِ الحد الأقصى وهو ٥ جهات اتصال. احذفي واحدة لإضافة أخرى." / "You have saved the maximum of 5 contacts. Remove one to add another."
+- When she raises SOS during a trip, every saved contact gets an alert with a live link to her location (#3969).
+- Police (122) and Ambulance (123) are always shown as one-tap calls.
+- Empty state: "أضيفي شخصاً تثقين به ليتم إخطاره ومشاركة موقعك معه عند الطوارئ." / "Add someone you trust to be alerted with your live location in an emergency."
 
-Phase 1 SOS is limited to personal emergency contacts and sharing the driver's live location with those contacts. There is no control room and no operations team. Public emergency numbers (Police 122, Ambulance 123) are shown for direct dialling. Contacts are managed from the Emergency Contacts screen (reached from the driver profile) and are alerted automatically when the driver triggers SOS on the active-trip screen.
+### Field Validation
+| Field | Required | Format | Error |
+|---|---|---|---|
+| Name | Yes | Text | يرجى إدخال الاسم / Please enter a name |
+| Phone number | Yes | Egyptian mobile, 11 digits starting 01 | يرجى إدخال رقم هاتف صحيح / Please enter a valid phone number |
+| Relationship | No | List: mother, father, sister, brother, husband, daughter, son, friend, relative, colleague, other | — |
+| How are they related? | Yes when Relationship is Other | Text | من فضلكِ اكتبي صلتَكِ بهذا الشخص / Please say how this person is related to you |
 
 ### Acceptance Criteria
+**Scenario 1 — Add a contact**
+- Given she has no contacts
+- When she adds Mona, 01012345678, Sister and saves
+- Then Mona is in her list and is still there after the app restarts
 
-**Scenario 1 — She adds an emergency contact**
-- Given the driver is on the emergency contacts screen
-- When she enters a name, a phone number and a relationship and saves
-- Then the contact is added to her list
-- And it is still there the next time she opens the app
+**Scenario 2 — At the limit**
+- Given she has 5 contacts
+- When she removes one
+- Then Add is available again
 
-**Scenario 2 — She edits a saved contact**
-- Given she has at least one saved emergency contact
-- When she opens that contact, changes any of its details and saves
-- Then the updated details replace the previous ones
-
-**Scenario 3 — She removes a contact**
-- Given she has at least one saved emergency contact
-- When she removes it and confirms
-- Then it no longer appears in her list
-- And it is no longer alerted when she raises SOS
-
-**Scenario 4 — The list is capped at five contacts**
-- Given she has 5 saved emergency contacts
-- When she looks at the emergency contacts screen
-- Then the add control is unavailable
-- And she is told she has reached the maximum of 5 and must remove one before adding another
-
-**Scenario 5 — Removing at the maximum frees a slot**
-- Given she has 5 saved emergency contacts
-- When she removes one of them
-- Then the add control becomes available again
-
-**Scenario 6 — Empty state guides her to add someone**
-- Given she has no saved emergency contacts
-- When she opens the emergency contacts screen
-- Then an empty state is shown guiding her to add someone she trusts
-
-**Scenario 7 — Every contact is alerted on SOS**
-- Given she has at least one saved emergency contact
-- When she triggers SOS during an active trip
-- Then every saved contact is alerted
-- And each of them receives a live link to her current location
-
-**Scenario 8 — The confirmation states what was done**
-- Given she has confirmed an SOS
-- When the emergency screen opens
-- Then it states that her contacts have been notified and that her live location is being shared with them
-
-**Scenario 9 — SOS with no contacts saved**
-- Given she has no saved emergency contacts
-- When she triggers SOS during an active trip
-- Then she is prompted to add emergency contacts
-- And Police (122) and Ambulance (123) remain available to dial directly
+**Scenario 3 — SOS with no contacts**
+- Given she has no contacts
+- When she raises SOS during a trip
+- Then she is told "لم تُضيفي جهات اتصال للطوارئ بعد. يمكنك إضافتها من شاشة جهات اتصال الطوارئ." / "You have no emergency contacts yet. Add them from the Emergency Contacts screen." and Police and Ambulance are still one tap away
 
 ### Out of Scope
-- Control-room / operations-team escalation (post-Phase 1)
-- Live in-vehicle camera and third-party monitoring (post-Phase 1)
+- A control room or operations team
+- In-car cameras
+- The SOS screen itself — #3969
 
 ### Dependencies
-- #1952 — Driver's emergency contacts are notified with a live location link on SOS (API — must be live)
-- #3969 — Driver raises SOS and reaches the emergency screen (shows these contacts and their delivery status)
+- #3970 [API] SOS incident is recorded with a full trip snapshot — alerts the contacts
+- #1787 [Mobile] Rider sets up emergency contacts — the same rules for riders
+- #1953 [Driver] Emergency Contacts & SOS — design (its "up to 3" counter is a design error; the limit is 5)
+
+### Mockup (ADO comment)
+
+- Emergency contacts: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/sos.html
 
 ---
 
-## [Mobile] #3969 — Driver raises SOS and reaches the emergency screen 🆕
+## [Mobile] #3969 — Driver raises SOS and reaches the emergency screen ✏️
 **Feature:** Feature 21 — Emergency & Safety (Driver) | **Sprint:** 2
 
-**Description:** As a driver on an active trip, I want to raise SOS and be taken straight to a full emergency screen that confirms my contacts were alerted and my location is being shared, so that I can get help quickly without alerting the rider I am carrying.
+**Description:** As a driver on an active trip, I want to raise SOS and land on an emergency screen that shows my contacts were alerted and my location is shared, so that I get help fast without the rider knowing.
 
-### Background
+### Rules
+- SOS is on the trip screen from heading to pickup until the trip ends, and nowhere else.
+- One confirmation guards against accidental taps: "هل تريدين إرسال تنبيه طوارئ؟ سيتم إخطار جهات اتصالك ومشاركة موقعك المباشر معهم." / "Send an emergency alert? Your contacts will be notified and your live location shared with them." Dismissing it sends nothing.
+- Confirming opens a full emergency screen (not an overlay) with:
+| Part | Shows |
+|---|---|
+| Status | "Safety Alert Active", contacts notified, live sharing active, time started |
+| Contacts | Each contact with her own delivery status: Sending, Delivered or "تعذّر التسليم" / "Could not deliver" |
+| Emergency numbers | Police (122) and Ambulance (123), one tap to call |
+| Trip recap | Rider name, vehicle, plate and her current location |
+| Actions | "العودة إلى الرحلة" / "Return to trip", Stop live sharing, "إلغاء التنبيه (إنذار كاذب)" / "Cancel alert (false alarm)" |
 
-SOS is reachable only from an active trip. Tapping SOS opens a single confirmation step to guard against an accidental or pocket press; confirming raises the alert and opens a full-screen emergency dashboard, replacing the small in-trip overlay. Raising SOS is silent to the rider — she is never told, because if the rider herself is the threat, alerting her escalates the danger. The trip itself is not affected: it keeps running, and settles and is rated exactly as it would without an SOS. No account is suspended automatically; that decision is made later by an admin.
+- The rider gets no notification and sees no change.
+- The trip goes on as normal and is settled and rated as usual. Nobody is suspended automatically.
 
 ### Acceptance Criteria
+**Scenario 1 — Raise SOS**
+- Given Sara is driving Nour to her destination and has 2 contacts
+- When she taps SOS and confirms
+- Then the emergency screen opens, both contacts show Sending, and Nour's app shows nothing
 
-**Scenario 1 — SOS is reachable for the whole active trip**
-- Given the driver is on an active trip
-- When she is at any stage from heading to pickup, through waiting at pickup, to drop-off
-- Then the SOS control remains visible and available
+**Scenario 2 — One contact can't be reached**
+- Given the SMS to her second contact fails
+- Then that contact shows "Could not deliver" and the first shows Delivered
 
-**Scenario 2 — SOS cannot be raised outside an active trip**
-- Given the driver is not currently on an active trip
-- When she opens the app
-- Then no SOS control is available to her
+**Scenario 3 — Back to the trip**
+- When she taps Return to trip
+- Then the trip screen opens and the alert stays active: contacts still have the live link
 
-**Scenario 3 — A single confirmation guards against accidental presses**
-- Given the driver taps SOS
-- When the confirmation step appears
-- Then the alert is raised only if she explicitly confirms; dismissing it raises nothing
+**Scenario 4 — Stop sharing**
+- When she taps Stop live sharing and confirms "Stop sharing"
+- Then the live link stops showing her location at once; "Keep sharing" changes nothing
 
-**Scenario 4 — A full emergency screen replaces the in-trip overlay**
-- Given the driver taps SOS
-- When she confirms it
-- Then she is taken to a full-screen emergency dashboard, not a small overlay on the trip screen
-- And the screen states that her emergency contacts have been notified and that her live location is being shared
-
-**Scenario 5 — Per-contact delivery status is shown**
-- Given the emergency screen is open
-- When she looks at her emergency contacts on it
-- Then each contact is listed with its own delivery status of sent, delivered or failed
-- And this replaces any single, unconditional "your contacts have been notified" message, which reassures her even when delivery in fact failed
-
-**Scenario 6 — Police and Ambulance are one tap away**
-- Given the emergency screen is open
-- When she needs to reach the public emergency services
-- Then tap-to-call buttons are offered for Police (122) and Ambulance (123) only
-- And no fire brigade number is offered
-
-**Scenario 7 — Trip recap on the emergency screen**
-- Given the emergency screen is open
-- When she looks at the trip recap
-- Then it shows the rider's name, the vehicle and its plate, and her current coordinates
-
-**Scenario 8 — Stop sharing revokes the live link immediately**
-- Given the emergency screen is open and the live location link is active
-- When the driver chooses to stop sharing
-- Then the live location link is revoked immediately and no longer shows her location to anyone who opens it
-
-**Scenario 9 — Return to trip leaves the alert active**
-- Given the emergency screen is open
-- When the driver chooses to return to the trip
-- Then she is taken back to the trip screen and the alert stays active — contacts stay notified and the live link stays live — until she stops sharing or stands the alert down
-
-**Scenario 10 — False alarm stands the alert down**
-- Given the emergency screen is open
-- When the driver cancels the alert and confirms it was a false alarm
-- Then location sharing stops immediately
-- And the incident is recorded as stood down by her as a false alarm
-- And the case stays open for an admin to review and close
-
-**Scenario 11 — The rider is never notified**
-- Given the driver is on an active trip
-- When she raises SOS
-- Then the rider receives no notification, indication or visible change on her own screen as a result
-
-**Scenario 12 — The trip is not interrupted**
-- Given the driver is on an active trip
-- When she raises SOS
-- Then the trip continues unaffected, and later settles and is rated exactly as a trip without an SOS would be
-
-**Scenario 13 — No automatic suspension**
-- Given the driver is on an active trip
-- When she raises SOS
-- Then neither her account nor the rider's is suspended automatically as a result
+**Scenario 5 — False alarm**
+- When she taps Cancel alert (false alarm) and confirms
+- Then "ستتوقف مشاركة موقعك فوراً وسيُسجَّل التنبيه كإنذار كاذب." / "Location sharing stops immediately and the alert is recorded as a false alarm." happens, and the case stays open for the safety team
 
 ### Out of Scope
-- Notifying the rider that SOS was raised (deliberate — see Background)
-- Control room or staffed operations desk (post-Phase 1)
-- Fire brigade as a third emergency number
-- Raising SOS outside an active trip
-- Automatic account suspension on any pattern
-- Admin review and case actions — see #3945 and #3946
+- A control room or staffed desk
+- A fire brigade number
+- SOS outside an active trip
+- Reviewing and closing the case — #3945 / #3946
 
 ### Dependencies
-- #3970 — SOS incident is recorded with a full trip snapshot (API — must be live)
-- #3971 — Live location link is issued, scoped, and expires (API — must be live)
-- #1951 — the driver's emergency contacts must exist to be alerted
+- #3970 [API] SOS incident is recorded with a full trip snapshot — contacts, delivery status and false alarm
+- #1951 [Mobile] Driver sets up emergency contacts
+- #3973 [Driver] SOS emergency screen — design; delivery status, the trip recap and false alarm still need to be drawn
+
+### Mockup (ADO comment)
+
+- Emergency screen: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/emergency.html
+- Stop sharing confirmation: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/emergency.html?sheet=stop
 
 ---
 
