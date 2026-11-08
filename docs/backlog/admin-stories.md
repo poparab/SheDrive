@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-11-04 (approval request page, one payout method per batch — #6570)
+> Last updated: 2026-11-08 (driver's rating of the rider on trip detail — #6700)
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model (2026-10-27):** Five admin roles — **Admin (users & IT)**, **Operations officer**,
@@ -1861,6 +1861,49 @@ The completed trip detail screen extends the general trip detail screen (#1671) 
 - #3058 — Completed-trip fare is served to rider and driver (fare data source)
 - #1639 — Rider submits driver rating (rating data source)
 - #1815 — Admin processes a manual refund
+
+---
+
+## [Admin] #6700 — Operations officer sees the driver's rating of the rider on a completed trip 🆕
+**Feature:** Feature 15 — Admin Operations Dashboard | **Sprint:** —
+
+**Description:** As an Operations officer, I want to see how the driver rated the rider on a completed trip's detail page so that I can look into a trip from both sides, not only from the rider's.
+
+### Rules
+- A completed trip's detail page (#1672) gets a **Driver rating / تقييم السائقة** card under Rider rating, with the hint "How the driver rated the rider. / تقييم السائقة للراكبة."
+- It shows the 1–5 stars the driver gave the rider on her Rate Passenger screen (#2977, stored by #2978). Stars only — the driver's rating has no tags or comment.
+- The Rider rating card gets the hint "How the rider rated the driver. / تقييم الراكبة للسائقة."
+- Shown on completed trips only, like Rider rating. Read-only.
+- **Backend (in this story, no separate API story):** the admin trip detail response adds the driver's rating of the rider for that trip — the star value, or empty when she skipped.
+
+### Acceptance Criteria
+
+**Scenario 1 — Both sides rated**
+- Given trip TRP-24017 is completed, the rider gave 3 stars with "Great conversation", and the driver gave the rider 5 stars
+- When an Operations officer opens the trip detail
+- Then Rider rating shows 3 stars and the tag, and Driver rating shows 5 stars
+
+**Scenario 2 — Driver skipped rating**
+- Given the driver skipped the Rate Passenger screen for a completed trip
+- Then the Driver rating card reads "No rating given / لا يوجد تقييم"
+
+**Scenario 3 — Trip not completed**
+- Given the trip is in progress, expired or cancelled
+- Then there is no Driver rating card
+
+### Out of Scope
+- Editing or removing a rating
+- The rider's average rating (rider profile, #1662)
+- Filtering or sorting the trip list by rating
+
+### Dependencies
+- #6699 Design — Trip detail, driver rating (design first)
+- #1672 Admin views completed trip with fare and rating (built — this story adds a card)
+- #2978 Driver submits rider rating (data source)
+
+### Mockup (ADO comment)
+- Both rated: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/trip-detail.html?id=TRP-24017
+- Driver skipped rating: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/trip-detail.html?id=TRP-24022
 
 ---
 
