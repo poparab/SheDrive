@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-10-29
+> Last updated: 2026-11-08 (fare estimate refreshed after 5 minutes — #6701)
 > Stories with changes from original are marked ✏️
 
 ---
@@ -849,6 +849,48 @@ All strings are available in Arabic and English, and the card lays out correctly
 - #1551 — Rider sets destination
 - The route, duration and distance come from the maps provider’s routing
 - #1518 — Rider Home (design)
+
+---
+
+## [Mobile] #6701 — Rider's fare estimate is refreshed after 5 minutes without requesting 🆕
+**Feature:** Feature 7 — Rider Home, Address Search & Fare Estimate | **Sprint:** —
+
+**Description:** As a rider, I want my fare estimate to be recalculated when I have left it for more than 5 minutes without requesting so that the fare I book with is never out of date.
+
+### Rules
+- A fare estimate (#1552) is valid for **5 minutes** from when it is shown. Every new estimate (an address change, Retry, or this refresh) starts a new 5 minutes.
+- When the 5 minutes pass and she has not tapped Request Ride, the app requests a new estimate by itself, with the same pickup and destination. While it loads, the card shows the loading state and Request Ride is inactive (#1552).
+- If the new fare is different, the toast "تم تحديث الأجرة التقديرية" / "Your fare estimate was updated" is shown. If it is the same, the card just stays as it is.
+- The app never sends a trip request (#1629) with an estimate older than 5 minutes.
+- If the refresh fails, #1552's error and Retry apply.
+
+### Acceptance Criteria
+
+**Scenario 1 — Fare changed while she waited**
+- Given she sees EGP 120.00 at 10:00 and does not request
+- When it is 10:05 and the new estimate is EGP 135.00
+- Then the card shows EGP 135.00 and the "Your fare estimate was updated" toast
+- And a request from now on is sent with EGP 135.00
+
+**Scenario 2 — She taps Request Ride as the estimate expires**
+- Given the estimate is 5 minutes old and the refresh has not returned
+- When she taps Request Ride
+- Then nothing is sent until the new estimate arrives; she taps again to request
+
+**Scenario 3 — She comes back to the app later**
+- Given she put the app in the background at 10:01 with an estimate shown
+- When she opens it again at 10:20
+- Then a new estimate is requested at once, before Request Ride is active
+
+### Out of Scope
+- Changing the 5 minutes from the admin portal
+- A countdown on the card
+- Re-pricing after she has requested (matching uses the fare she requested with)
+
+### Dependencies
+- #1552 Rider sees fare estimate before requesting
+- #1628 Fare calculation engine (prices the new estimate — same endpoint, no new API story)
+- #1629 Rider creates trip request
 
 ---
 
