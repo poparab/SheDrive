@@ -1,6 +1,6 @@
 # SheDrive — API Stories
 > Canonical backlog for all [API] stories. Organized by sprint and feature.
-> Last updated: 2026-10-29
+> Last updated: 2026-11-09 (rider profile email — #6702)
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -398,6 +398,54 @@ The rider profile screen shows her photo, her name and phone, three headline fig
 - Given no Authorization header or an invalid token is present
 - When the endpoint receives the request
 - Then the request is rejected by #1619 auth middleware before any logout action is taken
+
+---
+
+## [API] #6702 — Rider profile returns and saves her email address 🆕
+**Feature:** Feature 4 — Authentication API (#1600) | **Sprint:** —
+
+**Description:** As the rider app, I want the profile endpoint to return the rider's email address and accept a change to it from Edit Profile so that she can add, change or remove her email.
+
+### Rules
+- The profile read (#4475) adds the rider's **email** — or null when she has none.
+- The profile save accepts the email with her other editable fields. An empty value removes it.
+- Email is optional and is not a sign-in identity: the phone stays her only identity (#1545), there is no verification step, and two riders may give the same email.
+- Her email is never returned to a driver or on any trip payload.
+
+### Field Validation
+
+| Field | Required | Type / Format | Accepted values | Min | Max | Error — empty | Error — invalid |
+|---|---|---|---|---|---|---|---|
+| Email | No | Email address | name@domain.tld; spaces at the ends are trimmed, stored in lower case | — | 254 chars | — (empty removes the email) | Enter a valid email address / أدخلي بريدًا إلكترونيًا صحيحًا |
+
+### Acceptance Criteria
+
+**Scenario 1 — She adds an email**
+- Given a rider with no email
+- When the app saves "  Mona.Adel@Gmail.com "
+- Then it is stored as "mona.adel@gmail.com" and the next profile read returns it
+
+**Scenario 2 — She removes it**
+- Given a rider whose email is mona.adel@gmail.com
+- When the app saves an empty email
+- Then the email is removed and the profile read returns null
+
+**Scenario 3 — Invalid email**
+- When the app saves "mona.adel@"
+- Then the save is refused with the invalid-email error, and nothing in her profile changes
+
+### Out of Scope
+- Email verification or sign-in by email
+- Sending her anything by email (receipts, alerts)
+- Driver email
+
+### Dependencies
+- #4475 Rider profile is served in one call and its editable parts are saved (this story adds email to it)
+- #1724 Rider views and manages her profile (Mobile)
+- #5036 Rider account deletion (email is deleted with the account)
+
+### Mockup (ADO comment)
+- Rider Edit Profile (Email field): https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/profile.html
 
 ---
 
