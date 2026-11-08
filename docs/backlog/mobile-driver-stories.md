@@ -2401,6 +2401,7 @@ The earnings dashboard is accessible from the driver home screen menu or profile
 | Field Agent | Agent name, phone number, area; call or WhatsApp before you meet |
 
 - The details are set in the app, not by an admin.
+- Under the ways: "يطابق فريق المالية دفعتكِ باستخدام رقمكِ القومي. احتفظي برقم مرجع التحويل." / "Finance matches your payment to you by your national ID. Keep the reference of your transfer."
 - She never pays inside the app. Finance records the settlement after she hands the money over; then her balance updates and, if she is under the limit, she can go online at once with no restart.
 - Settlement history: newest first, each with amount, date, way and receipt number (S-nnnn — the same number Finance sees). Next page loads at the end of the list.
 
@@ -2688,84 +2689,111 @@ The driver can cancel at two points: while navigating to the pickup (en_route_pi
 
 ---
 
-## [Mobile] #5626 — Driver views and changes her payout method 🆕
+## [Mobile] #5626 — Driver views and changes her payout method ✏️
 **Feature:** #1769 Earnings — Driver | **Sprint:** — | **Tag:** Payout
 
-**Description:** As a driver, I want to see and change where SheDrive sends my earnings so that my payouts keep reaching me when my account changes.
+**Description:** As a driver, I want to see and change where SheDrive sends my earnings, so that my payouts keep reaching me when my account changes.
 
 ### Rules
-- My profile shows a **Payout method** row (type and full number) that opens the payout method screen.
-- She can change it any time, with the same fields and rules as onboarding. **No approval: it applies immediately**, and the next payout uses it.
-- If her last payout failed, the screen shows the amount and reason and asks her to check her method.
+- Reached from the "Payout method" row on My Profile, which shows the type and the full number.
+- The screen shows her current method in full: type, provider or bank, holder name and number. No masking.
+- "تغيير وسيلة الاستلام" / "Change payout method" opens the same form as onboarding (#5625): one of Mobile wallet, Bank account or Prepaid card, with the same fields and validation.
+- Saving applies at once, with no approval: "يُطبَّق التغيير فوراً، ويُرسل التحويل القادم إلى الوسيلة الجديدة." / "The change applies right away. Your next payout goes to the new method."
+- She has one method at a time. The new one replaces the old.
+- If her last payout failed, a banner shows: "فشل تحويل آخر مبلغ لكِ ({{amount}} جنيه): {{reason}}. راجعي وسيلة استلام الأرباح." / "Your last payout of {{amount}} EGP failed: {{reason}}. Check your payout method." It stays until she changes the method or a payout succeeds.
 
 ### Acceptance Criteria
-**Scenario 1 — Change it**
+**Scenario 1 — Change from wallet to bank**
 - Given her method is Vodafone Cash 01012345678
-- When she changes it to a CIB account and saves
-- Then the screen shows the new account number and says her next payout goes there
+- When she changes it to CIB, account 1002003004005 and saves
+- Then "تم تحديث وسيلة الاستلام. سيُرسل تحويلكِ القادم إليها." / "Payout method updated. Your next payout goes here." shows, and the screen shows the CIB account in full
 
-**Scenario 2 — After a failed payout**
-- Given her last payout of 245.50 EGP failed "Wallet number not registered"
-- Then the screen shows that warning until she changes the method or a payout succeeds
+**Scenario 2 — Invalid number**
+- Given she picks Mobile wallet
+- When she enters 0101234 and saves
+- Then "رقم المحفظة يجب أن يبدأ بـ 01 ويليه 9 أرقام" / "Wallet number must be 01 followed by 9 digits" shows and nothing is saved
+
+**Scenario 3 — After a failed payout**
+- Given her last payout of 245.50 EGP failed because the account number was not found
+- When she opens the screen
+- Then the failed banner shows; after she saves a new method it is gone
+
+**Scenario 4 — Cancel**
+- When she opens the form and taps Cancel
+- Then her method is unchanged
 
 ### Out of Scope
 - More than one payout method
+- Approval of her own change (an admin's change to her method needs approval — #6564)
+- Checking that the account really exists — format only
 
 ### Dependencies
 - #5630 [API] Driver views and changes her payout method
-- #5625 Driver adds a payout method during onboarding — same fields and rules
-- #1801 — Driver profile screen
+- #5625 [Mobile] Driver adds a payout method during onboarding — the form and its validation
+- #1801 [Mobile] Driver views her profile — the Payout method row
+- #5642 [Driver] Payout method — design
 
 ### Mockup (ADO comment)
+
 - Payout method: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html
 - Last payout failed: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/payout-method.html?state=failed
-- My profile (Payout method row): https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/my-profile.html
+- My Profile (Payout method row): https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/my-profile.html
 
 ---
 
-## [Mobile] #5627 — Driver sees the payout status of her earnings 🆕
+## [Mobile] #5627 — Driver sees the payout status of her earnings ✏️
 **Feature:** #1769 Earnings — Driver | **Sprint:** — | **Tag:** Payout
 
-**Description:** As a driver, I want to see when each earning will be paid and whether it was paid so that I know what money is coming to me.
+**Description:** As a driver, I want to see when each earning will be paid and whether it was paid, so that I know what money is coming to me.
 
 ### Rules
-- Each earning in her statement (#1788) shows one status: On hold until <date>, Due, Being transferred, Paid, or Failed.
-- The balance screen shows On hold: X EGP · Due for payout: Y EGP and links to her payout method.
-- An earning is paid in the next payout after its 7-calendar-day hold, once her due amount reaches the minimum.
-- A paid payout shows the amount (plus fee and amount sent when she pays the fee).
-- Notifications: "245.50 EGP was sent to your Vodafone Cash wallet" and "Payout failed — check your payout method".
-- Settle screen (#3989): matched by national ID; keep the transfer reference.
+- Each earning row in her statement (#1788) — trip earnings and cancellation fee credits — shows one status:
+| Status | Shown as |
+|---|---|
+| On hold | "محجوز حتى {{date}}" / "On hold until {{date}}" — 7 calendar days after the trip |
+| Due | "مستحق للصرف · {{date}}" / "Due for payout · {{date}}" |
+| Being transferred | "جارٍ التحويل · مستحق {{date}}" / "Being transferred · due {{date}}" — in a payout batch |
+| Paid | "تم الصرف · مرجع {{ref}}" / "Paid · Ref. {{ref}}" |
+| Failed | "فشل التحويل · مستحق مجدداً" / "Payout failed · due again", with the reason; it goes back to Due |
+
+- The balance card adds a summary line: "On hold: X EGP · Due for payout: Y EGP · Being transferred: Z EGP".
+- Due earnings are paid only once her due total reaches the minimum payout; below it the row adds "Paid once your due amount reaches {{minimum}} EGP".
+- A paid payout shows the amount; when she pays the transfer fee it also shows the fee and the amount sent.
+- A failed payout shows a banner on the balance screen that opens her payout method (#5626).
+- The "Payout sent" and "Payout failed" notifications are in the inbox (#5721).
 
 ### Acceptance Criteria
 **Scenario 1 — On hold**
-- Given she earned 60.00 EGP on 14 Oct
-- Then it reads "On hold until 21 Oct"
+- Given she earned 60.00 EGP on a trip on 14 Oct
+- Then the row reads "On hold until 21 Oct"
 
-**Scenario 2 — Failed**
-- Given her last payout failed
-- Then the balance screen shows a failed-payout banner linking to her payout method
-
-**Scenario 3 — Below the minimum**
+**Scenario 2 — Below the minimum**
 - Given the minimum payout is 100.00 EGP and she is due 60.00 EGP
-- Then her 60.00 EGP stays Due with "Paid once your due amount reaches 100.00 EGP"
+- Then the row stays Due with "Paid once your due amount reaches 100.00 EGP"
 
-**Scenario 4 — She pays the transfer fee**
-- Given a 250.50 EGP payout with a 3.76 EGP fee (1.5%) she pays
-- Then the payout reads 250.50 EGP, transfer fee 3.76 EGP, 246.74 EGP sent
+**Scenario 3 — She pays the transfer fee**
+- Given a 250.50 EGP payout with a 1.5% fee that she pays
+- Then it reads 250.50 EGP, transfer fee 3.76 EGP, 246.74 EGP sent
+
+**Scenario 4 — Failed**
+- Given her 245.50 EGP payout failed because the account number was not found
+- Then those rows read "Payout failed · due again" with the reason, and the banner opens her payout method
 
 ### Out of Scope
-- Choosing when to be paid
+- Choosing when to be paid or asking for a payout
+- Changing the minimum or the fee — Financial lead, #6486
 
 ### Dependencies
-- #1788 — Driver views her balance and statement
 - #5631 [API] Driver retrieves the payout status of her earnings
-- Notification inbox (design #4914)
+- #1788 [Mobile] Driver views her balance and statement — the screen this extends
+- #5626 [Mobile] Driver views and changes her payout method
+- #5721 [Mobile] Driver sees her notifications and opens what each one is about
+- #5643 [Driver] Balance — payout status of earnings — design
 
 ### Mockup (ADO comment)
-- Balance — payout status: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html
+
+- Balance with payout status: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?available=2850
 - Failed payout banner: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/balance.html?state=payout-failed
-- Settle screen (national-ID line): https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/settle.html?owed=120
-- Notifications: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/notifications.html
 
 ---
 
