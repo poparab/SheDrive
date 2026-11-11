@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-11-08 (fare estimate refreshed after 5 minutes — #6701)
+> Last updated: 2026-11-11 (#3968 depends on #1780 instead of the Removed #3971)
 > Stories with changes from original are marked ✏️
 
 ---
@@ -2366,7 +2366,7 @@ SOS is reachable only from an active trip. Tapping SOS opens a single confirmati
 
 ### Dependencies
 - #3970 — SOS incident is recorded with a full trip snapshot (API — must be live)
-- #3971 — Live location link is issued, scoped, and expires (API — must be live)
+- #1780 — Rider's emergency contacts are notified with a live location link on SOS (API — sends the alerts and their delivery status, and owns the live link)
 - #1787 — the rider's emergency contacts must exist to be alerted
 
 ---
