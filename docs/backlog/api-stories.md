@@ -1,6 +1,6 @@
 # SheDrive — API Stories
 > Canonical backlog for all [API] stories. Organized by sprint and feature.
-> Last updated: 2026-11-09 (rider profile email — #6702)
+> Last updated: 2026-11-11 (emergency contacts split — #6917/#6918 manage, #1780/#1952 send)
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -3683,139 +3683,253 @@ This is a **fourth** rider account state, distinct from the `active` / `suspende
 
 ---
 
-## [API] #1780 — Rider's emergency contacts are notified with a live location link on SOS 🆕
-**Feature:** Feature 21 — Emergency & Safety API | **Sprint:** 2
+## [API] #6917 — Rider manages her emergency contacts 🆕
+**Feature:** Feature 21 — Emergency & Safety API (#1779) | **Sprint:** —
 
-**Description:** As the rider app, I want to store a rider's emergency contacts and, when she triggers SOS during an active trip, notify those contacts with a live trip-tracking link so that the people she trusts can follow her location in real time during an emergency.
+**Description:** As the rider app, I want to list, add, edit and remove the rider's emergency contacts so that the people she trusts are saved once and are exactly the ones alerted when she raises SOS.
 
-### Background
+### Rules
+- The app can list, add, edit and remove the rider's emergency contacts.
+- Each contact has the fields below. Relationship is stored as its list key; "other" keeps her own words with it.
+- Up to 5 contacts. A sixth is refused with "لقد حفظتِ الحد الأقصى وهو ٥ جهات اتصال. احذفي واحدة لإضافة أخرى." / "You have saved the maximum of 5 contacts. Remove one to add another."
+- The list comes back in the order she added them, with the count.
+- The Emergency Contacts row on her profile (#1724) shows the count from this list.
+- She reads and changes only her own contacts.
+- Whoever is on the list when she confirms SOS is who gets the alert (#1780).
 
-Phase 1 SOS notifies only the rider's own emergency contacts and shares her live location with them. No control room or operations team is involved. Whether each alert actually reached its contact is reported back, because telling her "your contacts have been notified" when a message in fact failed gives her false confidence in an emergency. The live link does not last forever and she can shut it off herself. This story does not issue, expire or revoke that link — it reuses the single link already issued for the SOS case under #3971 and only puts it into the outgoing alerts.
+### Field Validation
+
+| Field | Required | Type / Format | Accepted values | Min | Max | Error — empty | Error — invalid |
+|---|---|---|---|---|---|---|---|
+| Name | Yes | Text | Any name; spaces at the ends are trimmed | 1 char | — | Please enter a name / يرجى إدخال الاسم | — |
+| Phone number | Yes | Egyptian mobile | 11 digits starting 01 | 11 digits | 11 digits | Please enter a valid phone number / يرجى إدخال رقم هاتف صحيح | Please enter a valid phone number / يرجى إدخال رقم هاتف صحيح |
+| Relationship | No | List | mother, father, sister, brother, husband, daughter, son, friend, relative, colleague, other | — | — | — | — |
+| How are they related? | Yes when Relationship is other | Text | Her own words, kept with the contact | 1 char | — | Please say how this person is related to you / من فضلكِ اكتبي صلتَكِ بهذا الشخص | — |
 
 ### Acceptance Criteria
 
-**Scenario 1 — Emergency contacts can be stored and managed**
-- Given a signed-in rider with no emergency contacts stored
-- When the app creates a contact (name, phone number, relationship), then retrieves the list, then updates that contact's phone number, then deletes it
-- Then the create call returns success and the retrieval returns exactly one contact with the submitted name, phone number and relationship
-- And the retrieval after the update returns the new phone number
-- And the retrieval after the delete returns an empty list
+**Scenario 1 — Add, edit and remove**
+- Given Nour has no emergency contacts
+- When the app adds Mona, 01012345678, sister
+- Then the list returns Mona with that number and relationship, and a count of 1
+- And after the app changes Mona's number to 01198765432, the list returns the new number
+- And after the app removes Mona, the list is empty with a count of 0
 
-**Scenario 2 — At most five contacts are accepted**
-- Given a rider already has 5 emergency contacts stored
-- When the app submits a sixth contact
-- Then the request is rejected with a validation error naming the 5-contact limit
-- And a retrieval of her contacts still returns exactly the original 5, with no sixth record
+**Scenario 2 — At the limit**
+- Given Nour has 5 contacts
+- When the app adds a sixth
+- Then it is refused with the maximum message and the list still has the same 5
+- And after one is removed, adding a contact succeeds
 
-**Scenario 3 — Every contact is alerted on SOS**
-- Given a rider with 3 stored emergency contacts on an active trip
-- When she triggers SOS
-- Then one alert is sent to each of the 3 stored phone numbers, and no alert is sent to any other number
-- And each alert body contains the live trip-tracking link for that SOS case
+**Scenario 3 — Relationship "other"**
+- When the app saves a contact with relationship other and no explanation
+- Then it is refused with "Please say how this person is related to you"
+- And with "neighbour" as the explanation it is saved, and the list returns other with "neighbour"
 
-**Scenario 4 — Each alert reports its own delivery result**
-- Given a rider with 3 stored emergency contacts has triggered SOS and the alerts have been dispatched
-- When the app requests the alert status for that SOS case
-- Then the response lists 3 entries, one per contact, each identifying the contact and carrying a status of sent, delivered or failed
+**Scenario 4 — Invalid phone number**
+- When the app saves a contact with 0101234
+- Then it is refused with the invalid-phone error and nothing is saved
 
-**Scenario 5 — One failed alert does not stop the others**
-- Given a rider with 3 stored emergency contacts on an active trip, and the supplier rejects the message to the second contact
-- When she triggers SOS
-- Then alerts are still dispatched to the first and third contacts
-- And the alert status for that SOS case shows failed for the second contact only, while the first and third show sent or delivered
-
-**Scenario 6 — The alerts carry the case's single live location link**
-- Given a rider with 3 stored emergency contacts on an active trip, and a live location link has been issued for her SOS case under #3971
-- When she triggers SOS and a contact opens the link from her alert
-- Then all 3 alerts contain that same single link identifier, and no new link is issued by this story
-- And the link returns her current trip location while the trip is running
-
-**Scenario 7 — Only her own contacts are notified**
-- Given rider A and rider B each have their own emergency contacts stored, and rider A is on an active trip
-- When rider A triggers SOS
-- Then the alert status for that SOS case lists only rider A's stored contacts
-- And no alert record exists for any of rider B's contacts
-
-**Scenario 8 — SOS with no contacts stored**
-- Given a rider with no emergency contacts stored on an active trip
-- When she triggers SOS
-- Then no alert is dispatched and the alert status for that SOS case is an empty list
-- And the response tells the app that she has no emergency contacts, so it can prompt her to add them
+**Scenario 5 — Another rider's contact**
+- When the app edits or removes a contact that belongs to another rider
+- Then it is refused and that contact is unchanged
 
 ### Out of Scope
-- Notifying a control room or operations team
-- Third-party monitoring
-- Notifying the driver that the rider raised SOS — deliberate; she is never told
-- The SOS case record itself — see #3970
+- Sending the SOS alert — #1780
+- Checking the contact's number by code, or telling the contact they were added
 
-**Dependencies:** Consumed by [Mobile] #1787 (rider contacts) and #3968 (rider emergency screen). The live link it sends is the one issued, scoped and expired by #3971. Needs an SMS supplier able to deliver to Egyptian mobile numbers and report delivery results — none is contracted yet, and the per-contact delivery status depends on it.
+### Dependencies
+- #1787 [Mobile] Rider sets up emergency contacts (the screen this serves)
+- #1780 [API] alerts these contacts on SOS
+- #1724 [Mobile] Rider views and manages her profile (shows the count)
+- #5036 [API] Rider account deletion (her contacts are deleted with the account)
+
+### Mockup (ADO comment)
+- Rider emergency contacts: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/sos.html
+
+---
+
+## [API] #1780 — Rider's emergency contacts are notified with a live location link on SOS 🆕
+**Feature:** Feature 21 — Emergency & Safety API (#1779) | **Sprint:** —
+
+**Description:** As the rider app, I want every emergency contact of the rider to get an SMS with a live link to her location when she raises SOS on a trip, and to read whether each one was delivered, so that the people she trusts can find her and she knows who was reached.
+
+### Rules
+- When an SOS case is created for her (#3970), every contact on her list at that moment gets one SMS. It says she raised an emergency alert on a SheDrive trip and carries the live link.
+- All her contacts get the same link: one link per SOS case.
+- The link shows her current location and the trip's car and plate, and nothing else about her account.
+- The link stops working when she stops sharing or cancels the alert as a false alarm (#3970), or 60 minutes after the trip ends. A stopped or unknown link shows nothing.
+- Each contact has a delivery status the app reads for the emergency screen (#3968): Sending, then Delivered or "تعذّر التسليم" / "Could not deliver", as the SMS supplier reports it. The case keeps the final statuses (#3970).
+- One failed SMS does not stop the others.
+- The alert is sent once per case. Confirming again for the same case sends nothing new.
+- With no contacts, nothing is sent and the response says she has none, so the app can prompt her to add some (#1787).
+- The driver is never told.
+
+### Acceptance Criteria
+
+**Scenario 1 — Two contacts are alerted**
+- Given Nour has Mona and Hala on her list and is on a trip
+- When she confirms SOS
+- Then Mona and Hala each get one SMS with the same link, and both show Sending
+- And once the supplier confirms, both show Delivered
+
+**Scenario 2 — One contact can't be reached**
+- Given the supplier rejects the SMS to Hala
+- Then Mona still gets hers and shows Delivered, and Hala shows "Could not deliver"
+
+**Scenario 3 — No contacts**
+- Given Nour has no contacts
+- When she confirms SOS
+- Then no SMS is sent, the status list is empty and the response says she has no contacts
+
+**Scenario 4 — Stop sharing**
+- Given Mona has the link and Nour stops sharing
+- When Mona opens the link
+- Then it shows no location and no trip detail
+
+**Scenario 5 — After the trip**
+- Given the trip ended at 14:00 and she did not stop sharing
+- Then the link still shows her location at 14:59 and shows nothing at 15:01
+
+### Out of Scope
+- A control room or operations team
+- An "all clear" SMS after a false alarm
+- Re-sending to a contact by hand
+- Managing the contacts — #6917
+
+### Dependencies
+- #3970 [API] SOS incident is recorded with a full trip snapshot (creates the case that triggers this, and keeps the delivery results)
+- #6917 [API] Rider manages her emergency contacts (the list that is alerted)
+- #3968 [Mobile] Rider raises SOS and reaches the emergency screen
+- #1787 [Mobile] Rider sets up emergency contacts
+- An SMS supplier that delivers to Egyptian numbers and reports delivery — none is contracted yet
+
+### Mockup (ADO comment)
+- Rider emergency screen (contact delivery status): https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/emergency.html
+
+---
+
+## [API] #6918 — Driver manages her emergency contacts 🆕
+**Feature:** Feature 21 — Emergency & Safety API (#1779) | **Sprint:** —
+
+**Description:** As the driver app, I want to list, add, edit and remove the driver's emergency contacts so that the people she trusts are saved once and are exactly the ones alerted when she raises SOS.
+
+### Rules
+- The app can list, add, edit and remove the driver's emergency contacts.
+- Each contact has the fields below. Relationship is stored as its list key; "other" keeps her own words with it.
+- Up to 5 contacts. A sixth is refused with "لقد حفظتِ الحد الأقصى وهو ٥ جهات اتصال. احذفي واحدة لإضافة أخرى." / "You have saved the maximum of 5 contacts. Remove one to add another."
+- The list comes back in the order she added them, with the count.
+- She reads and changes only her own contacts.
+- Whoever is on the list when she confirms SOS is who gets the alert (#1952).
+
+### Field Validation
+
+| Field | Required | Type / Format | Accepted values | Min | Max | Error — empty | Error — invalid |
+|---|---|---|---|---|---|---|---|
+| Name | Yes | Text | Any name; spaces at the ends are trimmed | 1 char | — | Please enter a name / يرجى إدخال الاسم | — |
+| Phone number | Yes | Egyptian mobile | 11 digits starting 01 | 11 digits | 11 digits | Please enter a valid phone number / يرجى إدخال رقم هاتف صحيح | Please enter a valid phone number / يرجى إدخال رقم هاتف صحيح |
+| Relationship | No | List | mother, father, sister, brother, husband, daughter, son, friend, relative, colleague, other | — | — | — | — |
+| How are they related? | Yes when Relationship is other | Text | Her own words, kept with the contact | 1 char | — | Please say how this person is related to you / من فضلكِ اكتبي صلتَكِ بهذا الشخص | — |
+
+### Acceptance Criteria
+
+**Scenario 1 — Add, edit and remove**
+- Given Sara has no emergency contacts
+- When the app adds Mona, 01012345678, sister
+- Then the list returns Mona with that number and relationship, and a count of 1
+- And after the app changes Mona's number to 01198765432, the list returns the new number
+- And after the app removes Mona, the list is empty with a count of 0
+
+**Scenario 2 — At the limit**
+- Given Sara has 5 contacts
+- When the app adds a sixth
+- Then it is refused with the maximum message and the list still has the same 5
+- And after one is removed, adding a contact succeeds
+
+**Scenario 3 — Relationship "other"**
+- When the app saves a contact with relationship other and no explanation
+- Then it is refused with "Please say how this person is related to you"
+- And with "neighbour" as the explanation it is saved, and the list returns other with "neighbour"
+
+**Scenario 4 — Invalid phone number**
+- When the app saves a contact with 0101234
+- Then it is refused with the invalid-phone error and nothing is saved
+
+**Scenario 5 — Another driver's contact**
+- When the app edits or removes a contact that belongs to another driver
+- Then it is refused and that contact is unchanged
+
+### Out of Scope
+- Sending the SOS alert — #1952
+- Checking the contact's number by code, or telling the contact they were added
+
+### Dependencies
+- #1951 [Mobile] Driver sets up emergency contacts (the screen this serves)
+- #1952 [API] alerts these contacts on SOS
+- #5037 [API] Driver account deletion (her contacts are deleted with the account)
+
+### Mockup (ADO comment)
+- Driver emergency contacts: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/sos.html
 
 ---
 
 ## [API] #1952 — Driver's emergency contacts are notified with a live location link on SOS 🆕
-**Feature:** Feature 21 — Emergency & Safety API | **Sprint:** 2
+**Feature:** Feature 21 — Emergency & Safety API (#1779) | **Sprint:** —
 
-**Description:** As the driver app, I want to store a driver's emergency contacts and, when she triggers SOS during an active trip, notify those contacts with a live trip-tracking link so that the people she trusts can follow her location in real time during an emergency.
+**Description:** As the driver app, I want every emergency contact of the driver to get an SMS with a live link to her location when she raises SOS on a trip, and to read whether each one was delivered, so that the people she trusts can find her and she knows who was reached.
 
-### Background
-
-Phase 1 SOS notifies only the driver's own emergency contacts and shares her live location with them. No control room or operations team is involved. Whether each alert actually reached its contact is reported back, because telling her "your contacts have been notified" when a message in fact failed gives her false confidence in an emergency. The live link does not last forever and she can shut it off herself. Issuing, scoping and expiring that link is #3971's responsibility; this story only puts the already-issued case link into the alert it sends.
+### Rules
+- When an SOS case is created for her (#3970), every contact on her list at that moment gets one SMS. It says she raised an emergency alert on a SheDrive trip and carries the live link.
+- All her contacts get the same link: one link per SOS case.
+- The link shows her current location and the trip's car and plate, and nothing else about her account.
+- The link stops working when she stops sharing or cancels the alert as a false alarm (#3970), or 60 minutes after the trip ends. A stopped or unknown link shows nothing.
+- Each contact has a delivery status the app reads for the emergency screen (#3969): Sending, then Delivered or "تعذّر التسليم" / "Could not deliver", as the SMS supplier reports it. The case keeps the final statuses (#3970).
+- One failed SMS does not stop the others.
+- The alert is sent once per case. Confirming again for the same case sends nothing new.
+- With no contacts, nothing is sent and the response says she has none, so the app can prompt her to add some (#1951).
+- The rider is never told.
 
 ### Acceptance Criteria
 
-**Scenario 1 — Emergency contacts can be stored and managed**
-- Given a signed-in driver with no emergency contacts stored
-- When the app creates a contact (name, phone number, relationship), then retrieves her contacts, then updates that contact's phone number, then deletes it
-- Then the create call returns the stored contact with an id
-- And the retrieval returns exactly that one contact with the name, phone number and relationship that were sent
-- And the retrieval after the update returns the new phone number
-- And the retrieval after the delete returns an empty contact list
+**Scenario 1 — Two contacts are alerted**
+- Given Sara has Mona and Hala on her list and is on a trip
+- When she confirms SOS
+- Then Mona and Hala each get one SMS with the same link, and both show Sending
+- And once the supplier confirms, both show Delivered
 
-**Scenario 2 — At most five contacts are accepted**
-- Given a driver already has 5 emergency contacts stored
-- When the app attempts to store a sixth
-- Then the request is rejected with a validation error naming the 5-contact limit
-- And a retrieval of her contacts still returns exactly the original 5
+**Scenario 2 — One contact can't be reached**
+- Given the supplier rejects the SMS to Hala
+- Then Mona still gets hers and shows Delivered, and Hala shows "Could not deliver"
 
-**Scenario 3 — Every one of her own contacts is alerted on SOS**
-- Given driver A has 3 emergency contacts stored and driver B has 2
-- When driver A triggers SOS during an active trip
-- Then one alert is sent to each of driver A's 3 contacts
-- And each alert contains the live trip-tracking link of driver A's SOS case
-- And no alert is sent to either of driver B's contacts, nor to any number not stored against driver A's account
+**Scenario 3 — No contacts**
+- Given Sara has no contacts
+- When she confirms SOS
+- Then no SMS is sent, the status list is empty and the response says she has no contacts
 
-**Scenario 4 — Each alert reports its own delivery result**
-- Given a driver with 3 emergency contacts has triggered SOS and the alerts have been dispatched
-- When the app requests the alert status for that SOS case
-- Then the response lists one entry per contact, each identifying the contact and carrying a status of sent, delivered or failed
+**Scenario 4 — Stop sharing**
+- Given Mona has the link and Sara stops sharing
+- When Mona opens the link
+- Then it shows no location and no trip detail
 
-**Scenario 5 — One failed alert does not stop the others**
-- Given a driver has 3 emergency contacts and the supplier rejects delivery to the second contact's number
-- When she triggers SOS during an active trip
-- Then the first and third contacts are still sent their alerts
-- And the alert status for that SOS case returns failed for the second contact and sent or delivered for the other two
-- And the SOS itself is not rejected because of that failure
-
-**Scenario 6 — The alert carries the case's live location link**
-- Given a driver has triggered SOS during an active trip and her contacts have been alerted
-- When a contact opens the live location link from her alert
-- Then the link is the same one issued for that SOS case under #3971, and it returns her current trip location
-- And when she stands the alert down or stops sharing, opening the same link again returns the expired/revoked response defined by #3971 instead of a location
-
-**Scenario 7 — SOS with no contacts stored**
-- Given a driver with no emergency contacts stored
-- When she triggers SOS during an active trip
-- Then no alert is dispatched and the alert status for that SOS case is an empty list
-- And the response to the SOS tells the app that no emergency contacts are stored, so that it can prompt her to add them
+**Scenario 5 — After the trip**
+- Given the trip ended at 14:00 and she did not stop sharing
+- Then the link still shows her location at 14:59 and shows nothing at 15:01
 
 ### Out of Scope
-- Notifying a control room or operations team
-- Third-party monitoring
-- Notifying the rider that the driver raised SOS — deliberate; she is never told
-- Issuing, expiring or revoking the live location link itself — see #3971
-- The SOS case record itself — see #3970
+- A control room or operations team
+- An "all clear" SMS after a false alarm
+- Re-sending to a contact by hand
+- Managing the contacts — #6918
 
-**Dependencies:** Consumed by [Mobile] #1951 (driver contacts) and #3969 (driver emergency screen). The live link it sends is the one issued, scoped and expired by #3971. Needs an SMS supplier able to deliver to Egyptian mobile numbers and report delivery results — none is contracted yet, and the per-contact delivery status depends on it.
+### Dependencies
+- #3970 [API] SOS incident is recorded with a full trip snapshot (creates the case that triggers this, and keeps the delivery results)
+- #6918 [API] Driver manages her emergency contacts (the list that is alerted)
+- #3969 [Mobile] Driver raises SOS and reaches the emergency screen
+- #1951 [Mobile] Driver sets up emergency contacts
+- An SMS supplier that delivers to Egyptian numbers and reports delivery — none is contracted yet
+
+### Mockup (ADO comment)
+- Driver emergency screen (contact delivery status): https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/emergency.html
 
 ---
 
@@ -3929,60 +4043,7 @@ The snapshot fields (who raised it, the trip context, the place and the time of 
 
 ---
 
-## [API] #3971 — Live location link is issued, scoped, and expires 🆕
-**Feature:** Feature 21 — Emergency & Safety API | **Sprint:** 2
-
-**Description:** As the SheDrive platform, I want to issue one narrowly scoped live location link per SOS case and enforce its expiry and revocation, so that the people she trusts can find her without her location being exposed indefinitely or to anyone else.
-
-### Background
-
-Each SOS case gets exactly one live location link. The link is deliberately narrow: it shows only where she is and the trip it belongs to, nothing else about her account. It does not last forever — it covers the walk from the car to safety and then stops, and she can shut it off herself at any moment.
-
-### Acceptance Criteria
-
-**Scenario 1 — One link per case**
-- Given an SOS has been confirmed
-- When the case is created
-- Then exactly one live location link is issued for it
-- And the link cannot be guessed from another one
-
-**Scenario 2 — The link shows her location and the trip, and nothing else**
-- Given a valid live location link
-- When a contact opens it
-- Then it shows where she is now and the details of that trip
-- And it exposes nothing else about her account
-
-**Scenario 3 — The link expires 60 minutes after the trip ends**
-- Given a case's live location link was issued during a trip
-- When the trip ends
-- Then the link keeps working for 60 more minutes and then stops working on its own
-
-**Scenario 4 — She can revoke it early**
-- Given a case has an active live location link
-- When the person who raised the SOS stops sharing, or stands the alert down as a false alarm, from her emergency screen
-- Then the link stops working immediately, however much of the 60 minutes was left
-
-**Scenario 5 — A revoked or expired link shows nothing**
-- Given a live location link has been revoked or has expired
-- When anyone opens it
-- Then no location and no trip detail is shown
-
-**Scenario 6 — Invalid links are refused**
-- Given a link that does not correspond to any case, or is malformed
-- When anyone opens it
-- Then it is refused and no location data is returned
-
-### Out of Scope
-- Live, continuously updating location tracking for the admin — the case detail shows a snapshot at the trigger, not this link
-- Issuing more than one live link per case
-- Sharing anything about her account beyond her live location and the trip
-
-### Dependencies
-- #3970 — a case must exist before its link can be issued
-- Consumed by #3968 (rider emergency screen) and #3969 (driver emergency screen)
-- #1780 and #1952 — the link is what the alerted contacts receive
-
----
+> **Removed 2026-10-01:** #3971 (Live location link is issued, scoped, and expires) is Removed in ADO. The live link rules now live in #1780 (rider) and #1952 (driver), which send it.
 
 
 # Payouts, settlement import and maker-checker (2026-10-14)
