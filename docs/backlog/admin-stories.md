@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-11-15 (request pages drop "Where it applies" — rate card #5623 and Global policies #6565/#6567/#6944)
+> Last updated: 2026-11-15 (#6944 cut to its own rules; request pages drop "Where it applies")
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model (2026-10-27):** Five admin roles — **Admin (users & IT)**, **Operations officer**,
@@ -4332,38 +4332,21 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 **Description:** As an Operations lead, I want a change to the Operations tab of Global policies to wait for another Operations lead's approval so that the hours riders can book never change on one person's say.
 
 ### Rules
-- **Send for approval** on the Operations tab (#6268) sends the whole tab as one request: opens at and closes at together. Only an Operations lead sends it. Subject: Global policies — Operations.
-- Nothing changed on the tab: "Nothing has changed — there is nothing to save." / "لم يتغير شيء — لا يوجد ما يُحفظ." and no request.
-- After sending, a toast: "The Operations tab was sent for approval as one request. Nothing changes until another Operations lead approves it." / "أُرسل تبويب العمليات للموافقة كطلب واحد. لا يتغير شيء حتى يوافق عليه رئيس فريق عمليات آخر." with **View the request**.
-- Pending notice, one at the top of the tab: "Operations tab change awaiting approval" / "تغيير تبويب العمليات بانتظار الموافقة", "Requested by {who} on {when}. The whole tab is locked and its current values stay in force until another Operations lead decides." and a link to the request page. The tab is locked and has no **Send for approval**.
-- Only one request can be pending for the tab; another is refused: "A change to this tab is already awaiting approval".
-- Only another Operations lead decides it, never the one who sent it, and never a Financial lead. With no other active Operations lead it stays pending: "Waiting for another Operations lead" / "في انتظار رئيس فريق عمليات آخر".
-- The Operations lead opens **Approvals** (#5617) and sees only Operations tab requests, in the Operations area; Financial roles don't see them. Her queue's note: "A change to the Operations tab of Global policies waits here until another Operations lead approves or rejects it. Nothing changes until it is approved. A lead never decides her own request." / "ينتظر أي تغيير في تبويب العمليات بالسياسات العامة هنا حتى يعتمده رئيس فريق عمليات آخر أو يرفضه. لا يتغير شيء قبل الاعتماد. لا يقرر رئيس الفريق في طلبه هو." The sidebar count is her pending Operations tab requests.
-
-### Request page
-| Block | Shows |
-|---|---|
-| Request details | Global policies — Operations, created by, status |
-| Before → After | Opens at, closes at (Cairo time), the changed ones marked |
-
-### What approving does
-- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
-- The hours are saved and apply to the next ride request and the rider app's open/closed status (#1785). Logged in #1816.
-- Reject: the hours stay; the tab is unlocked.
+- **Send for approval** on the Operations tab (#6268) sends opens at and closes at as one request. Only an Operations lead sends it.
+- After sending, a toast: "The Operations tab was sent for approval as one request. Nothing changes until another Operations lead approves it." / "أُرسل تبويب العمليات للموافقة كطلب واحد. لا يتغير شيء حتى يوافق عليه رئيس فريق عمليات آخر."
+- While it is pending, the tab is locked under "Operations tab change awaiting approval" / "تغيير تبويب العمليات بانتظار الموافقة" with a link to the request, the current hours stay in force, and a second request is refused.
+- Only another Operations lead decides it — never the sender and never a Financial role. In Approvals (#5617) an Operations lead sees only Operations tab requests.
+- Approve: the hours apply to the next ride request and to the rider app's open/closed status (#1785). Reject: the hours stay and the tab is unlocked.
 
 ### Acceptance Criteria
-**Scenario 1 — Hours wait**
+**Scenario 1 — Hours wait for approval**
 - Given the hours are 07:00–23:00
 - When Dina (Operations lead) changes Closes at to 22:00 and sends the tab
-- Then riders can still book until 23:00 and the tab shows the pending change
+- Then riders can still book until 23:00
 
 **Scenario 2 — Approved**
 - When another Operations lead approves it
 - Then a rider who requests a trip at 22:01 is refused (#1785)
-
-**Scenario 3 — Not hers to decide**
-- When a Financial lead opens Approvals
-- Then the Operations tab request is not listed, and its request page has no Approve or Reject
 
 ### Dependencies
 - #5617 — Approvals and the request page
