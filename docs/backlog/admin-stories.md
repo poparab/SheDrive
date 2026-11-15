@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-11-15 (#6944 cut to its own rules; request pages drop "Where it applies")
+> Last updated: 2026-11-15 (#6565 and #6944 cut to their own rules; request pages drop "Where it applies")
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model (2026-10-27):** Five admin roles — **Admin (users & IT)**, **Operations officer**,
@@ -4233,37 +4233,21 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 **Description:** As a Financial lead, I want a change to the Pricing tab of Global policies to wait for another Financial lead's approval so that what riders and drivers are charged and SheDrive's share never change on one person's say.
 
 ### Rules
-- **Send for approval** on the Pricing tab (#1759, #6486) sends the whole tab as one request: the cancellation policy and the platform commission together, however many fields changed. Never one request per card or field. Only a Financial lead sends it. Subject: Global policies — Pricing.
-- Nothing changed on the tab: "Nothing has changed — there is nothing to save." / "لم يتغير شيء — لا يوجد ما يُحفظ." and no request.
-- After sending, a toast: "The Pricing tab was sent for approval as one request. Nothing changes until another Financial lead approves it." / "أُرسل تبويب التسعير للموافقة كطلب واحد. لا يتغير شيء حتى يوافق عليه رئيس فريق مالي آخر." with **View the request**.
-- Pending notice, one at the top of the tab: "Pricing tab change awaiting approval" / "تغيير تبويب التسعير بانتظار الموافقة", "Requested by {who} on {when}. The whole tab is locked and its current values stay in force until another Financial lead decides." and a link to the request page. Every field on the tab is locked, its cards are tinted and the tab has no **Send for approval**.
-- Only one request can be pending for the tab; another is refused: "A change to this tab is already awaiting approval".
-
-### Request page
-| Block | Shows |
-|---|---|
-| Request details | Global policies — Pricing, created by, status |
-| Before → After | Every field on the tab, the changed ones marked: rider grace period, driver cancellation fee, driver grace period, rider no-show wait, commission (%) |
-
-### What approving does
-- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
-- The whole tab is saved at once: new trips use the cancellation policy, trips completed from then on use the commission. Logged in #1760.
-- Reject: nothing on the tab changes; the tab is unlocked.
+- **Send for approval** on the Pricing tab (#1759) sends the cancellation policy and the platform commission as one request, however many fields changed. Only a Financial lead sends it.
+- After sending, a toast: "The Pricing tab was sent for approval as one request. Nothing changes until another Financial lead approves it." / "أُرسل تبويب التسعير للموافقة كطلب واحد. لا يتغير شيء حتى يوافق عليه رئيس فريق مالي آخر."
+- While it is pending, the tab is locked under "Pricing tab change awaiting approval" / "تغيير تبويب التسعير بانتظار الموافقة" with a link to the request, the current values stay in force, and a second request is refused.
+- Only another Financial lead decides it — never the sender.
+- Approve: new trips use the cancellation policy and trips completed from then on use the commission. Reject: nothing on the tab changes and the tab is unlocked.
 
 ### Acceptance Criteria
 **Scenario 1 — Two cards, one request**
 - Given the driver cancellation fee is 10 EGP and commission is 18%
 - When Hala (Financial lead) changes the fee to 15 and commission to 19% and sends the tab
-- Then one request holds both changes, the whole tab is locked, and drivers are still charged 10 at 18%
+- Then one request holds both changes and drivers are still charged 10 at 18%
 
 **Scenario 2 — Approved**
 - When Nour (another Financial lead) approves it
 - Then new trips charge the driver 15 and commission is 19%
-
-**Scenario 3 — Rejected**
-- Given a Pricing tab change with commission 18% → 20% is pending
-- When a Financial lead rejects it with "Commission stays at 18% until the quarterly review"
-- Then nothing on the tab changes and the reason shows on the decided request
 
 ### Dependencies
 - #5617 — Approvals and the request page
