@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-11-08 (driver's rating of the rider on trip detail — #6700)
+> Last updated: 2026-11-15 (#5624 payout method edit applies without approval, #6564 Removed; #6562 earnings tiles dropped)
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model (2026-10-27):** Five admin roles — **Admin (users & IT)**, **Operations officer**,
@@ -3859,8 +3859,8 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | Filter | Options |
 |---|---|
 | Created by | Anyone / Financial officers and other leads — mine to decide / Me — waiting for others |
-| Area | All / Payouts & settlements (payout result, manual payout, manual settlement, settlement import, payout settings) / Rider fees (fee waiver) / Pricing (rate card, commission, cancellation policy, balance limit) / Driver details (payout method change) |
-| Request type | All / the eleven types |
+| Area | All / Payouts & settlements (payout result, manual payout, manual settlement, settlement import, payout settings) / Rider fees (fee waiver) / Pricing (rate card, commission, cancellation policy, balance limit) |
+| Request type | All / the ten types |
 
 | Column | Sortable |
 |---|---|
@@ -3922,12 +3922,10 @@ Every consequential, state-changing admin action is recorded immutably: driver a
 | #6561 | Manual settlement |
 | #6562 | Manual payout |
 | #6563 | Fee waiver |
-| #6564 | Payout method change |
 | #5623 | Rate card change |
-| #6565 | Commission change |
-| #6566 | Cancellation policy change |
-| #6567 | Balance limit change |
-| #6568 | Payout settings change |
+| #6565 | Global policies — Pricing tab change |
+| #6567 | Global policies — Finance tab change |
+| #6944 | Global policies — Operations tab change (decided by another Operations lead) |
 
 ### Mockup (ADO comment)
 - Approvals as a Financial lead: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?as=fin_lead
@@ -4111,7 +4109,6 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 | Request details | Driver, amount, created by, reference, status |
 | Before → After | Balance |
 | Payout details | Driver (links to her ledger), paid to (method and provider), account / wallet / card number, account holder, reference, payment date, proof of payment |
-| Where her earnings stand — tiles | Due · On hold (7 days) · In an open batch |
 
 ### What approving does
 - **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
@@ -4181,49 +4178,6 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 
 ---
 
-## [Admin] #6564 — Approval cycle — Payout method change 🆕
-**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Approval, Payout
-
-**Description:** As a Financial lead, I want a payout method change made by a Financial officer or another Financial lead to wait for my approval so that no one can redirect a driver's money alone.
-
-### Rules
-- An edit on the driver profile (#5624) by a Financial officer or Financial lead creates a request. The driver's own change in the app does not. Subject: the driver.
-- Pending notice: the profile reads "Change awaiting approval" with a link to the request page, and Edit is disabled.
-- Only one request can be pending for her payout method; another is refused: "A change is already awaiting approval".
-
-### Request page
-| Block | Shows |
-|---|---|
-| Request details | Driver, created by, status |
-| Before → After | Payout type, provider or bank, account number, account holder — all in full |
-| Driver | Driver (links to her profile), when the current method was last updated and by whom, due now, in an open batch |
-
-### What approving does
-- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
-- Her payout method is replaced and shows it was updated by the Financial officer or Financial lead who requested it; her next batch uses the new method.
-- A line already in an open batch is paid to the method it was generated with.
-- Reject: her current method stays; Edit is offered again.
-
-### Acceptance Criteria
-**Scenario 1 — Approved**
-- Given her method is a Vodafone Cash wallet and a Financial officer requested a CIB bank account
-- When a Financial lead approves it
-- Then her next payout goes in a bank-account batch to the CIB account
-
-**Scenario 2 — Rejected**
-- When a Financial lead rejects it
-- Then her payouts still go to the wallet
-
-### Dependencies
-- #5617 — Approvals and the request page
-- #5624 — Admin views and edits a driver's payout method
-
-### Mockup (ADO comment)
-- Request page — payout method change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0020&as=nour.hassan@shedrive.app
-- Driver profile: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069
-
----
-
 ## [Admin] #5623 — Approval cycle — Rate card change 🆕
 **Feature:** #1755 Admin — Pricing & Rate Management | **Sprint:** Sprint 6 | **Tag:** Approval
 
@@ -4274,174 +4228,157 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 
 ---
 
-## [Admin] #6565 — Approval cycle — Commission change 🆕
+## [Admin] #6565 — Approval cycle — Global policies, Pricing tab change 🆕
 **Feature:** #1755 Admin — Pricing & Rate Management | **Sprint:** Sprint 6 | **Tag:** Approval
 
-**Description:** As a Financial lead, I want a commission change to wait for another Financial lead's approval so that SheDrive's share never changes on one person's say.
+**Description:** As a Financial lead, I want a change to the Pricing tab of Global policies to wait for another Financial lead's approval so that what riders and drivers are charged and SheDrive's share never change on one person's say.
 
 ### Rules
-- Saving the commission on Global policies, Pricing tab (#1759, #6486) creates a request. Only a Financial lead makes it. Subject: platform commission.
-- Pending notice: "Commission change to {pct} awaiting approval" / "تغيير العمولة إلى {pct} بانتظار الموافقة" with a link to the request page; the field is locked and the current rate stays in force.
-- Only one request can be pending for the commission; another is refused: "A change is already awaiting approval".
-- Saving the Pricing tab with both commission and cancellation policy changed sends two requests, one per card.
+- **Send for approval** on the Pricing tab (#1759, #6486) sends the whole tab as one request: the cancellation policy and the platform commission together, however many fields changed. Never one request per card or field. Only a Financial lead sends it. Subject: Global policies — Pricing.
+- Nothing changed on the tab: "Nothing has changed — there is nothing to save." / "لم يتغير شيء — لا يوجد ما يُحفظ." and no request.
+- After sending, a toast: "The Pricing tab was sent for approval as one request. Nothing changes until another Financial lead approves it." / "أُرسل تبويب التسعير للموافقة كطلب واحد. لا يتغير شيء حتى يوافق عليه رئيس فريق مالي آخر." with **View the request**.
+- Pending notice, one at the top of the tab: "Pricing tab change awaiting approval" / "تغيير تبويب التسعير بانتظار الموافقة", "Requested by {who} on {when}. The whole tab is locked and its current values stay in force until another Financial lead decides." and a link to the request page. Every field on the tab is locked, its cards are tinted and the tab has no **Send for approval**.
+- Only one request can be pending for the tab; another is refused: "A change to this tab is already awaiting approval".
 
 ### Request page
 | Block | Shows |
 |---|---|
-| Request details | Platform commission, created by, status |
-| Before → After | Commission (%) |
-| Where it applies | Setting, Global policies tab (Pricing — links to it), "To trips completed after it is approved." |
+| Request details | Global policies — Pricing, created by, status |
+| Before → After | Every field on the tab, the changed ones marked: rider grace period, driver cancellation fee, driver grace period, rider no-show wait, commission (%) |
+| Where it applies | Setting, Global policies tab (Pricing — links to it), "Commission: to trips completed after it is approved. Cancellation policy: to trips requested after it is approved." |
 
 ### What approving does
 - **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
-- The new commission is saved and applies from then on.
-- Reject: the commission stays; the field is unlocked.
+- The whole tab is saved at once: new trips use the cancellation policy, trips completed from then on use the commission. Logged in #1760.
+- Reject: nothing on the tab changes; the tab is unlocked.
 
 ### Acceptance Criteria
-**Scenario 1 — Rejected**
-- Given a commission change from 18% to 20% is pending
-- When a Financial lead rejects it with "Stays at 18% until the quarterly review"
-- Then commission stays 18% and the reason shows on the decided request
+**Scenario 1 — Two cards, one request**
+- Given the driver cancellation fee is 10 EGP and commission is 18%
+- When Hala (Financial lead) changes the fee to 15 and commission to 19% and sends the tab
+- Then one request holds both changes, the whole tab is locked, and drivers are still charged 10 at 18%
 
 **Scenario 2 — Approved**
-- Given Hala (Financial lead) requested 18% → 19%
 - When Nour (another Financial lead) approves it
-- Then commission is 19%
+- Then new trips charge the driver 15 and commission is 19%
+
+**Scenario 3 — Rejected**
+- Given a Pricing tab change with commission 18% → 20% is pending
+- When a Financial lead rejects it with "Commission stays at 18% until the quarterly review"
+- Then nothing on the tab changes and the reason shows on the decided request
 
 ### Dependencies
 - #5617 — Approvals and the request page
 - #1759 — Global policies
 
 ### Mockup (ADO comment)
-- Request page — commission change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0021&as=nour.hassan@shedrive.app
-- Rejected commission change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0008
-- Global policies, Pricing tab: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=pricing
+- Request page — Pricing tab change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0021&as=nour.hassan@shedrive.app
+- Rejected Pricing tab change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0008
+- Global policies, Pricing tab (pending): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=pricing
 
 ---
 
-## [Admin] #6566 — Approval cycle — Cancellation policy change 🆕
-**Feature:** #1755 Admin — Pricing & Rate Management | **Sprint:** Sprint 6 | **Tag:** Approval
+## [Admin] #6567 — Approval cycle — Global policies, Finance tab change 🆕
+**Feature:** #1755 Admin — Pricing & Rate Management | **Sprint:** Sprint 6 | **Tag:** Approval, Payout
 
-**Description:** As a Financial lead, I want a cancellation policy change to wait for another Financial lead's approval so that what riders and drivers are charged never changes on one person's say.
+**Description:** As a Financial lead, I want a change to the Finance tab of Global policies to wait for another Financial lead's approval so that who may go online, the minimum payout and the transfer fee never change on one person's say.
 
 ### Rules
-- Saving the Cancellation policy card on Global policies, Pricing tab (#1759, #6486) creates one request for the whole card. Only a Financial lead makes it. Subject: cancellation policy.
-- Pending notice: "Cancellation policy change awaiting approval" / "تغيير سياسة الإلغاء بانتظار الموافقة" with a link to the request page; the card is locked.
-- Only one request can be pending for the cancellation policy; another is refused: "A change is already awaiting approval".
+- **Send for approval** on the Finance tab (#3994, #6486) sends the whole tab as one request: the driver balance limit and the payout settings together, however many fields changed. Never one request per card or field. Only a Financial lead sends it. Subject: Global policies — Finance.
+- Nothing changed on the tab: "Nothing has changed — there is nothing to save." / "لم يتغير شيء — لا يوجد ما يُحفظ." and no request.
+- After sending, a toast: "The Finance tab was sent for approval as one request. Nothing changes until another Financial lead approves it." / "أُرسل تبويب المالية للموافقة كطلب واحد. لا يتغير شيء حتى يوافق عليه رئيس فريق مالي آخر." with **View the request**.
+- Pending notice, one at the top of the tab: "Finance tab change awaiting approval" / "تغيير تبويب المالية بانتظار الموافقة", "Requested by {who} on {when}. The whole tab is locked and its current values stay in force until another Financial lead decides." and a link to the request page. Every field on the tab is locked, its cards are tinted and the tab has no **Send for approval**.
+- Only one request can be pending for the tab; another is refused: "A change to this tab is already awaiting approval".
+- In Approvals it is in the Payouts & settlements area.
 
 ### Request page
 | Block | Shows |
 |---|---|
-| Request details | Cancellation policy, created by, status |
-| Before → After | The changed ones of: rider grace period, cancellation fee, driver cancellation fee, driver grace period, rider no-show wait |
-| Where it applies | Setting, Global policies tab (Pricing — links to it), "To trips requested after it is approved." |
+| Request details | Global policies — Finance, created by, status |
+| Before → After | Every field on the tab, the changed ones marked: balance limit (EGP), minimum payout, transfer fee (%), fee minimum, fee maximum, who pays it |
+| Where it applies | Setting, Global policies tab (Finance — links to it), "Balance limit: at once — drivers under the new limit can go online, drivers over it cannot. Payout settings: to the next payout batch generated; batches already generated keep their own." |
 
 ### What approving does
 - **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
-- The policy is saved and applies to new trips.
-- Reject: the policy stays; the card is unlocked.
+- The whole tab is saved at once: go-online blocks follow the new limit (#3994); the payout settings apply to the next batch generated, whatever its method; a batch generated before keeps its own.
+- Reject: nothing on the tab changes; the tab is unlocked.
 
 ### Acceptance Criteria
-**Scenario 1 — Fee waits**
-- Given the driver cancellation fee is 20 EGP
-- When Hala (Financial lead) saves 25
-- Then drivers are still charged 20 until another Financial lead approves
+**Scenario 1 — Two cards, one request**
+- Given the limit is 500 EGP and the minimum payout 100.00 EGP, paid by the driver
+- When Nour (Financial lead) sets the limit to 600, the minimum payout to 150.00 and SheDrive as the fee payer, and sends the tab
+- Then one request holds all three changes and the whole tab is locked
 
 **Scenario 2 — Approved**
-- When Nour (another Financial lead) approves it
-- Then cancellations on new trips charge the driver 25
+- Given a driver owes 550 EGP
+- When Hala (another Financial lead) approves it
+- Then the driver can go online, and the next batch leaves out drivers due under 150.00 and sends each driver her full amount
 
-### Dependencies
-- #5617 — Approvals and the request page
-- #1759 — Global policies
-
-### Mockup (ADO comment)
-- Request page — cancellation policy change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0022&as=hala.mahmoud@shedrive.app
-- Global policies, Pricing tab: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=pricing
-
----
-
-## [Admin] #6567 — Approval cycle — Balance limit change 🆕
-**Feature:** #1755 Admin — Pricing & Rate Management | **Sprint:** Sprint 6 | **Tag:** Approval
-
-**Description:** As a Financial lead, I want a driver balance limit change to wait for another Financial lead's approval so that who may go online never changes on one person's say.
-
-### Rules
-- Saving the driver balance limit on Global policies, Finance tab (#3994, #6486) creates a request. Only a Financial lead makes it. Subject: driver balance limit.
-- Pending notice: "Balance limit change to {limit} awaiting approval" / "تغيير حد الرصيد إلى {limit} بانتظار الموافقة" with a link to the request page; the field is locked.
-- Only one request can be pending for the balance limit; another is refused: "A change is already awaiting approval".
-
-### Request page
-| Block | Shows |
-|---|---|
-| Request details | Driver balance limit, created by, status |
-| Before → After | Balance limit (EGP) |
-| Where it applies | Setting, Global policies tab (Finance — links to it), "At once: drivers under the new limit can go online, drivers over it cannot." |
-
-### What approving does
-- **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
-- The new limit is saved; go-online blocks follow it (#3994).
-- Reject: the limit stays; the field is unlocked.
-
-### Acceptance Criteria
-**Scenario 1 — Approved**
-- Given the limit is 500 EGP and a driver owes 550 EGP
-- When a Financial lead approves a change to 600 EGP
-- Then she is under the limit and can go online
-
-**Scenario 2 — Rejected**
-- When a Financial lead rejects it
-- Then the limit stays 500 EGP and she stays blocked
+**Scenario 3 — Rejected**
+- When Hala rejects it
+- Then the limit stays 500 EGP, batches keep the 100.00 minimum and the driver pays the fee
 
 ### Dependencies
 - #5617 — Approvals and the request page
 - #3994 — Driver balance limit
+- #6486 — Minimum payout and transfer fee
 
 ### Mockup (ADO comment)
-- Request page — balance limit change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0023&as=hala.mahmoud@shedrive.app
-- Global policies, Finance tab: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=finance
+- Request page — Finance tab change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0022&as=hala.mahmoud@shedrive.app
+- Global policies, Finance tab (pending): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=finance
 
 ---
 
-## [Admin] #6568 — Approval cycle — Payout settings change 🆕
-**Feature:** #1803 Admin — Financial Reporting & Reconciliation | **Sprint:** Sprint 6 | **Tag:** Approval, Payout
+## [Admin] #6944 — Approval cycle — Global policies, Operations tab change 🆕
+**Feature:** #1755 Admin — Pricing & Rate Management | **Sprint:** Sprint 6 | **Tag:** Approval, Operating hours
 
-**Description:** As a Financial lead, I want a payout settings change to wait for another Financial lead's approval so that the minimum payout and the transfer fee never change on one person's say.
+**Description:** As an Operations lead, I want a change to the Operations tab of Global policies to wait for another Operations lead's approval so that the hours riders can book never change on one person's say.
 
 ### Rules
-- Saving the Payouts card on Global policies, Finance tab (#6486) creates a request. Only a Financial lead makes it. Subject: payout settings.
-- Pending notice: "Payout settings change awaiting approval" / "تغيير إعدادات المدفوعات بانتظار الموافقة" with a link to the request page; the card is locked.
-- Only one request can be pending for the payout settings; another is refused: "A change is already awaiting approval".
+- **Send for approval** on the Operations tab (#6268) sends the whole tab as one request: opens at and closes at together. Only an Operations lead sends it. Subject: Global policies — Operations.
+- Nothing changed on the tab: "Nothing has changed — there is nothing to save." / "لم يتغير شيء — لا يوجد ما يُحفظ." and no request.
+- After sending, a toast: "The Operations tab was sent for approval as one request. Nothing changes until another Operations lead approves it." / "أُرسل تبويب العمليات للموافقة كطلب واحد. لا يتغير شيء حتى يوافق عليه رئيس فريق عمليات آخر." with **View the request**.
+- Pending notice, one at the top of the tab: "Operations tab change awaiting approval" / "تغيير تبويب العمليات بانتظار الموافقة", "Requested by {who} on {when}. The whole tab is locked and its current values stay in force until another Operations lead decides." and a link to the request page. The tab is locked and has no **Send for approval**.
+- Only one request can be pending for the tab; another is refused: "A change to this tab is already awaiting approval".
+- Only another Operations lead decides it, never the one who sent it, and never a Financial lead. With no other active Operations lead it stays pending: "Waiting for another Operations lead" / "في انتظار رئيس فريق عمليات آخر".
+- The Operations lead opens **Approvals** (#5617) and sees only Operations tab requests, in the Operations area; Financial roles don't see them. Her queue's note: "A change to the Operations tab of Global policies waits here until another Operations lead approves or rejects it. Nothing changes until it is approved. A lead never decides her own request." / "ينتظر أي تغيير في تبويب العمليات بالسياسات العامة هنا حتى يعتمده رئيس فريق عمليات آخر أو يرفضه. لا يتغير شيء قبل الاعتماد. لا يقرر رئيس الفريق في طلبه هو." The sidebar count is her pending Operations tab requests.
 
 ### Request page
 | Block | Shows |
 |---|---|
-| Request details | Payout settings, created by, status |
-| Before → After | The changed ones of: minimum payout, transfer fee (%), fee minimum, fee maximum, who pays it |
-| Where it applies | Setting, Global policies tab (Finance — links to it), "To the next payout batch generated. Batches already generated keep their own settings." |
+| Request details | Global policies — Operations, created by, status |
+| Before → After | Opens at, closes at (Cairo time), the changed ones marked |
+| Where it applies | Setting, Global policies tab (Operations — links to it), "To the next ride request after it is approved and to the rider app's open/closed status. Trips already requested run to their end." |
 
 ### What approving does
 - **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
-- The settings apply to the next batch generated, whatever its method; a batch generated before keeps its own.
-- Reject: the settings stay; the card is unlocked.
+- The hours are saved and apply to the next ride request and the rider app's open/closed status (#1785). Logged in #1816.
+- Reject: the hours stay; the tab is unlocked.
 
 ### Acceptance Criteria
-**Scenario 1 — Approved**
-- Given Hala (Financial lead) sets the minimum payout to 150.00 EGP and SheDrive as the fee payer
-- When Nour (another Financial lead) approves it
-- Then the next batch leaves out drivers due under 150.00 and sends each driver her full amount
+**Scenario 1 — Hours wait**
+- Given the hours are 07:00–23:00
+- When Dina (Operations lead) changes Closes at to 22:00 and sends the tab
+- Then riders can still book until 23:00 and the tab shows the pending change
 
-**Scenario 2 — Rejected**
-- When Nour rejects it
-- Then batches keep the 100.00 minimum and the driver pays the fee
+**Scenario 2 — Approved**
+- When another Operations lead approves it
+- Then a rider who requests a trip at 22:01 is refused (#1785)
+
+**Scenario 3 — Not hers to decide**
+- When a Financial lead opens Approvals
+- Then the Operations tab request is not listed, and its request page has no Approve or Reject
 
 ### Dependencies
 - #5617 — Approvals and the request page
-- #6486 — Admin sets the minimum payout and the transfer fee
+- #6268 — Operating hours
+- #6482 — Operations lead
 
 ### Mockup (ADO comment)
-- Request page — payout settings change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0024&as=nour.hassan@shedrive.app
-- Global policies, Finance tab: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=finance
+- Request page — Operations tab change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0023&as=ops_lead
+- Approved Operations tab change: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0024&as=ops_lead
+- Approvals as the Operations lead: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approvals.html?as=ops_lead
+- Global policies, Operations tab (pending): https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=ops_lead&tab=operations
 
 ---
 
@@ -4775,9 +4712,9 @@ The three templates are attached to this story and to #5618: `payout-template-mo
 |---|---|---|---|
 | Pricing | Cancellation policy, platform commission (#1759) | Financial lead | After another Financial lead approves |
 | Finance | Driver balance limit (#3994), Payouts | Financial lead | After another Financial lead approves |
-| Operations | Operating hours (#6268) | Operations lead | On save |
+| Operations | Operating hours (#6268) | Operations lead | After another Operations lead approves |
 
-- Save and Revert act on the open tab only; unsaved edits on another tab stay. A tab a role can't change is read-only, with no Save. The page opens on the first tab the role can change; `?tab=pricing|finance|operations` opens a tab, and a request's link opens the tab its setting is on.
+- **Send for approval** sends the open tab as one request with every field on it, never one per card or field (#6565 Pricing, #6567 Finance, #6944 Operations); while it waits the whole tab is locked behind one notice. Revert resets the open tab; unsaved edits on another tab stay. A tab a role can't change is read-only, with no button. The page opens on the first tab the role can change; `?tab=pricing|finance|operations` opens a tab, and a request's link opens the tab its setting is on.
 - The Finance tab gets a **Payouts** card:
 
 | Setting | Default |
@@ -4790,7 +4727,7 @@ The three templates are attached to this story and to #5618: `payout-template-mo
 
 - Fee on a payout = its percentage of the payout, raised to the minimum when below it and cut to the maximum when above it, to 2 decimals (1.5%: 250.50 → 3.76; 140.00 → 3.00; 2,000.00 → 20.00).
 - Driver pays: the fee comes off what she is sent. SheDrive pays: she gets her full amount.
-- A change goes through approval (#6568 Approval cycle — Payout settings change), in the Payouts & settlements area filter.
+- A change goes through approval (#6567 Approval cycle — Global policies, Finance tab change), in the Payouts & settlements area filter.
 - The card shows a worked example for a 500.00 EGP payout and when it was last changed and by whom.
 
 ### Field Validation
@@ -4841,7 +4778,7 @@ The three templates are attached to this story and to #5618: `payout-template-mo
 ### Dependencies
 - #5618 Admin generates a payout batch
 - #5619 Bank files and results
-- #6568 — Approval cycle — Payout settings change
+- #6567 — Approval cycle — Global policies, Finance tab change
 
 ### Mockup (ADO comment)
 - Global policies — Finance tab, Payouts card: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=fin_lead&tab=finance
@@ -5118,7 +5055,7 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 ### Rules
 - The driver profile and the driver application show the payout method to Finance roles only (#6483, #6484): type, provider or bank, holder name, the full number, and who changed it last (the driver, or the Financial officer or lead by name).
 - *Last payout failed* shows with the reason and a link to the batch.
-- A Financial officer's or lead's edit uses the same fields and rules as the driver's own form and goes through approval (#6564 Approval cycle — Payout method change). The current method stays until then.
+- A Financial officer's or lead's edit uses the same fields and rules as the driver's own form and applies as soon as she saves — no approval. The profile then shows her as the last to change it, and the change is recorded in the audit log with the old and new method.
 
 ### Field Validation
 | Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
@@ -5134,12 +5071,8 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 ### Acceptance Criteria
 **Scenario 1 — Correct a failed method**
 - Given a driver's last payout failed "Account closed"
-- When a Financial officer enters a new bank account and a Financial lead approves
-- Then the profile shows the new number, updated by the Financial officer, and her next due earnings go into the next batch
-
-**Scenario 2 — Pending edit**
-- Given an edit is awaiting approval
-- Then the profile shows "Change awaiting approval" and Edit is disabled
+- When a Financial officer enters a new bank account and saves
+- Then the profile shows the new number at once, updated by the Financial officer, and the driver's next due earnings go into the next batch
 
 ### Out of Scope
 - Verifying the account with the bank
@@ -5147,7 +5080,6 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 ### Dependencies
 - #1657/#1658 — Driver application review
 - #5625 Driver adds a payout method during onboarding
-- #6564 — Approval cycle — Payout method change
 
 ### Mockup (ADO comment)
 - Driver profile — last payout failed: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/driver-profile.html?id=1069
@@ -5468,7 +5400,7 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 
 ### Rules
 - She has every page, action and piece of data the Operations officer has (#6481).
-- Her actions apply at once, with no approval.
+- Her actions apply at once, with no approval, except a change to the Operations tab of Global policies: it is one request another Operations lead approves (#6944), and she decides other Operations leads' requests in Approvals.
 - The audit log (#1816) shows her operations entries only: driver applications, rider and driver suspensions, safety reports, zones and operating hours.
 
 ### Access Matrix
@@ -5491,7 +5423,7 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 | Operations | SOS requests and their actions (when it goes live) | #3945, #3946 | Full |
 | Pricing & settings | Zones and pricing policies | #1831, #1759 | View |
 | Pricing & settings | Create, edit or delete a service zone | #1756, #1830 | Full |
-| Pricing & settings | Change the operating hours | #6268 | Full |
+| Pricing & settings | Change the operating hours | #6268, #6944 | Request + approve |
 | Finance | Driver balances | #1813, #4378 | View |
 | Finance | Rider outstanding fees | #4005 | View |
 | Finance | Reports and reconciliation | #1833, #5668 | View |
@@ -5562,7 +5494,7 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 | Finance | Payouts: the payout history and its cards | #6497 | View |
 | Finance | Payouts: choose the payout method, generate a batch and export its bank file | #5618, #6570, #5619 | Full |
 | Finance | Payouts: import a batch's result file | #5619 | Request |
-| Finance | Change a driver's payout method | #5624 | Request |
+| Finance | Change a driver's payout method | #5624 | Full |
 | Finance | Approvals | #5617, #6212 | Own requests (view) |
 | Finance | Reports and reconciliation | #1833, #5668 | View |
 
@@ -5578,7 +5510,7 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 
 **Scenario 3 — Payout method**
 - When Mona changes a driver's wallet to 01098765432
-- Then the profile keeps showing the old wallet until a Financial lead approves the change
+- Then the profile shows the new wallet at once, last changed by Mona, with no approval
 
 ### Dependencies
 - #6480 — Roles, and how hidden pages and actions behave
@@ -5628,7 +5560,7 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 | Finance | Payouts: the payout history and its cards | #6497 | View |
 | Finance | Payouts: choose the payout method, generate a batch and export its bank file | #5618, #6570, #5619 | Full |
 | Finance | Payouts: import a bank file's result | #5619 | Request + approve |
-| Finance | Change a driver's payout method | #5624 | Request + approve |
+| Finance | Change a driver's payout method | #5624 | Full |
 | Finance | Approvals | #5617, #6212 | Approve |
 | Finance | Reports and reconciliation | #1833, #5668 | View |
 
@@ -5676,7 +5608,7 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 
 ### Rules
 - **Global policies** (#1759) gets an **Operating hours** section on its own **Operations** tab (tabs: #6486): **Opens at** / **Closes at**, Cairo time.
-- Operations lead only (#6482); other roles read-only. Saves immediately, no approval.
+- Operations lead only (#6482); other roles read-only. Send for approval sends the tab as one request; another Operations lead approves it (#6944). Nothing changes until then.
 - Applies to the next ride request and the rider app's open/closed status (#1785), not to trips already requested.
 - Status line: "Open now · closes at 23:00" / "مفتوح الآن · يغلق الساعة 23:00", "Closed now · opens today at 07:00" / "مغلق الآن · يفتح اليوم الساعة 07:00", "Closed now · opens tomorrow at 07:00" / "مغلق الآن · يفتح غدًا الساعة 07:00".
 - Shows "Last changed <date> by <name>".
@@ -5690,14 +5622,14 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 ### Acceptance Criteria
 **Scenario 1 — Closing earlier tonight**
 - Given the hours are 07:00–23:00 and it is 22:30
-- When the Operations lead changes Closes at to 22:00 and saves
+- When the Operations lead changes Closes at to 22:00, sends it, and another Operations lead approves it (#6944)
 - Then the section reads "Closed now · opens tomorrow at 07:00"
 - And a rider who requests a trip at 22:31 is refused (#1785)
 
 **Scenario 2 — Closing before opening**
 - Given Opens at is 07:00
-- When she enters 06:00 as Closes at and saves
-- Then "Closing time must be after opening time" shows under Closes at and nothing is saved
+- When she enters 06:00 as Closes at and sends it
+- Then "Closing time must be after opening time" shows under Closes at and no request is sent
 
 ### Out of Scope
 - Different hours per zone
@@ -5710,6 +5642,7 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 - #1785 — [API] Booking is open only inside operating hours
 - #1791 — [Mobile] Rider cannot book outside operating hours
 - #6482 — Operations lead
+- #6944 — Approval cycle — Operations tab change
 - #1816 — Audit log
 
 ### Mockup (ADO comment)

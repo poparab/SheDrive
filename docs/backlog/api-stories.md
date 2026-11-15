@@ -2879,6 +2879,63 @@ The filter is evaluated against the moment the trip reached its final outcome �
 
 ---
 
+## [API] #6688 — Trips get a short ID, fare lines as a list, start and end times and duration in minutes 🆕
+**Feature:** #1605 | **Sprint:** — | **Requested by:** mobile team, 2026-11-08
+
+**Description:** As the rider app, I want every trip to carry a short, readable ID and the trip responses to return the fare as a list of lines, the start and end date-time and the duration in minutes, so that the trip history and trip details screens show them without the app working anything out.
+
+### Rules
+- Short trip ID: `SD-` + 6 characters from A–Z and 2–9, leaving out O, I, L, 0 and 1 (e.g. `SD-7K3Q9M`). Issued when the trip is requested (#1629), unique, never reused. Trips made before this change get one too.
+- The short ID replaces the long reference (#SDR-20260602-0041) wherever a trip ID is shown to a rider or a driver: active trip, trip summary, trip history, trip details and fee history.
+- Date-times are ISO 8601 with the Cairo offset, e.g. `2026-11-08T14:38:00+02:00`.
+
+| Field | Shown on the screen as | Returned by |
+|---|---|---|
+| `trip_id` | “Trip ID #46821” → “SD-7K3Q9M” | Every trip response |
+| `fare_lines` | Breakdown rows above the Total | Trip details (#1714), trip summary (#3058) |
+| `total` | “Total 650.00 EGP” | Equals the sum of `fare_lines` |
+| `started_at` | “2:38 PM Start”; the date on the history card | Trip details, trip history (#5912) |
+| `ended_at` | “5:03 PM End” | Trip details, trip history |
+| `duration_minutes` | “Duration 2h 18m” | Trip details, trip summary. Whole minutes from start to end, at least 1; the app formats it |
+
+- Each fare line is `{code, label_en, label_ar, amount}` in display order. Lines today: `base_fare`, `distance_fare`, `duration_fare`, and `recovered_fee` only when an outstanding fee was recovered on that trip (#4000). A line of 0.00 is left out.
+- Figma's Waiting Fee, Cancellation Fee and Taxes rows are sample data — the fare engine does not produce them.
+
+### Acceptance Criteria
+**Scenario 1 — Trip details**
+- Given a trip started 14:38, ended 17:03, with base 5.00, distance 32.00, duration 18.00 and a recovered fee of 20.00
+- Then the response returns `SD-7K3Q9M`, four fare lines, a total of 75.00, both date-times and `duration_minutes` 145
+
+**Scenario 2 — No recovered fee**
+- Given nothing was recovered on the trip
+- Then `fare_lines` has three lines and no `recovered_fee`
+
+**Scenario 3 — Trip from before the change**
+- When a rider opens a trip made before short IDs existed
+- Then it returns a short ID, and the same one every time
+
+**Scenario 4 — Unauthenticated request is rejected**
+- Given a request without a valid session token
+- Then it is rejected and no trip data is returned
+
+### Out of Scope
+- Changing what the fare engine charges (#1628)
+- Searching for a trip by its ID
+
+### Dependencies
+- #1629 — Rider creates trip request
+- #1714 — Rider retrieves past trip detail
+- #5912 — Rider trip history
+- #3058 — Completed-trip fare is served
+- Mobile: #1567 — Rider views trip history; #1568 — Rider views past trip detail
+
+### Mockup (ADO comment)
+- Trip history: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/history
+- Trip details: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/trip-detail
+- Figma screens with red boxes (in `docs/design/api-requests-2026-11-08/`): S2-trip-details.png, S2-trip-history.png
+
+---
+
 ### Feature 13 — Admin Rider Management API
 
 ---
@@ -3197,6 +3254,67 @@ A read-only endpoint that returns **one number**: what the rider currently owes.
 
 ---
 
+
+## [API] #6689 — Payment method options, outstanding fee on Home, and the driver profile's join year and plate number 🆕
+**Feature:** #1775 | **Sprint:** — | **Requested by:** mobile team, 2026-11-08
+
+**Description:** As the rider and driver apps, I want the payment method options, the rider's outstanding fee for the Home screen, and the driver's join year and plate number, so that the Payment Method, Home and driver Profile screens show them from the API.
+
+### Rules
+- Payment method options (rider) return every method with whether it can be used now:
+
+| `method` | `available` | `default` | Shown on the screen as |
+|---|---|---|---|
+| `cash` | true | true | “Cash · Default — Pay directly to the driver” |
+| `card` | false | false | Not shown while unavailable |
+
+- Card turns `available: true` when card payment goes live (#1732), with no app change. Cash stays the default until she can choose (#1732).
+- Home: the data the Home screen loads returns `outstanding_fee` in EGP, two decimals — the same figure as #4004. 0.00 means no banner.
+- Driver profile (#1800) returns:
+
+| Field | Shown on the screen as | Notes |
+|---|---|---|
+| `member_since_year` | “2025 SINCE” in the top section | Year her driver account was registered, 4 digits |
+| `plate_number` | “Plate number ق د و ٤٥٦” | Exactly as captured at onboarding: Arabic letters and digits |
+
+### Acceptance Criteria
+**Scenario 1 — Options today**
+- When the rider asks for payment methods
+- Then cash is available and default, and card is listed as unavailable
+
+**Scenario 2 — Card goes live**
+- Given card payment is switched on
+- Then card returns `available: true` and cash is still the default
+
+**Scenario 3 — Outstanding fee on Home**
+- Given she owes a 20.00 cancellation fee
+- Then Home returns `outstanding_fee` 20.00; once it is recovered on her next trip it returns 0.00
+
+**Scenario 4 — Driver profile**
+- Given a driver registered on 14 March 2025 with plate ق د و ٤٥٦
+- Then her profile returns `member_since_year` 2025 and `plate_number` “ق د و ٤٥٦”
+
+**Scenario 5 — Unauthenticated request is rejected**
+- Given a request without a valid session token
+- Then it is rejected and no data is returned
+
+### Out of Scope
+- Choosing or saving a card (#1732)
+- Changing the plate number from the app
+
+### Dependencies
+- #4004 — Rider retrieves her outstanding balance
+- #1800 — Driver retrieves her profile
+- #1732 — Rider selects a payment method
+- Mobile: #3992 — Rider views her payment method; #3995 — Rider sees an outstanding fee before she requests a ride; #1801 — Driver views her profile
+
+### Mockup (ADO comment)
+- Payment method: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/payments
+- Home: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/home
+- Driver profile: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/my-profile
+- Figma screens with red boxes (in `docs/design/api-requests-2026-11-08/`): S3-payment-method-options.png, S3-home-outstanding-fee.png, S3-driver-profile-since-plate.png
+
+---
 
 ### Feature 20 — Trip Cancellation API
 
@@ -3536,6 +3654,84 @@ The driver is entitled to the same 100.00 EGP (80.00 net earnings plus the 20.00
 ---
 
 > **Removed 2026-09-17:** #4002 (rider fees above the recovery threshold are recovered in a single payment) is Removed in ADO. There is no recovery threshold — a rider clears her entire outstanding balance on her next completed trip, always. That is #4000's behaviour above, so this story had nothing left to add.
+
+---
+
+## [API] #6687 — Rider cancel sheet gets the fee, driver ETA, arrival time and grace period, and cancelling takes a reason 🆕
+**Feature:** #1778 | **Sprint:** — | **Requested by:** mobile team, 2026-11-08
+
+**Description:** As the rider app, I want the active-trip response to give me the cancellation fee, the driver's minutes to pickup, the time she arrived and until when cancelling is free, and I want the cancel request to take the rider's reason, so that the cancel sheet shows exactly what cancelling costs right now and SheDrive learns why riders cancel.
+
+### Rules
+- The active-trip response (#1633) returns the fields below from driver acceptance until the trip starts.
+- Every date-time in this story is ISO 8601 with the Cairo offset, e.g. `2026-11-08T14:38:05+02:00`.
+- Whether a fee applies and how much it is follows #1764 unchanged; this story only returns the result.
+
+| Field | Shown on the screen as | Notes |
+|---|---|---|
+| `cancellation_fee` | “A cancellation fee of **EGP 25** applies if you cancel now.” | EGP, two decimals; the zone amount fixed at acceptance |
+| `cancellation_fee_applies` | Which cancel sheet opens: “fee applies” or “no charge” | true / false at the moment of the response |
+| `driver_eta_minutes` | “Driver arrives in **4** min” | Whole minutes, rounded up, at least 1; null once she has arrived |
+| `arrived_at` | “Karma has arrived” and the waiting timer | Date-time she tapped “I've Arrived”; null before that |
+| `grace_period_minutes` | Not shown | Rider grace period fixed at acceptance (#1759) |
+| `free_cancellation_until` | “…cancelled with no charge” until this time | Date-time: acceptance + grace period |
+
+- The cancel request (#1715) requires one reason from the list below, for every rider cancellation. The reason is stored on the cancelled trip.
+- The cancel response returns the fee actually charged (0.00 when free).
+
+| Reason code | Shown on the screen as |
+|---|---|
+| `driver_taking_too_long` | Driver is taking too long |
+| `incorrect_pickup_location` | Incorrect pickup location |
+| `no_longer_needed` | No longer need this ride |
+| `booked_by_mistake` | Booked by mistake |
+| `other` | Other — optional note, up to 200 characters |
+
+### Acceptance Criteria
+**Scenario 1 — Inside the grace period**
+- Given the driver accepted at 14:30:00, the grace period is 3 minutes and the zone fee is 25.00
+- When the rider app polls at 14:31
+- Then `cancellation_fee_applies` is false, `free_cancellation_until` is 2026-11-08T14:33:00+02:00, `cancellation_fee` is 25.00 and `driver_eta_minutes` is 4
+
+**Scenario 2 — After the grace period**
+- When the same trip is polled at 14:34
+- Then `cancellation_fee_applies` is true
+
+**Scenario 3 — Driver arrived**
+- Given the driver taps “I've Arrived” at 14:38:05
+- Then `arrived_at` is 2026-11-08T14:38:05+02:00 and `driver_eta_minutes` is null
+- And the rider reopening the app gets the same `arrived_at`
+
+**Scenario 4 — Cancel with a reason**
+- When the rider cancels at 14:34 with `booked_by_mistake`
+- Then the trip is cancelled with that reason and the response returns a fee of 25.00
+
+**Scenario 5 — Other with a note**
+- When she cancels with `other` and the note “Found another ride”
+- Then the reason and the note are stored on the trip
+
+**Scenario 6 — Invalid reason**
+- When the reason is missing, not in the list, or the note is over 200 characters
+- Then a validation error is returned and the trip is not cancelled
+
+**Scenario 7 — Unauthenticated request is rejected**
+- Given a request without a valid rider session token
+- Then it is rejected and no trip data is returned
+
+### Out of Scope
+- Changing when a fee applies or its amount (#1764)
+- Driver cancellation reasons (#1720)
+- Showing rider reasons in the admin portal
+
+### Dependencies
+- #1633 — Rider tracks her active trip
+- #1715 — Rider cancels a trip
+- #1764 — Cancellation fees are charged after the grace period
+- Mobile: #1719 — Rider cancels a trip; #1559 — Rider sees driver-arrived state
+
+### Mockup (ADO comment)
+- Active trip (cancel sheet): https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/active-trip
+- Figma screens with red boxes (in `docs/design/api-requests-2026-11-08/`): S1-cancel-fee-applies.png, S1-cancel-free-in-grace.png, S1-driver-arrived-waiting.png, S1-cancel-reason.png
 
 ---
 

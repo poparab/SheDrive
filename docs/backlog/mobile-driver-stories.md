@@ -1,6 +1,6 @@
 # SheDrive — Mobile Driver Stories
 > Canonical backlog for all [Mobile] Driver stories. Organized by sprint and feature.
-> Last updated: 2026-11-08
+> Last updated: 2026-11-15 (#5626 out of scope: no approval on any payout method change)
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -2724,7 +2724,7 @@ The driver can cancel at two points: while navigating to the pickup (en_route_pi
 
 ### Out of Scope
 - More than one payout method
-- Approval of her own change (an admin's change to her method needs approval — #6564)
+- Approval of any change — hers, or a Financial officer's or lead's on her behalf (#5624), applies at once
 - Checking that the account really exists — format only
 
 ### Dependencies
