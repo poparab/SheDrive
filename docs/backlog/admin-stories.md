@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-11-15 (Global policies request pages drop "Where it applies" — #6565/#6567/#6944)
+> Last updated: 2026-11-15 (request pages drop "Where it applies" — rate card #5623 and Global policies #6565/#6567/#6944)
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model (2026-10-27):** Five admin roles — **Admin (users & IT)**, **Operations officer**,
@@ -4193,7 +4193,6 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 |---|---|
 | Request details | Zone, created by, status |
 | Before → After | Base fare, per-km rate, per-minute rate, minimum fare, cancellation fee; a removal shows Rate card → Removed |
-| Where it applies | Zone (links to Pricing & zones), zone status, "To new trips in this zone, from the moment it is approved." |
 
 ### What approving does
 - **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
