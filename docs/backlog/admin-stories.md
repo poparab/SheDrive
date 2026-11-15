@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-11-15 (#5624 payout method edit applies without approval, #6564 Removed; #6562 earnings tiles dropped)
+> Last updated: 2026-11-15 (Global policies request pages drop "Where it applies" — #6565/#6567/#6944)
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model (2026-10-27):** Five admin roles — **Admin (users & IT)**, **Operations officer**,
@@ -4245,7 +4245,6 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 |---|---|
 | Request details | Global policies — Pricing, created by, status |
 | Before → After | Every field on the tab, the changed ones marked: rider grace period, driver cancellation fee, driver grace period, rider no-show wait, commission (%) |
-| Where it applies | Setting, Global policies tab (Pricing — links to it), "Commission: to trips completed after it is approved. Cancellation policy: to trips requested after it is approved." |
 
 ### What approving does
 - **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
@@ -4296,7 +4295,6 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 |---|---|
 | Request details | Global policies — Finance, created by, status |
 | Before → After | Every field on the tab, the changed ones marked: balance limit (EGP), minimum payout, transfer fee (%), fee minimum, fee maximum, who pays it |
-| Where it applies | Setting, Global policies tab (Finance — links to it), "Balance limit: at once — drivers under the new limit can go online, drivers over it cannot. Payout settings: to the next payout batch generated; batches already generated keep their own." |
 
 ### What approving does
 - **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
@@ -4348,7 +4346,6 @@ All scenarios use the same example: a mobile wallet batch of 100 lines, 50,000 E
 |---|---|
 | Request details | Global policies — Operations, created by, status |
 | Before → After | Opens at, closes at (Cairo time), the changed ones marked |
-| Where it applies | Setting, Global policies tab (Operations — links to it), "To the next ride request after it is approved and to the rider app's open/closed status. Trips already requested run to their end." |
 
 ### What approving does
 - **Approve** only asks her to confirm. **Reject** needs a reason, and the reason shows on the request page.
