@@ -915,6 +915,11 @@ The driver home screen is the main screen for approved drivers after login. It d
 - When she attempts to navigate to the home screen
 - Then she is redirected to the pending/rejection screen (#1576)
 
+**Scenario 4 — View nearby trip requests**
+- Given a driver is viewing the home screen
+- When she swipes up
+- Then she sees the details of all nearby trip requests
+
 ### Out of Scope
 - Trip request handling (separate stories)
 - SOS functionality
@@ -1137,7 +1142,7 @@ All strings flow through data-i18n keys with Arabic fallback, and all amounts ar
 
 ### Dependencies
 - #3996 — Driver go-online is blocked while her outstanding balance is over the limit (API — must be live)
-- #3994 — Super admin configures balance and fee policy (supplies the limit and the warning threshold)
+- #3994 — Driver outstanding-balance limit is configured (supplies the limit and the warning threshold)
 - #3989 — Driver settles what she owes and sees her settlement history (opened from the sheet's "Settle now" action)
 - #1578 — Driver sees home screen with map (hosts the toggle and the warning band)
 
@@ -1193,6 +1198,7 @@ When the platform dispatches a trip to a matched driver (#1647), a push notifica
 ### Dependencies
 - #1618 — Push notification service integration (must be live)
 - #1647 — System pushes trip request to matched driver (API — must be live)
+- #1759 — Super admin configures the driver acceptance window (default 30 seconds)
 
 ---
 
@@ -1203,7 +1209,7 @@ When the platform dispatches a trip to a matched driver (#1647), a push notifica
 
 ### Background
 
-When a driver receives a trip request (via push notification or app foreground transition), she is shown a full-screen or modal trip request details screen. The screen displays the pickup address, destination summary, estimated distance, and estimated fare. A 30-second countdown timer is prominently visible and begins immediately when the screen loads. The countdown length is not hardcoded — it is seeded from the acceptance window configured by the super admin (#1759, default 30 seconds) and delivered with the dispatch payload (#1648). Two action buttons are shown: "Accept" and "Reject." If the timer reaches zero without action, the screen auto-dismisses, a brief "Request expired" message is shown, and the driver returns to her home/available screen. The system treats the non-response as a rejection and reassigns the trip.
+When a driver receives a trip request (via push notification or app foreground transition), she is shown a full-screen or modal trip request details screen. The screen displays the pickup address, destination summary, estimated distance, and estimated fare. A 30-second countdown timer is prominently visible and begins immediately when the screen loads. The countdown length is not hardcoded — it is seeded from the acceptance window configured by the super admin (#1759, default 30 seconds) and delivered with the dispatch payload. Two action buttons are shown: "Accept" and "Reject." If the timer reaches zero without action, the screen auto-dismisses, a brief "Request expired" message is shown, and the driver returns to her home/available screen. The system treats the non-response as a rejection and reassigns the trip.
 
 ### Acceptance Criteria
 
@@ -2800,30 +2806,7 @@ The driver can cancel at two points: while navigating to the pickup (en_route_pi
 
 # No masking of phone numbers or national IDs (2026-10-14)
 
-> Phone numbers and national IDs are shown in full everywhere; payout account and card numbers stay masked. Built stories are left as they are — these new stories carry the change.
-
----
-
-## [Mobile] #5653 — Driver sees her full national ID on her profile 🆕
-**Feature:** #1538 Driver Authentication | **Sprint:** —
-
-**Description:** As a driver, I want to see my full national ID on my profile so that I can check it is the one SheDrive verified.
-
-### Rules
-- My profile (#1801) shows her full 14-digit national ID instead of the last 4 digits. It stays read-only.
-
-### Acceptance Criteria
-**Scenario 1 — Full national ID**
-- Given her national ID is 29805120104821
-- When she opens My profile
-- Then Personal details shows 29805120104821
-
-### Dependencies
-- #1801 — Driver views her profile
-- #5654 [API] Driver profile returns her full national ID
-
-### Mockup (ADO comment)
-- My profile: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/my-profile.html
+> Phone numbers are shown in full. Built stories are left as they are — this new story carries the change.
 
 ---
 

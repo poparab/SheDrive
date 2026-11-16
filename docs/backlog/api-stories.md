@@ -4410,7 +4410,6 @@ The snapshot fields (who raised it, the trip context, the place and the time of 
 
 ### Dependencies
 - #1800 — Driver retrieves her profile
-- #5653 [Mobile] Driver sees her full national ID on her profile
 
 ### Mockup (ADO comment)
 - My profile: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/my-profile.html
