@@ -986,6 +986,7 @@ This is the internal fare-calculation engine used by the fare estimate (#1627) a
 
 ### Mockup (ADO comment)
 - Rider home — tap Pickup or Destination to open the search screen: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/home.html
+- Figma screens (attached): Rider - Home - Select Pickup.png, Rider - Home - Select Destination.png (`docs/design/figma-rider/`)
 
 ---
 
@@ -3104,6 +3105,7 @@ This endpoint returns aggregated earnings data for the authenticated driver, bro
 
 ### Mockup (ADO comment)
 - Driver earnings: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/earnings.html
+- Figma screens (attached): Driver - Earnings.png, Driver - Earnings + This Week.png (`docs/design/figma-driver/`)
 
 ---
 
