@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-11-15 (#6565 and #6944 cut to their own rules; request pages drop "Where it applies")
+> Last updated: 2026-11-17 (#7037 pickup geofence radius on the Operations tab)
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model (2026-10-27):** Five admin roles — **Admin (users & IT)**, **Operations officer**,
@@ -5611,5 +5611,51 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 ### Mockup (ADO comment)
 - Global policies — Operations tab: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=ops_lead&tab=operations
 - Design story: #6269
+
+---
+
+## [Admin] #7037 — Operations lead sets the pickup geofence radius 🆕
+**Feature:** #1755 Admin — Pricing & Rate Management | **Sprint:** TBD | **Tag:** Admin, Geofence
+
+**Description:** As an Operations lead, I want to set how close a driver must be to the pickup point before she can tap "I've Arrived" so that we can tune the check for Cairo and Giza streets without an app release.
+
+### Rules
+- The Operations tab of **Global policies** (#6268) gets a **Pickup geofence** section with one field: **Accepted distance (meters)**.
+- Operations lead only (#6482); other roles see it read-only. It goes in the same Operations tab request as the operating hours and applies only after another Operations lead approves it (#6944).
+- Shows "Last changed <date> by <name>".
+- **API for the driver app:** a driver configuration endpoint returns `pickupGeofenceMeters` (integer, the approved value). It needs a valid driver session.
+- The driver app reads it each time a trip moves to en route to pickup. If the call fails, the app keeps its 150 m fallback (#4093).
+
+### Field Validation
+| Field | Required | Type / Format | Accepted values | Min | Max | Default | Error — empty | Error — invalid | Error — range/length |
+|---|---|---|---|---|---|---|---|---|---|
+| Accepted distance (meters) | Yes | Integer, meters | Whole numbers 50–300 | 50 | 300 | 150 | Enter the accepted distance / أدخل المسافة المقبولة | Enter a whole number of meters / أدخل عددًا صحيحًا من الأمتار | Enter a value from 50 to 300 meters / أدخل قيمة من 50 إلى 300 متر |
+
+### Acceptance Criteria
+**Scenario 1 — Widening the distance**
+- Given the accepted distance is 150 m
+- When Dina (Operations lead) sets 200 and sends the Operations tab
+- Then the endpoint keeps returning 150 until another Operations lead approves it
+- And after approval it returns 200, and a driver 180 m from the pickup point can tap "I've Arrived"
+
+**Scenario 2 — Out of range**
+- When she enters 20
+- Then "Enter a value from 50 to 300 meters" shows under the field and no request is sent
+
+**Scenario 3 — Unauthenticated request is rejected**
+- Given the configuration endpoint is called without a valid driver session
+- Then it is rejected and returns no value
+
+### Out of Scope
+- A different distance per zone
+- Any geofence at the destination or on trip end
+- Server-side enforcement of the arrival check (as in #4093)
+
+### Dependencies
+- #6268 — Global policies, Operations tab
+- #6944 — Approval cycle — Operations tab change
+- #6482 — Operations lead
+- #4093 — [Mobile] Driver app gates "I've Arrived" on the pickup geofence
+- #1816 — Audit log
 
 ---

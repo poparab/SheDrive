@@ -1,6 +1,6 @@
 # SheDrive — API Stories
 > Canonical backlog for all [API] stories. Organized by sprint and feature.
-> Last updated: 2026-11-11 (emergency contacts split — #6917/#6918 manage, #1780/#1952 send)
+> Last updated: 2026-11-17 (#7036 earnings period filter: online time, acceptance rate, rating)
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -2983,6 +2983,63 @@ This endpoint returns aggregated earnings data for the authenticated driver, bro
 
 ### Dependencies
 - #1619 — Authentication service (must be live)
+
+---
+
+## [API] #7036 — Driver earnings — period filter with online time, acceptance rate and rating 🆕
+**Feature:** Feature 18 — Driver Earnings API | **Sprint:** TBD | **Tag:** API
+
+**Description:** As the driver app, I want the earnings endpoint to filter by today, this week or this month and return her online time, acceptance rate and average rating for that period so that the earnings dashboard shows figures that match the selected tab.
+
+### Rules
+- `GET /Trips/v1.0/GetDriverEarnings` already exists (#1735). It now takes `period`: `today`, `thisWeek` or `thisMonth`. Missing → `today`.
+- Periods run in Cairo time up to now: today from 00:00, this week from Monday 00:00, this month from the 1st at 00:00.
+- Everything in the response — earnings total, trip count, trip list and the three new fields — covers the selected period only.
+- The lifetime rating on the driver profile is not changed; `averageRating` is the period's figure.
+
+### New response fields
+| Field | Type | Meaning | No data in the period | Shown on the screen as |
+|---|---|---|---|---|
+| `onlineTimeMinutes` | Integer | Minutes she was online inside the period, rounded down. A session that began before the period counts from the period start; a session still open counts up to now. | 0 | Online time |
+| `acceptanceRate` | Whole number, 0–100 | Requests she accepted ÷ requests offered to her in the period × 100, rounded to the nearest whole number. A request that timed out unanswered counts as not accepted. | null (no requests offered) | Acceptance rate |
+| `averageRating` | Number 1.0–5.0, one decimal | Average of the rider ratings on her trips completed in the period. | null (no rated trips) | Avg. rating |
+
+### Acceptance Criteria
+
+**Scenario 1 — This week**
+- Given today is Wednesday 18 Nov 2026 and this week she was online 200 minutes on Monday and 130 minutes today
+- And she was offered 20 requests: accepted 18, declined 1, let 1 time out
+- And her 3 completed trips this week were rated 5, 5 and 4
+- When the app requests `period=thisWeek`
+- Then the response has `onlineTimeMinutes` = 330, `acceptanceRate` = 90, `averageRating` = 4.7
+
+**Scenario 2 — A session across midnight**
+- Given she went online yesterday at 23:30 and offline today at 00:45
+- Then `period=today` counts 45 minutes of it
+
+**Scenario 3 — Nothing offered, nothing rated**
+- Given she was online 60 minutes today and was offered no requests
+- Then `period=today` returns `onlineTimeMinutes` = 60, `acceptanceRate` = null, `averageRating` = null
+
+**Scenario 4 — Unknown period**
+- When the app requests `period=lastYear`
+- Then the response is 400 "Invalid period" and returns no figures
+
+**Scenario 5 — Unauthenticated request is rejected**
+- Given a request arrives without a valid driver token
+- Then the platform rejects it via #1619
+
+### Out of Scope
+- Custom date ranges
+- Changing the lifetime rating on the driver profile
+
+### Dependencies
+- #1735 — [API] Driver views earnings dashboard (the existing endpoint)
+- #1736 — [Mobile] Driver views earnings dashboard (the screen these fields fill)
+- #1649 — [API] Driver accepts trip (offered and accepted requests)
+
+### Mockup (ADO comment)
+- Driver earnings: https://shedrive-web.abdelrahman-arcorp.workers.dev/driver/earnings.html
 
 ---
 
