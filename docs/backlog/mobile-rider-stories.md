@@ -1,6 +1,6 @@
 # SheDrive — Mobile Rider Stories
 > Canonical backlog for all [Mobile] Rider stories. Organized by sprint and feature.
-> Last updated: 2026-11-11 (#3968 depends on #1780 instead of the Removed #3971)
+> Last updated: 2026-11-17 (#1549 recent places come from the API, #7038)
 > Stories with changes from original are marked ✏️
 
 ---
@@ -478,7 +478,7 @@ The rider home screen is the main screen after login for verified riders. It sho
 
 Tapping the pickup or the destination field on the home screen (#1548) opens a full-screen search screen for that field. It replaces the home screen until she picks a place or goes back. The search field is focused with the keyboard open, and the title names the field she is choosing — pickup or destination.
 
-Before she types, the screen offers two shortcuts. Saved Places shows her saved places — Home and Work first, then her other places — with View All opening the Saved Places screen in her profile (#1724). Recent Places lists the last five addresses she picked on this device, newest first, each with its name, its address, and its distance and driving time from where she is now.
+Before she types, the screen offers two shortcuts. Saved Places shows her saved places — Home and Work first, then her other places — with View All opening the Saved Places screen in her profile (#1724). Recent Places lists the last five addresses she picked, newest first. They are kept on her account and served by #7038, so they follow her to any phone she signs in on, each with its name, its address, and its distance and driving time from where she is now.
 
 Once she has typed two characters, address suggestions from the maps provider replace both shortcuts: up to five, biased to Cairo and Giza. Picking a saved place, a recent place or a suggestion fills the field and returns her to the home screen; what happens next belongs to #1550 (pickup) and #1551 (destination). The pickup-only “Use my current location” and the “Pick on map” actions on this screen are owned by those two stories as well.
 
@@ -491,7 +491,7 @@ Saved places are read-only here — adding, editing and deleting them is the Sav
 | Header | Back arrow and a title naming the field being chosen | Back returns to the home screen with the field unchanged |
 | Search field | Pickup or Destination, focused, keyboard open | Typing two or more characters shows suggestions |
 | Saved Places | Home and Work first, then her other places, each with its name and address; View All | Tapping a place fills the field. View All opens the Saved Places screen (#1724). Left out when she has none or they cannot be loaded |
-| Recent Places | Up to five places she picked on this device, newest first: name, address, distance and driving time | Tapping one fills the field. Left out when she has none |
+| Recent Places | Up to five places she picked, newest first (from #7038): name, address, distance and driving time | Tapping one fills the field. Left out when she has none |
 | Suggestions | Up to five addresses, Cairo and Giza first | Replace Saved and Recent while she types; tapping one fills the field |
 | No results / error | A short message, with Retry for the error | Saved and Recent return when the search text is cleared |
 
@@ -530,14 +530,14 @@ Saved places are read-only here — adding, editing and deleting them is the Sav
 - Then the Saved Places section is left out and the rest of the screen works as usual
 
 **Scenario 6 — Recent places are offered before she types**
-- Given the rider has picked places before on this device
+- Given the rider has picked places before, on this phone or another
 - When the search screen opens
 - Then up to five of them are listed under Recent Places, newest first
 - And each shows its name, its address, and its distance and driving time from her current location
 - And when her location is unavailable, the distance and time are left out
 
 **Scenario 7 — A new rider sees no recent places**
-- Given the rider has never picked a place on this device
+- Given the rider has never picked a place
 - When the search screen opens
 - Then the Recent Places section is left out
 
@@ -555,7 +555,7 @@ Saved places are read-only here — adding, editing and deleting them is the Sav
 - Given suggestions are shown
 - When she taps one
 - Then the field is set to that address and she is returned to the home screen
-- And the address becomes the newest of her recent places
+- And the app saves it to her recent places (#7038), where it becomes the newest
 
 **Scenario 11 — No results**
 - Given she has typed two or more characters
@@ -593,6 +593,7 @@ Saved places are read-only here — adding, editing and deleting them is the Sav
 - #1551 — Rider sets destination (what happens after a destination is picked; “Pick on map”)
 - #1724 — Rider views and manages her profile (the Saved Places screen View All opens)
 - #4475 — Rider profile is served in one call and its editable parts are saved (API — supplies her saved places)
+- #7038 — [API] Rider's recent places are saved and returned (stores and serves her recent places)
 - Address suggestions come from the maps provider directly; there is no SheDrive API for search
 - #4779 — [Rider] Restructure Pickup & Destination search (design)
 
