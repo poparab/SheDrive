@@ -1,6 +1,6 @@
 # SheDrive — Admin Portal Stories
 > Canonical backlog for all [Admin] stories. Organized by sprint and feature.
-> Last updated: 2026-11-17 (#7037 pickup geofence radius on the Operations tab)
+> Last updated: 2026-11-17 (#7037 pickup geofence radius on the Operations tab, with mockup links)
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 > **Role model (2026-10-27):** Five admin roles — **Admin (users & IT)**, **Operations officer**,
@@ -5657,5 +5657,10 @@ File result when any row fails: *File rejected — {n} rows failed the business 
 - #6482 — Operations lead
 - #4093 — [Mobile] Driver app gates "I've Arrived" on the pickup geofence
 - #1816 — Audit log
+
+### Mockup (ADO comment)
+- Global policies — Operations tab, Pickup geofence card: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=ops_lead&tab=operations
+- Request page — Operations tab change with the geofence 150 → 200 m: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/approval-request.html?id=APR-0023&as=ops_lead
+- Read-only for an Operations officer: https://shedrive-web.abdelrahman-arcorp.workers.dev/admin-v2/pricing-policies.html?as=ops_officer&tab=operations
 
 ---

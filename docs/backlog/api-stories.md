@@ -1,6 +1,6 @@
 # SheDrive — API Stories
 > Canonical backlog for all [API] stories. Organized by sprint and feature.
-> Last updated: 2026-11-17 (#7036 earnings period filter: online time, acceptance rate, rating)
+> Last updated: 2026-11-17 (#7036 earnings period filter; #7038 rider recent places)
 > Stories with changes from original are marked ✏️ | New stories marked 🆕
 
 ---
@@ -922,6 +922,70 @@ This is the internal fare-calculation engine used by the fare estimate (#1627) a
 - #1756 — Super admin manages service zones (must be live)
 - #1757 — Super admin configures zone rate card (must be live)
 - #1829 — Fare engine resolves overlapping service zones to the smallest zone
+
+---
+
+## [API] #7038 — Rider's recent places are saved and returned 🆕
+**Feature:** #1601 Rider Address, Map & Fare Estimate API | **Sprint:** TBD | **Tag:** API
+
+**Description:** As the rider app, I want to save each place the rider picks and get her latest places back so that the search screen can offer her recent places on any phone she signs in on.
+
+### Rules
+- **Save:** the app sends a place each time she picks one on the search screen (#1549) as her pickup or destination — a suggestion, a saved place, a recent place or a pin on the map. It sends name, address, latitude and longitude.
+- A place within 20 m of one already in her list is not added again: that entry moves to the top with its new name and address.
+- She keeps her 5 newest places; saving a sixth drops the oldest.
+- **Retrieve:** returns her places newest first: name, address, latitude, longitude, last used at.
+- When the app sends her current position, each place also returns its distance (km, one decimal) and driving time (whole minutes) from there; otherwise both are null.
+- The list belongs to her account, not the phone, and only she can read or change it.
+
+### Field Validation
+| Field | Required | Type / Format | Accepted values | Error |
+|---|---|---|---|---|
+| name | Yes | Text | 1–100 characters, Arabic or Latin | 400 — nothing saved |
+| address | Yes | Text | 1–300 characters | 400 — nothing saved |
+| latitude / longitude | Yes | Decimal degrees | Latitude −90 to 90, longitude −180 to 180 | 400 — nothing saved |
+
+### Acceptance Criteria
+
+**Scenario 1 — Her latest places with distance**
+- Given she has picked 7 places in the past
+- When the app asks for her recent places and sends her current position
+- Then the 5 newest come back, newest first, each with distance and driving time (for example 3.4 km, 12 min)
+
+**Scenario 2 — The same place again**
+- Given "City Stars" is third in her list
+- When she picks City Stars again as her destination
+- Then it moves to the top and the list still holds 5 places
+
+**Scenario 3 — New phone**
+- Given she picked places on one phone
+- When she signs in on another phone
+- Then the same places come back
+
+**Scenario 4 — No location**
+- When the app asks without her current position
+- Then the places come back with distance and driving time null
+
+**Scenario 5 — New rider**
+- Given she has never picked a place
+- Then the list is empty
+
+**Scenario 6 — Unauthenticated request is rejected**
+- Given a save or retrieve arrives without a valid rider token
+- Then the platform rejects it via #1619
+
+### Out of Scope
+- Clearing or editing the list
+- Places taken from her trip history
+- Saved places (Home, Work, custom) — #4475
+
+### Dependencies
+- #1549 — [Mobile] Rider searches address with autocomplete (the Recent Places section)
+- #1550 / #1551 — [Mobile] Rider sets pickup / destination
+- #1619 — Auth middleware
+
+### Mockup (ADO comment)
+- Rider home — tap Pickup or Destination to open the search screen: https://shedrive-web.abdelrahman-arcorp.workers.dev/rider/home.html
 
 ---
 
